@@ -1,0 +1,24 @@
+//
+//  ContentView.swift
+//  time beam
+//
+//  Created by Kayis Rahman on 15/09/25.
+//
+
+import SwiftUI
+
+struct ContentView: View {
+    var body: some View {
+        VStack {
+            Image(systemName: "globe")
+                .imageScale(.large)
+                .foregroundStyle(.tint)
+            Text("Hello, world!")
+        }
+        .padding()
+    }
+}
+
+#Preview {
+    ContentView()
+}
