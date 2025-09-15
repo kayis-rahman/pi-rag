@@ -12,37 +12,37 @@
 			containerPortal = 6D59998B2E780AE300D65722 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 6D5999922E780AE300D65722;
-			remoteInfo = "time beam";
+			remoteInfo = TimeBeam;
 		};
 		6D5999AF2E780AE600D65722 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 6D59998B2E780AE300D65722 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 6D5999922E780AE300D65722;
-			remoteInfo = "time beam";
+			remoteInfo = TimeBeam;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		6D5999932E780AE300D65722 /* time beam.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "time beam.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		6D5999A42E780AE600D65722 /* time beamTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "time beamTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		6D5999AE2E780AE600D65722 /* time beamUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "time beamUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		6D5999932E780AE300D65722 /* TimeBeam.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TimeBeam.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		6D5999A42E780AE600D65722 /* TimeBeamTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TimeBeamTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		6D5999AE2E780AE600D65722 /* TimeBeamUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TimeBeamUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		6D5999952E780AE300D65722 /* time beam */ = {
+		6D5999952E780AE300D65722 /* TimeBeam */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "time beam";
+			path = TimeBeam;
 			sourceTree = "<group>";
 		};
-		6D5999A72E780AE600D65722 /* time beamTests */ = {
+		6D5999A72E780AE600D65722 /* TimeBeamTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "time beamTests";
+			path = TimeBeamTests;
 			sourceTree = "<group>";
 		};
-		6D5999B12E780AE600D65722 /* time beamUITests */ = {
+		6D5999B12E780AE600D65722 /* TimeBeamUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "time beamUITests";
+			path = TimeBeamUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -75,9 +75,9 @@
 		6D59998A2E780AE300D65722 = {
 			isa = PBXGroup;
 			children = (
-				6D5999952E780AE300D65722 /* time beam */,
-				6D5999A72E780AE600D65722 /* time beamTests */,
-				6D5999B12E780AE600D65722 /* time beamUITests */,
+				6D5999952E780AE300D65722 /* TimeBeam */,
+				6D5999A72E780AE600D65722 /* TimeBeamTests */,
+				6D5999B12E780AE600D65722 /* TimeBeamUITests */,
 				6D5999942E780AE300D65722 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -85,9 +85,9 @@
 		6D5999942E780AE300D65722 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				6D5999932E780AE300D65722 /* time beam.app */,
-				6D5999A42E780AE600D65722 /* time beamTests.xctest */,
-				6D5999AE2E780AE600D65722 /* time beamUITests.xctest */,
+				6D5999932E780AE300D65722 /* TimeBeam.app */,
+				6D5999A42E780AE600D65722 /* TimeBeamTests.xctest */,
+				6D5999AE2E780AE600D65722 /* TimeBeamUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -95,9 +95,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		6D5999922E780AE300D65722 /* time beam */ = {
+		6D5999922E780AE300D65722 /* TimeBeam */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 6D5999B82E780AE600D65722 /* Build configuration list for PBXNativeTarget "time beam" */;
+			buildConfigurationList = 6D5999B82E780AE600D65722 /* Build configuration list for PBXNativeTarget "TimeBeam" */;
 			buildPhases = (
 				6D59998F2E780AE300D65722 /* Sources */,
 				6D5999902E780AE300D65722 /* Frameworks */,
@@ -108,18 +108,18 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				6D5999952E780AE300D65722 /* time beam */,
+				6D5999952E780AE300D65722 /* TimeBeam */,
 			);
-			name = "time beam";
+			name = TimeBeam;
 			packageProductDependencies = (
 			);
-			productName = "time beam";
-			productReference = 6D5999932E780AE300D65722 /* time beam.app */;
+			productName = TimeBeam;
+			productReference = 6D5999932E780AE300D65722 /* TimeBeam.app */;
 			productType = "com.apple.product-type.application";
 		};
-		6D5999A32E780AE600D65722 /* time beamTests */ = {
+		6D5999A32E780AE600D65722 /* TimeBeamTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 6D5999BB2E780AE600D65722 /* Build configuration list for PBXNativeTarget "time beamTests" */;
+			buildConfigurationList = 6D5999BB2E780AE600D65722 /* Build configuration list for PBXNativeTarget "TimeBeamTests" */;
 			buildPhases = (
 				6D5999A02E780AE600D65722 /* Sources */,
 				6D5999A12E780AE600D65722 /* Frameworks */,
@@ -131,18 +131,18 @@
 				6D5999A62E780AE600D65722 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				6D5999A72E780AE600D65722 /* time beamTests */,
+				6D5999A72E780AE600D65722 /* TimeBeamTests */,
 			);
-			name = "time beamTests";
+			name = TimeBeamTests;
 			packageProductDependencies = (
 			);
-			productName = "time beamTests";
-			productReference = 6D5999A42E780AE600D65722 /* time beamTests.xctest */;
+			productName = TimeBeamTests;
+			productReference = 6D5999A42E780AE600D65722 /* TimeBeamTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		6D5999AD2E780AE600D65722 /* time beamUITests */ = {
+		6D5999AD2E780AE600D65722 /* TimeBeamUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 6D5999BE2E780AE600D65722 /* Build configuration list for PBXNativeTarget "time beamUITests" */;
+			buildConfigurationList = 6D5999BE2E780AE600D65722 /* Build configuration list for PBXNativeTarget "TimeBeamUITests" */;
 			buildPhases = (
 				6D5999AA2E780AE600D65722 /* Sources */,
 				6D5999AB2E780AE600D65722 /* Frameworks */,
@@ -154,13 +154,13 @@
 				6D5999B02E780AE600D65722 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				6D5999B12E780AE600D65722 /* time beamUITests */,
+				6D5999B12E780AE600D65722 /* TimeBeamUITests */,
 			);
-			name = "time beamUITests";
+			name = TimeBeamUITests;
 			packageProductDependencies = (
 			);
-			productName = "time beamUITests";
-			productReference = 6D5999AE2E780AE600D65722 /* time beamUITests.xctest */;
+			productName = TimeBeamUITests;
+			productReference = 6D5999AE2E780AE600D65722 /* TimeBeamUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -186,7 +186,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 6D59998E2E780AE300D65722 /* Build configuration list for PBXProject "time beam" */;
+			buildConfigurationList = 6D59998E2E780AE300D65722 /* Build configuration list for PBXProject "TimeBeam" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -200,9 +200,9 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				6D5999922E780AE300D65722 /* time beam */,
-				6D5999A32E780AE600D65722 /* time beamTests */,
-				6D5999AD2E780AE600D65722 /* time beamUITests */,
+				6D5999922E780AE300D65722 /* TimeBeam */,
+				6D5999A32E780AE600D65722 /* TimeBeamTests */,
+				6D5999AD2E780AE600D65722 /* TimeBeamUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -258,12 +258,12 @@
 /* Begin PBXTargetDependency section */
 		6D5999A62E780AE600D65722 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 6D5999922E780AE300D65722 /* time beam */;
+			target = 6D5999922E780AE300D65722 /* TimeBeam */;
 			targetProxy = 6D5999A52E780AE600D65722 /* PBXContainerItemProxy */;
 		};
 		6D5999B02E780AE600D65722 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 6D5999922E780AE300D65722 /* time beam */;
+			target = 6D5999922E780AE300D65722 /* TimeBeam */;
 			targetProxy = 6D5999AF2E780AE600D65722 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -388,10 +388,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = "time beam/time_beam.entitlements";
+				CODE_SIGN_ENTITLEMENTS = TimeBeam/TimeBeam.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"time beam/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"TimeBeam/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
@@ -425,10 +425,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = "time beam/time_beam.entitlements";
+				CODE_SIGN_ENTITLEMENTS = TimeBeam/TimeBeam.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"time beam/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"TimeBeam/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
@@ -474,7 +474,7 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/time beam.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/time beam";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TimeBeam.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/TimeBeam";
 				XROS_DEPLOYMENT_TARGET = 2.0;
 			};
 			name = Debug;
@@ -496,7 +496,7 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/time beam.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/time beam";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TimeBeam.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/TimeBeam";
 				XROS_DEPLOYMENT_TARGET = 2.0;
 			};
 			name = Release;
@@ -517,7 +517,7 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_TARGET_NAME = "time beam";
+				TEST_TARGET_NAME = TimeBeam;
 				XROS_DEPLOYMENT_TARGET = 2.0;
 			};
 			name = Debug;
@@ -538,7 +538,7 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_TARGET_NAME = "time beam";
+				TEST_TARGET_NAME = TimeBeam;
 				XROS_DEPLOYMENT_TARGET = 2.0;
 			};
 			name = Release;
@@ -546,7 +546,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		6D59998E2E780AE300D65722 /* Build configuration list for PBXProject "time beam" */ = {
+		6D59998E2E780AE300D65722 /* Build configuration list for PBXProject "TimeBeam" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				6D5999B62E780AE600D65722 /* Debug */,
@@ -555,7 +555,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		6D5999B82E780AE600D65722 /* Build configuration list for PBXNativeTarget "time beam" */ = {
+		6D5999B82E780AE600D65722 /* Build configuration list for PBXNativeTarget "TimeBeam" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				6D5999B92E780AE600D65722 /* Debug */,
@@ -564,7 +564,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		6D5999BB2E780AE600D65722 /* Build configuration list for PBXNativeTarget "time beamTests" */ = {
+		6D5999BB2E780AE600D65722 /* Build configuration list for PBXNativeTarget "TimeBeamTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				6D5999BC2E780AE600D65722 /* Debug */,
@@ -573,7 +573,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		6D5999BE2E780AE600D65722 /* Build configuration list for PBXNativeTarget "time beamUITests" */ = {
+		6D5999BE2E780AE600D65722 /* Build configuration list for PBXNativeTarget "TimeBeamUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				6D5999BF2E780AE600D65722 /* Debug */,
