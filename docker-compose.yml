@@ -1,0 +1,35 @@
+version: "3.9"
+services:
+  api:
+    build:
+      context: ./back-end/api
+    env_file:
+      - ./back-end/api/.env
+    environment:
+      - DB_HOST=db
+      - REDIS_ADDR=redis:6379
+      - JWT_SECRET=dev-secret-change-me
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+      - redis
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: timebeam
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+volumes:
+  db_data:
+  redis_data:
