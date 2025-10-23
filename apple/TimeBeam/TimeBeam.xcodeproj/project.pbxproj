@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		6D634AC82E78869A00A9F1D6 /* TimeBeamShared in Frameworks */ = {isa = PBXBuildFile; productRef = 6D634AC72E78869A00A9F1D6 /* TimeBeamShared */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		6D5999A52E780AE600D65722 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6D634AC82E78869A00A9F1D6 /* TimeBeamShared in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,6 +117,7 @@
 			);
 			name = TimeBeam;
 			packageProductDependencies = (
+				6D634AC72E78869A00A9F1D6 /* TimeBeamShared */,
 			);
 			productName = TimeBeam;
 			productReference = 6D5999932E780AE300D65722 /* TimeBeam.app */;
@@ -195,6 +201,9 @@
 			);
 			mainGroup = 6D59998A2E780AE300D65722;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				6D634AC62E78869A00A9F1D6 /* XCLocalSwiftPackageReference "../TimeBeamShared" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 6D5999942E780AE300D65722 /* Products */;
 			projectDirPath = "";
@@ -583,6 +592,20 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		6D634AC62E78869A00A9F1D6 /* XCLocalSwiftPackageReference "../TimeBeamShared" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../TimeBeamShared;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		6D634AC72E78869A00A9F1D6 /* TimeBeamShared */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = TimeBeamShared;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 6D59998B2E780AE300D65722 /* Project object */;
 }

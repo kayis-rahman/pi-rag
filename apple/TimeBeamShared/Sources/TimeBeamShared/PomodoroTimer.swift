@@ -1,7 +1,6 @@
 //  PomodoroTimer.swift
 //  TimeBeamShared
-//
-//  Shared Pomodoro timer used by UI across platforms.
+//  Shared logic for macOS, iOS, watchOS
 
 import Foundation
 import SwiftUI
@@ -10,7 +9,7 @@ import AppKit
 #endif
 
 @MainActor
-public final class PomodoroTimer: ObservableObject {
+public class PomodoroTimer: ObservableObject {
     public enum Phase: String, Codable { case work, `break` }
 
     public struct TimerState: Codable {
@@ -20,11 +19,9 @@ public final class PomodoroTimer: ObservableObject {
         public let lastActiveDate: Date?
     }
 
-    // Configurable durations (in seconds)
     public let workDuration: Int
     public let breakDuration: Int
 
-    // Published state
     @Published public private(set) var phase: Phase = .work
     @Published public private(set) var remainingSeconds: Int
     @Published public private(set) var isRunning: Bool = false
@@ -35,11 +32,10 @@ public final class PomodoroTimer: ObservableObject {
     public init(workDuration: Int = 2 * 60, breakDuration: Int = 1 * 60) {
         self.workDuration = workDuration
         self.breakDuration = breakDuration
-        // Try to restore state
         if let state = PomodoroTimer.loadState() {
             self.phase = state.phase
             self.remainingSeconds = state.remainingSeconds
-            self.isRunning = false // Always start paused for safety
+            self.isRunning = false
             if let lastActive = state.lastActiveDate, state.isRunning {
                 let elapsed = Int(Date().timeIntervalSince(lastActive))
                 let updated = max(0, state.remainingSeconds - elapsed)
@@ -53,16 +49,18 @@ public final class PomodoroTimer: ObservableObject {
             self.remainingSeconds = workDuration
             self.isRunning = false
         }
+        // Removed backend session sync to use local-only behavior
+        // SessionAPI.checkActiveSession { [weak self] active in
+        //     guard let self = self else { return }
+        //     DispatchQueue.main.async {
+        //         self.isRunning = active
+        //     }
+        // }
     }
 
-    deinit {
-        timerTask?.cancel()
-    }
+    deinit { timerTask?.cancel() }
 
-    // Current phase total duration
     public var currentDuration: Int { phase == .work ? workDuration : breakDuration }
-
-    // 0.0 -> just started, 1.0 -> phase ended
     public var progress: Double {
         guard currentDuration > 0 else { return 0 }
         let p = 1.0 - (Double(remainingSeconds) / Double(currentDuration))
@@ -75,11 +73,13 @@ public final class PomodoroTimer: ObservableObject {
         saveState()
         updateDockBadge()
         updateStatusItem()
+        // Removed backend call: SessionAPI.startSession()
         timerTask = Task { [weak self] in
             while !Task.isCancelled {
-                do { try await Task.sleep(for: .seconds(1)) } catch { break }
+                do { try await Task.sleep(nanoseconds: 1_000_000_000) } catch { break }
                 if let strongSelf = self {
                     await strongSelf.tick()
+                    // Break if paused
                     let running = await strongSelf.isRunning
                     if !running { break }
                 } else {
@@ -97,6 +97,7 @@ public final class PomodoroTimer: ObservableObject {
         saveState()
         updateDockBadge()
         updateStatusItem()
+        // Removed backend call: SessionAPI.stopSession()
     }
 
     public func reset() {
@@ -106,6 +107,7 @@ public final class PomodoroTimer: ObservableObject {
         saveState()
         updateDockBadge()
         updateStatusItem()
+        // Removed backend call: SessionAPI.stopSession()
     }
 
     public func tick() {
@@ -152,8 +154,12 @@ public final class PomodoroTimer: ObservableObject {
     }
 
     public func updateStatusItem() {
-        // Shared module does not know about the app’s delegate.
-        // Leave this as a no-op, or post a notification if needed.
+        #if os(macOS)
+        let minutes = remainingSeconds / 60
+        let seconds = remainingSeconds % 60
+        let title = String(format: "%d:%02d", minutes, seconds)
+        // AppDelegate.shared is app-specific; consider protocol abstraction for menu bar updates
+        #endif
     }
 
     private func saveState() {

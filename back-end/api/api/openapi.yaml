@@ -1,0 +1,207 @@
+openapi: 3.0.3
+info:
+  title: Time Beam API
+  version: 0.1.0
+  description: |
+    Minimal OpenAPI specification for Time Beam endpoints currently exposed without authentication.
+    For development, user identity is derived from X-Debug-User header or defaults to user 1.
+servers:
+  - url: http://localhost:8080
+    description: Local development
+tags:
+  - name: health
+  - name: sync
+  - name: session
+  - name: stats
+paths:
+  /health:
+    get:
+      tags: [health]
+      summary: Health check
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: ok
+  /sync/stream:
+    get:
+      tags: [sync]
+      summary: Server-Sent Events stream
+      description: |
+        Opens an SSE stream for the current user. In dev mode, user id is derived from `X-Debug-User` header or defaults to `1`.
+      operationId: sseStream
+      parameters:
+        - in: header
+          name: X-Debug-User
+          schema:
+            type: integer
+            format: int64
+          required: false
+          description: Development-only user id override.
+        - in: header
+          name: Accept
+          required: true
+          schema:
+            type: string
+            example: text/event-stream
+          description: Must be `text/event-stream`.
+      responses:
+        '200':
+          description: SSE stream opened
+          content:
+            text/event-stream:
+              schema:
+                type: string
+              examples:
+                ping:
+                  summary: Initial ping event
+                  value: |
+                    event: ping\n
+                    data: 2025-01-01T00:00:00Z\n
+        '401':
+          description: Unauthorized if user identification fails (unlikely in current dev mode)
+  /session/start:
+    post:
+      tags: [session]
+      summary: Start a focus session
+      operationId: startSession
+      parameters:
+        - in: header
+          name: X-Debug-User
+          schema:
+            type: integer
+            format: int64
+          required: false
+          description: Development-only user id override.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartRequest'
+            examples:
+              default:
+                value:
+                  label: focus
+      responses:
+        '200':
+          description: Session started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session_id:
+                    type: integer
+                    format: int64
+              example:
+                session_id: 123
+        '400':
+          description: Invalid request or session start error
+        '401':
+          description: Unauthorized
+  /session/stop:
+    post:
+      tags: [session]
+      summary: Stop the active session
+      operationId: stopSession
+      parameters:
+        - in: header
+          name: X-Debug-User
+          schema:
+            type: integer
+            format: int64
+          required: false
+          description: Development-only user id override.
+      responses:
+        '204':
+          description: Session stopped, no content
+        '400':
+          description: Unable to stop session
+        '401':
+          description: Unauthorized
+  /session/active:
+    get:
+      tags: [session]
+      summary: Check if a session is active
+      operationId: activeSession
+      parameters:
+        - in: header
+          name: X-Debug-User
+          schema:
+            type: integer
+            format: int64
+          required: false
+          description: Development-only user id override.
+      responses:
+        '200':
+          description: Active status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActiveResponse'
+              examples:
+                active:
+                  value:
+                    active: true
+                inactive:
+                  value:
+                    active: false
+        '500':
+          description: Server error
+        '401':
+          description: Unauthorized
+  /stats/daily:
+    get:
+      tags: [stats]
+      summary: Get daily focus duration (seconds)
+      operationId: dailyStats
+      parameters:
+        - in: header
+          name: X-Debug-User
+          schema:
+            type: integer
+            format: int64
+          required: false
+          description: Development-only user id override.
+      responses:
+        '200':
+          description: Duration in seconds for current day
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DailyStatsResponse'
+              example:
+                seconds: 3600
+        '500':
+          description: Server error
+        '401':
+          description: Unauthorized
+components:
+  schemas:
+    StartRequest:
+      type: object
+      properties:
+        label:
+          type: string
+          description: Optional label for the session
+      additionalProperties: false
+    ActiveResponse:
+      type: object
+      properties:
+        active:
+          type: boolean
+      required: [active]
+      additionalProperties: false
+    DailyStatsResponse:
+      type: object
+      properties:
+        seconds:
+          type: integer
+          format: int64
+      required: [seconds]
+      additionalProperties: false
