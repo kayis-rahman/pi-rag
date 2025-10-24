@@ -77,9 +77,9 @@ public final class PomodoroTimer: ObservableObject {
         updateStatusItem()
         timerTask = Task { [weak self] in
             while !Task.isCancelled {
-                do { try await Task.sleep(for: .seconds(1)) } catch { break }
                 if let strongSelf = self {
-                    await strongSelf.tick()
+                    await strongSelf.tick() // Tick first for immediate update
+                    do { try await Task.sleep(for: .seconds(1)) } catch { break }
                     let running = await strongSelf.isRunning
                     if !running { break }
                 } else {

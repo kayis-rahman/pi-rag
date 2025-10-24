@@ -3,7 +3,6 @@ import TimeBeamShared
 
 struct WatchContentView: View {
     @EnvironmentObject private var timer: TimeBeamShared.PomodoroTimer
-    @State private var lastPhase: TimeBeamShared.PomodoroTimer.Phase = .work
     @State private var didRequestNotificationPermission: Bool = UserDefaults.standard.bool(forKey: "didRequestNotificationPermission")
     @State private var showingOptions: Bool = false
 
@@ -116,11 +115,9 @@ struct WatchContentView: View {
                 OptionsView(timer: timer)
             }
         }
-        .onAppear { lastPhase = timer.phase }
-        .onChange(of: timer.phase) { newPhase in
-            if newPhase != lastPhase {
-                NotificationManager.shared.sendSessionDoneNotification(phase: lastPhase.rawValue)
-                lastPhase = newPhase
+        .onChange(of: timer.phase) { oldPhase, newPhase in
+            if newPhase != oldPhase {
+                NotificationManager.shared.sendSessionDoneNotification(phase: oldPhase.rawValue)
             }
         }
     }
