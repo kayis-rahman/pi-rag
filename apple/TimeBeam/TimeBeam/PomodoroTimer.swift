@@ -5,7 +5,7 @@
 
 import Foundation
 import SwiftUI
-#if canImport(AppKit)
+#if os(macOS)
 import AppKit
 #endif
 
@@ -136,6 +136,7 @@ public final class PomodoroTimer: ObservableObject {
         NotificationManager.shared.sendSessionDoneNotification(phase: completedPhase.rawValue)
     }
 
+    // Platform hooks (no app-specific references)
     public func updateDockBadge() {
         #if os(macOS)
         DispatchQueue.main.async {
@@ -152,10 +153,11 @@ public final class PomodoroTimer: ObservableObject {
     }
 
     public func updateStatusItem() {
-        // Shared module does not know about the app’s delegate.
-        // Leave this as a no-op, or post a notification if needed.
+        // Intentionally left as a no-op in shared code.
+        // App targets can observe timer changes and update status items themselves.
     }
 
+    // Persistence
     private func saveState() {
         let state = TimerState(
             phase: phase,

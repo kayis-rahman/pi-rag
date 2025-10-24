@@ -6,14 +6,22 @@
 //
 
 import SwiftUI
+#if os(iOS) || os(macOS)
 import AVFoundation
+#endif
 import UserNotifications
+#if os(macOS)
 import AppKit
+#endif
+import TimeBeamShared
 
 struct ContentView: View {
-    @EnvironmentObject var timer: PomodoroTimer
+    // Use the shared PomodoroTimer so this compiles across platforms
+    @EnvironmentObject var timer: TimeBeamShared.PomodoroTimer
+    #if os(iOS) || os(macOS)
     @State private var audioPlayer: AVAudioPlayer?
-    @State private var lastPhase: PomodoroTimer.Phase = .work
+    #endif
+    @State private var lastPhase: TimeBeamShared.PomodoroTimer.Phase = .work
     @State private var didRequestNotificationPermission: Bool = UserDefaults.standard.bool(forKey: "didRequestNotificationPermission")
 
     private let ringSize: CGFloat = 220
@@ -21,7 +29,14 @@ struct ContentView: View {
 
     var body: some View {
         ZStack {
+            #if os(macOS)
             Color(NSColor.windowBackgroundColor).ignoresSafeArea()
+            #elseif os(iOS)
+            Color(.systemBackground).ignoresSafeArea()
+            #else
+            Color.clear.ignoresSafeArea()
+            #endif
+
             VStack(spacing: 24) {
                 ZStack {
                     // Background circle (track)
@@ -77,7 +92,7 @@ struct ContentView: View {
         .onAppear {
             lastPhase = timer.phase
         }
-        .onChange(of: timer.phase) { newPhase, _ in
+        .onChange(of: timer.phase) { newPhase in
             if newPhase != lastPhase {
                 playChime()
                 NotificationManager.shared.sendSessionDoneNotification(phase: lastPhase.rawValue)
@@ -87,25 +102,33 @@ struct ContentView: View {
     }
 
     private func startWithPermission() {
+        // Only request notification permission on iOS/macOS
+        #if os(iOS) || os(macOS)
         if !didRequestNotificationPermission {
             NotificationManager.shared.requestPermission { _ in }
             didRequestNotificationPermission = true
             UserDefaults.standard.set(true, forKey: "didRequestNotificationPermission")
         }
+        #endif
         timer.start()
     }
 
     private func playChime() {
+        #if os(iOS) || os(macOS)
         guard let soundURL = Bundle.main.url(forResource: "chime-sound", withExtension: "mp3") else { return }
         do {
             audioPlayer = try AVAudioPlayer(contentsOf: soundURL)
             audioPlayer?.play()
         } catch {
-            // Handle error
+            // ignore
         }
+        #else
+        // no-op on watchOS
+        #endif
     }
 }
 
 #Preview {
     ContentView()
+        .environmentObject(TimeBeamShared.PomodoroTimer())
 }
