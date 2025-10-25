@@ -15,10 +15,13 @@ struct WatchContentView: View {
             let cornerPadding: CGFloat = 4
             
             ZStack {
+                // The background is now the first layer of the ZStack.
                 Color.themeBackground
 
                 VStack(spacing: minSide * 0.02) {
-                    Spacer(minLength: 15)
+                    // To add more space at the top, increase the minLength of this Spacer.
+                    // This pushes the timer ring down without moving the corner buttons.
+                    Spacer(minLength: 25)
                     timerRing(ringSize: ringSize, ringLineWidth: ringLineWidth)
                     Spacer(minLength: 25)
                 }
@@ -33,12 +36,7 @@ struct WatchContentView: View {
             .overlay(alignment: .bottomTrailing) {
                 resetButton(buttonSize: buttonSize, padding: cornerPadding)
             }
-            .ignoresSafeArea()
-            .safeAreaInset(edge: .top) {
-                Color.cyan
-                // This adds a small empty space at the very top of the screen.
-                EmptyView().frame(height: 10)
-            }
+            .ignoresSafeArea() // This single modifier applies to the ZStack and all its content.
             .sheet(isPresented: $showingOptions) {
                 SettingsView()
                     .environmentObject(timer)

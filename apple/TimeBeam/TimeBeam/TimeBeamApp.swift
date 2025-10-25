@@ -39,7 +39,7 @@ struct TimeBeamApp: App {
 
     var body: some Scene {
         WindowGroup {
-            TimeBeamShared.ContentView()
+            ContentView()
                 .environmentObject(timer)
         }
         #if os(macOS)
