@@ -8,19 +8,19 @@ struct WatchContentView: View {
 
     var body: some View {
         GeometryReader { proxy in
-            let minSide = proxy.size.width - 40
+            let minSide = proxy.size.width - 30
             let ringSize = minSide
             let ringLineWidth = max(8, ringSize * 0.065)
             let buttonSize = max(32, minSide * 0.18)
             let cornerPadding: CGFloat = 4
-
+            
             ZStack {
-                Color.themeBackground.ignoresSafeArea()
+                Color.themeBackground
 
                 VStack(spacing: minSide * 0.02) {
-                    Spacer(minLength: 10)
-                    timerRing(ringSize: ringSize, ringLineWidth: ringLineWidth)
                     Spacer(minLength: 15)
+                    timerRing(ringSize: ringSize, ringLineWidth: ringLineWidth)
+                    Spacer(minLength: 25)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             }
@@ -32,6 +32,12 @@ struct WatchContentView: View {
             }
             .overlay(alignment: .bottomTrailing) {
                 resetButton(buttonSize: buttonSize, padding: cornerPadding)
+            }
+            .ignoresSafeArea()
+            .safeAreaInset(edge: .top) {
+                Color.cyan
+                // This adds a small empty space at the very top of the screen.
+                EmptyView().frame(height: 10)
             }
             .sheet(isPresented: $showingOptions) {
                 SettingsView()
