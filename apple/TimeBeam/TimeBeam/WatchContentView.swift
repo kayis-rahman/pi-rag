@@ -3,6 +3,7 @@ import TimeBeamShared
 
 struct WatchContentView: View {
     @EnvironmentObject private var timer: TimeBeamShared.PomodoroTimer
+    @EnvironmentObject private var logger: SessionLogger
     @State private var didRequestNotificationPermission: Bool = UserDefaults.standard.bool(forKey: "didRequestNotificationPermission")
     @State private var showingOptions: Bool = false
 
@@ -15,12 +16,9 @@ struct WatchContentView: View {
             let cornerPadding: CGFloat = 4
             
             ZStack {
-                // The background is now the first layer of the ZStack.
                 Color.themeBackground
 
                 VStack(spacing: minSide * 0.02) {
-                    // To add more space at the top, increase the minLength of this Spacer.
-                    // This pushes the timer ring down without moving the corner buttons.
                     Spacer(minLength: 25)
                     timerRing(ringSize: ringSize, ringLineWidth: ringLineWidth)
                     Spacer(minLength: 25)
@@ -36,15 +34,16 @@ struct WatchContentView: View {
             .overlay(alignment: .bottomTrailing) {
                 resetButton(buttonSize: buttonSize, padding: cornerPadding)
             }
-            .ignoresSafeArea() // This single modifier applies to the ZStack and all its content.
+            .ignoresSafeArea()
             .sheet(isPresented: $showingOptions) {
                 SettingsView()
                     .environmentObject(timer)
+                    .environmentObject(logger)
             }
         }
         .onChange(of: timer.phase) { oldPhase, newPhase in
             if newPhase != oldPhase {
-                // Notification is now sent from within the timer model to ensure it's sent on all platforms.
+                // Notification handled in model
             }
         }
     }
@@ -154,6 +153,7 @@ private struct CycleProgressView: View {
 
 private struct SettingsView: View {
     @EnvironmentObject var timer: TimeBeamShared.PomodoroTimer
+    @EnvironmentObject var logger: SessionLogger
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -167,9 +167,7 @@ private struct SettingsView: View {
                     Toggle("Auto-start next session", isOn: $timer.autoStartNextSession)
                 }
 
-                Section {
-                    Button("Reset to Defaults", role: .destructive, action: timer.resetDurationsToDefaults)
-                }
+                // Analytics section removed for watchOS
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
@@ -250,42 +248,8 @@ private extension AngularGradient {
     }
 }
 
-private extension Color {
-    // Static colors defined for the watchOS dark interface.
-    static let themePrimary       = Color(hex: "#E07A5F") // Terracotta
-    static let themeAccent        = Color(hex: "#F4F1DE") // Sand Beige
-    static let themeSecondary     = Color(hex: "#81B29A") // Olive
-    static let themeBackground    = Color(hex: "#2C1F18") // Background (Dark)
-    static let themeTextPrimary   = Color(hex: "#F4F1DE") // Text (on Dark) -> Sand Beige
-    static let themeTextSecondary = Color(hex: "#81B29A") // Text (on Dark) -> Olive
-
-    init(hex: String) {
-        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-        var int: UInt64 = 0
-        Scanner(string: hex).scanHexInt64(&int)
-        let a, r, g, b: UInt64
-        switch hex.count {
-        case 3: // RGB (12-bit)
-            (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
-        case 6: // RGB (24-bit)
-            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
-        case 8: // ARGB (32-bit)
-            (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
-        default:
-            (a, r, g, b) = (255, 0, 0, 0)
-        }
-        self.init(
-            .sRGB,
-            red: Double(r) / 255,
-            green: Double(g) / 255,
-            blue: Double(b) / 255,
-            opacity: Double(a) / 255
-        )
-    }
-}
-
-
 #Preview {
     WatchContentView()
         .environmentObject(TimeBeamShared.PomodoroTimer())
+        .environmentObject(SessionLogger())
 }

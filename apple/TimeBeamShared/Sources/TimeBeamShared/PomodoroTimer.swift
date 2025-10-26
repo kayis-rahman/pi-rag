@@ -22,9 +22,9 @@ public final class PomodoroTimer: ObservableObject {
     }
     
     // Default durations (in seconds)
-    private static let defaultWorkDuration = 25 * 60
-    private static let defaultBreakDuration = 5 * 60
-    private static let defaultLongBreakDuration = 15 * 60
+    private static let defaultWorkDuration = 1 * 60
+    private static let defaultBreakDuration = 2 * 60
+    private static let defaultLongBreakDuration = 3 * 60
 
     // Configurable durations (in seconds)
     @Published public var workDuration: Int

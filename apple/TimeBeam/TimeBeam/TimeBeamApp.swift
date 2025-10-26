@@ -34,13 +34,27 @@ struct TimeBeamApp: App {
     @UIApplicationDelegateAdaptor(iOSAppDelegate.self) var appDelegate
     #endif
 
-    // Instantiate the shared PomodoroTimer type
     @StateObject var timer = TimeBeamShared.PomodoroTimer()
+    @StateObject var logger = SessionLogger()
 
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(timer)
+                .environmentObject(logger)
+                .onAppear {
+                    timer.onSessionCompleted = { phase, duration in
+                        let kind: SessionRecord.Kind
+                        switch phase {
+                        case .work: kind = .work
+                        case .break: kind = .shortBreak
+                        case .longBreak: kind = .longBreak
+                        }
+                        let start = Date().addingTimeInterval(-TimeInterval(duration))
+                        let record = SessionRecord(startedAt: start, duration: TimeInterval(duration), kind: kind)
+                        logger.add(record: record)
+                    }
+                }
         }
         #if os(macOS)
         .windowStyle(.automatic)
