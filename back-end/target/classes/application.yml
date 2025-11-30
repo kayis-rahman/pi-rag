@@ -1,0 +1,35 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/timebeam}
+    username: ${SPRING_DATASOURCE_USERNAME:timebeam}
+    password: ${SPRING_DATASOURCE_PASSWORD:timebeam}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+  main:
+    allow-bean-definition-overriding: false
+
+jwt:
+  secret: ${JWT_SECRET:change-me-to-a-long-random-secret}
+  expiration-ms: 86400000 # 1 day
+
+logging:
+  level:
+    root: INFO
+    com.sparkage.timebeam: DEBUG
+    org.springframework: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+
+# Optional flag to enable verbose debug via environment
+app:
+  debug: ${APP_DEBUG:false}

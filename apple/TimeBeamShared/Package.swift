@@ -2,22 +2,16 @@
 import PackageDescription
 
 let package = Package(
-    name: "TimeBeamShared",
+    name: "TimeBeam",
     platforms: [
         .macOS(.v12),
         .iOS(.v15),
         .watchOS(.v8)
     ],
     products: [
-        .library(
-            name: "TimeBeamShared",
-            targets: ["TimeBeamShared"]
-        )
+        // Products can be defined here.
     ],
     targets: [
-        .target(
-            name: "TimeBeamShared",
-            dependencies: []
-        )
+        // Targets can be defined here.
     ]
 )

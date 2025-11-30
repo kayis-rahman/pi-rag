@@ -1,16 +1,19 @@
 import SwiftUI
-import TimeBeamShared
 
 @main
 struct TimeBeamWatchApp: App {
-    @StateObject private var timer = TimeBeamShared.PomodoroTimer()
+    @StateObject private var timer = PomodoroTimer()
     @StateObject private var logger = SessionLogger()
+    @StateObject private var authManager = AuthManager()
+    @StateObject private var wcManager = WatchConnectivityManager()
 
     var body: some Scene {
         WindowGroup {
             WatchContentView()
                 .environmentObject(timer)
                 .environmentObject(logger)
+                .environmentObject(authManager)
+                .environmentObject(wcManager)
                 .onAppear {
                     timer.onSessionCompleted = { phase, duration in
                         let kind: SessionRecord.Kind

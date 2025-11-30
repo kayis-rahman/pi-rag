@@ -1,11 +1,5 @@
-//  TimeBeamApp.swift
-//  TimeBeam
-//
-//  Created by AI Assistant on 15/09/25.
-
 import SwiftUI
 import UserNotifications
-import TimeBeamShared
 #if os(macOS)
 import AppKit
 #elseif os(iOS)
@@ -34,14 +28,30 @@ struct TimeBeamApp: App {
     @UIApplicationDelegateAdaptor(iOSAppDelegate.self) var appDelegate
     #endif
 
-    @StateObject var timer = TimeBeamShared.PomodoroTimer()
+    @StateObject var timer = PomodoroTimer()
     @StateObject var logger = SessionLogger()
+
+    #if os(iOS) || os(macOS)
+    @StateObject var authManager = AuthManager()
+    #endif
+    #if os(iOS)
+    @StateObject var wcManager = WatchConnectivityManager()
+    #endif
 
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(timer)
                 .environmentObject(logger)
+                #if os(iOS) || os(macOS)
+                .environmentObject(authManager)
+                .onAppear {
+                    Task { await authManager.restoreSession() }
+                }
+                #endif
+                #if os(iOS)
+                .environmentObject(wcManager)
+                #endif
                 .onAppear {
                     timer.onSessionCompleted = { phase, duration in
                         let kind: SessionRecord.Kind
@@ -55,6 +65,12 @@ struct TimeBeamApp: App {
                         logger.add(record: record)
                     }
                 }
+                #if os(iOS)
+                .onOpenURL { url in
+                    // Forward Google Sign-In URL callback to AuthManager
+                    _ = authManager.handleOpenURL(url)
+                }
+                #endif
         }
         #if os(macOS)
         .windowStyle(.automatic)

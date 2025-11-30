@@ -1,0 +1,5 @@
+com/sparkage/timebeam/repository/SessionRecordRepositoryIT.class
+com/sparkage/timebeam/service/AuthServiceTest.class
+com/sparkage/timebeam/controller/SessionControllerTest.class
+com/sparkage/timebeam/controller/AuthControllerTest.class
+com/sparkage/timebeam/service/SessionServiceTest.class
