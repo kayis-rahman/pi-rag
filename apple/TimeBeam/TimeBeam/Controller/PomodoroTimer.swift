@@ -132,6 +132,12 @@ class PomodoroTimer: ObservableObject {
         }
     }
 
+    func stop() {
+        LoggerStore.timer.info("Stopping timer and advancing to next phase")
+        pause()
+        advanceToNextPhase(autoStart: false)
+    }
+
     func reset() {
         LoggerStore.timer.info("Resetting timer")
         pause()

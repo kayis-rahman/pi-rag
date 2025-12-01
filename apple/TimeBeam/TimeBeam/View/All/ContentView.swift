@@ -12,7 +12,7 @@ import AuthenticationServices
 struct ContentView: View {
     @EnvironmentObject var timer: PomodoroTimer
     @EnvironmentObject var logger: SessionLogger
-    #if os(iOS) || os(macOS)
+    #if os(macOS)
     @EnvironmentObject var authManager: AuthManager
     #endif
     #if os(iOS) || os(macOS)
@@ -24,25 +24,60 @@ struct ContentView: View {
     #if os(macOS)
     @State private var showingAnalytics: Bool = false
     #endif
-    
+
     var body: some View {
-        let ringSize: CGFloat = 280
-        let ringLineWidth = max(10, ringSize * 0.065)
-        let buttonSize: CGFloat = 54
-        
-        VStack(spacing: 10) {
-            timerRing(ringSize: ringSize, ringLineWidth: ringLineWidth, buttonSize: buttonSize)
-            
-            HStack {
-                resetButton(buttonSize: buttonSize)
+        ZStack {
+            // Background
+            Color.themeBackground.ignoresSafeArea()
+
+            VStack(spacing: 24) {
                 Spacer()
-                optionsControl(buttonSize: buttonSize)
+
+                // Timer display
+                CircularTimerView(size: 350, showSessionProgress: false)
+
+                // Session progress indicator
+                CycleProgressView(
+                    completed: timer.shortBreaksCompleted,
+                    total: timer.cycleSize
+                )
+                .frame(width: 350 * 0.5)
+
+                // Primary action button
+                PrimaryButton(
+                    title: timer.isRunning ? "Pause" : "Start",
+                    icon: timer.isRunning ? "pause.fill" : "play.fill",
+                    action: {
+                        if timer.isRunning {
+                            timer.pause()
+                        } else {
+                            startWithPermission()
+                        }
+                    }
+                )
+                .frame(width: 200)
+
+                Spacer()
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, 24)
+
+            // Reset button in top right corner
+            VStack {
+                HStack {
+                    Spacer()
+                    Button(action: { timer.reset() }) {
+                        Image(systemName: "arrow.counterclockwise")
+                            .font(.system(size: 20, weight: .medium))
+                            .foregroundColor(Color.themeTextSecondary)
+                            .frame(width: 44, height: 44)
+                            .background(Color.themeCardBackground.opacity(0.8))
+                            .clipShape(Circle())
+                    }
+                    .padding([.top, .trailing], 20)
+                }
+                Spacer()
+            }
         }
-        .padding(.vertical, 20)
-        .frame(width: ringSize + 60)
-        .background(Color.themeBackground.ignoresSafeArea())
         .onAppear {
             lastPhase = timer.phase
         }
@@ -88,7 +123,7 @@ struct ContentView: View {
         ZStack {
             Circle()
                 .stroke(Color.themeTextSecondary.opacity(0.3), lineWidth: ringLineWidth)
-            
+
             Circle()
                 .trim(from: 0, to: timer.progress)
                 .stroke(
@@ -96,26 +131,18 @@ struct ContentView: View {
                     style: StrokeStyle(lineWidth: ringLineWidth, lineCap: .round)
                 )
                 .rotationEffect(.degrees(-90))
-            
+
             VStack(spacing: ringSize * 0.0) {
                 Text(timer.remainingSeconds.mmss)
                     .font(.system(size: ringSize * 0.22, weight: .bold, design: .rounded))
                     .monospacedDigit()
                     .foregroundStyle(Color.themeTextPrimary)
                     .padding(.top, 10)
-                
+
                 Text(timer.phase == .work ? "just focus " : "break time!")
                     .font(.system(size: ringSize * 0.08, weight: .regular))
                     .foregroundStyle(Color.themeTextSecondary)
                     .padding(.bottom, 10)
-                
-                CycleProgressView(
-                    completed: timer.shortBreaksCompleted,
-                    total: timer.cycleSize
-                )
-                .frame(width: ringSize * 0.5)
-                .padding(.bottom, 15)
-                playPauseButton(buttonSize: buttonSize)
             }
         }
         .frame(width: ringSize, height: ringSize)
@@ -129,27 +156,27 @@ struct ContentView: View {
             Picker("Focus Duration", selection: workDurationBinding) {
                 ForEach(minutesRange, id: \.self) { Text("\($0) minutes").tag($0) }
             }
-            
+
             Picker("Short Break", selection: shortBreakDurationBinding) {
                 ForEach(minutesRange, id: \.self) { Text("\($0) minutes").tag($0) }
             }
-            
+
             Picker("Long Break", selection: longBreakDurationBinding) {
                 ForEach(minutesRange, id: \.self) { Text("\($0) minutes").tag($0) }
             }
-            
+
             Divider()
-            
+
             Toggle("Auto-start next session", isOn: $timer.autoStartNextSession)
-            
+
             Divider()
-            
+
             Button("Analytics & Insights…") {
                 showingAnalytics = true
             }
 
             Divider()
-            
+
             if authManager.isSignedIn {
                 if let name = authManager.displayName, !name.isEmpty {
                     Text(name)
@@ -170,11 +197,11 @@ struct ContentView: View {
                     }
                 }
             }
-            
+
             Divider()
-            
+
             Button("Reset to Defaults", role: .destructive, action: timer.resetDurationsToDefaults)
-            
+
         } label: {
             Image(systemName: "gearshape.fill")
                 .font(.system(size: buttonSize * 0.45))
@@ -185,27 +212,6 @@ struct ContentView: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Options")
-        #else
-        Button {
-            showingOptions = true
-        } label: {
-            Image(systemName: "gearshape.fill")
-                .font(.system(size: buttonSize * 0.45))
-                .frame(width: buttonSize, height: buttonSize)
-                .foregroundStyle(Color.themeTextSecondary)
-                .background(.regularMaterial)
-                .clipShape(Circle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("Options")
-        .sheet(isPresented: $showingOptions) {
-            SettingsView()
-                .environmentObject(timer)
-                .environmentObject(logger)
-                #if os(iOS)
-                .environmentObject(authManager)
-                #endif
-        }
         #endif
     }
     
@@ -223,7 +229,7 @@ struct ContentView: View {
         .buttonStyle(.plain)
         .accessibilityLabel(timer.isRunning ? "Pause" : "Start")
     }
-    
+
     private func resetButton(buttonSize: CGFloat) -> some View {
         Button {
             timer.reset()
@@ -277,145 +283,10 @@ private struct CycleProgressView: View {
     }
 }
 
-#if os(iOS)
-private struct SettingsView: View {
-    @EnvironmentObject var timer: PomodoroTimer
-    @EnvironmentObject var logger: SessionLogger
-    @EnvironmentObject var authManager: AuthManager
-    @Environment(\.dismiss) private var dismiss
-    
-    var body: some View {
-        NavigationStack {
-            Form {
-                Section(header: Text("Durations")) {
-                    durationPickerLink(for: .work)
-                    durationPickerLink(for: .break)
-                    durationPickerLink(for: .longBreak)
-                }
-                
-                Section(header: Text("Behavior")) {
-                    Toggle("Auto-start next session", isOn: $timer.autoStartNextSession)
-                }
 
-                Section(header: Text("Analytics")) {
-                    NavigationLink("Analytics & Insights") {
-                        AnalyticsView()
-                            .environmentObject(logger)
-                    }
-                }
-
-                Section(header: Text("Account")) {
-                    if authManager.isSignedIn {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Signed in")
-                            if let name = authManager.displayName, !name.isEmpty {
-                                Text(name).font(.footnote).foregroundStyle(.secondary)
-                            } else if let email = authManager.email, !email.isEmpty {
-                                Text(email).font(.footnote).foregroundStyle(.secondary)
-                            }
-                        }
-                        Button(role: .destructive) {
-                            Task { await authManager.signOut() }
-                        } label: { Text("Sign out") }
-                    } else {
-                        Button {
-                            Task {
-                                let anchor = await currentPresentationAnchor()
-                                do {
-                                    try await authManager.signInWithGoogle(presentingAnchor: anchor)
-                                } catch {
-                                    print("Sign-in failed: \(error)")
-                                }
-                            }
-                        } label: {
-                            HStack {
-                                Image(systemName: "g.circle.fill")
-                                Text("Sign in with Google")
-                            }
-                        }
-                        .accessibilityLabel("Sign in with Google")
-                    }
-                }
-                
-                Section {
-                    Button("Reset to Defaults", role: .destructive, action: timer.resetDurationsToDefaults)
-                }
-            }
-            .navigationTitle("Settings")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Done") { dismiss() }
-                }
-            }
-        }
-    }
-    
-    private func durationPickerLink(for phase: PomodoroTimer.Phase) -> some View {
-        let (title, duration) = {
-            switch phase {
-            case .work: return ("Focus", timer.workDuration)
-            case .break: return ("Short Break", timer.breakDuration)
-            case .longBreak: return ("Long Break", timer.longBreakDuration)
-            }
-        }()
-        
-        return NavigationLink {
-            MinutesPickerView(title: title, initialMinutes: duration / 60) { minutes in
-                timer.updateDurations(
-                    workMinutes: phase == .work ? minutes : timer.workDuration / 60,
-                    shortBreakMinutes: phase == .break ? minutes : timer.breakDuration / 60,
-                    longBreakMinutes: phase == .longBreak ? minutes : timer.longBreakDuration / 60
-                )
-            }
-        } label: {
-            HStack {
-                Text(title)
-                Spacer()
-                Text("\(duration / 60)m").foregroundStyle(.secondary)
-            }
-        }
-    }
-
-    private func currentPresentationAnchor() async -> ASPresentationAnchor? {
-        await MainActor.run {
-            guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return nil }
-            return scene.windows.first
-        }
-    }
-}
-
-private struct MinutesPickerView: View {
-    let title: String
-    let onSelect: (Int) -> Void
-    @State private var selectedMinutes: Int
-    private let minutesRange = Array(stride(from: 5, to: 121, by: 5))
-    
-    init(title: String, initialMinutes: Int, onSelect: @escaping (Int) -> Void) {
-        self.title = title
-        self.onSelect = onSelect
-        let closest = minutesRange.min(by: { abs($0 - initialMinutes) < abs($1 - initialMinutes) }) ?? initialMinutes
-        self._selectedMinutes = State(initialValue: closest)
-    }
-    
-    var body: some View {
-        Picker("Minutes", selection: $selectedMinutes) {
-            ForEach(minutesRange, id: \.self) { Text("\($0) minutes").tag($0) }
-        }
-        .pickerStyle(.wheel)
-        .navigationTitle(title)
-        .onDisappear {
-            onSelect(selectedMinutes)
-        }
-    }
-}
-#endif
 
 #Preview {
     ContentView()
         .environmentObject(PomodoroTimer())
         .environmentObject(SessionLogger())
-        #if os(iOS) || os(macOS)
-        .environmentObject(AuthManager())
-        #endif
 }

@@ -1,7 +1,17 @@
 import Foundation
 
 public struct SessionRecord: Codable, Identifiable, Equatable {
-    public enum Kind: String, Codable { case work, shortBreak, longBreak }
+    public enum Kind: String, Codable {
+        case work, shortBreak, longBreak
+
+        public var displayName: String {
+            switch self {
+            case .work: return "Work"
+            case .shortBreak: return "Short Break"
+            case .longBreak: return "Long Break"
+            }
+        }
+    }
     public let id: UUID
     public let startedAt: Date
     public let duration: TimeInterval

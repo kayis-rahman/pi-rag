@@ -1,6 +1,8 @@
 package com.sparkage.timebeam.service;
 
 import com.sparkage.timebeam.dto.SessionRecordDto;
+import com.sparkage.timebeam.exception.AccessDeniedException;
+import com.sparkage.timebeam.exception.ResourceNotFoundException;
 import com.sparkage.timebeam.mapper.SessionRecordMapper;
 import com.sparkage.timebeam.model.SessionRecord;
 import com.sparkage.timebeam.repository.SessionRecordRepository;
@@ -57,16 +59,16 @@ public class SessionService {
     // Stop an existing session by id. Verifies ownership by userId, computes duration and saves.
     public SessionRecordDto stop(UUID id, UUID userId) {
         log.debug("SessionService.stop called id={}, userId={}", id, userId);
-        Optional<SessionRecord> maybe = repository.findById(id);
-        if (maybe.isEmpty()) {
-            log.info("SessionService.stop - session not found id={}", id);
-            return null;
-        }
-        SessionRecord entity = maybe.get();
+
+        SessionRecord entity = repository.findById(id)
+            .orElseThrow(() -> ResourceNotFoundException.sessionNotFound(id.toString()));
+
         if (!entity.getUserId().equals(userId)) {
-            log.info("SessionService.stop - user mismatch for id={}, owner={}, requester={}", id, entity.getUserId(), userId);
-            return null;
+            log.warn("Session access denied: session {} belongs to user {}, requested by user {}",
+                id, entity.getUserId(), userId);
+            throw AccessDeniedException.sessionAccessDenied(id.toString(), userId.toString());
         }
+
         long duration = Duration.between(entity.getStartedAt(), Instant.now()).getSeconds();
         entity.setDurationSeconds(duration);
         repository.save(entity);

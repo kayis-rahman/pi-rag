@@ -31,46 +31,67 @@ struct TimeBeamApp: App {
     @StateObject var timer = PomodoroTimer()
     @StateObject var logger = SessionLogger()
 
-    #if os(iOS) || os(macOS)
+    #if os(macOS)
     @StateObject var authManager = AuthManager()
-    #endif
-    #if os(iOS)
-    @StateObject var wcManager = WatchConnectivityManager()
     #endif
 
     var body: some Scene {
         WindowGroup {
+            #if os(iOS)
+            TabView {
+                ContentView()
+                    .tabItem {
+                        Label("Timer", systemImage: "timer")
+                    }
+
+                StatsView()
+                    .tabItem {
+                        Label("Stats", systemImage: "chart.bar")
+                    }
+
+                SettingsView()
+                    .tabItem {
+                        Label("Settings", systemImage: "gear")
+                    }
+            }
+            .environmentObject(timer)
+            .environmentObject(logger)
+            .accentColor(Color.themePrimary)
+            .onAppear {
+                timer.onSessionCompleted = { phase, duration in
+                    let kind: SessionRecord.Kind
+                    switch phase {
+                    case .work: kind = .work
+                    case .break: kind = .shortBreak
+                    case .longBreak: kind = .longBreak
+                    }
+                    let start = Date().addingTimeInterval(-TimeInterval(duration))
+                    let record = SessionRecord(startedAt: start, duration: TimeInterval(duration), kind: kind)
+                    logger.add(record: record)
+                }
+            }
+            #else
             ContentView()
                 .environmentObject(timer)
                 .environmentObject(logger)
-                #if os(iOS) || os(macOS)
                 .environmentObject(authManager)
                 .onAppear {
                     Task { await authManager.restoreSession() }
                 }
-                #endif
-                #if os(iOS)
-                .environmentObject(wcManager)
-                #endif
                 .onAppear {
                     timer.onSessionCompleted = { phase, duration in
                         let kind: SessionRecord.Kind
                         switch phase {
-                        case .work: kind = .work
-                        case .break: kind = .shortBreak
-                        case .longBreak: kind = .longBreak
+                            case .work: kind = .work
+                            case .break: kind = .shortBreak
+                            case .longBreak: kind = .longBreak
                         }
                         let start = Date().addingTimeInterval(-TimeInterval(duration))
                         let record = SessionRecord(startedAt: start, duration: TimeInterval(duration), kind: kind)
                         logger.add(record: record)
                     }
                 }
-                #if os(iOS)
-                .onOpenURL { url in
-                    // Forward Google Sign-In URL callback to AuthManager
-                    _ = authManager.handleOpenURL(url)
-                }
-                #endif
+            #endif
         }
         #if os(macOS)
         .windowStyle(.automatic)

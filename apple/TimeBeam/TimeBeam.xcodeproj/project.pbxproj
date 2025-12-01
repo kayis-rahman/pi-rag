@@ -44,6 +44,7 @@
 
 /* Begin PBXFileReference section */
 		6D5999932E780AE300D65722 /* TimeBeam.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TimeBeam.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		6D5999932E780AE301 /* TimeBeam iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "TimeBeam iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		6D5999A42E780AE600D65722 /* TimeBeamTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TimeBeamTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		6D5999AE2E780AE600D65722 /* TimeBeamUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TimeBeamUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		6D7300EB2EAAA98400D75371 /* TimeBeamWatchOs Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "TimeBeamWatchOs Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -78,6 +79,17 @@
 			);
 			target = 6D7300EA2EAAA98400D75371 /* TimeBeamWatchOs Watch App */;
 		};
+		6D73011D2EAAAE4300D75371 /* Exceptions for "TimeBeam" folder in "TimeBeam iOS" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+				Services/AuthManager.swift,
+				Services/WatchConnectivityManager.swift,
+				TimeBeamWatchApp.swift,
+				View/WatchOS/WatchContentView.swift,
+			);
+			target = 6D5999922E780AE302 /* TimeBeam iOS */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -85,6 +97,7 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				6D73011A2EAAAC2300D75371 /* Exceptions for "TimeBeam" folder in "TimeBeam" target */,
+				6D73011D2EAAAE4300D75371 /* Exceptions for "TimeBeam" folder in "TimeBeam iOS" target */,
 				6D73011C2EAAAE4300D75371 /* Exceptions for "TimeBeam" folder in "TimeBeamWatchOs Watch App" target */,
 			);
 			path = TimeBeam;
@@ -103,6 +116,13 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		6D252E1B2EBB76DC005 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		6D252E1B2EBB76DC0053735D /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -165,6 +185,7 @@
 			isa = PBXGroup;
 			children = (
 				6D5999932E780AE300D65722 /* TimeBeam.app */,
+				6D5999932E780AE301 /* TimeBeam iOS.app */,
 				6D5999A42E780AE600D65722 /* TimeBeamTests.xctest */,
 				6D5999AE2E780AE600D65722 /* TimeBeamUITests.xctest */,
 				6D7300EB2EAAA98400D75371 /* TimeBeamWatchOs Watch App.app */,
@@ -208,6 +229,28 @@
 			);
 			productName = TimeBeam;
 			productReference = 6D5999932E780AE300D65722 /* TimeBeam.app */;
+			productType = "com.apple.product-type.application";
+		};
+		6D5999922E780AE302 /* TimeBeam iOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6D5999B82E780AE302 /* Build configuration list for PBXNativeTarget "TimeBeam iOS" */;
+			buildPhases = (
+				6D59998F2E780AE305 /* Sources */,
+				6D5999912E780AE305 /* Resources */,
+				6D252E1B2EBB76DC005 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				6D5999952E780AE300D65722 /* TimeBeam */,
+			);
+			name = "TimeBeam iOS";
+			packageProductDependencies = (
+			);
+			productName = "TimeBeam iOS";
+			productReference = 6D5999932E780AE301 /* TimeBeam iOS.app */;
 			productType = "com.apple.product-type.application";
 		};
 		6D5999A32E780AE600D65722 /* TimeBeamTests */ = {
@@ -328,6 +371,9 @@
 					6D5999922E780AE300D65722 = {
 						CreatedOnToolsVersion = 16.0;
 					};
+					6D5999922E780AE302 = {
+						CreatedOnToolsVersion = 16.0;
+					};
 					6D5999A32E780AE600D65722 = {
 						CreatedOnToolsVersion = 16.0;
 						TestTargetID = 6D5999922E780AE300D65722;
@@ -367,6 +413,7 @@
 			projectRoot = "";
 			targets = (
 				6D5999922E780AE300D65722 /* TimeBeam */,
+				6D5999922E780AE302 /* TimeBeam iOS */,
 				6D5999A32E780AE600D65722 /* TimeBeamTests */,
 				6D5999AD2E780AE600D65722 /* TimeBeamUITests */,
 				6D7300EA2EAAA98400D75371 /* TimeBeamWatchOs Watch App */,
@@ -378,6 +425,13 @@
 
 /* Begin PBXResourcesBuildPhase section */
 		6D5999912E780AE300D65722 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6D5999912E780AE305 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -423,6 +477,13 @@
 
 /* Begin PBXSourcesBuildPhase section */
 		6D59998F2E780AE300D65722 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6D59998F2E780AE305 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -616,6 +677,43 @@
 			};
 			name = Release;
 		};
+		6D5999B92E780AE303 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"TimeBeam/Preview Content\"";
+				DEVELOPMENT_TEAM = 425MSY8FLG;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TimeBeam/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.sparkage.time-beam.ios";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
 		6D5999B92E780AE600D65722 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -659,13 +757,50 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "com.sparkage.time-beam";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SUPPORTED_PLATFORMS = macosx;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TARGETED_DEVICE_FAMILY = 7;
 				XROS_DEPLOYMENT_TARGET = 2.0;
 			};
 			name = Debug;
+		};
+		6D5999BA2E780AE304 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"TimeBeam/Preview Content\"";
+				DEVELOPMENT_TEAM = 425MSY8FLG;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TimeBeam/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.sparkage.time-beam.ios";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
 		};
 		6D5999BA2E780AE600D65722 /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -710,10 +845,10 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "com.sparkage.time-beam";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SUPPORTED_PLATFORMS = macosx;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TARGETED_DEVICE_FAMILY = 7;
 				XROS_DEPLOYMENT_TARGET = 2.0;
 			};
 			name = Release;
@@ -971,6 +1106,15 @@
 			buildConfigurations = (
 				6D5999B62E780AE600D65722 /* Debug */,
 				6D5999B72E780AE600D65722 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		6D5999B82E780AE302 /* Build configuration list for PBXNativeTarget "TimeBeam iOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6D5999B92E780AE303 /* Debug */,
+				6D5999BA2E780AE304 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

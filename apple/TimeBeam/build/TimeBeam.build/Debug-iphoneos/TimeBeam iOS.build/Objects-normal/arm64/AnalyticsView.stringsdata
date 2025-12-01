@@ -1,0 +1,152 @@
+{
+  "source": "/Users/kayisrahman/Documents/workspace/ideas/time-beam/apple/TimeBeam/TimeBeam/View/All/AnalyticsView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Analytics",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 108
+        }
+      },
+      {
+        "comment": "",
+        "key": "Loading Analytics…",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 163
+        }
+      },
+      {
+        "comment": "",
+        "key": "Unable to Load Analytics",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 169
+        }
+      },
+      {
+        "comment": "",
+        "key": "Try Again",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 176
+        }
+      },
+      {
+        "comment": "",
+        "key": "Analytics & Insights",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 248
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lldm",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 258
+        }
+      },
+      {
+        "comment": "",
+        "key": "Total focused",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 261
+        }
+      },
+      {
+        "comment": "",
+        "key": "Focused Minutes",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 286
+        }
+      },
+      {
+        "comment": "",
+        "key": "Streak",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 318
+        }
+      },
+      {
+        "comment": "",
+        "key": "No current streak yet",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 321
+        }
+      },
+      {
+        "comment": "",
+        "key": "You focused 1 day in a row",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 322
+        }
+      },
+      {
+        "comment": "",
+        "key": "You focused %lld days in a row",
+        "location": {
+          "startingColumn": 67,
+          "startingLine": 322
+        }
+      },
+      {
+        "comment": "",
+        "key": "Top Time of Day",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 336
+        }
+      },
+      {
+        "comment": "",
+        "key": "Not enough data yet",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 343
+        }
+      },
+      {
+        "comment": "",
+        "key": "Day",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 672
+        }
+      },
+      {
+        "comment": "",
+        "key": "Minutes",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 673
+        }
+      },
+      {
+        "comment": "",
+        "key": "Weekday",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 770
+        }
+      },
+      {
+        "comment": "",
+        "key": "Minutes",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 771
+        }
+      }
+    ]
+  },
+  "version": 1
+}

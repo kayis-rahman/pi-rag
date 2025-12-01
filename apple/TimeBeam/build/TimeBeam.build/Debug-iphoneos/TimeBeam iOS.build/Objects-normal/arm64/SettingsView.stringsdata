@@ -1,0 +1,72 @@
+{
+  "source": "/Users/kayisrahman/Documents/workspace/ideas/time-beam/apple/TimeBeam/TimeBeam/View/All/SettingsView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Settings",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 27
+        }
+      },
+      {
+        "comment": "",
+        "key": "Auto-start next session",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 15
+        }
+      },
+      {
+        "comment": "",
+        "key": "Reset durations to defaults",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 22
+        }
+      },
+      {
+        "comment": "",
+        "key": "Done",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 33
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lldm",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 63
+        }
+      },
+      {
+        "comment": "",
+        "key": "Minutes",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 86
+        }
+      },
+      {
+        "comment": "",
+        "key": "Done",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 94
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld minutes",
+        "location": {
+          "startingColumn": 58,
+          "startingLine": 87
+        }
+      }
+    ]
+  },
+  "version": 1
+}

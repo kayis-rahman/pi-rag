@@ -1,6 +1,7 @@
 package com.sparkage.timebeam.controller;
 
 import com.sparkage.timebeam.dto.SessionRecordDto;
+import com.sparkage.timebeam.exception.UserNotAuthenticatedException;
 import com.sparkage.timebeam.service.SessionService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -68,16 +69,14 @@ public class SessionController {
     }
 
     @PostMapping("/{id}/stop")
-    public ResponseEntity<?> stop(@PathVariable("id") UUID id, Principal principal) {
+    public ResponseEntity<SessionRecordDto> stop(@PathVariable("id") UUID id, Principal principal) {
         log.debug("stop session requested id={}", id);
         UUID uid = resolveUserId(principal);
-        if (uid == null) return ResponseEntity.status(401).build();
+        if (uid == null) {
+            throw new UserNotAuthenticatedException("Authentication required to stop session");
+        }
 
         SessionRecordDto stopped = sessionService.stop(id, uid);
-        if (stopped == null) {
-            log.info("stop session failed for id={}", id);
-            return ResponseEntity.notFound().build();
-        }
         log.info("session stopped: id={}, userId={}, durationSeconds={}", stopped.getId(), stopped.getUserId(), stopped.getDurationSeconds());
         return ResponseEntity.ok(stopped);
     }

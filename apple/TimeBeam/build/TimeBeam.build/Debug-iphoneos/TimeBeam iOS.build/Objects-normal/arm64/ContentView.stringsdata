@@ -1,0 +1,48 @@
+{
+  "source": "/Users/kayisrahman/Documents/workspace/ideas/time-beam/apple/TimeBeam/TimeBeam/View/All/ContentView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Reset",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 218
+        }
+      },
+      {
+        "comment": "",
+        "key": "just focus ",
+        "location": {
+          "startingColumn": 45,
+          "startingLine": 107
+        }
+      },
+      {
+        "comment": "",
+        "key": "break time!",
+        "location": {
+          "startingColumn": 61,
+          "startingLine": 107
+        }
+      },
+      {
+        "comment": "",
+        "key": "Pause",
+        "location": {
+          "startingColumn": 47,
+          "startingLine": 203
+        }
+      },
+      {
+        "comment": "",
+        "key": "Start",
+        "location": {
+          "startingColumn": 57,
+          "startingLine": 203
+        }
+      }
+    ]
+  },
+  "version": 1
+}

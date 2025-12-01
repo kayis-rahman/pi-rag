@@ -106,17 +106,6 @@ struct AnalyticsView: View {
             NavigationStack {
                 content
                     .navigationTitle("Analytics")
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button {
-                                dismiss()
-                            } label: {
-                                Image(systemName: "xmark")
-                                    .font(.body.weight(.semibold))
-                            }
-                            .accessibilityLabel("Close")
-                        }
-                    }
             }
             .onAppear {
                 loadAnalyticsData()
@@ -813,4 +802,3 @@ private struct IconBadge: View {
         .frame(width: 32, height: 32)
     }
 }
-
