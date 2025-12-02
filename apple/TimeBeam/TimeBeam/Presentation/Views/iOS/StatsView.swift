@@ -94,7 +94,9 @@ struct StatsView: View {
                 .padding(.vertical, 24)
             }
             .background(Color.themeBackground.ignoresSafeArea())
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .task {
                 await analyticsManager.fetchDashboard()
             }

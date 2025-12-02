@@ -44,7 +44,7 @@ struct TimeBeamApp: App {
             Group {
                 if isAppReady {
                     TabView {
-                        ContentView()
+                        iOSContentView()
                             .tabItem {
                                 Label("Home", systemImage: "house.fill")
                             }
@@ -79,7 +79,7 @@ struct TimeBeamApp: App {
                 }
             }
             #else
-            ContentView()
+            macOSContentView()
                 .environmentObject(timer)
                 .environmentObject(logger)
                 .environmentObject(authManager)

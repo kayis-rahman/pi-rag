@@ -1,78 +1,35 @@
 import SwiftUI
-#if os(iOS) || os(macOS)
 import AVFoundation
-#endif
 import UserNotifications
-#if os(macOS)
 import AppKit
-#elseif os(iOS)
-import AuthenticationServices
-#endif
 
-struct ContentView: View {
+struct macOSContentView: View {
     @EnvironmentObject var timer: PomodoroTimer
     @EnvironmentObject var logger: SessionLogger
     @EnvironmentObject var authManager: AuthManager
-    #if os(iOS) || os(macOS)
     @State private var audioPlayer: AVAudioPlayer?
-    #endif
     @State private var lastPhase: Phase = .work
     @State private var didRequestNotificationPermission: Bool = UserDefaults.standard.bool(forKey: "didRequestNotificationPermission")
+    @State private var showingAnalytics: Bool = false
+
     var body: some View {
-        ZStack {
-            // Background
-            Color.themeBackground.ignoresSafeArea()
+        let ringSize: CGFloat = 280
+        let ringLineWidth = max(10, ringSize * 0.065)
+        let buttonSize: CGFloat = 54
 
-            VStack(spacing: 24) {
+        return VStack(spacing: 10) {
+            timerRing(ringSize: ringSize, ringLineWidth: ringLineWidth, buttonSize: buttonSize)
+
+            HStack {
+                resetButton(buttonSize: buttonSize)
                 Spacer()
-
-                // Timer display
-                CircularTimerView(size: 350, showSessionProgress: false)
-
-                // Session progress indicator
-                CycleProgressView(
-                    completed: timer.shortBreaksCompleted,
-                    total: timer.cycleSize
-                )
-                .frame(width: 350 * 0.5)
-
-                // Primary action button
-                PrimaryButton(
-                    title: timer.isRunning ? "Pause" : "Start",
-                    icon: timer.isRunning ? "pause.fill" : "play.fill",
-                    action: {
-                        if timer.isRunning {
-                            timer.pause()
-                        } else {
-                            startWithPermission()
-                        }
-                    }
-                )
-                .frame(width: 200)
-
-                Spacer()
+                optionsControl(buttonSize: buttonSize)
             }
-            .padding(.horizontal, 24)
-
-            // Controls in top corner
-            VStack {
-                HStack {
-                    Spacer()
-
-                    // Reset button (top right)
-                    Button(action: { timer.reset() }) {
-                        Image(systemName: "arrow.counterclockwise")
-                            .font(.system(size: 20, weight: .medium))
-                            .foregroundColor(Color.themeTextSecondary)
-                            .frame(width: 44, height: 44)
-                            .background(Color.themeCardBackground.opacity(0.8))
-                            .clipShape(Circle())
-                    }
-                    .padding([.top, .trailing], 20)
-                }
-                Spacer()
-            }
+            .padding(.horizontal, 20)
         }
+        .padding(.vertical, 20)
+        .frame(width: ringSize + 60)
+        .background(Color.themeBackground.ignoresSafeArea())
         .onAppear {
             lastPhase = timer.phase
         }
@@ -82,32 +39,34 @@ struct ContentView: View {
                 lastPhase = newPhase
             }
         }
+        .sheet(isPresented: $showingAnalytics) {
+            AnalyticsView()
+                .environmentObject(logger)
+        }
     }
-    
+
     // MARK: - Bindings for macOS Menu Pickers
-    #if os(macOS)
     private var workDurationBinding: Binding<Int> {
         Binding<Int>(
             get: { timer.workDuration / 60 },
             set: { timer.updateDurations(workMinutes: $0, shortBreakMinutes: timer.breakDuration / 60, longBreakMinutes: timer.longBreakDuration / 60) }
         )
     }
-    
+
     private var shortBreakDurationBinding: Binding<Int> {
         Binding<Int>(
             get: { timer.breakDuration / 60 },
             set: { timer.updateDurations(workMinutes: timer.workDuration / 60, shortBreakMinutes: $0, longBreakMinutes: timer.longBreakDuration / 60) }
         )
     }
-    
+
     private var longBreakDurationBinding: Binding<Int> {
         Binding<Int>(
             get: { timer.longBreakDuration / 60 },
             set: { timer.updateDurations(workMinutes: timer.workDuration / 60, shortBreakMinutes: timer.breakDuration / 60, longBreakMinutes: $0) }
         )
     }
-    #endif
-    
+
     private func timerRing(ringSize: CGFloat, ringLineWidth: CGFloat, buttonSize: CGFloat) -> some View {
         ZStack {
             Circle()
@@ -132,14 +91,21 @@ struct ContentView: View {
                     .font(.system(size: ringSize * 0.08, weight: .regular))
                     .foregroundStyle(Color.themeTextSecondary)
                     .padding(.bottom, 10)
+
+                CycleProgressView(
+                    completed: timer.shortBreaksCompleted,
+                    total: timer.cycleSize
+                )
+                .frame(width: ringSize * 0.5)
+                .padding(.bottom, 15)
+                playPauseButton(buttonSize: buttonSize)
             }
         }
         .frame(width: ringSize, height: ringSize)
     }
-    
+
     @ViewBuilder
     private func optionsControl(buttonSize: CGFloat) -> some View {
-        #if os(macOS)
         let minutesRange = Array(stride(from: 5, to: 121, by: 5))
         Menu {
             Picker("Focus Duration", selection: workDurationBinding) {
@@ -201,9 +167,8 @@ struct ContentView: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Options")
-        #endif
     }
-    
+
     private func playPauseButton(buttonSize: CGFloat) -> some View {
         Button {
             timer.isRunning ? timer.pause() : startWithPermission()
@@ -233,7 +198,7 @@ struct ContentView: View {
         .buttonStyle(.plain)
         .accessibilityLabel("Reset")
     }
-    
+
     private func startWithPermission() {
         if !didRequestNotificationPermission {
             NotificationManager.shared.requestPermission { _ in }
@@ -242,9 +207,8 @@ struct ContentView: View {
         }
         timer.start()
     }
-    
+
     private func playChime() {
-        #if os(iOS) || os(macOS)
         guard let soundURL = Bundle.main.url(forResource: "chime-sound", withExtension: "mp3") else { return }
         do {
             audioPlayer = try AVAudioPlayer(contentsOf: soundURL)
@@ -252,7 +216,6 @@ struct ContentView: View {
         } catch {
             // ignore
         }
-        #endif
     }
 }
 
@@ -260,7 +223,7 @@ struct ContentView: View {
 private struct CycleProgressView: View {
     let completed: Int
     let total: Int
-    
+
     var body: some View {
         HStack(spacing: 8) {
             ForEach(0..<total, id: \.self) { index in
@@ -272,15 +235,9 @@ private struct CycleProgressView: View {
     }
 }
 
-
-
 #Preview {
-    ContentView()
+    macOSContentView()
         .environmentObject(PomodoroTimer())
         .environmentObject(SessionLogger())
         .environmentObject(AuthManager())
-        .environmentObject(AnalyticsManager(
-            apiClient: AnalyticsApiClient(baseURL: URL(string: "https://api.example.com")!),
-            authManager: AuthManager()
-        ))
 }

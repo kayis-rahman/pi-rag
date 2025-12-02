@@ -3779,3 +3779,547 @@ LIMIT ?
 2025-12-02T17:33:44.011Z DEBUG 23020 --- [0.0-8080-exec-7] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [{accessToken=eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI2NzU0NmNiYS01YmEwLTRiODMtODRiZi01OTA2YWY3YjI3MDgiLCJpYX (truncated)...]
 2025-12-02T17:33:44.014Z DEBUG 23020 --- [0.0-8080-exec-7] o.j.s.OpenEntityManagerInViewInterceptor : Closing JPA EntityManager in OpenEntityManagerInViewInterceptor
 2025-12-02T17:33:44.015Z DEBUG 23020 --- [0.0-8080-exec-7] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-12-02T17:34:16.152Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.security.web.FilterChainProxy        : Securing GET /api/v1/analytics/weekly
+2025-12-02T17:34:16.178Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.security.web.FilterChainProxy        : Secured GET /api/v1/analytics/weekly
+2025-12-02T17:34:16.179Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.web.servlet.DispatcherServlet        : GET "/api/v1/analytics/weekly", parameters={}
+2025-12-02T17:34:16.179Z DEBUG 23020 --- [0.0-8080-exec-9] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.sparkage.timebeam.presentation.controller.AnalyticsController#getWeeklyAnalytics(Authentication)
+2025-12-02T17:34:16.179Z DEBUG 23020 --- [0.0-8080-exec-9] o.j.s.OpenEntityManagerInViewInterceptor : Opening JPA EntityManager in OpenEntityManagerInViewInterceptor
+2025-12-02T17:34:16.182Z DEBUG 23020 --- [0.0-8080-exec-9] horizationManagerBeforeMethodInterceptor : Authorizing method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.sparkage.timebeam.presentation.controller.AnalyticsController.getWeeklyAnalytics(org.springframework.security.core.Authentication); target is of class [com.sparkage.timebeam.presentation.controller.AnalyticsController]
+2025-12-02T17:34:16.187Z DEBUG 23020 --- [0.0-8080-exec-9] horizationManagerBeforeMethodInterceptor : Authorized method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.sparkage.timebeam.presentation.controller.AnalyticsController.getWeeklyAnalytics(org.springframework.security.core.Authentication); target is of class [com.sparkage.timebeam.presentation.controller.AnalyticsController]
+2025-12-02T17:34:16.188Z  INFO 23020 --- [0.0-8080-exec-9] c.s.t.p.controller.AnalyticsController   : getWeeklyAnalytics userId=67546cba-5ba0-4b83-84bf-5906af7b2708
+2025-12-02T17:34:16.188Z DEBUG 23020 --- [0.0-8080-exec-9] c.s.t.a.service.AnalyticsService         : getWeeklyAnalytics userId=67546cba-5ba0-4b83-84bf-5906af7b2708
+2025-12-02T17:34:16.188Z DEBUG 23020 --- [0.0-8080-exec-9] c.s.t.a.service.AnalyticsService         : getDailyTotals userId=67546cba-5ba0-4b83-84bf-5906af7b2708, days=7, timezone=UTC
+2025-12-02T17:34:16.191Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-12-02T17:34:16.191Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT
+    work_date as date,
+    SUM(duration_seconds / 60) as total_minutes,
+    COUNT(*) as session_count
+FROM (
+    SELECT
+        DATE(sr.started_at AT TIME ZONE ?) as work_date,
+        sr.duration_seconds
+    FROM session_records sr
+    WHERE sr.user_id = ?::uuid
+      AND sr.kind = 'WORK'
+      AND sr.started_at >= ?::timestamptz
+      AND sr.started_at < ?::timestamptz
+) daily_work
+GROUP BY work_date
+ORDER BY work_date ASC
+]
+2025-12-02T17:34:16.191Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.jdbc.datasource.DataSourceUtils      : Fetching JDBC Connection from DataSource
+2025-12-02T17:34:16.229Z  INFO 23020 --- [0.0-8080-exec-9] c.s.t.a.service.AnalyticsService         : getDailyTotals returned 7 days of data
+2025-12-02T17:34:16.231Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-12-02T17:34:16.231Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT
+    COALESCE(SUM(duration_seconds / 60), 0) as minutes,
+    COUNT(*) as sessions
+FROM session_records sr
+WHERE sr.user_id = ?::uuid
+  AND sr.kind = 'WORK'
+  AND DATE(sr.started_at AT TIME ZONE ?) = CURRENT_DATE AT TIME ZONE ?
+]
+2025-12-02T17:34:16.231Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.jdbc.datasource.DataSourceUtils      : Fetching JDBC Connection from DataSource
+2025-12-02T17:34:16.235Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-12-02T17:34:16.235Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT
+    COALESCE(SUM(duration_seconds / 60), 0) as minutes,
+    COUNT(*) as sessions
+FROM session_records sr
+WHERE sr.user_id = ?::uuid
+  AND sr.kind = 'WORK'
+  AND sr.started_at >= (CURRENT_TIMESTAMP AT TIME ZONE ? - INTERVAL '7 days')
+  AND sr.started_at < CURRENT_TIMESTAMP AT TIME ZONE ?
+]
+2025-12-02T17:34:16.235Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.jdbc.datasource.DataSourceUtils      : Fetching JDBC Connection from DataSource
+2025-12-02T17:34:16.238Z DEBUG 23020 --- [0.0-8080-exec-9] c.s.t.a.service.AnalyticsService         : getProductiveStreak userId=67546cba-5ba0-4b83-84bf-5906af7b2708, timezone=UTC
+2025-12-02T17:34:16.240Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-12-02T17:34:16.240Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [WITH productive_days AS (
+    SELECT DISTINCT DATE(sr.started_at AT TIME ZONE ?) as work_date
+    FROM session_records sr
+    WHERE sr.user_id = ?::uuid
+      AND sr.kind = 'WORK'
+      AND sr.started_at <= CURRENT_TIMESTAMP AT TIME ZONE ?
+    ORDER BY work_date DESC
+),
+ranked_days AS (
+    SELECT work_date,
+           ROW_NUMBER() OVER (ORDER BY work_date DESC) as day_rank
+    FROM productive_days
+)
+SELECT COUNT(*) as current_streak
+FROM ranked_days
+WHERE work_date = (DATE(CURRENT_TIMESTAMP AT TIME ZONE ?) - (day_rank - 1) * INTERVAL '1 day')
+]
+2025-12-02T17:34:16.240Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.jdbc.datasource.DataSourceUtils      : Fetching JDBC Connection from DataSource
+2025-12-02T17:34:16.243Z  INFO 23020 --- [0.0-8080-exec-9] c.s.t.a.service.AnalyticsService         : getProductiveStreak userId=67546cba-5ba0-4b83-84bf-5906af7b2708 streak=44 days
+2025-12-02T17:34:16.243Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-12-02T17:34:16.243Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT
+    sr.kind as type,
+    (sr.duration_seconds / 60) as duration_minutes,
+    sr.started_at as timestamp
+FROM session_records sr
+WHERE sr.user_id = ?::uuid
+ORDER BY sr.started_at DESC
+LIMIT ?
+]
+2025-12-02T17:34:16.243Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.jdbc.datasource.DataSourceUtils      : Fetching JDBC Connection from DataSource
+2025-12-02T17:34:16.264Z  INFO 23020 --- [0.0-8080-exec-9] c.s.t.a.service.AnalyticsService         : getWeeklyAnalytics returned 7 days of weekly data, 20 recent sessions
+2025-12-02T17:34:16.265Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [application/json] and supported [application/json, application/*+json]
+2025-12-02T17:34:16.267Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [{weekly_chart={period=7, unit=minutes, timezone=UTC, data=[{date=2025-11-26, weekday=Wed, total_minu (truncated)...]
+2025-12-02T17:34:16.271Z DEBUG 23020 --- [0.0-8080-exec-9] o.j.s.OpenEntityManagerInViewInterceptor : Closing JPA EntityManager in OpenEntityManagerInViewInterceptor
+2025-12-02T17:34:16.271Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-12-02T18:09:36.991Z DEBUG 23020 --- [0.0-8080-exec-1] o.s.security.web.FilterChainProxy        : Securing POST /api/auth/login
+2025-12-02T18:09:37.032Z DEBUG 23020 --- [0.0-8080-exec-1] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2025-12-02T18:09:37.042Z DEBUG 23020 --- [0.0-8080-exec-1] o.s.security.web.FilterChainProxy        : Secured POST /api/auth/login
+2025-12-02T18:09:37.047Z DEBUG 23020 --- [0.0-8080-exec-1] o.s.web.servlet.DispatcherServlet        : POST "/api/auth/login", parameters={}
+2025-12-02T18:09:37.049Z DEBUG 23020 --- [0.0-8080-exec-1] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.sparkage.timebeam.presentation.controller.AuthController#login(Login)
+2025-12-02T18:09:37.054Z DEBUG 23020 --- [0.0-8080-exec-1] o.j.s.OpenEntityManagerInViewInterceptor : Opening JPA EntityManager in OpenEntityManagerInViewInterceptor
+2025-12-02T18:09:37.109Z DEBUG 23020 --- [0.0-8080-exec-1] m.m.a.RequestResponseBodyMethodProcessor : Read "application/json;charset=UTF-8" to [com.sparkage.timebeam.presentation.dto.AuthRequests$Login@17fe3ce0]
+2025-12-02T18:09:37.143Z DEBUG 23020 --- [0.0-8080-exec-1] c.s.t.p.controller.AuthController        : Login request received for email=k****@gmail.com
+2025-12-02T18:09:37.144Z DEBUG 23020 --- [0.0-8080-exec-1] c.s.t.application.service.AuthService    : auth.login called for email=kaisbk1@gmail.com
+2025-12-02T18:09:37.213Z DEBUG 23020 --- [0.0-8080-exec-1] org.hibernate.SQL                        : 
+    select
+        u1_0.id,
+        u1_0.is_admin,
+        u1_0.display_name,
+        u1_0.email 
+    from
+        users u1_0 
+    where
+        u1_0.email=?
+2025-12-02T18:09:37.373Z  INFO 23020 --- [0.0-8080-exec-1] c.s.t.application.service.AuthService    : login success for userId=67546cba-5ba0-4b83-84bf-5906af7b2708
+2025-12-02T18:09:37.373Z  INFO 23020 --- [0.0-8080-exec-1] c.s.t.p.controller.AuthController        : User logged in successfully: email=k****@gmail.com
+2025-12-02T18:09:37.377Z DEBUG 23020 --- [0.0-8080-exec-1] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-12-02T18:09:37.379Z DEBUG 23020 --- [0.0-8080-exec-1] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [{accessToken=eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI2NzU0NmNiYS01YmEwLTRiODMtODRiZi01OTA2YWY3YjI3MDgiLCJpYX (truncated)...]
+2025-12-02T18:09:37.382Z DEBUG 23020 --- [0.0-8080-exec-1] o.j.s.OpenEntityManagerInViewInterceptor : Closing JPA EntityManager in OpenEntityManagerInViewInterceptor
+2025-12-02T18:09:37.384Z DEBUG 23020 --- [0.0-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-12-02T18:09:40.382Z DEBUG 23020 --- [0.0-8080-exec-2] o.s.security.web.FilterChainProxy        : Securing POST /api/sessions/start?kind=SHORT_BREAK
+2025-12-02T18:09:40.423Z DEBUG 23020 --- [0.0-8080-exec-2] o.s.security.web.FilterChainProxy        : Secured POST /api/sessions/start?kind=SHORT_BREAK
+2025-12-02T18:09:40.426Z DEBUG 23020 --- [0.0-8080-exec-2] o.s.web.servlet.DispatcherServlet        : POST "/api/sessions/start?kind=SHORT_BREAK", parameters={masked}
+2025-12-02T18:09:40.427Z DEBUG 23020 --- [0.0-8080-exec-2] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.sparkage.timebeam.presentation.controller.SessionController#start(String, Principal)
+2025-12-02T18:09:40.429Z DEBUG 23020 --- [0.0-8080-exec-2] o.j.s.OpenEntityManagerInViewInterceptor : Opening JPA EntityManager in OpenEntityManagerInViewInterceptor
+2025-12-02T18:09:40.447Z DEBUG 23020 --- [0.0-8080-exec-2] horizationManagerBeforeMethodInterceptor : Authorizing method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.sparkage.timebeam.presentation.controller.SessionController.start(java.lang.String,java.security.Principal); target is of class [com.sparkage.timebeam.presentation.controller.SessionController]
+2025-12-02T18:09:40.452Z DEBUG 23020 --- [0.0-8080-exec-2] horizationManagerBeforeMethodInterceptor : Authorized method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.sparkage.timebeam.presentation.controller.SessionController.start(java.lang.String,java.security.Principal); target is of class [com.sparkage.timebeam.presentation.controller.SessionController]
+2025-12-02T18:09:40.453Z DEBUG 23020 --- [0.0-8080-exec-2] c.s.t.p.controller.SessionController     : start session requested kind=SHORT_BREAK
+2025-12-02T18:09:40.453Z DEBUG 23020 --- [0.0-8080-exec-2] c.s.t.a.service.SessionService           : SessionService.start called userId=67546cba-5ba0-4b83-84bf-5906af7b2708, kind=SHORT_BREAK
+2025-12-02T18:09:40.454Z DEBUG 23020 --- [0.0-8080-exec-2] c.s.t.a.service.SessionService           : SessionService.create called dto.id=null, kind=SHORT_BREAK
+2025-12-02T18:09:40.470Z DEBUG 23020 --- [0.0-8080-exec-2] o.s.orm.jpa.JpaTransactionManager        : Found thread-bound EntityManager [SessionImpl(741236288<open>)] for JPA transaction
+2025-12-02T18:09:40.473Z DEBUG 23020 --- [0.0-8080-exec-2] o.s.orm.jpa.JpaTransactionManager        : Creating new transaction with name [org.springframework.data.jpa.repository.support.SimpleJpaRepository.save]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT
+2025-12-02T18:09:40.485Z DEBUG 23020 --- [0.0-8080-exec-2] o.s.orm.jpa.JpaTransactionManager        : Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@303babef]
+2025-12-02T18:09:40.506Z DEBUG 23020 --- [0.0-8080-exec-2] org.hibernate.SQL                        : 
+    select
+        sr1_0.id,
+        sr1_0.duration_seconds,
+        sr1_0.kind,
+        sr1_0.started_at,
+        sr1_0.user_id 
+    from
+        session_records sr1_0 
+    where
+        sr1_0.id=?
+2025-12-02T18:09:40.539Z DEBUG 23020 --- [0.0-8080-exec-2] o.s.orm.jpa.JpaTransactionManager        : Initiating transaction commit
+2025-12-02T18:09:40.540Z DEBUG 23020 --- [0.0-8080-exec-2] o.s.orm.jpa.JpaTransactionManager        : Committing JPA transaction on EntityManager [SessionImpl(741236288<open>)]
+2025-12-02T18:09:40.559Z DEBUG 23020 --- [0.0-8080-exec-2] org.hibernate.SQL                        : 
+    insert 
+    into
+        session_records
+        (duration_seconds, kind, started_at, user_id, id) 
+    values
+        (?, ?, ?, ?, ?)
+2025-12-02T18:09:40.606Z DEBUG 23020 --- [0.0-8080-exec-2] o.s.orm.jpa.JpaTransactionManager        : Not closing pre-bound JPA EntityManager after transaction
+2025-12-02T18:09:40.606Z  INFO 23020 --- [0.0-8080-exec-2] c.s.t.a.service.SessionService           : SessionRecord saved id=8a086044-72ea-4323-a410-dbab936a6a8d, userId=67546cba-5ba0-4b83-84bf-5906af7b2708
+2025-12-02T18:09:40.609Z  INFO 23020 --- [0.0-8080-exec-2] c.s.t.p.controller.SessionController     : session started: id=8a086044-72ea-4323-a410-dbab936a6a8d, userId=67546cba-5ba0-4b83-84bf-5906af7b2708, kind=shortBreak
+2025-12-02T18:09:40.612Z DEBUG 23020 --- [0.0-8080-exec-2] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-12-02T18:09:40.613Z DEBUG 23020 --- [0.0-8080-exec-2] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [com.sparkage.timebeam.presentation.dto.SessionRecordDto@54928519]
+2025-12-02T18:09:40.620Z DEBUG 23020 --- [0.0-8080-exec-2] o.j.s.OpenEntityManagerInViewInterceptor : Closing JPA EntityManager in OpenEntityManagerInViewInterceptor
+2025-12-02T18:09:40.621Z DEBUG 23020 --- [0.0-8080-exec-2] o.s.web.servlet.DispatcherServlet        : Completed 201 CREATED
+2025-12-02T18:09:44.150Z DEBUG 23020 --- [0.0-8080-exec-3] o.s.security.web.FilterChainProxy        : Securing GET /api/v1/analytics/weekly
+2025-12-02T18:09:44.202Z DEBUG 23020 --- [0.0-8080-exec-3] o.s.security.web.FilterChainProxy        : Secured GET /api/v1/analytics/weekly
+2025-12-02T18:09:44.203Z DEBUG 23020 --- [0.0-8080-exec-3] o.s.web.servlet.DispatcherServlet        : GET "/api/v1/analytics/weekly", parameters={}
+2025-12-02T18:09:44.205Z DEBUG 23020 --- [0.0-8080-exec-3] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.sparkage.timebeam.presentation.controller.AnalyticsController#getWeeklyAnalytics(Authentication)
+2025-12-02T18:09:44.206Z DEBUG 23020 --- [0.0-8080-exec-3] o.j.s.OpenEntityManagerInViewInterceptor : Opening JPA EntityManager in OpenEntityManagerInViewInterceptor
+2025-12-02T18:09:44.210Z DEBUG 23020 --- [0.0-8080-exec-3] horizationManagerBeforeMethodInterceptor : Authorizing method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.sparkage.timebeam.presentation.controller.AnalyticsController.getWeeklyAnalytics(org.springframework.security.core.Authentication); target is of class [com.sparkage.timebeam.presentation.controller.AnalyticsController]
+2025-12-02T18:09:44.212Z DEBUG 23020 --- [0.0-8080-exec-3] horizationManagerBeforeMethodInterceptor : Authorized method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.sparkage.timebeam.presentation.controller.AnalyticsController.getWeeklyAnalytics(org.springframework.security.core.Authentication); target is of class [com.sparkage.timebeam.presentation.controller.AnalyticsController]
+2025-12-02T18:09:44.213Z  INFO 23020 --- [0.0-8080-exec-3] c.s.t.p.controller.AnalyticsController   : getWeeklyAnalytics userId=67546cba-5ba0-4b83-84bf-5906af7b2708
+2025-12-02T18:09:44.213Z DEBUG 23020 --- [0.0-8080-exec-3] c.s.t.a.service.AnalyticsService         : getWeeklyAnalytics userId=67546cba-5ba0-4b83-84bf-5906af7b2708
+2025-12-02T18:09:44.213Z DEBUG 23020 --- [0.0-8080-exec-3] c.s.t.a.service.AnalyticsService         : getDailyTotals userId=67546cba-5ba0-4b83-84bf-5906af7b2708, days=7, timezone=UTC
+2025-12-02T18:09:44.214Z DEBUG 23020 --- [0.0-8080-exec-3] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-12-02T18:09:44.214Z DEBUG 23020 --- [0.0-8080-exec-3] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT
+    work_date as date,
+    SUM(duration_seconds / 60) as total_minutes,
+    COUNT(*) as session_count
+FROM (
+    SELECT
+        DATE(sr.started_at AT TIME ZONE ?) as work_date,
+        sr.duration_seconds
+    FROM session_records sr
+    WHERE sr.user_id = ?::uuid
+      AND sr.kind = 'WORK'
+      AND sr.started_at >= ?::timestamptz
+      AND sr.started_at < ?::timestamptz
+) daily_work
+GROUP BY work_date
+ORDER BY work_date ASC
+]
+2025-12-02T18:09:44.214Z DEBUG 23020 --- [0.0-8080-exec-3] o.s.jdbc.datasource.DataSourceUtils      : Fetching JDBC Connection from DataSource
+2025-12-02T18:09:44.267Z  INFO 23020 --- [0.0-8080-exec-3] c.s.t.a.service.AnalyticsService         : getDailyTotals returned 7 days of data
+2025-12-02T18:09:44.269Z DEBUG 23020 --- [0.0-8080-exec-3] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-12-02T18:09:44.269Z DEBUG 23020 --- [0.0-8080-exec-3] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT
+    COALESCE(SUM(duration_seconds / 60), 0) as minutes,
+    COUNT(*) as sessions
+FROM session_records sr
+WHERE sr.user_id = ?::uuid
+  AND sr.kind = 'WORK'
+  AND DATE(sr.started_at AT TIME ZONE ?) = CURRENT_DATE AT TIME ZONE ?
+]
+2025-12-02T18:09:44.270Z DEBUG 23020 --- [0.0-8080-exec-3] o.s.jdbc.datasource.DataSourceUtils      : Fetching JDBC Connection from DataSource
+2025-12-02T18:09:44.282Z DEBUG 23020 --- [0.0-8080-exec-3] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-12-02T18:09:44.282Z DEBUG 23020 --- [0.0-8080-exec-3] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT
+    COALESCE(SUM(duration_seconds / 60), 0) as minutes,
+    COUNT(*) as sessions
+FROM session_records sr
+WHERE sr.user_id = ?::uuid
+  AND sr.kind = 'WORK'
+  AND sr.started_at >= (CURRENT_TIMESTAMP AT TIME ZONE ? - INTERVAL '7 days')
+  AND sr.started_at < CURRENT_TIMESTAMP AT TIME ZONE ?
+]
+2025-12-02T18:09:44.282Z DEBUG 23020 --- [0.0-8080-exec-3] o.s.jdbc.datasource.DataSourceUtils      : Fetching JDBC Connection from DataSource
+2025-12-02T18:09:44.296Z DEBUG 23020 --- [0.0-8080-exec-3] c.s.t.a.service.AnalyticsService         : getProductiveStreak userId=67546cba-5ba0-4b83-84bf-5906af7b2708, timezone=UTC
+2025-12-02T18:09:44.297Z DEBUG 23020 --- [0.0-8080-exec-3] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-12-02T18:09:44.298Z DEBUG 23020 --- [0.0-8080-exec-3] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [WITH productive_days AS (
+    SELECT DISTINCT DATE(sr.started_at AT TIME ZONE ?) as work_date
+    FROM session_records sr
+    WHERE sr.user_id = ?::uuid
+      AND sr.kind = 'WORK'
+      AND sr.started_at <= CURRENT_TIMESTAMP AT TIME ZONE ?
+    ORDER BY work_date DESC
+),
+ranked_days AS (
+    SELECT work_date,
+           ROW_NUMBER() OVER (ORDER BY work_date DESC) as day_rank
+    FROM productive_days
+)
+SELECT COUNT(*) as current_streak
+FROM ranked_days
+WHERE work_date = (DATE(CURRENT_TIMESTAMP AT TIME ZONE ?) - (day_rank - 1) * INTERVAL '1 day')
+]
+2025-12-02T18:09:44.298Z DEBUG 23020 --- [0.0-8080-exec-3] o.s.jdbc.datasource.DataSourceUtils      : Fetching JDBC Connection from DataSource
+2025-12-02T18:09:44.315Z  INFO 23020 --- [0.0-8080-exec-3] c.s.t.a.service.AnalyticsService         : getProductiveStreak userId=67546cba-5ba0-4b83-84bf-5906af7b2708 streak=44 days
+2025-12-02T18:09:44.315Z DEBUG 23020 --- [0.0-8080-exec-3] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-12-02T18:09:44.315Z DEBUG 23020 --- [0.0-8080-exec-3] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT
+    sr.kind as type,
+    (sr.duration_seconds / 60) as duration_minutes,
+    sr.started_at as timestamp
+FROM session_records sr
+WHERE sr.user_id = ?::uuid
+ORDER BY sr.started_at DESC
+LIMIT ?
+]
+2025-12-02T18:09:44.315Z DEBUG 23020 --- [0.0-8080-exec-3] o.s.jdbc.datasource.DataSourceUtils      : Fetching JDBC Connection from DataSource
+2025-12-02T18:09:44.333Z  INFO 23020 --- [0.0-8080-exec-3] c.s.t.a.service.AnalyticsService         : getWeeklyAnalytics returned 7 days of weekly data, 20 recent sessions
+2025-12-02T18:09:44.337Z DEBUG 23020 --- [0.0-8080-exec-3] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [application/json] and supported [application/json, application/*+json]
+2025-12-02T18:09:44.345Z DEBUG 23020 --- [0.0-8080-exec-3] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [{weekly_chart={period=7, unit=minutes, timezone=UTC, data=[{date=2025-11-26, weekday=Wed, total_minu (truncated)...]
+2025-12-02T18:09:44.360Z DEBUG 23020 --- [0.0-8080-exec-3] o.j.s.OpenEntityManagerInViewInterceptor : Closing JPA EntityManager in OpenEntityManagerInViewInterceptor
+2025-12-02T18:09:44.360Z DEBUG 23020 --- [0.0-8080-exec-3] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-12-02T18:14:56.331Z DEBUG 23020 --- [0.0-8080-exec-5] o.s.security.web.FilterChainProxy        : Securing POST /api/sessions
+2025-12-02T18:14:56.883Z DEBUG 23020 --- [0.0-8080-exec-5] o.s.security.web.FilterChainProxy        : Secured POST /api/sessions
+2025-12-02T18:14:56.905Z DEBUG 23020 --- [0.0-8080-exec-5] o.s.web.servlet.DispatcherServlet        : POST "/api/sessions", parameters={}
+2025-12-02T18:14:56.911Z DEBUG 23020 --- [0.0-8080-exec-5] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.sparkage.timebeam.presentation.controller.SessionController#create(SessionRecordDto, Principal)
+2025-12-02T18:14:56.931Z DEBUG 23020 --- [0.0-8080-exec-5] o.j.s.OpenEntityManagerInViewInterceptor : Opening JPA EntityManager in OpenEntityManagerInViewInterceptor
+2025-12-02T18:14:57.835Z DEBUG 23020 --- [0.0-8080-exec-5] m.m.a.RequestResponseBodyMethodProcessor : Read "application/json;charset=UTF-8" to [com.sparkage.timebeam.presentation.dto.SessionRecordDto@66abc2b3]
+2025-12-02T18:14:58.308Z DEBUG 23020 --- [0.0-8080-exec-5] horizationManagerBeforeMethodInterceptor : Authorizing method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.sparkage.timebeam.presentation.controller.SessionController.create(com.sparkage.timebeam.presentation.dto.SessionRecordDto,java.security.Principal); target is of class [com.sparkage.timebeam.presentation.controller.SessionController]
+2025-12-02T18:14:58.368Z DEBUG 23020 --- [0.0-8080-exec-5] horizationManagerBeforeMethodInterceptor : Authorized method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.sparkage.timebeam.presentation.controller.SessionController.create(com.sparkage.timebeam.presentation.dto.SessionRecordDto,java.security.Principal); target is of class [com.sparkage.timebeam.presentation.controller.SessionController]
+2025-12-02T18:14:58.374Z DEBUG 23020 --- [0.0-8080-exec-5] c.s.t.p.controller.SessionController     : create session request received: id=cc0af4c4-199f-4e9b-9c7b-f5a04577c13e, kind=shortBreak, startedAt=1994-12-02T18:09:55.396679Z
+2025-12-02T18:14:58.378Z DEBUG 23020 --- [0.0-8080-exec-5] c.s.t.p.controller.SessionController     : attached userId=67546cba-5ba0-4b83-84bf-5906af7b2708 to session dto
+2025-12-02T18:14:58.379Z DEBUG 23020 --- [0.0-8080-exec-5] c.s.t.a.service.SessionService           : SessionService.create called dto.id=cc0af4c4-199f-4e9b-9c7b-f5a04577c13e, kind=shortBreak
+2025-12-02T18:14:58.456Z DEBUG 23020 --- [0.0-8080-exec-5] o.s.orm.jpa.JpaTransactionManager        : Found thread-bound EntityManager [SessionImpl(557654179<open>)] for JPA transaction
+2025-12-02T18:14:58.457Z DEBUG 23020 --- [0.0-8080-exec-5] o.s.orm.jpa.JpaTransactionManager        : Creating new transaction with name [org.springframework.data.jpa.repository.support.SimpleJpaRepository.save]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT
+2025-12-02T18:14:58.494Z DEBUG 23020 --- [0.0-8080-exec-5] o.s.orm.jpa.JpaTransactionManager        : Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@60b5379c]
+2025-12-02T18:14:58.699Z DEBUG 23020 --- [0.0-8080-exec-5] org.hibernate.SQL                        : 
+    select
+        sr1_0.id,
+        sr1_0.duration_seconds,
+        sr1_0.kind,
+        sr1_0.started_at,
+        sr1_0.user_id 
+    from
+        session_records sr1_0 
+    where
+        sr1_0.id=?
+2025-12-02T18:14:58.793Z DEBUG 23020 --- [0.0-8080-exec-5] o.s.orm.jpa.JpaTransactionManager        : Initiating transaction commit
+2025-12-02T18:14:58.793Z DEBUG 23020 --- [0.0-8080-exec-5] o.s.orm.jpa.JpaTransactionManager        : Committing JPA transaction on EntityManager [SessionImpl(557654179<open>)]
+2025-12-02T18:14:58.816Z DEBUG 23020 --- [0.0-8080-exec-5] org.hibernate.SQL                        : 
+    insert 
+    into
+        session_records
+        (duration_seconds, kind, started_at, user_id, id) 
+    values
+        (?, ?, ?, ?, ?)
+2025-12-02T18:14:59.038Z DEBUG 23020 --- [0.0-8080-exec-5] o.s.orm.jpa.JpaTransactionManager        : Not closing pre-bound JPA EntityManager after transaction
+2025-12-02T18:14:59.039Z  INFO 23020 --- [0.0-8080-exec-5] c.s.t.a.service.SessionService           : SessionRecord saved id=cc0af4c4-199f-4e9b-9c7b-f5a04577c13e, userId=67546cba-5ba0-4b83-84bf-5906af7b2708
+2025-12-02T18:14:59.040Z  INFO 23020 --- [0.0-8080-exec-5] c.s.t.p.controller.SessionController     : session created: id=cc0af4c4-199f-4e9b-9c7b-f5a04577c13e, userId=67546cba-5ba0-4b83-84bf-5906af7b2708
+2025-12-02T18:14:59.066Z DEBUG 23020 --- [0.0-8080-exec-5] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-12-02T18:14:59.066Z DEBUG 23020 --- [0.0-8080-exec-5] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [com.sparkage.timebeam.presentation.dto.SessionRecordDto@40724dc5]
+2025-12-02T18:14:59.085Z DEBUG 23020 --- [0.0-8080-exec-5] o.j.s.OpenEntityManagerInViewInterceptor : Closing JPA EntityManager in OpenEntityManagerInViewInterceptor
+2025-12-02T18:14:59.090Z DEBUG 23020 --- [0.0-8080-exec-5] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-12-02T18:38:27.594Z DEBUG 23020 --- [0.0-8080-exec-7] o.s.security.web.FilterChainProxy        : Securing POST /api/auth/login
+2025-12-02T18:38:27.651Z DEBUG 23020 --- [0.0-8080-exec-7] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2025-12-02T18:38:27.663Z DEBUG 23020 --- [0.0-8080-exec-7] o.s.security.web.FilterChainProxy        : Secured POST /api/auth/login
+2025-12-02T18:38:27.672Z DEBUG 23020 --- [0.0-8080-exec-7] o.s.web.servlet.DispatcherServlet        : POST "/api/auth/login", parameters={}
+2025-12-02T18:38:27.675Z DEBUG 23020 --- [0.0-8080-exec-7] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.sparkage.timebeam.presentation.controller.AuthController#login(Login)
+2025-12-02T18:38:27.681Z DEBUG 23020 --- [0.0-8080-exec-7] o.j.s.OpenEntityManagerInViewInterceptor : Opening JPA EntityManager in OpenEntityManagerInViewInterceptor
+2025-12-02T18:38:27.746Z DEBUG 23020 --- [0.0-8080-exec-7] m.m.a.RequestResponseBodyMethodProcessor : Read "application/json;charset=UTF-8" to [com.sparkage.timebeam.presentation.dto.AuthRequests$Login@69c9e171]
+2025-12-02T18:38:27.786Z DEBUG 23020 --- [0.0-8080-exec-7] c.s.t.p.controller.AuthController        : Login request received for email=k****@gmail.com
+2025-12-02T18:38:27.788Z DEBUG 23020 --- [0.0-8080-exec-7] c.s.t.application.service.AuthService    : auth.login called for email=kaisbk1@gmail.com
+2025-12-02T18:38:27.879Z DEBUG 23020 --- [0.0-8080-exec-7] org.hibernate.SQL                        : 
+    select
+        u1_0.id,
+        u1_0.is_admin,
+        u1_0.display_name,
+        u1_0.email 
+    from
+        users u1_0 
+    where
+        u1_0.email=?
+2025-12-02T18:38:28.023Z  INFO 23020 --- [0.0-8080-exec-7] c.s.t.application.service.AuthService    : login success for userId=67546cba-5ba0-4b83-84bf-5906af7b2708
+2025-12-02T18:38:28.023Z  INFO 23020 --- [0.0-8080-exec-7] c.s.t.p.controller.AuthController        : User logged in successfully: email=k****@gmail.com
+2025-12-02T18:38:28.029Z DEBUG 23020 --- [0.0-8080-exec-7] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-12-02T18:38:28.029Z DEBUG 23020 --- [0.0-8080-exec-7] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [{accessToken=eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI2NzU0NmNiYS01YmEwLTRiODMtODRiZi01OTA2YWY3YjI3MDgiLCJpYX (truncated)...]
+2025-12-02T18:38:28.035Z DEBUG 23020 --- [0.0-8080-exec-7] o.j.s.OpenEntityManagerInViewInterceptor : Closing JPA EntityManager in OpenEntityManagerInViewInterceptor
+2025-12-02T18:38:28.036Z DEBUG 23020 --- [0.0-8080-exec-7] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-12-02T18:38:33.068Z DEBUG 23020 --- [0.0-8080-exec-8] o.s.security.web.FilterChainProxy        : Securing POST /api/sessions/start?kind=WORK
+2025-12-02T18:38:33.092Z DEBUG 23020 --- [0.0-8080-exec-8] o.s.security.web.FilterChainProxy        : Secured POST /api/sessions/start?kind=WORK
+2025-12-02T18:38:33.094Z DEBUG 23020 --- [0.0-8080-exec-8] o.s.web.servlet.DispatcherServlet        : POST "/api/sessions/start?kind=WORK", parameters={masked}
+2025-12-02T18:38:33.094Z DEBUG 23020 --- [0.0-8080-exec-8] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.sparkage.timebeam.presentation.controller.SessionController#start(String, Principal)
+2025-12-02T18:38:33.094Z DEBUG 23020 --- [0.0-8080-exec-8] o.j.s.OpenEntityManagerInViewInterceptor : Opening JPA EntityManager in OpenEntityManagerInViewInterceptor
+2025-12-02T18:38:33.102Z DEBUG 23020 --- [0.0-8080-exec-8] horizationManagerBeforeMethodInterceptor : Authorizing method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.sparkage.timebeam.presentation.controller.SessionController.start(java.lang.String,java.security.Principal); target is of class [com.sparkage.timebeam.presentation.controller.SessionController]
+2025-12-02T18:38:33.107Z DEBUG 23020 --- [0.0-8080-exec-8] horizationManagerBeforeMethodInterceptor : Authorized method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.sparkage.timebeam.presentation.controller.SessionController.start(java.lang.String,java.security.Principal); target is of class [com.sparkage.timebeam.presentation.controller.SessionController]
+2025-12-02T18:38:33.107Z DEBUG 23020 --- [0.0-8080-exec-8] c.s.t.p.controller.SessionController     : start session requested kind=WORK
+2025-12-02T18:38:33.107Z DEBUG 23020 --- [0.0-8080-exec-8] c.s.t.a.service.SessionService           : SessionService.start called userId=67546cba-5ba0-4b83-84bf-5906af7b2708, kind=WORK
+2025-12-02T18:38:33.108Z DEBUG 23020 --- [0.0-8080-exec-8] c.s.t.a.service.SessionService           : SessionService.create called dto.id=null, kind=WORK
+2025-12-02T18:38:33.113Z DEBUG 23020 --- [0.0-8080-exec-8] o.s.orm.jpa.JpaTransactionManager        : Found thread-bound EntityManager [SessionImpl(1477825288<open>)] for JPA transaction
+2025-12-02T18:38:33.113Z DEBUG 23020 --- [0.0-8080-exec-8] o.s.orm.jpa.JpaTransactionManager        : Creating new transaction with name [org.springframework.data.jpa.repository.support.SimpleJpaRepository.save]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT
+2025-12-02T18:38:33.122Z DEBUG 23020 --- [0.0-8080-exec-8] o.s.orm.jpa.JpaTransactionManager        : Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@1e84cbb5]
+2025-12-02T18:38:33.130Z DEBUG 23020 --- [0.0-8080-exec-8] org.hibernate.SQL                        : 
+    select
+        sr1_0.id,
+        sr1_0.duration_seconds,
+        sr1_0.kind,
+        sr1_0.started_at,
+        sr1_0.user_id 
+    from
+        session_records sr1_0 
+    where
+        sr1_0.id=?
+2025-12-02T18:38:33.139Z DEBUG 23020 --- [0.0-8080-exec-8] o.s.orm.jpa.JpaTransactionManager        : Initiating transaction commit
+2025-12-02T18:38:33.139Z DEBUG 23020 --- [0.0-8080-exec-8] o.s.orm.jpa.JpaTransactionManager        : Committing JPA transaction on EntityManager [SessionImpl(1477825288<open>)]
+2025-12-02T18:38:33.142Z DEBUG 23020 --- [0.0-8080-exec-8] org.hibernate.SQL                        : 
+    insert 
+    into
+        session_records
+        (duration_seconds, kind, started_at, user_id, id) 
+    values
+        (?, ?, ?, ?, ?)
+2025-12-02T18:38:33.174Z DEBUG 23020 --- [0.0-8080-exec-8] o.s.orm.jpa.JpaTransactionManager        : Not closing pre-bound JPA EntityManager after transaction
+2025-12-02T18:38:33.175Z  INFO 23020 --- [0.0-8080-exec-8] c.s.t.a.service.SessionService           : SessionRecord saved id=65f6c52d-a604-47d5-b592-9b01c21de990, userId=67546cba-5ba0-4b83-84bf-5906af7b2708
+2025-12-02T18:38:33.175Z  INFO 23020 --- [0.0-8080-exec-8] c.s.t.p.controller.SessionController     : session started: id=65f6c52d-a604-47d5-b592-9b01c21de990, userId=67546cba-5ba0-4b83-84bf-5906af7b2708, kind=work
+2025-12-02T18:38:33.177Z DEBUG 23020 --- [0.0-8080-exec-8] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-12-02T18:38:33.177Z DEBUG 23020 --- [0.0-8080-exec-8] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [com.sparkage.timebeam.presentation.dto.SessionRecordDto@3bd1ce16]
+2025-12-02T18:38:33.179Z DEBUG 23020 --- [0.0-8080-exec-8] o.j.s.OpenEntityManagerInViewInterceptor : Closing JPA EntityManager in OpenEntityManagerInViewInterceptor
+2025-12-02T18:38:33.179Z DEBUG 23020 --- [0.0-8080-exec-8] o.s.web.servlet.DispatcherServlet        : Completed 201 CREATED
+2025-12-02T18:38:40.971Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.security.web.FilterChainProxy        : Securing POST /api/sessions/65F6C52D-A604-47D5-B592-9B01C21DE990/stop
+2025-12-02T18:38:40.982Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.security.web.FilterChainProxy        : Secured POST /api/sessions/65F6C52D-A604-47D5-B592-9B01C21DE990/stop
+2025-12-02T18:38:40.982Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.web.servlet.DispatcherServlet        : POST "/api/sessions/65F6C52D-A604-47D5-B592-9B01C21DE990/stop", parameters={}
+2025-12-02T18:38:40.983Z DEBUG 23020 --- [0.0-8080-exec-9] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.sparkage.timebeam.presentation.controller.SessionController#stop(UUID, Principal)
+2025-12-02T18:38:40.983Z DEBUG 23020 --- [0.0-8080-exec-9] o.j.s.OpenEntityManagerInViewInterceptor : Opening JPA EntityManager in OpenEntityManagerInViewInterceptor
+2025-12-02T18:38:40.986Z DEBUG 23020 --- [0.0-8080-exec-9] horizationManagerBeforeMethodInterceptor : Authorizing method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.sparkage.timebeam.presentation.controller.SessionController.stop(java.util.UUID,java.security.Principal); target is of class [com.sparkage.timebeam.presentation.controller.SessionController]
+2025-12-02T18:38:40.989Z DEBUG 23020 --- [0.0-8080-exec-9] horizationManagerBeforeMethodInterceptor : Authorized method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.sparkage.timebeam.presentation.controller.SessionController.stop(java.util.UUID,java.security.Principal); target is of class [com.sparkage.timebeam.presentation.controller.SessionController]
+2025-12-02T18:38:40.989Z DEBUG 23020 --- [0.0-8080-exec-9] c.s.t.p.controller.SessionController     : stop session requested id=65f6c52d-a604-47d5-b592-9b01c21de990
+2025-12-02T18:38:40.989Z DEBUG 23020 --- [0.0-8080-exec-9] c.s.t.a.service.SessionService           : SessionService.stop called id=65f6c52d-a604-47d5-b592-9b01c21de990, userId=67546cba-5ba0-4b83-84bf-5906af7b2708
+2025-12-02T18:38:40.989Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.orm.jpa.JpaTransactionManager        : Found thread-bound EntityManager [SessionImpl(832516529<open>)] for JPA transaction
+2025-12-02T18:38:40.990Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.orm.jpa.JpaTransactionManager        : Creating new transaction with name [org.springframework.data.jpa.repository.support.SimpleJpaRepository.findById]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT,readOnly
+2025-12-02T18:38:40.992Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.jdbc.datasource.DataSourceUtils      : Setting JDBC Connection [HikariProxyConnection@175463682 wrapping org.postgresql.jdbc.PgConnection@1342569] read-only
+2025-12-02T18:38:40.994Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.orm.jpa.JpaTransactionManager        : Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@18fe5515]
+2025-12-02T18:38:41.001Z DEBUG 23020 --- [0.0-8080-exec-9] org.hibernate.SQL                        : 
+    select
+        sr1_0.id,
+        sr1_0.duration_seconds,
+        sr1_0.kind,
+        sr1_0.started_at,
+        sr1_0.user_id 
+    from
+        session_records sr1_0 
+    where
+        sr1_0.id=?
+2025-12-02T18:38:41.011Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.orm.jpa.JpaTransactionManager        : Initiating transaction commit
+2025-12-02T18:38:41.011Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.orm.jpa.JpaTransactionManager        : Committing JPA transaction on EntityManager [SessionImpl(832516529<open>)]
+2025-12-02T18:38:41.012Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.jdbc.datasource.DataSourceUtils      : Resetting read-only flag of JDBC Connection [HikariProxyConnection@175463682 wrapping org.postgresql.jdbc.PgConnection@1342569]
+2025-12-02T18:38:41.012Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.orm.jpa.JpaTransactionManager        : Not closing pre-bound JPA EntityManager after transaction
+2025-12-02T18:38:41.012Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.orm.jpa.JpaTransactionManager        : Found thread-bound EntityManager [SessionImpl(832516529<open>)] for JPA transaction
+2025-12-02T18:38:41.012Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.orm.jpa.JpaTransactionManager        : Creating new transaction with name [org.springframework.data.jpa.repository.support.SimpleJpaRepository.save]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT
+2025-12-02T18:38:41.013Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.orm.jpa.JpaTransactionManager        : Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@3a1aeaa2]
+2025-12-02T18:38:41.013Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.orm.jpa.JpaTransactionManager        : Initiating transaction commit
+2025-12-02T18:38:41.013Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.orm.jpa.JpaTransactionManager        : Committing JPA transaction on EntityManager [SessionImpl(832516529<open>)]
+2025-12-02T18:38:41.020Z DEBUG 23020 --- [0.0-8080-exec-9] org.hibernate.SQL                        : 
+    update
+        session_records 
+    set
+        duration_seconds=?,
+        kind=?,
+        started_at=?,
+        user_id=? 
+    where
+        id=?
+2025-12-02T18:38:41.028Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.orm.jpa.JpaTransactionManager        : Not closing pre-bound JPA EntityManager after transaction
+2025-12-02T18:38:41.028Z  INFO 23020 --- [0.0-8080-exec-9] c.s.t.a.service.SessionService           : SessionRecord stopped id=65f6c52d-a604-47d5-b592-9b01c21de990, durationSeconds=7
+2025-12-02T18:38:41.028Z  INFO 23020 --- [0.0-8080-exec-9] c.s.t.p.controller.SessionController     : session stopped: id=65f6c52d-a604-47d5-b592-9b01c21de990, userId=67546cba-5ba0-4b83-84bf-5906af7b2708, durationSeconds=7
+2025-12-02T18:38:41.029Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-12-02T18:38:41.029Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [com.sparkage.timebeam.presentation.dto.SessionRecordDto@2c400800]
+2025-12-02T18:38:41.030Z DEBUG 23020 --- [0.0-8080-exec-9] o.j.s.OpenEntityManagerInViewInterceptor : Closing JPA EntityManager in OpenEntityManagerInViewInterceptor
+2025-12-02T18:38:41.030Z DEBUG 23020 --- [0.0-8080-exec-9] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-12-02T18:56:43.283Z DEBUG 23020 --- [0.0-8080-exec-1] o.s.security.web.FilterChainProxy        : Securing POST /api/sessions
+2025-12-02T18:56:43.368Z DEBUG 23020 --- [0.0-8080-exec-1] o.s.security.web.FilterChainProxy        : Secured POST /api/sessions
+2025-12-02T18:56:43.372Z DEBUG 23020 --- [0.0-8080-exec-1] o.s.web.servlet.DispatcherServlet        : POST "/api/sessions", parameters={}
+2025-12-02T18:56:43.374Z DEBUG 23020 --- [0.0-8080-exec-1] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.sparkage.timebeam.presentation.controller.SessionController#create(SessionRecordDto, Principal)
+2025-12-02T18:56:43.377Z DEBUG 23020 --- [0.0-8080-exec-1] o.j.s.OpenEntityManagerInViewInterceptor : Opening JPA EntityManager in OpenEntityManagerInViewInterceptor
+2025-12-02T18:56:43.422Z DEBUG 23020 --- [0.0-8080-exec-1] m.m.a.RequestResponseBodyMethodProcessor : Read "application/json;charset=UTF-8" to [com.sparkage.timebeam.presentation.dto.SessionRecordDto@259c13fb]
+2025-12-02T18:56:43.444Z DEBUG 23020 --- [0.0-8080-exec-1] horizationManagerBeforeMethodInterceptor : Authorizing method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.sparkage.timebeam.presentation.controller.SessionController.create(com.sparkage.timebeam.presentation.dto.SessionRecordDto,java.security.Principal); target is of class [com.sparkage.timebeam.presentation.controller.SessionController]
+2025-12-02T18:56:43.448Z DEBUG 23020 --- [0.0-8080-exec-1] horizationManagerBeforeMethodInterceptor : Authorized method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.sparkage.timebeam.presentation.controller.SessionController.create(com.sparkage.timebeam.presentation.dto.SessionRecordDto,java.security.Principal); target is of class [com.sparkage.timebeam.presentation.controller.SessionController]
+2025-12-02T18:56:43.448Z DEBUG 23020 --- [0.0-8080-exec-1] c.s.t.p.controller.SessionController     : create session request received: id=d929ba19-67b6-4e27-a7cc-6ac5bf4ebfb4, kind=work, startedAt=1994-12-02T18:16:42.654700Z
+2025-12-02T18:56:43.450Z DEBUG 23020 --- [0.0-8080-exec-1] c.s.t.p.controller.SessionController     : attached userId=67546cba-5ba0-4b83-84bf-5906af7b2708 to session dto
+2025-12-02T18:56:43.451Z DEBUG 23020 --- [0.0-8080-exec-1] c.s.t.a.service.SessionService           : SessionService.create called dto.id=d929ba19-67b6-4e27-a7cc-6ac5bf4ebfb4, kind=work
+2025-12-02T18:56:43.459Z DEBUG 23020 --- [0.0-8080-exec-1] o.s.orm.jpa.JpaTransactionManager        : Found thread-bound EntityManager [SessionImpl(1513444656<open>)] for JPA transaction
+2025-12-02T18:56:43.459Z DEBUG 23020 --- [0.0-8080-exec-1] o.s.orm.jpa.JpaTransactionManager        : Creating new transaction with name [org.springframework.data.jpa.repository.support.SimpleJpaRepository.save]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT
+2025-12-02T18:56:43.483Z DEBUG 23020 --- [0.0-8080-exec-1] o.s.orm.jpa.JpaTransactionManager        : Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@50695f23]
+2025-12-02T18:56:43.503Z DEBUG 23020 --- [0.0-8080-exec-1] org.hibernate.SQL                        : 
+    select
+        sr1_0.id,
+        sr1_0.duration_seconds,
+        sr1_0.kind,
+        sr1_0.started_at,
+        sr1_0.user_id 
+    from
+        session_records sr1_0 
+    where
+        sr1_0.id=?
+2025-12-02T18:56:43.535Z DEBUG 23020 --- [0.0-8080-exec-1] o.s.orm.jpa.JpaTransactionManager        : Initiating transaction commit
+2025-12-02T18:56:43.536Z DEBUG 23020 --- [0.0-8080-exec-1] o.s.orm.jpa.JpaTransactionManager        : Committing JPA transaction on EntityManager [SessionImpl(1513444656<open>)]
+2025-12-02T18:56:43.541Z DEBUG 23020 --- [0.0-8080-exec-1] org.hibernate.SQL                        : 
+    insert 
+    into
+        session_records
+        (duration_seconds, kind, started_at, user_id, id) 
+    values
+        (?, ?, ?, ?, ?)
+2025-12-02T18:56:43.556Z DEBUG 23020 --- [0.0-8080-exec-1] o.s.orm.jpa.JpaTransactionManager        : Not closing pre-bound JPA EntityManager after transaction
+2025-12-02T18:56:43.556Z  INFO 23020 --- [0.0-8080-exec-1] c.s.t.a.service.SessionService           : SessionRecord saved id=d929ba19-67b6-4e27-a7cc-6ac5bf4ebfb4, userId=67546cba-5ba0-4b83-84bf-5906af7b2708
+2025-12-02T18:56:43.557Z  INFO 23020 --- [0.0-8080-exec-1] c.s.t.p.controller.SessionController     : session created: id=d929ba19-67b6-4e27-a7cc-6ac5bf4ebfb4, userId=67546cba-5ba0-4b83-84bf-5906af7b2708
+2025-12-02T18:56:43.559Z DEBUG 23020 --- [0.0-8080-exec-1] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-12-02T18:56:43.560Z DEBUG 23020 --- [0.0-8080-exec-1] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [com.sparkage.timebeam.presentation.dto.SessionRecordDto@35b519b4]
+2025-12-02T18:56:43.564Z DEBUG 23020 --- [0.0-8080-exec-1] o.j.s.OpenEntityManagerInViewInterceptor : Closing JPA EntityManager in OpenEntityManagerInViewInterceptor
+2025-12-02T18:56:43.564Z DEBUG 23020 --- [0.0-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-12-02T19:01:56.814Z DEBUG 23020 --- [0.0-8080-exec-3] o.s.security.web.FilterChainProxy        : Securing POST /api/sessions
+2025-12-02T19:01:56.885Z DEBUG 23020 --- [0.0-8080-exec-3] o.s.security.web.FilterChainProxy        : Secured POST /api/sessions
+2025-12-02T19:01:56.888Z DEBUG 23020 --- [0.0-8080-exec-3] o.s.web.servlet.DispatcherServlet        : POST "/api/sessions", parameters={}
+2025-12-02T19:01:56.889Z DEBUG 23020 --- [0.0-8080-exec-3] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.sparkage.timebeam.presentation.controller.SessionController#create(SessionRecordDto, Principal)
+2025-12-02T19:01:56.891Z DEBUG 23020 --- [0.0-8080-exec-3] o.j.s.OpenEntityManagerInViewInterceptor : Opening JPA EntityManager in OpenEntityManagerInViewInterceptor
+2025-12-02T19:01:56.924Z DEBUG 23020 --- [0.0-8080-exec-3] m.m.a.RequestResponseBodyMethodProcessor : Read "application/json;charset=UTF-8" to [com.sparkage.timebeam.presentation.dto.SessionRecordDto@371c4d1d]
+2025-12-02T19:01:56.936Z DEBUG 23020 --- [0.0-8080-exec-3] horizationManagerBeforeMethodInterceptor : Authorizing method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.sparkage.timebeam.presentation.controller.SessionController.create(com.sparkage.timebeam.presentation.dto.SessionRecordDto,java.security.Principal); target is of class [com.sparkage.timebeam.presentation.controller.SessionController]
+2025-12-02T19:01:56.948Z DEBUG 23020 --- [0.0-8080-exec-3] horizationManagerBeforeMethodInterceptor : Authorized method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.sparkage.timebeam.presentation.controller.SessionController.create(com.sparkage.timebeam.presentation.dto.SessionRecordDto,java.security.Principal); target is of class [com.sparkage.timebeam.presentation.controller.SessionController]
+2025-12-02T19:01:56.948Z DEBUG 23020 --- [0.0-8080-exec-3] c.s.t.p.controller.SessionController     : create session request received: id=064de8ba-980a-48d9-a631-fc5d85b9a738, kind=shortBreak, startedAt=1994-12-02T18:56:56.623434Z
+2025-12-02T19:01:56.950Z DEBUG 23020 --- [0.0-8080-exec-3] c.s.t.p.controller.SessionController     : attached userId=67546cba-5ba0-4b83-84bf-5906af7b2708 to session dto
+2025-12-02T19:01:56.951Z DEBUG 23020 --- [0.0-8080-exec-3] c.s.t.a.service.SessionService           : SessionService.create called dto.id=064de8ba-980a-48d9-a631-fc5d85b9a738, kind=shortBreak
+2025-12-02T19:01:56.955Z DEBUG 23020 --- [0.0-8080-exec-3] o.s.orm.jpa.JpaTransactionManager        : Found thread-bound EntityManager [SessionImpl(891714337<open>)] for JPA transaction
+2025-12-02T19:01:56.955Z DEBUG 23020 --- [0.0-8080-exec-3] o.s.orm.jpa.JpaTransactionManager        : Creating new transaction with name [org.springframework.data.jpa.repository.support.SimpleJpaRepository.save]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT
+2025-12-02T19:01:56.988Z DEBUG 23020 --- [0.0-8080-exec-3] o.s.orm.jpa.JpaTransactionManager        : Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@4ea6bd92]
+2025-12-02T19:01:57.008Z DEBUG 23020 --- [0.0-8080-exec-3] org.hibernate.SQL                        : 
+    select
+        sr1_0.id,
+        sr1_0.duration_seconds,
+        sr1_0.kind,
+        sr1_0.started_at,
+        sr1_0.user_id 
+    from
+        session_records sr1_0 
+    where
+        sr1_0.id=?
+2025-12-02T19:01:57.028Z DEBUG 23020 --- [0.0-8080-exec-3] o.s.orm.jpa.JpaTransactionManager        : Initiating transaction commit
+2025-12-02T19:01:57.028Z DEBUG 23020 --- [0.0-8080-exec-3] o.s.orm.jpa.JpaTransactionManager        : Committing JPA transaction on EntityManager [SessionImpl(891714337<open>)]
+2025-12-02T19:01:57.033Z DEBUG 23020 --- [0.0-8080-exec-3] org.hibernate.SQL                        : 
+    insert 
+    into
+        session_records
+        (duration_seconds, kind, started_at, user_id, id) 
+    values
+        (?, ?, ?, ?, ?)
+2025-12-02T19:01:57.048Z DEBUG 23020 --- [0.0-8080-exec-3] o.s.orm.jpa.JpaTransactionManager        : Not closing pre-bound JPA EntityManager after transaction
+2025-12-02T19:01:57.049Z  INFO 23020 --- [0.0-8080-exec-3] c.s.t.a.service.SessionService           : SessionRecord saved id=064de8ba-980a-48d9-a631-fc5d85b9a738, userId=67546cba-5ba0-4b83-84bf-5906af7b2708
+2025-12-02T19:01:57.049Z  INFO 23020 --- [0.0-8080-exec-3] c.s.t.p.controller.SessionController     : session created: id=064de8ba-980a-48d9-a631-fc5d85b9a738, userId=67546cba-5ba0-4b83-84bf-5906af7b2708
+2025-12-02T19:01:57.054Z DEBUG 23020 --- [0.0-8080-exec-3] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-12-02T19:01:57.055Z DEBUG 23020 --- [0.0-8080-exec-3] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [com.sparkage.timebeam.presentation.dto.SessionRecordDto@743e5b20]
+2025-12-02T19:01:57.060Z DEBUG 23020 --- [0.0-8080-exec-3] o.j.s.OpenEntityManagerInViewInterceptor : Closing JPA EntityManager in OpenEntityManagerInViewInterceptor
+2025-12-02T19:01:57.061Z DEBUG 23020 --- [0.0-8080-exec-3] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-12-02T19:12:48.597Z DEBUG 23020 --- [0.0-8080-exec-5] o.s.security.web.FilterChainProxy        : Securing POST /api/auth/login
+2025-12-02T19:12:48.699Z DEBUG 23020 --- [0.0-8080-exec-5] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2025-12-02T19:12:48.707Z DEBUG 23020 --- [0.0-8080-exec-5] o.s.security.web.FilterChainProxy        : Secured POST /api/auth/login
+2025-12-02T19:12:48.714Z DEBUG 23020 --- [0.0-8080-exec-5] o.s.web.servlet.DispatcherServlet        : POST "/api/auth/login", parameters={}
+2025-12-02T19:12:48.717Z DEBUG 23020 --- [0.0-8080-exec-5] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.sparkage.timebeam.presentation.controller.AuthController#login(Login)
+2025-12-02T19:12:48.721Z DEBUG 23020 --- [0.0-8080-exec-5] o.j.s.OpenEntityManagerInViewInterceptor : Opening JPA EntityManager in OpenEntityManagerInViewInterceptor
+2025-12-02T19:12:48.777Z DEBUG 23020 --- [0.0-8080-exec-5] m.m.a.RequestResponseBodyMethodProcessor : Read "application/json;charset=UTF-8" to [com.sparkage.timebeam.presentation.dto.AuthRequests$Login@5ba6d1f2]
+2025-12-02T19:12:48.829Z DEBUG 23020 --- [0.0-8080-exec-5] c.s.t.p.controller.AuthController        : Login request received for email=k****@gmail.com
+2025-12-02T19:12:48.831Z DEBUG 23020 --- [0.0-8080-exec-5] c.s.t.application.service.AuthService    : auth.login called for email=kaisbk1@gmail.com
+2025-12-02T19:12:48.917Z DEBUG 23020 --- [0.0-8080-exec-5] org.hibernate.SQL                        : 
+    select
+        u1_0.id,
+        u1_0.is_admin,
+        u1_0.display_name,
+        u1_0.email 
+    from
+        users u1_0 
+    where
+        u1_0.email=?
+2025-12-02T19:12:49.059Z  INFO 23020 --- [0.0-8080-exec-5] c.s.t.application.service.AuthService    : login success for userId=67546cba-5ba0-4b83-84bf-5906af7b2708
+2025-12-02T19:12:49.059Z  INFO 23020 --- [0.0-8080-exec-5] c.s.t.p.controller.AuthController        : User logged in successfully: email=k****@gmail.com
+2025-12-02T19:12:49.066Z DEBUG 23020 --- [0.0-8080-exec-5] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-12-02T19:12:49.067Z DEBUG 23020 --- [0.0-8080-exec-5] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [{accessToken=eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI2NzU0NmNiYS01YmEwLTRiODMtODRiZi01OTA2YWY3YjI3MDgiLCJpYX (truncated)...]
+2025-12-02T19:12:49.074Z DEBUG 23020 --- [0.0-8080-exec-5] o.j.s.OpenEntityManagerInViewInterceptor : Closing JPA EntityManager in OpenEntityManagerInViewInterceptor
+2025-12-02T19:12:49.075Z DEBUG 23020 --- [0.0-8080-exec-5] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-12-02T19:12:56.705Z DEBUG 23020 --- [0.0-8080-exec-6] o.s.security.web.FilterChainProxy        : Securing POST /api/sessions/start?kind=WORK
+2025-12-02T19:12:57.005Z DEBUG 23020 --- [0.0-8080-exec-6] o.s.security.web.FilterChainProxy        : Secured POST /api/sessions/start?kind=WORK
+2025-12-02T19:12:57.011Z DEBUG 23020 --- [0.0-8080-exec-6] o.s.web.servlet.DispatcherServlet        : POST "/api/sessions/start?kind=WORK", parameters={masked}
+2025-12-02T19:12:57.011Z DEBUG 23020 --- [0.0-8080-exec-6] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.sparkage.timebeam.presentation.controller.SessionController#start(String, Principal)
+2025-12-02T19:12:57.013Z DEBUG 23020 --- [0.0-8080-exec-6] o.j.s.OpenEntityManagerInViewInterceptor : Opening JPA EntityManager in OpenEntityManagerInViewInterceptor
+2025-12-02T19:12:57.029Z DEBUG 23020 --- [0.0-8080-exec-6] horizationManagerBeforeMethodInterceptor : Authorizing method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.sparkage.timebeam.presentation.controller.SessionController.start(java.lang.String,java.security.Principal); target is of class [com.sparkage.timebeam.presentation.controller.SessionController]
+2025-12-02T19:12:57.032Z DEBUG 23020 --- [0.0-8080-exec-6] horizationManagerBeforeMethodInterceptor : Authorized method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.sparkage.timebeam.presentation.controller.SessionController.start(java.lang.String,java.security.Principal); target is of class [com.sparkage.timebeam.presentation.controller.SessionController]
+2025-12-02T19:12:57.032Z DEBUG 23020 --- [0.0-8080-exec-6] c.s.t.p.controller.SessionController     : start session requested kind=WORK
+2025-12-02T19:12:57.032Z DEBUG 23020 --- [0.0-8080-exec-6] c.s.t.a.service.SessionService           : SessionService.start called userId=67546cba-5ba0-4b83-84bf-5906af7b2708, kind=WORK
+2025-12-02T19:12:57.032Z DEBUG 23020 --- [0.0-8080-exec-6] c.s.t.a.service.SessionService           : SessionService.create called dto.id=null, kind=WORK
+2025-12-02T19:12:57.035Z DEBUG 23020 --- [0.0-8080-exec-6] o.s.orm.jpa.JpaTransactionManager        : Found thread-bound EntityManager [SessionImpl(906445832<open>)] for JPA transaction
+2025-12-02T19:12:57.035Z DEBUG 23020 --- [0.0-8080-exec-6] o.s.orm.jpa.JpaTransactionManager        : Creating new transaction with name [org.springframework.data.jpa.repository.support.SimpleJpaRepository.save]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT
+2025-12-02T19:12:57.053Z DEBUG 23020 --- [0.0-8080-exec-6] o.s.orm.jpa.JpaTransactionManager        : Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@3697a440]
+2025-12-02T19:12:57.059Z DEBUG 23020 --- [0.0-8080-exec-6] org.hibernate.SQL                        : 
+    select
+        sr1_0.id,
+        sr1_0.duration_seconds,
+        sr1_0.kind,
+        sr1_0.started_at,
+        sr1_0.user_id 
+    from
+        session_records sr1_0 
+    where
+        sr1_0.id=?
+2025-12-02T19:12:57.074Z DEBUG 23020 --- [0.0-8080-exec-6] o.s.orm.jpa.JpaTransactionManager        : Initiating transaction commit
+2025-12-02T19:12:57.074Z DEBUG 23020 --- [0.0-8080-exec-6] o.s.orm.jpa.JpaTransactionManager        : Committing JPA transaction on EntityManager [SessionImpl(906445832<open>)]
+2025-12-02T19:12:57.075Z DEBUG 23020 --- [0.0-8080-exec-6] org.hibernate.SQL                        : 
+    insert 
+    into
+        session_records
+        (duration_seconds, kind, started_at, user_id, id) 
+    values
+        (?, ?, ?, ?, ?)
+2025-12-02T19:12:57.103Z DEBUG 23020 --- [0.0-8080-exec-6] o.s.orm.jpa.JpaTransactionManager        : Not closing pre-bound JPA EntityManager after transaction
+2025-12-02T19:12:57.103Z  INFO 23020 --- [0.0-8080-exec-6] c.s.t.a.service.SessionService           : SessionRecord saved id=cf9aea04-1b73-4a40-8dbf-c3cff35f4cb8, userId=67546cba-5ba0-4b83-84bf-5906af7b2708
+2025-12-02T19:12:57.103Z  INFO 23020 --- [0.0-8080-exec-6] c.s.t.p.controller.SessionController     : session started: id=cf9aea04-1b73-4a40-8dbf-c3cff35f4cb8, userId=67546cba-5ba0-4b83-84bf-5906af7b2708, kind=work
+2025-12-02T19:12:57.104Z DEBUG 23020 --- [0.0-8080-exec-6] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-12-02T19:12:57.104Z DEBUG 23020 --- [0.0-8080-exec-6] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [com.sparkage.timebeam.presentation.dto.SessionRecordDto@5518c85f]
+2025-12-02T19:12:57.106Z DEBUG 23020 --- [0.0-8080-exec-6] o.j.s.OpenEntityManagerInViewInterceptor : Closing JPA EntityManager in OpenEntityManagerInViewInterceptor
+2025-12-02T19:12:57.106Z DEBUG 23020 --- [0.0-8080-exec-6] o.s.web.servlet.DispatcherServlet        : Completed 201 CREATED

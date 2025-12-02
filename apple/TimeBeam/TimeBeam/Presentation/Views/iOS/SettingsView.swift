@@ -164,7 +164,9 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("Profile")
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.large)
+            #endif
         }
     }
 
@@ -261,7 +263,9 @@ struct AccountManagementView: View {
             }
         }
         .navigationTitle("Account")
+        #if os(iOS)
         .navigationBarTitleDisplayMode(.large)
+        #endif
     }
 }
 
