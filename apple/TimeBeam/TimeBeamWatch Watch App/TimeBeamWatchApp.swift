@@ -4,7 +4,6 @@
 //  Created by automated assistant.
 
 import SwiftUI
-import TimeBeamShared
 
 @main
 struct TimeBeamWatchApp: App {
@@ -12,7 +11,7 @@ struct TimeBeamWatchApp: App {
 
     var body: some Scene {
         WindowGroup {
-            TimeBeamShared.ContentView()
+            WatchContentView()
                 .environmentObject(timer)
         }
     }

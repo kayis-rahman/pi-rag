@@ -1,6 +1,6 @@
-/Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/test/java/com/sparkage/timebeam/service/SessionServiceTest.java
-/Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/test/java/com/sparkage/timebeam/repository/SessionRecordRepositoryIT.java
-/Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/test/java/com/sparkage/timebeam/controller/AuthControllerTest.java
-/Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/test/java/com/sparkage/timebeam/controller/SessionControllerTest.java
-/Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/test/java/com/sparkage/timebeam/service/AnalyticsServiceTest.java
-/Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/test/java/com/sparkage/timebeam/service/AuthServiceTest.java
+/Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/test/java/com/sparkage/timebeam/presentation/controller/AuthControllerTest.java
+/Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/test/java/com/sparkage/timebeam/infrastructure/persistence/SessionRecordRepositoryIT.java
+/Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/test/java/com/sparkage/timebeam/application/service/AnalyticsServiceTest.java
+/Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/test/java/com/sparkage/timebeam/presentation/controller/SessionControllerTest.java
+/Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/test/java/com/sparkage/timebeam/application/service/AuthServiceTest.java
+/Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/test/java/com/sparkage/timebeam/application/service/SessionServiceTest.java

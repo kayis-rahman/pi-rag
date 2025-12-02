@@ -30,44 +30,52 @@ struct TimeBeamApp: App {
 
     @StateObject var timer = PomodoroTimer()
     @StateObject var logger = SessionLogger()
-
-    #if os(macOS)
     @StateObject var authManager = AuthManager()
-    #endif
+    @StateObject var analyticsManager = AnalyticsManager(
+        apiClient: AnalyticsApiClient(baseURL: ApiClient.Configuration.fromInfoPlist()?.baseURL ?? URL(string: "http://localhost:8080")!),
+        authManager: AuthManager()
+    )
+
+    @State private var isAppReady = false
 
     var body: some Scene {
         WindowGroup {
             #if os(iOS)
-            TabView {
-                ContentView()
-                    .tabItem {
-                        Label("Timer", systemImage: "timer")
-                    }
+            Group {
+                if isAppReady {
+                    TabView {
+                        ContentView()
+                            .tabItem {
+                                Label("Home", systemImage: "house.fill")
+                            }
+                            .tag(0)
 
-                StatsView()
-                    .tabItem {
-                        Label("Stats", systemImage: "chart.bar")
-                    }
+                        AnalyticsView()
+                            .tabItem {
+                                Label("Status", systemImage: "chart.bar.fill")
+                            }
+                            .tag(1)
 
-                SettingsView()
-                    .tabItem {
-                        Label("Settings", systemImage: "gear")
+                        SettingsView()
+                            .tabItem {
+                                Label("Profile", systemImage: "person.circle")
+                            }
+                            .tag(2)
                     }
-            }
-            .environmentObject(timer)
-            .environmentObject(logger)
-            .accentColor(Color.themePrimary)
-            .onAppear {
-                timer.onSessionCompleted = { phase, duration in
-                    let kind: SessionRecord.Kind
-                    switch phase {
-                    case .work: kind = .work
-                    case .break: kind = .shortBreak
-                    case .longBreak: kind = .longBreak
-                    }
-                    let start = Date().addingTimeInterval(-TimeInterval(duration))
-                    let record = SessionRecord(startedAt: start, duration: TimeInterval(duration), kind: kind)
-                    logger.add(record: record)
+                    .environmentObject(timer)
+                    .environmentObject(logger)
+                    .environmentObject(authManager)
+                    .environmentObject(analyticsManager)
+                    .accentColor(Color.themePrimary)
+                    .tabViewStyle(.automatic)
+                    .transition(.opacity)
+                } else {
+                    LoadingView()
+                        .onAppear {
+                            Task {
+                                await setupApp()
+                            }
+                        }
                 }
             }
             #else
@@ -75,6 +83,7 @@ struct TimeBeamApp: App {
                 .environmentObject(timer)
                 .environmentObject(logger)
                 .environmentObject(authManager)
+                .environmentObject(analyticsManager)
                 .onAppear {
                     Task { await authManager.restoreSession() }
                 }
@@ -96,6 +105,63 @@ struct TimeBeamApp: App {
         #if os(macOS)
         .windowStyle(.automatic)
         #endif
+    }
+
+    private func setupApp() async {
+        // Restore authentication state
+        await authManager.restoreSession()
+
+        // Setup timer completion handler
+        timer.onSessionCompleted = { phase, duration in
+            let kind: SessionRecord.Kind
+            switch phase {
+            case .work: kind = .work
+            case .break: kind = .shortBreak
+            case .longBreak: kind = .longBreak
+            }
+            let start = Date().addingTimeInterval(-TimeInterval(duration))
+            let record = SessionRecord(startedAt: start, duration: TimeInterval(duration), kind: kind)
+            logger.add(record: record)
+        }
+
+        // Mark app as ready
+        isAppReady = true
+    }
+}
+
+// MARK: - Loading View
+
+struct LoadingView: View {
+    var body: some View {
+        ZStack {
+            Color.themeBackground.ignoresSafeArea()
+
+            VStack(spacing: 24) {
+                Spacer()
+
+                // App logo/icon
+                Image(systemName: "timer.circle.fill")
+                    .font(.system(size: 80))
+                    .foregroundColor(Color.themePrimary)
+
+                // Loading text
+                Text("TimeBeam")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundColor(Color.themeTextPrimary)
+
+                Text("Setting up your workspace...")
+                    .font(.system(size: 16))
+                    .foregroundColor(Color.themeTextSecondary)
+
+                // Loading indicator
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle(tint: Color.themePrimary))
+                    .scaleEffect(1.2)
+
+                Spacer()
+            }
+            .padding(.horizontal, 24)
+        }
     }
 }
 

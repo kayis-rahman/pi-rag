@@ -43,6 +43,11 @@ src/main/java/com/sparkage/timebeam/
 - **Validate all inputs** with Bean Validation
 - **Log at appropriate levels** (DEBUG for sensitive operations)
 
+## Import Rules
+- **Use explicit imports** instead of fully qualified class names in extends and implements clauses
+- **Import statements** should be placed at the top of the file, after package declaration
+- **Group imports** logically (standard library, third-party, project-specific)
+
 ## Controller Rules
 - **Delegate business logic** to services
 - **Use ResponseEntity** for flexible responses
@@ -74,3 +79,17 @@ log.info("User login: {}", email);
 ### Good: Masking sensitive data
 ```java
 log.info("User login: {}", maskEmail(email));
+```
+
+### Good: Explicit imports
+```java
+import javax.swing.JFrame;
+import java.util.List;
+
+public class LineTest extends JFrame implements List {
+```
+
+### Bad: Fully qualified class names
+```java
+public class LineTest extends javax.swing.JFrame implements java.util.List {
+```
