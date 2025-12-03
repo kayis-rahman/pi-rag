@@ -1,9 +1,11 @@
-import SwiftUI
-import UserNotifications
-#if os(macOS)
 import AppKit
-#elseif os(iOS)
+import FirebaseCore
+import SwiftUI
 import UIKit
+import UserNotifications
+
+#if os(macOS)
+#elseif os(iOS)
 #endif
 
 final class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
@@ -85,7 +87,20 @@ struct TimeBeamApp: App {
                 .environmentObject(authManager)
                 .environmentObject(analyticsManager)
                 .onAppear {
-                    Task { await authManager.restoreSession() }
+                    Task {
+                        print("🔄 macOS: Starting authentication and timer sync...")
+                        await authManager.restoreSession()
+
+                        // Wait a bit for authentication to complete, then sync timer
+                        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 second delay
+
+                        if let _ = try? KeychainStore.loadString(.accessToken) {
+                            AppLogger.info("Authentication complete, starting smart timer sync", category: .sync)
+                            await TimerSyncManager.shared.smartSyncWithBackend()
+                        } else {
+                            AppLogger.warning("No access token after authentication, skipping timer sync", category: .sync)
+                        }
+                    }
                 }
                 .onAppear {
                     timer.onSessionCompleted = { phase, duration in
@@ -99,6 +114,9 @@ struct TimeBeamApp: App {
                         let record = SessionRecord(startedAt: start, duration: TimeInterval(duration), kind: kind)
                         logger.add(record: record)
                     }
+
+                    // Configure timer sync manager
+                    TimerSyncManager.shared.configure(with: timer)
                 }
             #endif
         }
@@ -122,6 +140,20 @@ struct TimeBeamApp: App {
             let start = Date().addingTimeInterval(-TimeInterval(duration))
             let record = SessionRecord(startedAt: start, duration: TimeInterval(duration), kind: kind)
             logger.add(record: record)
+        }
+
+        // Configure timer sync manager
+        TimerSyncManager.shared.configure(with: timer)
+
+        // Smart sync timer state with conflict resolution
+        if let accessToken = try? KeychainStore.loadString(.accessToken) {
+            AppLogger.info("Found access token after login, starting smart timer sync", category: .sync)
+            Task {
+                await TimerSyncManager.shared.smartSyncWithBackend()
+                AppLogger.info("Smart timer sync completed", category: .sync)
+            }
+        } else {
+            AppLogger.warning("No access token found after login, skipping timer sync", category: .sync)
         }
 
         // Mark app as ready
@@ -198,12 +230,21 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate {
 #endif
 
 #if os(iOS)
-final class iOSAppDelegate: NSObject, UIApplicationDelegate {
+final class iOSAppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
     private let notificationDelegate = NotificationDelegate()
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
-        UNUserNotificationCenter.current().delegate = notificationDelegate
+        UNUserNotificationCenter.current().delegate = self
+
+        // Configure Firebase (without messaging for personal team compatibility)
+        FirebaseApp.configure()
+
         return true
+    }
+
+    // MARK: - UNUserNotificationCenterDelegate
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        completionHandler([.banner, .sound, .badge])
     }
 }
 #endif

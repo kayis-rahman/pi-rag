@@ -1,3 +1,7 @@
+import Combine
+import Foundation
+import WatchConnectivity
+
 //
 //  WatchConnectivityManager.swift
 //  TimeBeam
@@ -5,9 +9,8 @@
 //  Created by Kayis Rahman on 03/11/25.
 //
 
-
-import Foundation
-import Combine
+#if os(iOS)
+#endif
 
 @MainActor
 final class WatchConnectivityManager: ObservableObject {
@@ -19,6 +22,49 @@ final class WatchConnectivityManager: ObservableObject {
         static let isSignedIn = "isSignedIn"
         static let displayName = "displayName"
         static let email = "email"
+
+        // Timer sync keys
+        static let timerState = "timerState"
+        static let timerEvent = "timerEvent"
+        static let timerSync = "timerSync"
+    }
+
+    #if os(iOS)
+    private var session: WCSession?
+    #endif
+
+    init() {
+        #if os(iOS)
+        if WCSession.isSupported() {
+            session = WCSession.default
+            session?.delegate = WatchConnectivityDelegate.shared
+            session?.activate()
+        }
+        #endif
+    }
+
+    // MARK: - Timer Sync Methods
+    func broadcastTimerAction(_ message: TimerSyncManager.ActionMessage) {
+        let payload: [String: Any] = [
+            Keys.timerSync: true,
+            Keys.timerState: try! JSONEncoder().encode(message)
+        ]
+
+        sendMessage(payload)
+    }
+
+    func handleIncomingTimerSync(_ message: [String: Any]) {
+        guard message[Keys.timerSync] as? Bool == true else { return }
+
+        if let actionData = message[Keys.timerState] as? Data,
+           let actionMessage = try? JSONDecoder().decode(TimerSyncManager.ActionMessage.self, from: actionData) {
+
+            TimerSyncManager.shared.handleIncomingAction(
+                actionMessage.action,
+                from: actionMessage.deviceId,
+                timestamp: actionMessage.timestamp
+            )
+        }
     }
 
     func requestSignInOnPhone() {
@@ -59,7 +105,26 @@ final class WatchConnectivityManager: ObservableObject {
     }
 
     private func sendMessage(_ message: [String: Any]) {
-        // Implement with WatchConnectivity (WCSession)
+        #if os(iOS)
+        guard let session = session, session.isReachable else {
+            print("Watch not reachable, message not sent")
+            return
+        }
+
+        session.sendMessage(message, replyHandler: nil) { error in
+            print("Failed to send message: \(error.localizedDescription)")
+        }
+        #elseif os(watchOS)
+        guard WCSession.default.isReachable else {
+            // watchOS doesn't have LoggerStore, use print for now
+            print("iOS not reachable, message not sent")
+            return
+        }
+
+        WCSession.default.sendMessage(message, replyHandler: nil) { error in
+            print("Failed to send message: \(error.localizedDescription)")
+        }
+        #endif
     }
 
     #if os(iOS)
@@ -69,3 +134,44 @@ final class WatchConnectivityManager: ObservableObject {
     }
     #endif
 }
+
+#if os(iOS)
+// MARK: - WatchConnectivity Delegate
+final class WatchConnectivityDelegate: NSObject, WCSessionDelegate {
+    static let shared = WatchConnectivityDelegate()
+
+    func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
+        if let error = error {
+            print("WCSession activation failed: \(error.localizedDescription)")
+        } else {
+            print("WCSession activated with state: \(activationState.rawValue)")
+        }
+    }
+
+    func sessionDidBecomeInactive(_ session: WCSession) {
+        print("WCSession became inactive")
+    }
+
+    func sessionDidDeactivate(_ session: WCSession) {
+        print("WCSession deactivated")
+        // Reactivate session
+        session.activate()
+    }
+
+    func session(_ session: WCSession, didReceiveMessage message: [String: Any]) {
+        print("Received message from counterpart")
+
+        Task { @MainActor in
+            // Handle timer sync messages
+            WatchConnectivityManager.shared?.handleIncomingTimerSync(message)
+
+            // Handle auth messages (existing functionality)
+            // This would need access to AuthManager - for now, timer sync is prioritized
+        }
+    }
+
+    func sessionReachabilityDidChange(_ session: WCSession) {
+        print("Watch reachability changed: \(session.isReachable)")
+    }
+}
+#endif

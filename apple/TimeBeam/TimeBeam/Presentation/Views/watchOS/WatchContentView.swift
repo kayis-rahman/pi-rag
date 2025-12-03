@@ -1,15 +1,22 @@
+import SwiftUI
+import UserNotifications
+import WatchKit
+
 //
 //  WatchContentView.swift
 //  TimeBeamWatch Watch App
 //
 
-import SwiftUI
-import UserNotifications
+#if os(watchOS)
+#endif
 
 struct WatchContentView: View {
     @EnvironmentObject var timer: PomodoroTimer
     @State private var lastPhase: Phase = .work
     @State private var didRequestNotificationPermission: Bool = UserDefaults.standard.bool(forKey: "didRequestNotificationPermission")
+    #if os(watchOS)
+    @State private var showingAbout = false
+    #endif
 
     private let ringSize: CGFloat = 120
     private let ringLineWidth: CGFloat = 8
@@ -69,6 +76,29 @@ struct WatchContentView: View {
                 lastPhase = newPhase
             }
         }
+        #if os(watchOS)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button(action: {
+                    showingAbout = true
+                }) {
+                    Image(systemName: "info.circle")
+                        .foregroundColor(.secondary)
+                }
+            }
+        }
+        .alert("About TimeBeam", isPresented: $showingAbout) {
+            Button("Privacy Policy") {
+                openPrivacyPolicy()
+            }
+            Button("Help & Support") {
+                openHelpAndSupport()
+            }
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Version \(Bundle.main.displayVersion)\n\nA Pomodoro timer for focused productivity.")
+        }
+        #endif
     }
 
     private func startWithPermission() {
@@ -79,9 +109,21 @@ struct WatchContentView: View {
         }
         timer.start()
     }
+
+    private func openPrivacyPolicy() {
+        guard let url = URL(string: "https://timebeam.app/privacy") else { return }
+        #if os(watchOS)
+        WKExtension.shared().openSystemURL(url)
+        #endif
+    }
+
+    private func openHelpAndSupport() {
+        guard let url = URL(string: "https://timebeam.app/help") else { return }
+        #if os(watchOS)
+        WKExtension.shared().openSystemURL(url)
+        #endif
+    }
 }
-
-
 
 #Preview {
     WatchContentView()

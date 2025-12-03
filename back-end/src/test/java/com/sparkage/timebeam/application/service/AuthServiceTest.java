@@ -1,15 +1,16 @@
 package com.sparkage.timebeam.application.service;
 
-import com.sparkage.timebeam.domain.model.User;
-import com.sparkage.timebeam.infrastructure.persistence.RefreshTokenRepository;
-import com.sparkage.timebeam.domain.repository.UserRepository;
-import com.sparkage.timebeam.security.JwtUtils;
+import java.util.Optional;
+import java.util.UUID;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import java.util.Optional;
-import java.util.UUID;
+import com.sparkage.timebeam.domain.model.User;
+import com.sparkage.timebeam.domain.repository.UserRepository;
+import com.sparkage.timebeam.infrastructure.external.JwtUtils;
+import com.sparkage.timebeam.infrastructure.persistence.RefreshTokenRepository;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;

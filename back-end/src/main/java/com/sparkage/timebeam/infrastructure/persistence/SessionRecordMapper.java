@@ -1,14 +1,11 @@
 package com.sparkage.timebeam.infrastructure.persistence;
 
-import com.sparkage.timebeam.presentation.dto.SessionRecordDto;
 import com.sparkage.timebeam.infrastructure.persistence.SessionRecord;
+import com.sparkage.timebeam.presentation.dto.SessionRecordDto;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface SessionRecordMapper {
-    SessionRecordDto toDto(SessionRecord entity);
-    SessionRecord toEntity(SessionRecordDto dto);
 
     // MapStruct will use these helper methods when converting between String and enum
     default SessionRecord.Kind stringToKind(String kind) {
@@ -42,4 +39,7 @@ public interface SessionRecordMapper {
         }
         return sb.toString();
     }
+
+    SessionRecordDto toDto(SessionRecord entity);
+    SessionRecord toEntity(SessionRecordDto dto);
 }

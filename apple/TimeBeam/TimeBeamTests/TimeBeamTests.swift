@@ -1,9 +1,10 @@
+import XCTest
+
 //  TimeBeamTests.swift
 //  TimeBeamTests
 //
 //  Created by AI Assistant on 15/09/25.
 
-import XCTest
 @testable import TimeBeam
 
 final class TimeBeamTests: XCTestCase {

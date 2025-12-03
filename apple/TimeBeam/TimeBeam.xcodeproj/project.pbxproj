@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		6D46D1BC2EDF9F72006451F6 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 6D46D1BB2EDF9F72006451F6 /* FirebaseCore */; };
+		6D46D1BE2EDF9F72006451F6 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 6D46D1BD2EDF9F72006451F6 /* FirebaseMessaging */; };
+		6D46D1C02EDF9FC9006451F6 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 6D46D1BF2EDF9FC9006451F6 /* FirebaseCore */; };
+		6D46D1C22EDF9FC9006451F6 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 6D46D1C12EDF9FC9006451F6 /* FirebaseMessaging */; };
 		6D64E5562EBCF5EE00AF36E3 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 6D252E152EBB6D810053735D /* GoogleSignIn */; };
 		6D64E5572EBCF5EE00AF36E3 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 6D252E162EBB6D810053735D /* GoogleSignInSwift */; };
 		6D9D92F22EDDD06B00A7F90B /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 6D9D92F12EDDD06B00A7F90B /* GoogleSignIn */; };
@@ -59,7 +63,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
-				TimeBeamWatchApp.swift,
+				"Keys/ios/GoogleService-Info.plist",
 			);
 			target = 6D5999922E780AE300D65722 /* TimeBeam */;
 		};
@@ -68,7 +72,6 @@
 			membershipExceptions = (
 				Extension/AppExtensions.swift,
 				Helper/KeychainStore.swift,
-				TimeBeamWatchApp.swift,
 			);
 			target = 6D7300EA2EAAA98400D75371 /* TimeBeamWatchOs Watch App */;
 		};
@@ -76,7 +79,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
-				TimeBeamWatchApp.swift,
+				"Keys/mac-os/GoogleService-Info.plist",
 			);
 			target = 6D5999922E780AE302 /* TimeBeam iOS */;
 		};
@@ -110,7 +113,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6D46D1C22EDF9FC9006451F6 /* FirebaseMessaging in Frameworks */,
 				6D9D92F22EDDD06B00A7F90B /* GoogleSignIn in Frameworks */,
+				6D46D1C02EDF9FC9006451F6 /* FirebaseCore in Frameworks */,
 				6D9D92F42EDDD06B00A7F90B /* GoogleSignInSwift in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -119,7 +124,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6D46D1BE2EDF9F72006451F6 /* FirebaseMessaging in Frameworks */,
 				6D64E5572EBCF5EE00AF36E3 /* GoogleSignInSwift in Frameworks */,
+				6D46D1BC2EDF9F72006451F6 /* FirebaseCore in Frameworks */,
 				6D64E5562EBCF5EE00AF36E3 /* GoogleSignIn in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -218,6 +225,8 @@
 			packageProductDependencies = (
 				6D252E152EBB6D810053735D /* GoogleSignIn */,
 				6D252E162EBB6D810053735D /* GoogleSignInSwift */,
+				6D46D1BB2EDF9F72006451F6 /* FirebaseCore */,
+				6D46D1BD2EDF9F72006451F6 /* FirebaseMessaging */,
 			);
 			productName = TimeBeam;
 			productReference = 6D5999932E780AE300D65722 /* TimeBeam.app */;
@@ -242,6 +251,8 @@
 			packageProductDependencies = (
 				6D9D92F12EDDD06B00A7F90B /* GoogleSignIn */,
 				6D9D92F32EDDD06B00A7F90B /* GoogleSignInSwift */,
+				6D46D1BF2EDF9FC9006451F6 /* FirebaseCore */,
+				6D46D1C12EDF9FC9006451F6 /* FirebaseMessaging */,
 			);
 			productName = "TimeBeam iOS";
 			productReference = 6D5999932E780AE301 /* TimeBeam iOS.app */;
@@ -400,6 +411,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				6D252E142EBB6D810053735D /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+				6D46D1BA2EDF9F72006451F6 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 6D5999942E780AE300D65722 /* Products */;
@@ -684,6 +696,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = TimeBeam/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Time Beam";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -772,6 +785,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = TimeBeam/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Time Beam";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -1178,6 +1192,14 @@
 				minimumVersion = 9.0.0;
 			};
 		};
+		6D46D1BA2EDF9F72006451F6 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.6.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1200,6 +1222,26 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 6D252E142EBB6D810053735D /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
 			productName = GoogleSignInSwift;
+		};
+		6D46D1BB2EDF9F72006451F6 /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6D46D1BA2EDF9F72006451F6 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+		6D46D1BD2EDF9F72006451F6 /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6D46D1BA2EDF9F72006451F6 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
+		};
+		6D46D1BF2EDF9FC9006451F6 /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6D46D1BA2EDF9F72006451F6 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+		6D46D1C12EDF9FC9006451F6 /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6D46D1BA2EDF9F72006451F6 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
 		};
 		6D9D92F12EDDD06B00A7F90B /* GoogleSignIn */ = {
 			isa = XCSwiftPackageProductDependency;

@@ -1,16 +1,16 @@
 package com.sparkage.timebeam.application.service;
 
-import com.sparkage.timebeam.presentation.dto.UserDto;
-import com.sparkage.timebeam.infrastructure.persistence.UserMapper;
-import com.sparkage.timebeam.domain.model.User;
-import com.sparkage.timebeam.domain.repository.UserRepository;
-import org.springframework.stereotype.Service;
-
 import java.util.Optional;
 import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import com.sparkage.timebeam.domain.model.User;
+import com.sparkage.timebeam.domain.repository.UserRepository;
+import com.sparkage.timebeam.infrastructure.persistence.UserMapper;
+import com.sparkage.timebeam.presentation.dto.UserDto;
 
 @Service
 public class UserService {

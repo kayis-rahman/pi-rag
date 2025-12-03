@@ -1,11 +1,12 @@
 package com.sparkage.timebeam.infrastructure.persistence;
 
-import com.sparkage.timebeam.domain.model.User;
-import com.sparkage.timebeam.domain.repository.UserRepository;
-import org.springframework.stereotype.Repository;
-
 import java.util.Optional;
 import java.util.UUID;
+
+import org.springframework.stereotype.Repository;
+
+import com.sparkage.timebeam.domain.model.User;
+import com.sparkage.timebeam.domain.repository.UserRepository;
 
 @Repository
 public class JpaUserRepository implements UserRepository {

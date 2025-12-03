@@ -142,12 +142,17 @@ struct SettingsView: View {
                     HStack {
                         Text("Version")
                         Spacer()
-                        Text("1.0.0")
+                        Text(Bundle.main.displayVersion)
                             .foregroundStyle(.secondary)
                     }
 
                     Button("Privacy Policy") {
-                        // Open privacy policy URL
+                        openPrivacyPolicy()
+                    }
+                    .foregroundStyle(.blue)
+
+                    Button("Help & Support") {
+                        openHelpAndSupport()
                     }
                     .foregroundStyle(.blue)
                 }
@@ -202,12 +207,35 @@ struct SettingsView: View {
         // Show confirmation alert
         logger.clear()
     }
+
+    private func openPrivacyPolicy() {
+        guard let url = URL(string: "https://timebeam.app/privacy") else { return }
+        #if os(iOS)
+        UIApplication.shared.open(url)
+        #else
+        NSWorkspace.shared.open(url)
+        #endif
+    }
+
+    private func openHelpAndSupport() {
+        guard let url = URL(string: "https://timebeam.app/help") else { return }
+        #if os(iOS)
+        UIApplication.shared.open(url)
+        #else
+        NSWorkspace.shared.open(url)
+        #endif
+    }
 }
 
 // MARK: - Supporting Views
 
 struct AccountManagementView: View {
     @EnvironmentObject var authManager: AuthManager
+
+    // Device stats state
+    @State private var deviceStats: ApiClient.DeviceStats?
+    @State private var isLoadingDeviceStats = false
+    @State private var deviceStatsError: String?
 
     var body: some View {
         Form {
@@ -225,6 +253,48 @@ struct AccountManagementView: View {
                         Image(systemName: "person.circle.fill")
                             .font(.system(size: 32))
                             .foregroundStyle(.blue)
+                    }
+                }
+
+                // Device Statistics Section
+                Section("DEVICES") {
+                    if isLoadingDeviceStats {
+                        HStack {
+                            ProgressView()
+                            Text("Loading device info...")
+                                .foregroundStyle(.secondary)
+                        }
+                    } else if let stats = deviceStats {
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack {
+                                Image(systemName: "iphone")
+                                    .foregroundStyle(.blue)
+                                Text("\(stats.activeDevices) Active Devices")
+                                    .font(.system(size: 16, weight: .medium))
+                                Spacer()
+                                Text("\(stats.totalDevices) Total")
+                                    .font(.system(size: 14))
+                                    .foregroundStyle(.secondary)
+                            }
+
+                            HStack(spacing: 16) {
+                                deviceTypeBadge("iOS", count: stats.iosDevices, color: .blue)
+                                deviceTypeBadge("macOS", count: stats.macosDevices, color: .orange)
+                                deviceTypeBadge("watchOS", count: stats.watchosDevices, color: .green)
+                            }
+                        }
+                    } else if let error = deviceStatsError {
+                        HStack {
+                            Image(systemName: "exclamationmark.triangle")
+                                .foregroundStyle(.orange)
+                            Text("Couldn't load device info")
+                                .foregroundStyle(.secondary)
+                            Spacer()
+                            Button("Retry") {
+                                loadDeviceStats()
+                            }
+                            .font(.system(size: 14))
+                        }
                     }
                 }
 
@@ -263,9 +333,61 @@ struct AccountManagementView: View {
             }
         }
         .navigationTitle("Account")
+        .onAppear {
+            if authManager.isSignedIn && deviceStats == nil {
+                loadDeviceStats()
+            }
+        }
         #if os(iOS)
         .navigationBarTitleDisplayMode(.large)
         #endif
+    }
+
+    // MARK: - Device Stats Functions
+
+    private func loadDeviceStats() {
+        guard authManager.isSignedIn else { return }
+
+        isLoadingDeviceStats = true
+        deviceStatsError = nil
+
+        Task {
+            do {
+                guard let config = ApiClient.Configuration.fromInfoPlist(),
+                      let accessToken = try? KeychainStore.loadString(.accessToken) else {
+                    throw NSError(domain: "DeviceStats", code: -1,
+                                userInfo: [NSLocalizedDescriptionKey: "Missing configuration"])
+                }
+
+                let apiClient = ApiClient(configuration: config)
+                let stats = try await apiClient.getDeviceStats(accessToken: accessToken)
+
+                await MainActor.run {
+                    self.deviceStats = stats
+                    self.isLoadingDeviceStats = false
+                }
+            } catch {
+                await MainActor.run {
+                    self.deviceStatsError = error.localizedDescription
+                    self.isLoadingDeviceStats = false
+                }
+            }
+        }
+    }
+
+    private func deviceTypeBadge(_ type: String, count: Int, color: Color) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: type.lowercased() == "ios" ? "iphone" :
+                         type.lowercased() == "macos" ? "laptopcomputer" : "applewatch")
+                .foregroundStyle(color)
+            Text("\(count)")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(color)
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(color.opacity(0.1))
+        .cornerRadius(8)
     }
 }
 

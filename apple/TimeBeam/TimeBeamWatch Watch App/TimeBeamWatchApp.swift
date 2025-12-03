@@ -1,9 +1,9 @@
+import SwiftUI
+
 //  TimeBeamWatchApp.swift
 //  TimeBeamWatch Watch App
 //
 //  Created by automated assistant.
-
-import SwiftUI
 
 @main
 struct TimeBeamWatchApp: App {

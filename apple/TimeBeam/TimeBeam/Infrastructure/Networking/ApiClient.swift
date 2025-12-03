@@ -53,6 +53,42 @@ struct ApiClient {
         let kind: String
     }
 
+    struct TimerStateDto: Codable {
+        let phase: String
+        let remainingSeconds: Int
+        let isRunning: Bool
+        let workDuration: Int
+        let breakDuration: Int
+        let longBreakDuration: Int
+        let autoStartNextSession: Bool
+        let shortBreaksCompleted: Int
+        let timestamp: Date
+        let deviceId: String
+    }
+
+    struct TimerActionDto: Codable {
+        let action: String
+        let timestamp: Date
+        let deviceId: String
+    }
+
+    struct DeviceRegistrationDto: Codable {
+        let deviceId: String
+        let deviceName: String
+        let deviceType: String
+        let platformVersion: String?
+        let appVersion: String?
+        let fcmToken: String?
+    }
+
+    struct DeviceStats: Codable {
+        let totalDevices: Int
+        let activeDevices: Int
+        let iosDevices: Int
+        let macosDevices: Int
+        let watchosDevices: Int
+    }
+
     enum SessionKind: String {
         case work = "WORK"
         case shortBreak = "SHORT_BREAK"
@@ -121,6 +157,72 @@ struct ApiClient {
         decoder.dateDecodingStrategy = .iso8601
         let response: SessionRecordDto = try await perform(&req)
         return response
+    }
+
+    // MARK: - Timer Sync Endpoints
+
+    func pushTimerState(_ state: TimerStateDto, accessToken: String) async throws {
+        AppLogger.logAPIEvent("timer_state_push_requested", url: "/api/sessions/timer/state")
+        var req = try makeRequest(path: "/api/sessions/timer/state", method: "POST", jsonBody: state)
+        req.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        let _: EmptyResponse = try await perform(&req)
+        AppLogger.logAPIEvent("timer_state_push_success")
+    }
+
+    func pullTimerState(accessToken: String) async throws -> TimerStateDto? {
+        AppLogger.logAPIEvent("timer_state_pull_requested", url: "/api/sessions/timer/state")
+        var req = URLRequest(url: config.baseURL.appendingPathComponent("/api/sessions/timer/state"))
+        req.httpMethod = "GET"
+        req.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+
+        let (data, response) = try await urlSession.data(for: req)
+        guard let http = response as? HTTPURLResponse else {
+            throw ApiError.invalidResponse
+        }
+        guard 200..<300 ~= http.statusCode || http.statusCode == 204 else {
+            throw ApiError.httpStatus(code: http.statusCode, body: String(data: data, encoding: .utf8))
+        }
+
+        // Handle 204 No Content - no timer state available
+        if http.statusCode == 204 || data.isEmpty {
+            AppLogger.debug("No timer state available from backend", category: .sync)
+            return nil
+        }
+
+        // Decode the timer state
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let state = try decoder.decode(TimerStateDto.self, from: data)
+        AppLogger.logAPIEvent("timer_state_pull_success", url: "/api/sessions/timer/state")
+        return state
+    }
+
+    func pushTimerAction(_ action: TimerActionDto, accessToken: String) async throws {
+        AppLogger.logAPIEvent("timer_action_push_requested", url: "/api/sessions/timer/action")
+        var req = try makeRequest(path: "/api/sessions/timer/action", method: "POST", jsonBody: action)
+        req.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        let _: EmptyResponse = try await perform(&req)
+        AppLogger.logAPIEvent("timer_action_push_success")
+    }
+
+    // MARK: - Device Management Endpoints
+
+    func registerDevice(_ device: DeviceRegistrationDto, accessToken: String) async throws {
+        AppLogger.logAPIEvent("device_registration_requested", url: "/api/devices/register")
+        var req = try makeRequest(path: "/api/devices/register", method: "POST", jsonBody: device)
+        req.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        let _: EmptyResponse = try await perform(&req)
+        AppLogger.logAPIEvent("device_registration_success")
+    }
+
+    func getDeviceStats(accessToken: String) async throws -> DeviceStats {
+        AppLogger.logAPIEvent("device_stats_requested", url: "/api/devices/stats")
+        var req = URLRequest(url: config.baseURL.appendingPathComponent("/api/devices/stats"))
+        req.httpMethod = "GET"
+        req.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        let stats: DeviceStats = try await perform(req)
+        AppLogger.logAPIEvent("device_stats_success")
+        return stats
     }
 
     // MARK: - Core helpers

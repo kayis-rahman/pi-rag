@@ -1,6 +1,7 @@
-import SwiftUI
-#if canImport(Charts)
 import Charts
+import SwiftUI
+
+#if canImport(Charts)
 #endif
 
 struct AnalyticsView: View {

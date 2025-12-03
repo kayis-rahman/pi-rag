@@ -1,19 +1,16 @@
 package com.sparkage.timebeam.application.service;
 
-import com.sparkage.timebeam.presentation.dto.AnalyticsDashboardResponse;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Service;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
-/**
- * High-performance Analytics Service using direct SQL queries.
- * All operations are database-optimized with minimal in-memory processing.
- */
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
+
+import com.sparkage.timebeam.presentation.dto.AnalyticsDashboardResponse;
+
 @Service
 public class AnalyticsService {
 
@@ -248,7 +245,6 @@ public class AnalyticsService {
         // Pre-calculate date range for better performance and security
         Instant now = Instant.now();
         Instant startInstant = getStartInstantForRange(timeRange, now);
-        String kindCondition = sessionKind.map(k -> " AND sr.kind = ?").orElse("");
 
         int offset = page * pageSize;
 
@@ -568,17 +564,6 @@ public class AnalyticsService {
     }
 
     // ============ Helpers ============
-
-    private String getDateFilter(String column, String timeRange, String timezone) {
-        return switch (timeRange) {
-            case "week" -> column + " >= CURRENT_DATE AT TIME ZONE '" + timezone + "' - INTERVAL '7 days'";
-            case "month" -> column + " >= DATE_TRUNC('month', CURRENT_DATE AT TIME ZONE '" + timezone + "')";
-            case "quarter" -> column + " >= DATE_TRUNC('quarter', CURRENT_DATE AT TIME ZONE '" + timezone + "')";
-            case "year" -> column + " >= DATE_TRUNC('year', CURRENT_DATE AT TIME ZONE '" + timezone + "')";
-            case "all" -> "1=1";
-            default -> throw new IllegalArgumentException("Invalid time range: " + timeRange);
-        };
-    }
 
     private int getDaysFromRange(String timeRange) {
         return switch (timeRange) {

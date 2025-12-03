@@ -1,3 +1,12 @@
+import AppKit
+import AuthenticationServices
+import Combine
+
+import Foundation
+import GoogleSignIn
+import GoogleSignIn
+import UIKit
+
 //
 //  AuthManager.swift
 //  TimeBeam
@@ -5,18 +14,10 @@
 //  Created by Kayis Rahman on 03/11/25.
 //
 
-import Foundation
-import Combine
-
 #if os(iOS)
-import GoogleSignIn
-import AuthenticationServices
-import UIKit
 #endif
 
 #if os(macOS)
-import GoogleSignIn
-import AppKit
 #endif
 
 @MainActor
@@ -167,23 +168,46 @@ final class AuthManager: ObservableObject {
     func signInWithGoogle() async throws {
         #if DEBUG
         print("[Auth] signInWithGoogle(macOS): begin")
+        print("[Auth] signInWithGoogle(macOS): clientID = \(clientID())")
         #endif
 
         let config = GIDConfiguration(clientID: clientID())
         GIDSignIn.sharedInstance.configuration = config
 
+        #if DEBUG
+        print("[Auth] signInWithGoogle(macOS): configuration set, clientID = \(config.clientID)")
+        #endif
+
         guard let window = macOSPresentationWindow() else {
             #if DEBUG
-            print("[Auth] signInWithGoogle(macOS): no presenter")
+            print("[Auth] signInWithGoogle(macOS): no presenter - macOSPresentationWindow() returned nil")
+            print("[Auth] signInWithGoogle(macOS): keyWindow = \(NSApplication.shared.keyWindow?.description ?? "nil")")
+            print("[Auth] signInWithGoogle(macOS): mainWindow = \(NSApplication.shared.mainWindow?.description ?? "nil")")
+            print("[Auth] signInWithGoogle(macOS): windows count = \(NSApplication.shared.windows.count)")
             #endif
             throw SignInError.noPresenter
         }
 
-        let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: window)
         #if DEBUG
-        print("[Auth] signInWithGoogle(macOS): Google sign-in success, applying user")
+        print("[Auth] signInWithGoogle(macOS): window found = \(window.description)")
+        print("[Auth] signInWithGoogle(macOS): calling GIDSignIn.sharedInstance.signIn()")
         #endif
-        try await applySignInResult(result)
+
+        do {
+            let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: window)
+            #if DEBUG
+            print("[Auth] signInWithGoogle(macOS): Google sign-in success, applying user")
+            #endif
+            try await applySignInResult(result)
+        } catch {
+            #if DEBUG
+            print("[Auth] signInWithGoogle(macOS): signIn() threw error = \(error)")
+            print("[Auth] signInWithGoogle(macOS): error domain = \((error as NSError).domain)")
+            print("[Auth] signInWithGoogle(macOS): error code = \((error as NSError).code)")
+            print("[Auth] signInWithGoogle(macOS): error description = \((error as NSError).localizedDescription)")
+            #endif
+            throw error
+        }
     }
     #else
     // watchOS and other platforms: no-op sign-in (sign-in is delegated to iPhone/macOS)
@@ -260,6 +284,12 @@ final class AuthManager: ObservableObject {
 
             // Persist tokens and user info
             try completeSignIn(idToken: idToken, accessToken: login.accessToken, name: name, mail: mail)
+
+            // Trigger smart timer sync after successful authentication
+            AppLogger.info("Triggering smart timer sync after login", category: .auth)
+            Task { @MainActor in
+                await TimerSyncManager.shared.smartSyncWithBackend()
+            }
         } catch {
             #if DEBUG
             print("[Auth] applyUser: backend call failed: \(error)")

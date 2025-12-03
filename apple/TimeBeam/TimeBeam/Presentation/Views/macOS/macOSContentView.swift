@@ -1,7 +1,10 @@
-import SwiftUI
-import AVFoundation
-import UserNotifications
 import AppKit
+import AVFoundation
+import SwiftUI
+import UserNotifications
+
+#if os(macOS)
+#endif
 
 struct macOSContentView: View {
     @EnvironmentObject var timer: PomodoroTimer
@@ -11,6 +14,7 @@ struct macOSContentView: View {
     @State private var lastPhase: Phase = .work
     @State private var didRequestNotificationPermission: Bool = UserDefaults.standard.bool(forKey: "didRequestNotificationPermission")
     @State private var showingAnalytics: Bool = false
+    @State private var showingAbout: Bool = false
 
     var body: some View {
         let ringSize: CGFloat = 280
@@ -42,6 +46,9 @@ struct macOSContentView: View {
         .sheet(isPresented: $showingAnalytics) {
             AnalyticsView()
                 .environmentObject(logger)
+        }
+        .sheet(isPresented: $showingAbout) {
+            AboutView()
         }
     }
 
@@ -128,6 +135,12 @@ struct macOSContentView: View {
 
             Button("Analytics & Insights…") {
                 showingAnalytics = true
+            }
+
+            Divider()
+
+            Button("About TimeBeam") {
+                showingAbout = true
             }
 
             Divider()

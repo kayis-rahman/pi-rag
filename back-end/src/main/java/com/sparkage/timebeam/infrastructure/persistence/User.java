@@ -1,8 +1,8 @@
 package com.sparkage.timebeam.infrastructure.persistence;
 
-import jakarta.persistence.*;
-
 import java.util.UUID;
+
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "users")

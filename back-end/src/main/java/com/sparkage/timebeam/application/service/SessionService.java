@@ -1,22 +1,21 @@
 package com.sparkage.timebeam.application.service;
 
-import com.sparkage.timebeam.presentation.dto.SessionRecordDto;
-import com.sparkage.timebeam.infrastructure.external.AccessDeniedException;
-import com.sparkage.timebeam.infrastructure.external.ResourceNotFoundException;
-import com.sparkage.timebeam.infrastructure.persistence.SessionRecordMapper;
-import com.sparkage.timebeam.infrastructure.persistence.SessionRecord;
-import com.sparkage.timebeam.infrastructure.persistence.SessionRecordRepository;
-import org.springframework.stereotype.Service;
-
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.Optional;
-import java.time.Instant;
-import java.time.Duration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import com.sparkage.timebeam.infrastructure.external.AccessDeniedException;
+import com.sparkage.timebeam.infrastructure.external.ResourceNotFoundException;
+import com.sparkage.timebeam.infrastructure.persistence.SessionRecord;
+import com.sparkage.timebeam.infrastructure.persistence.SessionRecordMapper;
+import com.sparkage.timebeam.infrastructure.persistence.SessionRecordRepository;
+import com.sparkage.timebeam.presentation.dto.SessionRecordDto;
 
 @Service
 public class SessionService {

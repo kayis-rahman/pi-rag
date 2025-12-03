@@ -1,31 +1,60 @@
-package com.sparkage.timebeam.service;
+package com.sparkage.timebeam.application.service;
 
-import com.sparkage.timebeam.dto.SessionRecordDto;
-import org.junit.jupiter.api.Test;
-
-import java.time.Instant;
-import java.time.ZoneId;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.when;
 
 class AnalyticsServiceTest {
-    private final AnalyticsService svc = new AnalyticsService();
+    private final JdbcTemplate jdbcTemplate = Mockito.mock(JdbcTemplate.class);
+    private final AnalyticsService svc = new AnalyticsService(jdbcTemplate);
 
     @Test
-    void last7DaysTotals_returnsZeroForEmpty() {
-        var res = svc.last7DaysTotals(List.of(), ZoneId.of("UTC"));
-        assertEquals(7, res.size());
-        res.forEach(d -> assertEquals(0, d.totalMinutes()));
+    void getDailyTotals_returnsZeroForEmpty() {
+        UUID userId = UUID.randomUUID();
+
+        // Mock empty result
+        when(jdbcTemplate.queryForList(anyString(), any(), any(), any(), any()))
+            .thenReturn(List.of());
+
+        var result = svc.getDailyTotals(userId, 7, "UTC");
+
+        assertEquals(7, result.get("period"));
+        assertEquals("UTC", result.get("timezone"));
+        assertEquals("minutes", result.get("unit"));
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> data = (List<Map<String, Object>>) result.get("data");
+        assertTrue(data.isEmpty());
     }
 
     @Test
-    void productiveStreak_countsConsecutiveDays() {
-        var now = Instant.now();
-        var r1 = new SessionRecordDto(null, null, now.minusSeconds(3600*24), 1500, "WORK");
-        var r2 = new SessionRecordDto(null, null, now, 1500, "WORK");
-        var streak = svc.productiveStreak(List.of(r1, r2), ZoneId.of("UTC"));
-        assertTrue(streak >= 1);
+    void getProductiveStreak_returnsZeroForNoSessions() {
+        UUID userId = UUID.randomUUID();
+
+        // Mock query returning null (no streak)
+        when(jdbcTemplate.queryForObject(anyString(), eq(Integer.class), any(), any(), any()))
+            .thenReturn(null);
+
+        int streak = svc.getProductiveStreak(userId, "UTC");
+        assertEquals(0, streak);
+    }
+
+    @Test
+    void getProductiveStreak_returnsStreakValue() {
+        UUID userId = UUID.randomUUID();
+
+        // Mock query returning streak of 3
+        when(jdbcTemplate.queryForObject(anyString(), eq(Integer.class), any(), any(), any()))
+            .thenReturn(3);
+
+        int streak = svc.getProductiveStreak(userId, "UTC");
+        assertEquals(3, streak);
     }
 }
-

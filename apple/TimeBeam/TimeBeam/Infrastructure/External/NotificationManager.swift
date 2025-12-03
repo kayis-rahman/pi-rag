@@ -1,7 +1,8 @@
 import Foundation
 import UserNotifications
-#if os(watchOS)
 import WatchKit
+
+#if os(watchOS)
 #endif
 
 open class NotificationManager {

@@ -95,6 +95,13 @@
             <version>2.1.0</version>
         </dependency>
 
+        <!-- Firebase Cloud Messaging -->
+        <dependency>
+            <groupId>com.google.firebase</groupId>
+            <artifactId>firebase-admin</artifactId>
+            <version>9.2.0</version>
+        </dependency>
+
         <!-- Database drivers -->
         <dependency>
             <groupId>org.postgresql</groupId>

@@ -1,16 +1,17 @@
-package com.sparkage.timebeam.service;
-
-import com.sparkage.timebeam.dto.SessionRecordDto;
-import com.sparkage.timebeam.mapper.SessionRecordMapper;
-import com.sparkage.timebeam.model.SessionRecord;
-import com.sparkage.timebeam.repository.SessionRecordRepository;
-import org.junit.jupiter.api.Test;
-import org.mapstruct.factory.Mappers;
-import org.mockito.Mockito;
+package com.sparkage.timebeam.application.service;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+
+import org.junit.jupiter.api.Test;
+import org.mapstruct.factory.Mappers;
+import org.mockito.Mockito;
+
+import com.sparkage.timebeam.infrastructure.persistence.SessionRecord;
+import com.sparkage.timebeam.infrastructure.persistence.SessionRecordMapper;
+import com.sparkage.timebeam.infrastructure.persistence.SessionRecordRepository;
+import com.sparkage.timebeam.presentation.dto.SessionRecordDto;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -35,4 +36,3 @@ class SessionServiceTest {
         assertEquals(1, list.size());
     }
 }
-

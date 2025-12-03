@@ -2,10 +2,6 @@ package com.sparkage.timebeam.domain.model;
 
 import java.util.UUID;
 
-/**
- * Pure domain entity representing a User in the business domain.
- * Contains only business logic and constraints, no persistence concerns.
- */
 public class User {
     private final UUID id;
     private final String email;

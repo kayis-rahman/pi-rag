@@ -1,10 +1,10 @@
+import SwiftUI
+import UserNotifications
+
 //
 //  WatchContentView.swift
 //  TimeBeamWatch Watch App
 //
-
-import SwiftUI
-import UserNotifications
 
 struct WatchContentView: View {
     @EnvironmentObject var timer: PomodoroTimer
@@ -80,8 +80,6 @@ struct WatchContentView: View {
         timer.start()
     }
 }
-
-
 
 #Preview {
     WatchContentView()

@@ -1,13 +1,14 @@
-package com.sparkage.timebeam.repository;
-
-import com.sparkage.timebeam.model.SessionRecord;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+package com.sparkage.timebeam.infrastructure.persistence;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+
+import com.sparkage.timebeam.infrastructure.persistence.SessionRecord;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -27,4 +28,3 @@ class SessionRecordRepositoryIT {
         assertThat(list.get(0).getUserId()).isEqualTo(userId);
     }
 }
-

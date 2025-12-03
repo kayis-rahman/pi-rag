@@ -1,23 +1,25 @@
 package com.sparkage.timebeam.presentation.controller;
 
-import com.sparkage.timebeam.presentation.dto.AuthRequests;
-import com.sparkage.timebeam.presentation.dto.UserDto;
-import com.sparkage.timebeam.domain.model.User;
-import com.sparkage.timebeam.application.service.AuthService;
-import com.sparkage.timebeam.application.service.UserService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-
 import java.util.Map;
 import java.util.Optional;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.sparkage.timebeam.application.service.AuthService;
+import com.sparkage.timebeam.application.service.UserService;
+import com.sparkage.timebeam.domain.model.User;
+import com.sparkage.timebeam.infrastructure.config.AppLogger;
+import com.sparkage.timebeam.presentation.dto.AuthRequests;
+import com.sparkage.timebeam.presentation.dto.UserDto;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
-    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
 
     private final UserService userService;
     private final AuthService authService;
@@ -42,52 +44,38 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@Validated @RequestBody AuthRequests.Login login) {
         // Log incoming attempt at debug level with masked email
-        log.debug("Login request received for email={}", maskEmail(login.getEmail()));
+        AppLogger.logAuthEvent("login_request", login.getEmail());
 
         Optional<String> token = authService.login(login.getEmail());
         if (token.isEmpty()) {
             // If no user exists, auto-register and retry login
-            log.debug("No existing user found for email={} - attempting auto-registration", maskEmail(login.getEmail()));
+            AppLogger.logAuthEvent("auto_registration_attempt", login.getEmail());
             String displayName = deriveDisplayName(login.getEmail());
             try {
                 UserDto created = userService.createUser(login.getEmail(), displayName);
-                log.info("Auto-registered user id={} email={}", created.getId(), maskEmail(created.getEmail()));
+                AppLogger.logAuthEvent("auto_registration_success", login.getEmail(), created.getId().toString());
                 // Retry login
                 token = authService.login(login.getEmail());
             } catch (Exception ex) {
-                log.error("Auto-registration failed for email={}", maskEmail(login.getEmail()), ex);
-                // Detailed debug for developers, and an info-level audit-friendly log with masked email
-                log.debug("Login failed for email={}", maskEmail(login.getEmail()));
-                log.info("Failed login attempt for email={}", maskEmail(login.getEmail()));
+                AppLogger.logError("auto_registration", ex, "unknown");
+                AppLogger.logAuthEvent("login_failed", login.getEmail());
                 Map<String, String> body = Map.of("error", "invalid_credentials");
-                log.debug("Returning unauthorized response: status=401, body={}", body);
-                log.info("Returning unauthorized response for email={}", maskEmail(login.getEmail()));
                 return ResponseEntity.status(401).body(body);
             }
         }
 
         if (token.isEmpty()) {
-            // Detailed debug for developers, and an info-level audit-friendly log with masked email
-            log.debug("Login failed for email={}", maskEmail(login.getEmail()));
-            log.info("Failed login attempt for email={}", maskEmail(login.getEmail()));
+            AppLogger.logAuthEvent("login_failed", login.getEmail());
             Map<String, String> body = Map.of("error", "invalid_credentials");
-            log.debug("Returning unauthorized response: status=401, body={}", body);
-            log.info("Returning unauthorized response for email={}", maskEmail(login.getEmail()));
             return ResponseEntity.status(401).body(body);
         }
 
         // Successful login
-        log.info("User logged in successfully: email={}", maskEmail(login.getEmail()));
+        AppLogger.logAuthEvent("login_success", login.getEmail());
         return ResponseEntity.ok(Map.of("accessToken", token.get()));
     }
 
-    // Helper to mask an email address for logs (keeps first char and domain)
-    private String maskEmail(String email) {
-        if (email == null) return "null";
-        int at = email.indexOf('@');
-        if (at <= 1) return "****" + (at > 0 ? email.substring(at) : "");
-        return email.charAt(0) + "****" + email.substring(at);
-    }
+
 
     private String deriveDisplayName(String email) {
         if (email == null) return "";

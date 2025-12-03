@@ -1,6 +1,24 @@
 import Foundation
 import SwiftUI
 
+// Shared Phase enum for watchOS target
+
+enum Phase: String, Codable, CaseIterable, Hashable, Identifiable, Sendable {
+    case work
+    case break
+    case longBreak
+
+    var id: Self { self }
+
+    var displayName: String {
+        switch self {
+        case .work: return "Focus"
+        case .break: return "Break"
+        case .longBreak: return "Long Break"
+        }
+    }
+}
+
 @MainActor
 class PomodoroTimer: ObservableObject {
     @Published private(set) var phase: Phase = .work
@@ -83,6 +101,32 @@ class PomodoroTimer: ObservableObject {
         if wasRunning { start() }
     }
 
+    // MARK: - Sync Methods
+    func applySyncedState(phase: Phase, remainingSeconds: Int, isRunning: Bool,
+                         workDuration: Int, breakDuration: Int, longBreakDuration: Int,
+                         autoStartNextSession: Bool, shortBreaksCompleted: Int) {
+        let wasRunning = self.isRunning
+        if wasRunning {
+            pause() // Stop current timer
+        }
+
+        // Apply synced state
+        self.phase = phase
+        self.remainingSeconds = remainingSeconds
+        self.workDuration = workDuration
+        self.breakDuration = breakDuration
+        self.longBreakDuration = longBreakDuration
+        self.autoStartNextSession = autoStartNextSession
+        self.shortBreaksCompleted = shortBreaksCompleted
+
+        // Handle running state
+        if isRunning && !wasRunning {
+            start()
+        } else if !isRunning && wasRunning {
+            // Already paused above
+        }
+    }
+
     private func advanceToNextPhase(autoStart: Bool) {
         let previousPhase = self.phase
         switch previousPhase {
@@ -107,5 +151,14 @@ class PomodoroTimer: ObservableObject {
         } else {
             self.pause()
         }
+    }
+}
+
+// MARK: - Extensions
+extension Int {
+    var mmss: String {
+        let minutes = self / 60
+        let seconds = self % 60
+        return String(format: "%02d:%02d", minutes, seconds)
     }
 }

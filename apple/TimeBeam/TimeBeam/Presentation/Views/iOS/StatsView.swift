@@ -1,5 +1,6 @@
-import SwiftUI
 import Charts
+
+import SwiftUI
 
 struct StatsView: View {
     @EnvironmentObject var logger: SessionLogger

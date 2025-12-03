@@ -3,10 +3,6 @@ package com.sparkage.timebeam.domain.model;
 import java.time.Instant;
 import java.util.UUID;
 
-/**
- * Pure domain entity representing a SessionRecord in the business domain.
- * Contains only business logic and constraints, no persistence concerns.
- */
 public class SessionRecord {
     private final UUID id;
     private final UUID userId;

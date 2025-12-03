@@ -1,7 +1,8 @@
-import SwiftUI
-import AVFoundation
-import UserNotifications
 import AuthenticationServices
+
+import AVFoundation
+import SwiftUI
+import UserNotifications
 
 struct iOSContentView: View {
     @EnvironmentObject var timer: PomodoroTimer
@@ -12,6 +13,9 @@ struct iOSContentView: View {
     @State private var didRequestNotificationPermission: Bool = UserDefaults.standard.bool(forKey: "didRequestNotificationPermission")
 
     var body: some View {
+        let ringSize: CGFloat = 280
+        let ringLineWidth = max(10, ringSize * 0.065)
+
         ZStack {
             // Background
             Color.themeBackground.ignoresSafeArea()
@@ -20,14 +24,14 @@ struct iOSContentView: View {
                 Spacer()
 
                 // Timer display
-                CircularTimerView(size: 350, showSessionProgress: false)
+                CircularTimerView(size: ringSize, showSessionProgress: false)
 
                 // Session progress indicator
                 CycleProgressView(
                     completed: timer.shortBreaksCompleted,
                     total: timer.cycleSize
                 )
-                .frame(width: 350 * 0.5)
+                .frame(width: ringSize * 0.5)
 
                 // Primary action button
                 PrimaryButton(

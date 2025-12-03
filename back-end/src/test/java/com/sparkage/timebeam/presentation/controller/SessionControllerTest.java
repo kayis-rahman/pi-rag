@@ -1,13 +1,11 @@
-package com.sparkage.timebeam.controller;
+package com.sparkage.timebeam.presentation.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sparkage.timebeam.dto.SessionRecordDto;
-import com.sparkage.timebeam.service.SessionService;
-import com.sparkage.timebeam.security.JwtAuthenticationFilter;
-import com.sparkage.timebeam.security.JwtUtils;
+import java.security.Principal;
+import java.time.Instant;
+import java.util.UUID;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -15,9 +13,10 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.security.Principal;
-import java.time.Instant;
-import java.util.UUID;
+import com.sparkage.timebeam.application.service.SessionService;
+import com.sparkage.timebeam.infrastructure.external.JwtAuthenticationFilter;
+import com.sparkage.timebeam.infrastructure.external.JwtUtils;
+import com.sparkage.timebeam.presentation.dto.SessionRecordDto;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -40,8 +39,6 @@ class SessionControllerTest {
 
     @MockBean
     private JwtAuthenticationFilter jwtAuthenticationFilter;
-
-    private final ObjectMapper om = new ObjectMapper();
 
     private final UUID userId = UUID.randomUUID();
 

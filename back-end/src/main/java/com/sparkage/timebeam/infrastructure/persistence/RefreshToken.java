@@ -1,9 +1,9 @@
 package com.sparkage.timebeam.infrastructure.persistence;
 
-import jakarta.persistence.*;
-
 import java.time.Instant;
 import java.util.UUID;
+
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "refresh_tokens")

@@ -1,11 +1,11 @@
+import Foundation
+
 //
 //  SessionLogger.swift
 //  TimeBeam
 //
 //  Created by Kayis Rahman on 03/11/25.
 //
-
-import Foundation
 
 @MainActor
 final class SessionLogger: ObservableObject {

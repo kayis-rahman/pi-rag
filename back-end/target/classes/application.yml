@@ -34,3 +34,8 @@ logging:
 # Optional flag to enable verbose debug via environment
 app:
   debug: ${APP_DEBUG:false}
+
+# Firebase Cloud Messaging Configuration
+firebase:
+  enabled: ${FIREBASE_ENABLED:true}
+  service-account-path: ${FIREBASE_SERVICE_ACCOUNT_PATH:/Users/kayisrahman/Documents/workspace/ideas/time-beam-firebase.json}

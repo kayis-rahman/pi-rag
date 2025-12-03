@@ -1,16 +1,12 @@
 package com.sparkage.timebeam.domain.repository;
 
-import com.sparkage.timebeam.domain.model.SessionRecord;
-
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-/**
- * Domain repository interface for SessionRecord entities.
- * Defines the contract for session record data access operations.
- */
+import com.sparkage.timebeam.domain.model.SessionRecord;
+
 public interface SessionRecordRepository {
     Optional<SessionRecord> findById(UUID id);
     List<SessionRecord> findByUserId(UUID userId);
