@@ -1,8 +1,13 @@
-import AppKit
-import FirebaseCore
 import SwiftUI
-import UIKit
 import UserNotifications
+
+#if os(macOS)
+import AppKit
+#endif
+
+#if os(iOS)
+import UIKit
+#endif
 
 #if os(macOS)
 #elseif os(iOS)
@@ -33,6 +38,7 @@ struct TimeBeamApp: App {
     @StateObject var timer = PomodoroTimer()
     @StateObject var logger = SessionLogger()
     @StateObject var authManager = AuthManager()
+    @StateObject var taskService = TaskService()
     @StateObject var analyticsManager = AnalyticsManager(
         apiClient: AnalyticsApiClient(baseURL: ApiClient.Configuration.fromInfoPlist()?.baseURL ?? URL(string: "http://localhost:8080")!),
         authManager: AuthManager()
@@ -52,21 +58,28 @@ struct TimeBeamApp: App {
                             }
                             .tag(0)
 
+                        TaskListView()
+                            .tabItem {
+                                Label("Tasks", systemImage: "checklist")
+                            }
+                            .tag(1)
+
                         AnalyticsView()
                             .tabItem {
                                 Label("Status", systemImage: "chart.bar.fill")
                             }
-                            .tag(1)
+                            .tag(2)
 
                         SettingsView()
                             .tabItem {
                                 Label("Profile", systemImage: "person.circle")
                             }
-                            .tag(2)
+                            .tag(3)
                     }
                     .environmentObject(timer)
                     .environmentObject(logger)
                     .environmentObject(authManager)
+                    .environmentObject(taskService)
                     .environmentObject(analyticsManager)
                     .accentColor(Color.themePrimary)
                     .tabViewStyle(.automatic)
@@ -74,7 +87,7 @@ struct TimeBeamApp: App {
                 } else {
                     LoadingView()
                         .onAppear {
-                            Task {
+                            _Concurrency.Task {
                                 await setupApp()
                             }
                         }
@@ -85,14 +98,18 @@ struct TimeBeamApp: App {
                 .environmentObject(timer)
                 .environmentObject(logger)
                 .environmentObject(authManager)
+                .environmentObject(taskService)
                 .environmentObject(analyticsManager)
                 .onAppear {
-                    Task {
+                    // Initialize file logging system
+                    AppLogger.initializeFileLogging()
+                    
+                    _Concurrency.Task {
                         print("🔄 macOS: Starting authentication and timer sync...")
                         await authManager.restoreSession()
 
                         // Wait a bit for authentication to complete, then sync timer
-                        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 second delay
+                        try? await _Concurrency.Task.sleep(nanoseconds: 500_000_000) // 0.5 second delay
 
                         if let _ = try? KeychainStore.loadString(.accessToken) {
                             AppLogger.info("Authentication complete, starting smart timer sync", category: .sync)
@@ -126,6 +143,23 @@ struct TimeBeamApp: App {
     }
 
     private func setupApp() async {
+        // Initialize file logging system
+        AppLogger.initializeFileLogging()
+
+        // Initialize iCloud sync
+        _ = iCloudSyncManager.shared
+
+        // Load timer settings from iCloud
+        if let iCloudSettings = iCloudSyncManager.shared.loadTimerSettings() {
+            timer.updateDurations(
+                workMinutes: iCloudSettings.workDuration / 60,
+                shortBreakMinutes: iCloudSettings.breakDuration / 60,
+                longBreakMinutes: iCloudSettings.longBreakDuration / 60
+            )
+            timer.autoStartNextSession = iCloudSettings.autoStartNextSession
+            AppLogger.info("Loaded timer settings from iCloud", category: .sync)
+        }
+
         // Restore authentication state
         await authManager.restoreSession()
 
@@ -148,7 +182,7 @@ struct TimeBeamApp: App {
         // Smart sync timer state with conflict resolution
         if let accessToken = try? KeychainStore.loadString(.accessToken) {
             AppLogger.info("Found access token after login, starting smart timer sync", category: .sync)
-            Task {
+            _Concurrency.Task {
                 await TimerSyncManager.shared.smartSyncWithBackend()
                 AppLogger.info("Smart timer sync completed", category: .sync)
             }
@@ -236,15 +270,93 @@ final class iOSAppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationC
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
         UNUserNotificationCenter.current().delegate = self
 
-        // Configure Firebase (without messaging for personal team compatibility)
-        FirebaseApp.configure()
+        // Request notification permissions
+        requestNotificationPermissions()
 
         return true
     }
 
+    private func requestNotificationPermissions() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
+            if granted {
+                DispatchQueue.main.async {
+                    UIApplication.shared.registerForRemoteNotifications()
+                }
+            }
+            if let error = error {
+                AppLogger.error("Failed to request notification permissions: \(error.localizedDescription)", category: .general)
+            }
+        }
+    }
+
+    // MARK: - APNs Token Registration
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        let tokenString = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
+        AppLogger.info("Successfully registered for remote notifications, APNs token: \(tokenString)", category: .general)
+
+        // Store APNs token with backend
+        _Concurrency.Task {
+            await updateApnsTokenWithBackend(tokenString)
+        }
+    }
+
+    func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        AppLogger.error("Failed to register for remote notifications: \(error.localizedDescription)", category: .general)
+    }
+
+    private func updateApnsTokenWithBackend(_ apnsToken: String) async {
+        guard let accessToken = try? KeychainStore.loadString(.accessToken),
+              let config = ApiClient.Configuration.fromInfoPlist() else {
+            AppLogger.warning("No access token or API config available for APNs token update", category: .general)
+            return
+        }
+
+        let deviceId = TimerSyncManager.shared.deviceId
+        let apiClient = ApiClient(configuration: config)
+
+        do {
+            try await apiClient.updateApnsToken(deviceId: deviceId, apnsToken: apnsToken, accessToken: accessToken)
+            AppLogger.info("APNs token updated with backend for device: \(deviceId)", category: .general)
+        } catch {
+            AppLogger.error("Failed to update APNs token with backend: \(error.localizedDescription)", category: .general)
+        }
+    }
+
     // MARK: - UNUserNotificationCenterDelegate
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        // Handle data-only (silent) notifications
+        let userInfo = notification.request.content.userInfo
+
+        if let type = userInfo["type"] as? String, type == "timer_sync" {
+            AppLogger.info("Received timer sync FCM message", category: .sync)
+
+            // Trigger timer sync in background
+            _Concurrency.Task {
+                await TimerSyncManager.shared.smartSyncWithBackend()
+            }
+
+            // Don't show notification for silent sync messages
+            completionHandler([])
+            return
+        }
+
+        // Show regular notifications
         completionHandler([.banner, .sound, .badge])
+    }
+
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        let userInfo = response.notification.request.content.userInfo
+
+        if let type = userInfo["type"] as? String, type == "timer_sync" {
+            AppLogger.info("User tapped timer sync notification", category: .sync)
+
+            // Trigger timer sync when user taps notification
+            _Concurrency.Task {
+                await TimerSyncManager.shared.smartSyncWithBackend()
+            }
+        }
+
+        completionHandler()
     }
 }
 #endif

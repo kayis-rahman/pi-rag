@@ -1,6 +1,7 @@
 package com.sparkage.timebeam.application.service;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -9,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.sparkage.timebeam.infrastructure.external.PushNotificationService;
 import com.sparkage.timebeam.infrastructure.persistence.TimerState;
 import com.sparkage.timebeam.infrastructure.persistence.TimerStateRepository;
 import com.sparkage.timebeam.infrastructure.persistence.UserDevice;
@@ -21,48 +23,62 @@ public class TimerSyncService {
 
     private final TimerStateRepository timerStateRepository;
     private final UserDeviceRepository userDeviceRepository;
+    private final PushNotificationService pushNotificationService;
 
     public TimerSyncService(TimerStateRepository timerStateRepository,
-                           UserDeviceRepository userDeviceRepository) {
+                           UserDeviceRepository userDeviceRepository,
+                           PushNotificationService pushNotificationService) {
         this.timerStateRepository = timerStateRepository;
         this.userDeviceRepository = userDeviceRepository;
+        this.pushNotificationService = pushNotificationService;
     }
 
     /**
-     * Push timer state from a device with conflict resolution
-     * Uses optimistic locking for concurrent updates
+     * Push timer state from a device with collaborative control and timestamp-based conflict resolution
+     * Any device can update the timer state - newer timestamps always win
+     * Tracks which device made the last update for notification purposes
      */
     @Transactional
-    public void pushTimerState(UUID userId, TimerStateDto state, UUID deviceId) {
+    public void pushTimerState(UUID userId, TimerStateDto state, String deviceIdString) {
         log.info("Pushing timer state for user={}, device={}, timestamp={}",
-                userId, deviceId, state.getTimestamp());
+                userId, deviceIdString, state.getTimestamp());
 
         try {
+            // Find the device by user and device ID string
+            Optional<UserDevice> deviceOpt = userDeviceRepository.findByUserIdAndDeviceId(userId, deviceIdString);
+            if (deviceOpt.isEmpty()) {
+                throw new IllegalArgumentException("Device not found: user=" + userId + ", deviceId=" + deviceIdString);
+            }
+            UUID deviceId = deviceOpt.get().getId();
+
+            // Clean up any duplicate timer states first (shouldn't happen but handle gracefully)
+            cleanupDuplicateTimerStates(userId);
+
             // Get or create timer state with pessimistic locking for safety
             Optional<TimerState> existingStateOpt = timerStateRepository.findByUserIdWithLock(userId);
 
             if (existingStateOpt.isPresent()) {
                 TimerState existingState = existingStateOpt.get();
 
-                // Check if the new state is actually newer
-                if (state.getTimestamp().isAfter(existingState.getLastUpdatedAt())) {
-                    // Update existing state
-                    updateTimerState(existingState, state, deviceId);
-                    timerStateRepository.save(existingState);
-                    log.info("Updated timer state for user={} with newer state from device={}", userId, deviceId);
-                } else {
-                    log.debug("Ignoring older timer state for user={} from device={}", userId, deviceId);
-                }
+                // In collaborative mode, we always accept updates
+                // This allows any device to control the timer at any time
+                // Update existing state with the new data
+                updateTimerState(existingState, state, deviceId);
+                timerStateRepository.save(existingState);
+                log.info("Updated timer state for user={} with state from device={} (collaborative mode)", userId, deviceIdString);
+
+                // Send push notification to other devices for real-time sync
+                pushNotificationService.sendTimerSyncPush(userId.toString(), deviceIdString, "state_update");
             } else {
-                // Create new timer state
+                // Create new timer state - first device to sync
                 TimerState newState = createTimerStateFromDto(userId, state, deviceId);
                 timerStateRepository.save(newState);
-                log.info("Created new timer state for user={} from device={}", userId, deviceId);
+                log.info("Created new timer state for user={} from device={}", userId, deviceIdString);
             }
 
         } catch (Exception e) {
             log.error("Failed to push timer state for user={} from device={}: {}",
-                     userId, deviceId, e.getMessage(), e);
+                     userId, deviceIdString, e.getMessage(), e);
             throw new RuntimeException("Failed to sync timer state", e);
         }
     }
@@ -205,5 +221,33 @@ public class TimerSyncService {
         dto.setTimestamp(state.getLastUpdatedAt());
         dto.setDeviceId(state.getUpdatedByDeviceId() != null ? state.getUpdatedByDeviceId().toString() : null);
         return dto;
+    }
+
+    /**
+     * Clean up duplicate timer states for a user (shouldn't happen but handle gracefully)
+     * Keeps the most recently updated state and deletes others
+     */
+    private void cleanupDuplicateTimerStates(UUID userId) {
+        try {
+            // Find all timer states for this user (should only be one, but handle duplicates)
+            List<TimerState> allStates = timerStateRepository.findAllByUserId(userId);
+
+            if (allStates.size() > 1) {
+                log.warn("Found {} duplicate timer states for user={}, cleaning up", allStates.size(), userId);
+
+                // Sort by last updated time (most recent first)
+                allStates.sort((a, b) -> b.getLastUpdatedAt().compareTo(a.getLastUpdatedAt()));
+
+                // Keep the most recent one, delete the others
+                for (int i = 1; i < allStates.size(); i++) {
+                    TimerState duplicate = allStates.get(i);
+                    log.info("Deleting duplicate timer state for user={}, id={}", userId, duplicate.getUserId());
+                    timerStateRepository.delete(duplicate);
+                }
+            }
+        } catch (Exception e) {
+            log.error("Failed to cleanup duplicate timer states for user={}: {}", userId, e.getMessage(), e);
+            // Don't throw - let the main operation continue
+        }
     }
 }

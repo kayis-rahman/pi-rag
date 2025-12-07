@@ -36,4 +36,7 @@ public interface TimerStateRepository extends JpaRepository<TimerState, UUID> {
     // Update last updated time for a user (optimistic locking)
     @Query("UPDATE TimerState t SET t.lastUpdatedAt = :now, t.version = t.version + 1 WHERE t.userId = :userId AND t.version = :expectedVersion")
     int updateLastUpdated(@Param("userId") UUID userId, @Param("now") Instant now, @Param("expectedVersion") long expectedVersion);
+
+    // Find all timer states for a user (for cleanup of duplicates)
+    List<TimerState> findAllByUserId(UUID userId);
 }
