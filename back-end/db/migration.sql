@@ -65,11 +65,27 @@ CREATE TABLE IF NOT EXISTS timer_states (
     short_breaks_completed INTEGER NOT NULL DEFAULT 0,
     last_updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_by_device_id UUID REFERENCES user_devices(id),
+    active_device_id UUID REFERENCES user_devices(id), -- Device currently controlling the timer
     version BIGINT NOT NULL DEFAULT 1
+);
+
+-- Remove active_device_id column from timer_states table (collaborative mode)
+ALTER TABLE timer_states DROP COLUMN IF EXISTS active_device_id;
+
+-- Create tasks table
+CREATE TABLE IF NOT EXISTS tasks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    status VARCHAR(20) NOT NULL CHECK (status IN ('todo', 'in_progress', 'completed')),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Enhance session_records table
 ALTER TABLE session_records ADD COLUMN IF NOT EXISTS device_id UUID REFERENCES user_devices(id);
+ALTER TABLE session_records ADD COLUMN IF NOT EXISTS task_id UUID REFERENCES tasks(id);
 ALTER TABLE session_records ADD COLUMN IF NOT EXISTS was_completed BOOLEAN DEFAULT true;
 ALTER TABLE session_records ADD COLUMN IF NOT EXISTS was_interrupted BOOLEAN DEFAULT false;
 ALTER TABLE session_records ADD COLUMN IF NOT EXISTS interruption_reason VARCHAR(100);
@@ -143,11 +159,17 @@ CREATE TABLE IF NOT EXISTS notifications_sent (
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_timer_states_updated ON timer_states(last_updated_at);
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_devices_user_active ON user_devices(user_id, is_active, last_seen_at DESC);
 
+-- Task query optimization
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_tasks_user_status ON tasks(user_id, status);
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_tasks_user_created ON tasks(user_id, created_at DESC);
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_tasks_user_updated ON tasks(user_id, updated_at DESC);
+
 -- Analytics query optimization
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_session_records_user_started ON session_records(user_id, started_at DESC);
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_session_records_user_kind_started ON session_records(user_id, kind, started_at DESC);
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_session_records_started_at ON session_records(started_at);
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_session_records_user_date ON session_records(user_id, DATE(started_at));
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_session_records_task_id ON session_records(task_id);
 
 -- Daily analytics optimization
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_daily_analytics_user_date ON daily_analytics(user_id, date DESC);
@@ -216,7 +238,7 @@ SELECT
 FROM pg_tables
 WHERE schemaname = 'public'
     AND tablename IN (
-        'users', 'user_preferences', 'user_devices', 'timer_states',
+        'users', 'user_preferences', 'user_devices', 'timer_states', 'tasks',
         'session_records', 'daily_analytics', 'user_streaks',
         'productive_windows', 'push_subscriptions', 'notifications_sent'
     )
@@ -231,7 +253,7 @@ SELECT
 FROM pg_indexes
 WHERE schemaname = 'public'
     AND tablename IN (
-        'timer_states', 'user_devices', 'session_records',
+        'timer_states', 'user_devices', 'tasks', 'session_records',
         'daily_analytics', 'push_subscriptions', 'notifications_sent'
     )
 ORDER BY tablename, indexname;
@@ -272,11 +294,12 @@ DROP TABLE IF EXISTS productive_windows;
 DROP TABLE IF EXISTS user_streaks;
 DROP TABLE IF EXISTS daily_analytics;
 
--- Note: timer_states, user_devices, user_preferences tables contain new data
+-- Note: timer_states, user_devices, user_preferences, tasks tables contain new data
 -- Decide whether to keep or drop based on your needs
 
 -- Remove added columns from existing tables
 ALTER TABLE session_records DROP COLUMN IF EXISTS device_id;
+ALTER TABLE session_records DROP COLUMN IF EXISTS task_id;
 ALTER TABLE session_records DROP COLUMN IF EXISTS was_completed;
 ALTER TABLE session_records DROP COLUMN IF EXISTS was_interrupted;
 ALTER TABLE session_records DROP COLUMN IF EXISTS interruption_reason;

@@ -47,7 +47,7 @@ class DeviceManagementServiceTest {
         registrationDto.setDeviceType("ios");
         registrationDto.setPlatformVersion("18.0");
         registrationDto.setAppVersion("1.0.0");
-        registrationDto.setFcmToken("fcm-token-123");
+        registrationDto.setApnsToken("apns-token-123");
 
         // Setup existing device
         existingDevice = new UserDevice();
@@ -67,7 +67,7 @@ class DeviceManagementServiceTest {
         newDevice.setDeviceType("ios");
         newDevice.setPlatformVersion("18.0");
         newDevice.setAppVersion("1.0.0");
-        newDevice.setFcmToken("fcm-token-123");
+        newDevice.setApnsToken("apns-token-123");
         newDevice.setActive(true);
     }
 
@@ -86,7 +86,7 @@ class DeviceManagementServiceTest {
         assertThat(result.getDeviceName()).isEqualTo("iPhone 15");
         assertThat(result.getPlatformVersion()).isEqualTo("18.0");
         assertThat(result.getAppVersion()).isEqualTo("1.0.0");
-        assertThat(result.getFcmToken()).isEqualTo("fcm-token-123");
+        assertThat(result.getApnsToken()).isEqualTo("apns-token-123");
         verify(deviceRepository).findByUserIdAndDeviceId(userId, registrationDto.getDeviceId());
         verify(deviceRepository).save(existingDevice);
     }

@@ -32,6 +32,9 @@ public class UserDevice {
     @Column(name = "app_version")
     private String appVersion;
 
+    @Column(name = "apns_token", columnDefinition = "TEXT")
+    private String apnsToken;
+
     @Column(name = "fcm_token", columnDefinition = "TEXT")
     private String fcmToken;
 
@@ -48,7 +51,7 @@ public class UserDevice {
 
     public UserDevice(UUID id, UUID userId, String deviceId, String deviceName,
                      String deviceType, String platformVersion, String appVersion,
-                     String fcmToken, Instant lastSeenAt, boolean active, Instant createdAt) {
+                     String apnsToken, String fcmToken, Instant lastSeenAt, boolean active, Instant createdAt) {
         this.id = id;
         this.userId = userId;
         this.deviceId = deviceId;
@@ -56,6 +59,7 @@ public class UserDevice {
         this.deviceType = deviceType;
         this.platformVersion = platformVersion;
         this.appVersion = appVersion;
+        this.apnsToken = apnsToken;
         this.fcmToken = fcmToken;
         this.lastSeenAt = lastSeenAt;
         this.active = active;
@@ -83,6 +87,9 @@ public class UserDevice {
 
     public String getAppVersion() { return appVersion; }
     public void setAppVersion(String appVersion) { this.appVersion = appVersion; }
+
+    public String getApnsToken() { return apnsToken; }
+    public void setApnsToken(String apnsToken) { this.apnsToken = apnsToken; }
 
     public String getFcmToken() { return fcmToken; }
     public void setFcmToken(String fcmToken) { this.fcmToken = fcmToken; }

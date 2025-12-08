@@ -1,6 +1,9 @@
 import SwiftUI
 import UserNotifications
+
+#if os(watchOS)
 import WatchKit
+#endif
 
 //
 //  WatchContentView.swift

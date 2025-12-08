@@ -160,7 +160,7 @@ public class DeviceManagementService {
         device.setDeviceType(registration.getDeviceType());
         device.setPlatformVersion(registration.getPlatformVersion());
         device.setAppVersion(registration.getAppVersion());
-        device.setFcmToken(registration.getFcmToken());
+        device.setApnsToken(registration.getApnsToken());
         device.setLastSeenAt(Instant.now());
         device.setActive(true);
     }
@@ -174,7 +174,7 @@ public class DeviceManagementService {
         device.setDeviceType(registration.getDeviceType());
         device.setPlatformVersion(registration.getPlatformVersion());
         device.setAppVersion(registration.getAppVersion());
-        device.setFcmToken(registration.getFcmToken());
+        device.setApnsToken(registration.getApnsToken());
         device.setLastSeenAt(Instant.now());
         device.setActive(true);
         return device;

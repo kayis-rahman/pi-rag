@@ -20,7 +20,7 @@ final class SessionLogger: ObservableObject {
     func add(record: SessionRecord) {
         records.append(record)
         save()
-        Task {
+        _Concurrency.Task {
             await uploadRecord(record)
         }
     }

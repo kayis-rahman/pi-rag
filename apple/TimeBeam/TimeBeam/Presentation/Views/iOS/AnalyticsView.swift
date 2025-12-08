@@ -9,6 +9,7 @@ struct AnalyticsView: View {
 
     // API state
     @State private var weeklyData: WeeklyAnalyticsResponse?
+    @State private var taskData: UserTaskAnalyticsResponse?
     @State private var isLoading = false
     @State private var errorMessage: String?
 
@@ -69,6 +70,9 @@ struct AnalyticsView: View {
             .onAppear {
                 if weeklyData == nil {
                     loadWeeklyData()
+                }
+                if taskData == nil {
+                    loadTaskData()
                 }
             }
             #elseif os(watchOS)
@@ -176,6 +180,11 @@ struct AnalyticsView: View {
 
                         // Session History
                         sessionHistoryCard
+
+                        // Task Analytics
+                        if taskData != nil {
+                            taskAnalyticsCard
+                        }
                     }
                     .padding()
                 }
@@ -207,12 +216,42 @@ struct AnalyticsView: View {
 
     // MARK: - API Loading
 
+    private func loadTaskData() {
+        print("🔄 AnalyticsView: Starting loadTaskData")
+        _Concurrency.Task {
+            do {
+                guard let baseURL = URL(string: "http://localhost:8080") else {
+                    throw NSError(domain: "AnalyticsView", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid server URL"])
+                }
+
+                let jwt = try KeychainStore.loadString(.accessToken) ?? ""
+                if jwt.isEmpty {
+                    throw NSError(domain: "AnalyticsView", code: 401, userInfo: [NSLocalizedDescriptionKey: "Please sign in to view analytics"])
+                }
+
+                let api = AnalyticsApiClient(baseURL: baseURL)
+                print("📡 AnalyticsView: Making task analytics API call...")
+                let data = try await api.fetchTaskAnalytics(jwt: jwt)
+                print("✅ AnalyticsView: UserTask analytics API call successful")
+
+                await MainActor.run {
+                    self.taskData = data
+                }
+            } catch let error as NSError {
+                print("❌ AnalyticsView: UserTask analytics API error - domain: \(error.domain), code: \(error.code), message: \(error.localizedDescription)")
+                // Don't set error message for task data - it's optional
+            } catch {
+                print("❌ AnalyticsView: Unexpected task analytics error: \(error)")
+            }
+        }
+    }
+
     private func loadWeeklyData() {
         print("🔄 AnalyticsView: Starting loadWeeklyData")
         isLoading = true
         errorMessage = nil
 
-        Task {
+        _Concurrency.Task {
             do {
                 guard let baseURL = URL(string: "http://localhost:8080") else {
                     throw NSError(domain: "AnalyticsView", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid server URL"])
@@ -439,6 +478,50 @@ struct AnalyticsView: View {
         }
         .padding(16)
         .background(Color.white.opacity(0.9))
+        .cornerRadius(14)
+        .shadow(radius: 2)
+    }
+
+    private var taskAnalyticsCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Task Analytics")
+                .font(.headline)
+                .foregroundColor(.primary)
+
+            if let metrics = taskData?.taskMetrics {
+                HStack(spacing: 16) {
+                    summaryCard(
+                        icon: "checklist",
+                        title: "Total Tasks",
+                        value: "\(metrics.totalTasks)",
+                        subtitle: "\(metrics.activeTasks) active",
+                        color: .purple
+                    )
+                    summaryCard(
+                        icon: "checkmark.circle.fill",
+                        title: "Completed",
+                        value: "\(metrics.completedTasks)",
+                        subtitle: "\(String(format: "%.1f", metrics.completionRate))% rate",
+                        color: .green
+                    )
+                    summaryCard(
+                        icon: "clock.fill",
+                        title: "Time Spent",
+                        value: formatTime(metrics.totalTimeSpent),
+                        subtitle: "on tasks",
+                        color: .blue
+                    )
+                }
+                .fixedSize(horizontal: false, vertical: true)
+            } else {
+                Text("Task analytics loading...")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .padding(.vertical, 8)
+            }
+        }
+        .padding(16)
+        .background(Color.purple.opacity(0.1))
         .cornerRadius(14)
         .shadow(radius: 2)
     }

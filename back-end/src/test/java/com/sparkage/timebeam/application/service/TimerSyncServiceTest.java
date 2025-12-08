@@ -89,7 +89,7 @@ class TimerSyncServiceTest {
         when(timerStateRepository.save(any(TimerState.class))).thenReturn(timerState);
 
         // When
-        timerSyncService.pushTimerState(userId, timerStateDto, deviceId);
+        timerSyncService.pushTimerState(userId, timerStateDto, deviceId.toString());
 
         // Then
         verify(timerStateRepository).findByUserIdWithLock(userId);
@@ -104,7 +104,7 @@ class TimerSyncServiceTest {
         when(timerStateRepository.save(existingState)).thenReturn(existingState);
 
         // When
-        timerSyncService.pushTimerState(userId, timerStateDto, deviceId);
+        timerSyncService.pushTimerState(userId, timerStateDto, deviceId.toString());
 
         // Then
         verify(timerStateRepository).findByUserIdWithLock(userId);
@@ -120,7 +120,7 @@ class TimerSyncServiceTest {
         when(timerStateRepository.findByUserIdWithLock(userId)).thenReturn(Optional.of(existingState));
 
         // When
-        timerSyncService.pushTimerState(userId, timerStateDto, deviceId);
+        timerSyncService.pushTimerState(userId, timerStateDto, deviceId.toString());
 
         // Then
         verify(timerStateRepository).findByUserIdWithLock(userId);
@@ -189,7 +189,7 @@ class TimerSyncServiceTest {
             .thenThrow(new RuntimeException("Database error"));
 
         // When & Then
-        assertThatThrownBy(() -> timerSyncService.pushTimerState(userId, timerStateDto, deviceId))
+        assertThatThrownBy(() -> timerSyncService.pushTimerState(userId, timerStateDto, deviceId.toString()))
             .isInstanceOf(RuntimeException.class)
             .hasMessage("Failed to sync timer state");
     }

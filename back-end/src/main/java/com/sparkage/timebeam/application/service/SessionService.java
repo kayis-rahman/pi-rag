@@ -55,6 +55,13 @@ public class SessionService {
         return create(dto);
     }
 
+    // Start a new session for the given user and kind with optional task association.
+    public SessionRecordDto start(String kind, UUID userId, UUID taskId) {
+        log.debug("SessionService.start called userId={}, kind={}, taskId={}", userId, kind, taskId);
+        var dto = new SessionRecordDto(null, userId, Instant.now(), 0L, kind, taskId);
+        return create(dto);
+    }
+
     // Stop an existing session by id. Verifies ownership by userId, computes duration and saves.
     public SessionRecordDto stop(UUID id, UUID userId) {
         log.debug("SessionService.stop called id={}, userId={}", id, userId);

@@ -64,13 +64,15 @@ public class SessionController {
     }
 
     @PostMapping("/start")
-    public ResponseEntity<?> start(@RequestParam(name = "kind", defaultValue = "WORK") String kind, Principal principal) {
-        log.debug("start session requested kind={}", kind);
+    public ResponseEntity<?> start(@RequestParam(name = "kind", defaultValue = "WORK") String kind,
+                                  @RequestParam(name = "taskId", required = false) UUID taskId,
+                                  Principal principal) {
+        log.debug("start session requested kind={}, taskId={}", kind, taskId);
         UUID uid = resolveUserId(principal);
         if (uid == null) return ResponseEntity.status(401).build();
 
-        SessionRecordDto created = sessionService.start(kind, uid);
-        log.info("session started: id={}, userId={}, kind={}", created.getId(), created.getUserId(), created.getKind());
+        SessionRecordDto created = sessionService.start(kind, uid, taskId);
+        log.info("session started: id={}, userId={}, kind={}, taskId={}", created.getId(), created.getUserId(), created.getKind(), taskId);
         return ResponseEntity.status(201).body(created);
     }
 
@@ -117,8 +119,7 @@ public class SessionController {
         UUID uid = resolveUserId(principal);
         if (uid == null) return ResponseEntity.status(401).build();
 
-        UUID deviceId = UUID.fromString(timerState.getDeviceId());
-        timerSyncService.pushTimerState(uid, timerState, deviceId);
+        timerSyncService.pushTimerState(uid, timerState, timerState.getDeviceId());
         log.info("timer state pushed for user={}, device={}", uid, timerState.getDeviceId());
         return ResponseEntity.ok().build();
     }
@@ -143,12 +144,13 @@ public class SessionController {
         UUID uid = resolveUserId(principal);
         if (uid == null) return ResponseEntity.status(401).build();
 
-        // Store the action as state
+        // Store the action as state - now using the complete timer state provided by the client
         try {
             TimerStateDto stateFromAction = convertActionToState(actionDto);
-            UUID deviceId = UUID.fromString(actionDto.getDeviceId());
-            timerSyncService.pushTimerState(uid, stateFromAction, deviceId);
-            log.info("timer action pushed for user={}, device={}, action={}", uid, actionDto.getDeviceId(), actionDto.getAction());
+            timerSyncService.pushTimerState(uid, stateFromAction, actionDto.getDeviceId());
+            log.info("timer action pushed for user={}, device={}, action={}, phase={}, remaining={}",
+                    uid, actionDto.getDeviceId(), actionDto.getAction(),
+                    actionDto.getPhase(), actionDto.getRemainingSeconds());
         } catch (Exception e) {
             log.error("Failed to process timer action", e);
             return ResponseEntity.status(400).build();
@@ -156,7 +158,7 @@ public class SessionController {
 
         // Send silent push notification to other devices
         try {
-            pushService.sendTimerSyncPush(uid.toString(), actionDto.getDeviceId(), actionDto.getAction());
+            pushService.sendTimerSyncPush(uid.toString(), actionDto.getDeviceId(), actionDto.getAction(), actionDto.getTimestamp().toString());
         } catch (Exception e) {
             log.warn("Failed to send push notification for timer sync, but action was stored successfully", e);
             // Don't fail the request if push fails - the action is still stored
@@ -165,26 +167,37 @@ public class SessionController {
         return ResponseEntity.ok().build();
     }
 
-    // Helper to convert action to state (simplified - in practice you'd need more logic)
+    @PostMapping("/devices/apns-token")
+    public ResponseEntity<Void> updateApnsToken(@RequestParam String deviceId, @RequestParam String apnsToken, Principal principal) {
+        log.debug("update APNs token called: device={}", deviceId);
+        UUID uid = resolveUserId(principal);
+        if (uid == null) return ResponseEntity.status(401).build();
+
+        try {
+            pushService.storeApnsToken(uid.toString(), deviceId, apnsToken);
+            log.info("APNs token updated for user={}, device={}", uid, deviceId);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            log.error("Failed to update APNs token for user={}, device={}", uid, deviceId, e);
+            return ResponseEntity.status(500).build();
+        }
+    }
+
+    // Helper to convert action to state - now uses the complete timer state provided by the client
     private TimerStateDto convertActionToState(TimerActionDto actionDto) {
-        // This is a simplified conversion - real implementation would need to track timer state properly
-        // For now, we'll create a minimal state that indicates the action was performed
-        // ALWAYS use current timestamp for sync actions to avoid old timestamp issues
-        Instant timestamp = Instant.now();
-
-        // Determine if timer should be running based on action
-        boolean isRunning = "start".equals(actionDto.getAction());
-
+        // Use the complete timer state provided by the client instead of hardcoded values
+        // This ensures accurate sync between devices
+        // Use server timestamp to avoid client clock issues
         return new TimerStateDto(
-            "WORK", // phase - simplified
-            1500,   // remainingSeconds - simplified
-            isRunning, // isRunning based on action (only "start" = true)
-            1500,   // workDuration
-            300,    // breakDuration
-            900,    // longBreakDuration
-            true,   // autoStartNextSession
-            0,      // shortBreaksCompleted
-            timestamp,
+            actionDto.getPhase(),
+            actionDto.getRemainingSeconds(),
+            actionDto.getIsRunning(),
+            actionDto.getWorkDuration(),
+            actionDto.getBreakDuration(),
+            actionDto.getLongBreakDuration(),
+            actionDto.getAutoStartNextSession(),
+            actionDto.getShortBreaksCompleted(),
+            Instant.now(), // Use server timestamp
             actionDto.getDeviceId()
         );
     }

@@ -1,7 +1,10 @@
-import AppKit
 import AVFoundation
 import SwiftUI
 import UserNotifications
+
+#if os(macOS)
+import AppKit
+#endif
 
 #if os(macOS)
 #endif
@@ -152,11 +155,11 @@ struct macOSContentView: View {
                     Text(email)
                 }
                 Button("Sign Out", role: .destructive) {
-                    Task { await authManager.signOut() }
+                    _Concurrency.Task { await authManager.signOut() }
                 }
             } else {
                 Button("Sign In with Google") {
-                    Task {
+                    _Concurrency.Task {
                         do {
                             try await authManager.signInWithGoogle()
                         } catch {

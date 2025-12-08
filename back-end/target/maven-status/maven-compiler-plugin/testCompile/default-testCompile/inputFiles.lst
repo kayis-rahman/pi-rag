@@ -1,0 +1,15 @@
+/Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/test/java/com/sparkage/timebeam/presentation/controller/AuthControllerTest.java
+/Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/test/java/com/sparkage/timebeam/TestSecurityConfig.java
+/Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/test/java/com/sparkage/timebeam/application/service/TaskServiceTest.java
+/Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/test/java/com/sparkage/timebeam/infrastructure/persistence/UserDeviceRepositoryIT.java
+/Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/test/java/com/sparkage/timebeam/TestDataSetup.java
+/Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/test/java/com/sparkage/timebeam/application/service/AuthServiceTest.java
+/Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/test/java/com/sparkage/timebeam/infrastructure/persistence/SessionRecordRepositoryIT.java
+/Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/test/java/com/sparkage/timebeam/presentation/controller/TimerSyncIntegrationTest.java
+/Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/test/java/com/sparkage/timebeam/application/service/AnalyticsServiceTest.java
+/Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/test/java/com/sparkage/timebeam/E2ETestDataSeeder.java
+/Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/test/java/com/sparkage/timebeam/presentation/controller/SessionControllerTest.java
+/Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/test/java/com/sparkage/timebeam/application/service/TimerSyncServiceTest.java
+/Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/test/java/com/sparkage/timebeam/application/service/DeviceManagementServiceTest.java
+/Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/test/java/com/sparkage/timebeam/infrastructure/persistence/TimerStateRepositoryIT.java
+/Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/test/java/com/sparkage/timebeam/application/service/SessionServiceTest.java

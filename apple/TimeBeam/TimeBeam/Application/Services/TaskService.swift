@@ -30,7 +30,7 @@ final class TaskService: ObservableObject {
         try validateTaskInput(title: title, description: description)
 
         let request = APIRequest.createTask(title: title, description: description)
-        let response: TaskDto = try await apiClient.performRequest(request)
+        let response: ApiClient.TaskDto = try await apiClient.performRequest(request)
 
         let task = UserTask(
             id: response.id,
@@ -54,7 +54,7 @@ final class TaskService: ObservableObject {
 
     func fetchTasks(status: ApiTaskStatus? = nil) async throws -> [UserTask] {
         let request = APIRequest.fetchTasks(status: status)
-        let response: [TaskDto] = try await apiClient.performRequest(request)
+        let response: [ApiClient.TaskDto] = try await apiClient.performRequest(request)
 
         let fetchedTasks = response.map { dto in
             UserTask(
@@ -78,7 +78,7 @@ final class TaskService: ObservableObject {
 
     func fetchActiveTasks() async throws -> [UserTask] {
         let request = APIRequest.fetchActiveTasks
-        let response: [TaskDto] = try await apiClient.performRequest(request)
+        let response: [ApiClient.TaskDto] = try await apiClient.performRequest(request)
 
         let activeTasks = response.map { dto in
             UserTask(
@@ -98,7 +98,7 @@ final class TaskService: ObservableObject {
 
     func fetchTask(byId id: String) async throws -> UserTask {
         let request = APIRequest.fetchTask(id: id)
-        let response: TaskDto = try await apiClient.performRequest(request)
+        let response: ApiClient.TaskDto = try await apiClient.performRequest(request)
 
         let task = UserTask(
             id: response.id,
@@ -125,7 +125,7 @@ final class TaskService: ObservableObject {
         }
 
         let request = APIRequest.updateTask(id: id, title: title, description: description, status: status)
-        let response: TaskDto = try await apiClient.performRequest(request)
+        let response: ApiClient.TaskDto = try await apiClient.performRequest(request)
 
         let updatedTask = UserTask(
             id: response.id,
@@ -155,7 +155,7 @@ final class TaskService: ObservableObject {
 
     func deleteTask(id: String) async throws {
         let request = APIRequest.deleteTask(id: id)
-        try await apiClient.performRequest(request) as EmptyResponse
+        try await apiClient.performRequest(request) as ApiClient.EmptyResponse
 
         // Update local cache
         tasks.removeAll { $0.id.uuidString == id }
@@ -165,6 +165,70 @@ final class TaskService: ObservableObject {
 
     func deleteTask(_ task: UserTask) async throws {
         try await deleteTask(id: task.id.uuidString)
+    }
+
+    // MARK: - Recycle Bin Management
+
+    func softDeleteTask(_ task: UserTask) async throws {
+        // Move task to recycle bin instead of hard delete
+        let deletedTask = UserTask(
+            id: task.id,
+            userId: task.userId,
+            title: task.title,
+            description: task.description,
+            status: .completed, // Mark as completed in recycle bin
+            createdAt: task.createdAt,
+            updatedAt: Date()
+        )
+
+        // Store in recycle bin with expiration
+        let recycleBinItem = RecycleBinItem(task: deletedTask, deletedAt: Date())
+        addToRecycleBin(recycleBinItem)
+
+        // Remove from active tasks
+        tasks.removeAll { $0.id == task.id }
+        activeTasks.removeAll { $0.id == task.id }
+        updateActiveTasks()
+        saveCachedTasks()
+    }
+
+    func restoreTask(from recycleBinItem: RecycleBinItem) async throws {
+        // Restore task from recycle bin
+        let restoredTask = UserTask(
+            id: recycleBinItem.task.id,
+            userId: recycleBinItem.task.userId,
+            title: recycleBinItem.task.title,
+            description: recycleBinItem.task.description,
+            status: .todo, // Reset to todo when restored
+            createdAt: recycleBinItem.task.createdAt,
+            updatedAt: Date()
+        )
+
+        // Add back to active tasks
+        tasks.append(restoredTask)
+        updateActiveTasks()
+        saveCachedTasks()
+
+        // Remove from recycle bin
+        removeFromRecycleBin(recycleBinItem)
+    }
+
+    func getRecycleBinItems() -> [RecycleBinItem] {
+        return loadRecycleBinItems().filter { !$0.isExpired }
+    }
+
+    func permanentlyDeleteExpiredItems() {
+        let items = loadRecycleBinItems()
+        let validItems = items.filter { !$0.isExpired }
+        saveRecycleBinItems(validItems)
+    }
+
+
+    // MARK: - Task Completion Undo
+
+    func undoTaskCompletion(_ task: UserTask) async throws -> UserTask {
+        // Change status back to previous state (assuming inProgress for undo)
+        return try await updateTask(task, status: .inProgress)
     }
 
     // MARK: - Local Cache Management
@@ -261,6 +325,41 @@ final class TaskService: ObservableObject {
         return Array(sortedByLastUpdate.prefix(3)) // Return top 3
     }
 
+    // MARK: - Recycle Bin Storage Helpers
+
+    private func addToRecycleBin(_ item: RecycleBinItem) {
+        var items = loadRecycleBinItems()
+        items.append(item)
+        saveRecycleBinItems(items)
+    }
+
+    func removeFromRecycleBin(_ item: RecycleBinItem) {
+        var items = loadRecycleBinItems()
+        items.removeAll { $0.id == item.id }
+        saveRecycleBinItems(items)
+    }
+
+    private func loadRecycleBinItems() -> [RecycleBinItem] {
+        guard let data = UserDefaults.standard.data(forKey: "TaskService.recycleBin.v1") else { return [] }
+
+        do {
+            return try JSONDecoder().decode([RecycleBinItem].self, from: data)
+        } catch {
+            // Clear corrupted recycle bin data
+            UserDefaults.standard.removeObject(forKey: "TaskService.recycleBin.v1")
+            return []
+        }
+    }
+
+    private func saveRecycleBinItems(_ items: [RecycleBinItem]) {
+        do {
+            let data = try JSONEncoder().encode(items)
+            UserDefaults.standard.set(data, forKey: "TaskService.recycleBin.v1")
+        } catch {
+            // Ignore save failures
+        }
+    }
+
     // MARK: - Validation
 
     private func validateTaskInput(title: String, description: String?) throws {
@@ -278,21 +377,10 @@ final class TaskService: ObservableObject {
 
 // MARK: - Supporting Types
 
-struct EmptyResponse: Decodable {}
-
 enum ApiTaskStatus: String, Codable {
     case todo, inProgress = "in_progress", completed
 }
 
-struct TaskDto: Codable {
-    let id: UUID
-    let userId: UUID
-    let title: String
-    let description: String?
-    let status: String
-    let createdAt: Date
-    let updatedAt: Date
-}
 
 struct TaskCreateRequest: Codable {
     let title: String
@@ -305,12 +393,27 @@ struct TaskUpdateRequest: Codable {
     let status: String?
 }
 
-enum TaskServiceError: Error {
+enum TaskServiceError: LocalizedError {
     case validationError(String)
     case networkError(Error)
     case notFound
     case unauthorized
     case serverError(String)
+
+    var errorDescription: String? {
+        switch self {
+        case .validationError(let message):
+            return message
+        case .networkError(let error):
+            return "Network error: \(error.localizedDescription)"
+        case .notFound:
+            return "Task not found"
+        case .unauthorized:
+            return "Authentication required. Please log in again."
+        case .serverError(let message):
+            return message
+        }
+    }
 }
 
 // MARK: - Task Progress Types
@@ -356,6 +459,32 @@ struct TaskCompletionSuggestion {
         case markCompleted
         case archive
         case review
+    }
+}
+
+// MARK: - Recycle Bin Types
+
+struct RecycleBinItem: Codable, Identifiable {
+    let id = UUID()
+    let task: UserTask
+    let deletedAt: Date
+    let expiresAt: Date
+
+    init(task: UserTask, deletedAt: Date) {
+        self.task = task
+        self.deletedAt = deletedAt
+        // 30 days expiration
+        self.expiresAt = deletedAt.addingTimeInterval(30 * 24 * 60 * 60)
+    }
+
+    var isExpired: Bool {
+        return Date() > expiresAt
+    }
+
+    var daysUntilExpiration: Int {
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.day], from: Date(), to: expiresAt)
+        return max(0, components.day ?? 0)
     }
 }
 
@@ -416,7 +545,7 @@ extension ApiClient: ApiClientProtocol {
                 throw TaskServiceError.validationError("Invalid task ID")
             }
             try await deleteTask(id: uuid, accessToken: getAccessToken())
-            return EmptyResponse() as! T
+            return ApiClient.EmptyResponse() as! T
         }
     }
 

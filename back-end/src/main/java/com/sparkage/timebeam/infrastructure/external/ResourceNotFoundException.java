@@ -21,4 +21,8 @@ public class ResourceNotFoundException extends RuntimeException {
     public static ResourceNotFoundException userNotFound(String userId) {
         return new ResourceNotFoundException("User not found: " + userId);
     }
+
+    public static ResourceNotFoundException taskNotFound(String taskId) {
+        return new ResourceNotFoundException("Task not found: " + taskId);
+    }
 }

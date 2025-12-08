@@ -9,6 +9,7 @@ public class SessionRecordDto {
     private Instant startedAt;
     private long durationSeconds;
     private String kind;
+    private UUID taskId;
 
     public SessionRecordDto() {}
 
@@ -18,6 +19,15 @@ public class SessionRecordDto {
         this.startedAt = startedAt;
         this.durationSeconds = durationSeconds;
         this.kind = kind;
+    }
+
+    public SessionRecordDto(UUID id, UUID userId, Instant startedAt, long durationSeconds, String kind, UUID taskId) {
+        this.id = id;
+        this.userId = userId;
+        this.startedAt = startedAt;
+        this.durationSeconds = durationSeconds;
+        this.kind = kind;
+        this.taskId = taskId;
     }
 
     public UUID getId() { return id; }
@@ -34,4 +44,7 @@ public class SessionRecordDto {
 
     public String getKind() { return kind; }
     public void setKind(String kind) { this.kind = kind; }
+
+    public UUID getTaskId() { return taskId; }
+    public void setTaskId(UUID taskId) { this.taskId = taskId; }
 }

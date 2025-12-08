@@ -563,6 +563,218 @@ public class AnalyticsService {
         return new AnalyticsDashboardResponse(dailyTotals, streak, productiveWindow, breakdown, metadata);
     }
 
+    // ============ Task Analytics ============
+
+    /**
+     * Get comprehensive task analytics dashboard.
+     */
+    public Map<String, Object> getTaskAnalytics(UUID userId, String timeRange) {
+        log.debug("getTaskAnalytics userId={}, timeRange={}", userId, timeRange);
+
+        String timezone = "UTC";
+        Instant now = Instant.now();
+        Instant startInstant = getStartInstantForRange(timeRange, now);
+
+        // Get task metrics
+        Map<String, Object> taskMetrics = getTaskMetrics(userId);
+
+        // Get task breakdown
+        Map<String, Object> taskBreakdown = getTaskBreakdown(userId, startInstant, now, timezone);
+
+        // Get task trends
+        Map<String, Object> taskTrends = getTaskTrends(userId, startInstant, now, timezone);
+
+        // Get productivity by task
+        Map<String, Object> productivityByTask = getProductivityByTask(userId, startInstant, now, timezone);
+
+        return Map.of(
+            "task_metrics", taskMetrics,
+            "task_breakdown", taskBreakdown,
+            "task_trends", taskTrends,
+            "productivity_by_task", productivityByTask,
+            "metadata", Map.of(
+                "requested_at", System.currentTimeMillis(),
+                "time_range", timeRange,
+                "timezone", timezone
+            )
+        );
+    }
+
+    /**
+     * Get basic task metrics (counts, completion rates).
+     */
+    private Map<String, Object> getTaskMetrics(UUID userId) {
+        String sql = """
+            SELECT
+                COUNT(*) as total_tasks,
+                COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_tasks,
+                COUNT(CASE WHEN status IN ('todo', 'in_progress') THEN 1 END) as active_tasks,
+                ROUND(
+                    CASE
+                        WHEN COUNT(*) > 0 THEN
+                            COUNT(CASE WHEN status = 'completed' THEN 1 END)::NUMERIC / COUNT(*)::NUMERIC * 100
+                        ELSE 0
+                    END, 2
+                ) as completion_rate,
+                COALESCE(AVG(CASE WHEN status = 'completed' THEN
+                    EXTRACT(EPOCH FROM (updated_at - created_at)) / 60 END), 0) as average_task_duration,
+                COALESCE(SUM(CASE WHEN sr.duration_seconds IS NOT NULL THEN sr.duration_seconds / 60 END), 0) as total_time_spent
+            FROM tasks t
+            LEFT JOIN session_records sr ON sr.task_id = t.id AND sr.kind = 'WORK'
+            WHERE t.user_id = ?::uuid
+            """;
+
+        Map<String, Object> result = jdbcTemplate.queryForMap(sql, userId.toString());
+
+        return Map.of(
+            "total_tasks", ((Number) result.get("total_tasks")).intValue(),
+            "completed_tasks", ((Number) result.get("completed_tasks")).intValue(),
+            "active_tasks", ((Number) result.get("active_tasks")).intValue(),
+            "completion_rate", ((Number) result.get("completion_rate")).doubleValue(),
+            "average_task_duration", ((Number) result.get("average_task_duration")).intValue(),
+            "total_time_spent", ((Number) result.get("total_time_spent")).intValue()
+        );
+    }
+
+    /**
+     * Get task breakdown with time spent per task.
+     */
+    private Map<String, Object> getTaskBreakdown(UUID userId, Instant startInstant, Instant now, String timezone) {
+        String sql = """
+            SELECT
+                t.id as task_id,
+                t.title as task_title,
+                t.status,
+                COALESCE(SUM(sr.duration_seconds / 60), 0) as total_minutes,
+                COUNT(sr.id) as session_count,
+                TO_CHAR(t.updated_at AT TIME ZONE ?, 'YYYY-MM-DD') as completion_date,
+                TO_CHAR(t.created_at AT TIME ZONE ?, 'YYYY-MM-DD') as created_date
+            FROM tasks t
+            LEFT JOIN session_records sr ON sr.task_id = t.id
+                AND sr.kind = 'WORK'
+                AND sr.started_at >= ?::timestamptz
+                AND sr.started_at < ?::timestamptz
+            WHERE t.user_id = ?::uuid
+            GROUP BY t.id, t.title, t.status, t.created_at, t.updated_at
+            ORDER BY t.created_at DESC
+            """;
+
+        List<Map<String, Object>> results = jdbcTemplate.queryForList(sql,
+            timezone, timezone, startInstant.toString(), now.toString(), userId.toString());
+
+        return Map.of(
+            "data", results,
+            "period", getDaysFromRange("month"), // Default to month for task breakdown
+            "timezone", timezone
+        );
+    }
+
+    /**
+     * Get task creation and completion trends over time.
+     */
+    private Map<String, Object> getTaskTrends(UUID userId, Instant startInstant, Instant now, String timezone) {
+        String sql = """
+            SELECT
+                work_date,
+                COUNT(CASE WHEN event_type = 'created' THEN 1 END) as tasks_created,
+                COUNT(CASE WHEN event_type = 'completed' THEN 1 END) as tasks_completed,
+                COALESCE(SUM(CASE WHEN event_type = 'session' THEN duration_minutes END), 0) as total_minutes
+            FROM (
+                SELECT
+                    DATE(t.created_at AT TIME ZONE ?) as work_date,
+                    'created' as event_type,
+                    NULL as duration_minutes
+                FROM tasks t
+                WHERE t.user_id = ?::uuid
+                  AND t.created_at >= ?::timestamptz
+                  AND t.created_at < ?::timestamptz
+
+                UNION ALL
+
+                SELECT
+                    DATE(t.updated_at AT TIME ZONE ?) as work_date,
+                    'completed' as event_type,
+                    NULL as duration_minutes
+                FROM tasks t
+                WHERE t.user_id = ?::uuid
+                  AND t.status = 'completed'
+                  AND t.updated_at >= ?::timestamptz
+                  AND t.updated_at < ?::timestamptz
+
+                UNION ALL
+
+                SELECT
+                    DATE(sr.started_at AT TIME ZONE ?) as work_date,
+                    'session' as event_type,
+                    (sr.duration_seconds / 60) as duration_minutes
+                FROM session_records sr
+                WHERE sr.user_id = ?::uuid
+                  AND sr.task_id IS NOT NULL
+                  AND sr.kind = 'WORK'
+                  AND sr.started_at >= ?::timestamptz
+                  AND sr.started_at < ?::timestamptz
+            ) trends
+            GROUP BY work_date
+            ORDER BY work_date ASC
+            """;
+
+        List<Map<String, Object>> results = jdbcTemplate.queryForList(sql,
+            timezone, userId.toString(), startInstant.toString(), now.toString(),
+            timezone, userId.toString(), startInstant.toString(), now.toString(),
+            timezone, userId.toString(), startInstant.toString(), now.toString());
+
+        return Map.of(
+            "data", results,
+            "period", getDaysFromRange("month"),
+            "timezone", timezone
+        );
+    }
+
+    /**
+     * Get productivity metrics by task.
+     */
+    private Map<String, Object> getProductivityByTask(UUID userId, Instant startInstant, Instant now, String timezone) {
+        String sql = """
+            SELECT
+                t.id as task_id,
+                t.title as task_title,
+                COALESCE(SUM(sr.duration_seconds / 60), 0) as total_minutes,
+                COUNT(sr.id) as session_count,
+                ROUND(
+                    CASE
+                        WHEN COUNT(sr.id) > 0 THEN
+                            COALESCE(SUM(sr.duration_seconds / 60), 0)::NUMERIC / COUNT(sr.id)::NUMERIC
+                        ELSE 0
+                    END, 2
+                ) as average_session_length,
+                ROUND(
+                    CASE
+                        WHEN COUNT(sr.id) > 0 THEN
+                            COUNT(sr.id)::NUMERIC / GREATEST(EXTRACT(EPOCH FROM (NOW() - t.created_at)) / 86400, 1) * 100
+                        ELSE 0
+                    END, 2
+                ) as productivity_score
+            FROM tasks t
+            LEFT JOIN session_records sr ON sr.task_id = t.id
+                AND sr.kind = 'WORK'
+                AND sr.started_at >= ?::timestamptz
+                AND sr.started_at < ?::timestamptz
+            WHERE t.user_id = ?::uuid
+            GROUP BY t.id, t.title, t.created_at
+            HAVING COUNT(sr.id) > 0 OR t.status = 'completed'
+            ORDER BY total_minutes DESC
+            """;
+
+        List<Map<String, Object>> results = jdbcTemplate.queryForList(sql,
+            startInstant.toString(), now.toString(), userId.toString());
+
+        return Map.of(
+            "data", results,
+            "period", getDaysFromRange("month"),
+            "timezone", timezone
+        );
+    }
+
     // ============ Helpers ============
 
     private int getDaysFromRange(String timeRange) {

@@ -1,6 +1,9 @@
 import Foundation
 import UserNotifications
+
+#if os(watchOS)
 import WatchKit
+#endif
 
 #if os(watchOS)
 #endif

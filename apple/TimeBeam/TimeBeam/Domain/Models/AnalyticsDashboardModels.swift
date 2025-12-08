@@ -175,3 +175,124 @@ struct RecentSessionData: Decodable, Identifiable {
         case timestamp
     }
 }
+
+// MARK: - Task Analytics Models
+
+struct UserTaskAnalyticsResponse: Decodable {
+    let taskMetrics: UserTaskMetricsSection
+    let taskBreakdown: UserTaskBreakdownSection
+    let taskTrends: UserTaskTrendsSection
+    let productivityByTask: UserProductivityByTaskSection
+    let metadata: UserTaskMetadataSection
+
+    enum CodingKeys: String, CodingKey {
+        case taskMetrics = "task_metrics"
+        case taskBreakdown = "task_breakdown"
+        case taskTrends = "task_trends"
+        case productivityByTask = "productivity_by_task"
+        case metadata
+    }
+}
+
+struct UserTaskMetricsSection: Decodable {
+    let totalTasks: Int
+    let completedTasks: Int
+    let activeTasks: Int
+    let completionRate: Double
+    let averageTaskDuration: Int
+    let totalTimeSpent: Int
+
+    enum CodingKeys: String, CodingKey {
+        case totalTasks = "total_tasks"
+        case completedTasks = "completed_tasks"
+        case activeTasks = "active_tasks"
+        case completionRate = "completion_rate"
+        case averageTaskDuration = "average_task_duration"
+        case totalTimeSpent = "total_time_spent"
+    }
+}
+
+struct UserTaskBreakdownSection: Decodable {
+    let data: [UserTaskBreakdownEntry]
+    let period: Int
+    let timezone: String
+}
+
+struct UserTaskBreakdownEntry: Decodable, Identifiable {
+    var id: String { taskId }
+    let taskId: String
+    let taskTitle: String
+    let status: String
+    let totalMinutes: Int
+    let sessionCount: Int
+    let completionDate: String?
+    let createdDate: String
+
+    enum CodingKeys: String, CodingKey {
+        case taskId = "task_id"
+        case taskTitle = "task_title"
+        case status
+        case totalMinutes = "total_minutes"
+        case sessionCount = "session_count"
+        case completionDate = "completion_date"
+        case createdDate = "created_date"
+    }
+}
+
+struct UserTaskTrendsSection: Decodable {
+    let data: [UserTaskTrendEntry]
+    let period: Int
+    let timezone: String
+}
+
+struct UserTaskTrendEntry: Decodable, Identifiable {
+    var id: String { date }
+    let date: String
+    let tasksCreated: Int
+    let tasksCompleted: Int
+    let totalMinutes: Int
+
+    enum CodingKeys: String, CodingKey {
+        case date
+        case tasksCreated = "tasks_created"
+        case tasksCompleted = "tasks_completed"
+        case totalMinutes = "total_minutes"
+    }
+}
+
+struct UserProductivityByTaskSection: Decodable {
+    let data: [UserProductivityByTaskEntry]
+    let period: Int
+    let timezone: String
+}
+
+struct UserProductivityByTaskEntry: Decodable, Identifiable {
+    var id: String { taskId }
+    let taskId: String
+    let taskTitle: String
+    let totalMinutes: Int
+    let sessionCount: Int
+    let averageSessionLength: Double
+    let productivityScore: Double
+
+    enum CodingKeys: String, CodingKey {
+        case taskId = "task_id"
+        case taskTitle = "task_title"
+        case totalMinutes = "total_minutes"
+        case sessionCount = "session_count"
+        case averageSessionLength = "average_session_length"
+        case productivityScore = "productivity_score"
+    }
+}
+
+struct UserTaskMetadataSection: Decodable {
+    let requestedAt: Int
+    let timeRange: String
+    let timezone: String
+
+    enum CodingKeys: String, CodingKey {
+        case requestedAt = "requested_at"
+        case timeRange = "time_range"
+        case timezone
+    }
+}

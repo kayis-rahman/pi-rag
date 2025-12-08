@@ -1,6 +1,9 @@
 import Combine
 import Foundation
+
+#if os(iOS) || os(watchOS)
 import WatchConnectivity
+#endif
 
 //
 //  WatchConnectivityManager.swift
@@ -161,7 +164,7 @@ final class WatchConnectivityDelegate: NSObject, WCSessionDelegate {
     func session(_ session: WCSession, didReceiveMessage message: [String: Any]) {
         print("Received message from counterpart")
 
-        Task { @MainActor in
+        _Concurrency.Task { @MainActor in
             // Handle timer sync messages
             WatchConnectivityManager.shared?.handleIncomingTimerSync(message)
 

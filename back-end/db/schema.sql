@@ -79,6 +79,21 @@ CREATE TABLE timer_states (
 );
 
 -- ============================================================================
+-- TASKS (Task Management)
+-- ============================================================================
+
+-- Tasks table for task management
+CREATE TABLE tasks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    status VARCHAR(20) NOT NULL CHECK (status IN ('todo', 'in_progress', 'completed')),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ============================================================================
 -- SESSION RECORDS (Enhanced for Analytics)
 -- ============================================================================
 
@@ -87,6 +102,7 @@ CREATE TABLE session_records (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     device_id UUID REFERENCES user_devices(id),
+    task_id UUID REFERENCES tasks(id), -- Optional association with task
     started_at TIMESTAMP WITH TIME ZONE NOT NULL,
     duration_seconds INTEGER NOT NULL CHECK (duration_seconds > 0),
     kind VARCHAR(20) NOT NULL CHECK (kind IN ('work', 'short_break', 'long_break')),
@@ -194,11 +210,17 @@ CREATE TABLE refresh_tokens (
 CREATE INDEX CONCURRENTLY idx_timer_states_updated ON timer_states(last_updated_at);
 CREATE INDEX CONCURRENTLY idx_user_devices_user_active ON user_devices(user_id, is_active, last_seen_at DESC);
 
+-- Task query optimization
+CREATE INDEX CONCURRENTLY idx_tasks_user_status ON tasks(user_id, status);
+CREATE INDEX CONCURRENTLY idx_tasks_user_created ON tasks(user_id, created_at DESC);
+CREATE INDEX CONCURRENTLY idx_tasks_user_updated ON tasks(user_id, updated_at DESC);
+
 -- Analytics query optimization
 CREATE INDEX CONCURRENTLY idx_session_records_user_started ON session_records(user_id, started_at DESC);
 CREATE INDEX CONCURRENTLY idx_session_records_user_kind_started ON session_records(user_id, kind, started_at DESC);
 CREATE INDEX CONCURRENTLY idx_session_records_started_at ON session_records(started_at);
 CREATE INDEX CONCURRENTLY idx_session_records_user_date ON session_records(user_id, DATE(started_at));
+CREATE INDEX CONCURRENTLY idx_session_records_task_id ON session_records(task_id);
 
 -- Daily analytics optimization
 CREATE INDEX CONCURRENTLY idx_daily_analytics_user_date ON daily_analytics(user_id, date DESC);
@@ -326,7 +348,8 @@ COMMENT ON TABLE users IS 'Core user accounts with timezone support';
 COMMENT ON TABLE user_preferences IS 'User-specific Pomodoro timer preferences and settings';
 COMMENT ON TABLE user_devices IS 'Registered devices for cross-device synchronization';
 COMMENT ON TABLE timer_states IS 'Persistent timer state storage (replaces in-memory)';
-COMMENT ON TABLE session_records IS 'Historical Pomodoro sessions with device tracking';
+COMMENT ON TABLE tasks IS 'User tasks for task management integration';
+COMMENT ON TABLE session_records IS 'Historical Pomodoro sessions with device tracking and task association';
 COMMENT ON TABLE daily_analytics IS 'Pre-computed daily analytics for performance';
 COMMENT ON TABLE user_streaks IS 'Current and longest productivity streaks';
 COMMENT ON TABLE productive_windows IS 'Most productive time windows analysis';

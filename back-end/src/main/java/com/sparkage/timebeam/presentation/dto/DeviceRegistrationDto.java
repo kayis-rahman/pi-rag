@@ -6,18 +6,18 @@ public class DeviceRegistrationDto {
     private String deviceType;
     private String platformVersion;
     private String appVersion;
-    private String fcmToken;
+    private String apnsToken;
 
     public DeviceRegistrationDto() {}
 
     public DeviceRegistrationDto(String deviceId, String deviceName, String deviceType,
-                                String platformVersion, String appVersion, String fcmToken) {
+                                String platformVersion, String appVersion, String apnsToken) {
         this.deviceId = deviceId;
         this.deviceName = deviceName;
         this.deviceType = deviceType;
         this.platformVersion = platformVersion;
         this.appVersion = appVersion;
-        this.fcmToken = fcmToken;
+        this.apnsToken = apnsToken;
     }
 
     // Getters and setters
@@ -36,8 +36,8 @@ public class DeviceRegistrationDto {
     public String getAppVersion() { return appVersion; }
     public void setAppVersion(String appVersion) { this.appVersion = appVersion; }
 
-    public String getFcmToken() { return fcmToken; }
-    public void setFcmToken(String fcmToken) { this.fcmToken = fcmToken; }
+    public String getApnsToken() { return apnsToken; }
+    public void setApnsToken(String apnsToken) { this.apnsToken = apnsToken; }
 
     @Override
     public String toString() {

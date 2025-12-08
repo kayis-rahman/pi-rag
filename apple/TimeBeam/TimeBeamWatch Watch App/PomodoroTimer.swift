@@ -46,7 +46,7 @@ class PomodoroTimer: ObservableObject {
     private var workDuration: Int = 25 * 60
     private var breakDuration: Int = 5 * 60
     private var longBreakDuration: Int = 15 * 60
-    private var timerTask: Task<Void, Never>? = nil
+    private var timerTask: UserTask<Void, Never>? = nil
 
     init() {
         self.remainingSeconds = self.workDuration

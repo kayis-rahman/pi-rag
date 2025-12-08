@@ -10,7 +10,7 @@ import jakarta.persistence.*;
     @Index(columnList = "user_id, started_at DESC"),
     @Index(columnList = "user_id, kind, started_at DESC"),
     @Index(columnList = "started_at"),
-    @Index(columnList = "user_id, DATE(started_at)")
+    @Index(columnList = "task_id")
 })
 public class SessionRecord {
     @Id
@@ -22,6 +22,9 @@ public class SessionRecord {
 
     @Column(name = "device_id", columnDefinition = "uuid")
     private UUID deviceId;
+
+    @Column(name = "task_id", columnDefinition = "uuid")
+    private UUID taskId;
 
     @Column(name = "started_at", nullable = false)
     private Instant startedAt;
@@ -49,12 +52,13 @@ public class SessionRecord {
 
     public SessionRecord() {}
 
-    public SessionRecord(UUID id, UUID userId, UUID deviceId, Instant startedAt,
-                        long durationSeconds, Kind kind, boolean completed,
-                        boolean interrupted, String interruptionReason, Instant createdAt) {
+    public SessionRecord(UUID id, UUID userId, UUID deviceId, UUID taskId, Instant startedAt,
+                         long durationSeconds, Kind kind, boolean completed,
+                         boolean interrupted, String interruptionReason, Instant createdAt) {
         this.id = id;
         this.userId = userId;
         this.deviceId = deviceId;
+        this.taskId = taskId;
         this.startedAt = startedAt;
         this.durationSeconds = durationSeconds;
         this.kind = kind;
@@ -66,7 +70,7 @@ public class SessionRecord {
 
     // Legacy constructor for backward compatibility
     public SessionRecord(UUID id, UUID userId, Instant startedAt, long durationSeconds, Kind kind) {
-        this(id, userId, null, startedAt, durationSeconds, kind, true, false, null, Instant.now());
+        this(id, userId, null, null, startedAt, durationSeconds, kind, true, false, null, Instant.now());
     }
 
     // Getters and setters
@@ -78,6 +82,9 @@ public class SessionRecord {
 
     public UUID getDeviceId() { return deviceId; }
     public void setDeviceId(UUID deviceId) { this.deviceId = deviceId; }
+
+    public UUID getTaskId() { return taskId; }
+    public void setTaskId(UUID taskId) { this.taskId = taskId; }
 
     public Instant getStartedAt() { return startedAt; }
     public void setStartedAt(Instant startedAt) { this.startedAt = startedAt; }

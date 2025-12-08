@@ -68,7 +68,7 @@ public class TimerSyncService {
                 log.info("Updated timer state for user={} with state from device={} (collaborative mode)", userId, deviceIdString);
 
                 // Send push notification to other devices for real-time sync
-                pushNotificationService.sendTimerSyncPush(userId.toString(), deviceIdString, "state_update");
+                pushNotificationService.sendTimerSyncPush(userId.toString(), deviceIdString, "state_update", state.getTimestamp().toString());
             } else {
                 // Create new timer state - first device to sync
                 TimerState newState = createTimerStateFromDto(userId, state, deviceId);

@@ -3,8 +3,14 @@ import os
 
 import SwiftUI
 import SystemConfiguration
+
+#if os(iOS)
 import UIKit
+#endif
+
+#if os(watchOS)
 import WatchKit
+#endif
 
 #if os(iOS)
 #endif
@@ -35,7 +41,12 @@ final class TimerSyncManager: ObservableObject {
     }
 
     // MARK: - Properties
-    @AppStorage("deviceId") private var deviceId = UUID().uuidString
+    @AppStorage("deviceId") private var _deviceId = UUID().uuidString
+
+    // MARK: - Public Accessors
+    var deviceId: String {
+        _deviceId
+    }
 
     private var timer: PomodoroTimer?
     private var queuedActions: [QueuedAction] = []
@@ -186,7 +197,7 @@ final class TimerSyncManager: ObservableObject {
         processQueuedActions()
     }
 
-    // MARK: - Smart Sync with Conflict Resolution
+    // MARK: - Smart Sync with Pull-First Priority
     func smartSyncWithBackend() async {
         AppLogger.logSyncEvent("smart_sync_started")
 
@@ -206,29 +217,24 @@ final class TimerSyncManager: ObservableObject {
                 await registerDeviceIfNeeded(accessToken: accessToken, apiClient: apiClient)
             }
 
-            // Get local state with timestamp
-            let localState = getLocalTimerStateWithTimestamp()
-            AppLogger.debug("Local state timestamp: \(localState.timestamp), phase: \(localState.phase.rawValue)", category: .sync)
-
+            // PULL-FIRST APPROACH: Always pull backend state first on startup/sync
             AppLogger.logAPIEvent("timer_state_pull_requested", url: "/api/sessions/timer/state")
             let backendState = try await apiClient.pullTimerState(accessToken: accessToken)
 
             if let backend = backendState {
                 AppLogger.debug("Backend state timestamp: \(backend.timestamp), phase: \(backend.phase)", category: .sync)
 
-                // Compare timestamps for conflict resolution
-                if localState.timestamp > backend.timestamp {
-                    AppLogger.logSyncEvent("local_newer", details: "pushing local state to backend")
-                    await pushLocalStateToBackend(accessToken: accessToken, apiClient: apiClient)
-                } else if backend.timestamp > localState.timestamp {
-                    AppLogger.logSyncEvent("backend_newer", details: "pulling backend state to local")
-                    await applyBackendStateToLocal(backend)
-                } else {
-                    AppLogger.logSyncEvent("states_synchronized", details: "timestamps match")
-                }
+                // Apply backend state locally - this becomes the authoritative state
+                AppLogger.logSyncEvent("applying_backend_state", details: "pull-first sync approach")
+                await applyBackendStateToLocal(backend)
+
+                // Note: We don't push local state on startup anymore
+                // Local state pushing only happens in response to user actions via syncAction()
+
             } else {
-                // No backend state exists - push local state to become the master
-                AppLogger.logSyncEvent("no_backend_state", details: "pushing local state to become master")
+                // No backend state exists - this device becomes the master
+                AppLogger.logSyncEvent("no_backend_state", details: "becoming master device")
+                AppLogger.debug("Initiating local state push as master device", category: .sync)
                 await pushLocalStateToBackend(accessToken: accessToken, apiClient: apiClient)
             }
 
@@ -250,7 +256,7 @@ final class TimerSyncManager: ObservableObject {
             deviceType: getDeviceType(),
             platformVersion: getPlatformVersion(),
             appVersion: getAppVersion(),
-            fcmToken: nil // TODO: Add FCM token support for push notifications
+            fcmToken: nil // APN token is registered separately via app delegate
         )
 
         do {
@@ -354,11 +360,30 @@ final class TimerSyncManager: ObservableObject {
             deviceId: deviceId
         )
 
+        AppLogger.debug("Timer state DTO: phase=\(stateDto.phase), remaining=\(stateDto.remainingSeconds), running=\(stateDto.isRunning), deviceId=\(stateDto.deviceId)", category: .sync)
+
         do {
             try await apiClient.pushTimerState(stateDto, accessToken: accessToken)
             AppLogger.logSyncEvent("local_state_push_success")
+        } catch let error as ApiClient.ApiError {
+            // Handle specific API errors with detailed logging
+            switch error {
+            case .httpStatus(let code, let body):
+                AppLogger.error("HTTP error pushing timer state: status=\(code), body=\(body ?? "nil")", category: .sync)
+                if code == 0 {
+                    AppLogger.error("Network connectivity issue - status code 0 indicates connection failure", category: .sync)
+                } else if code >= 400 && code < 500 {
+                    AppLogger.error("Client error - check request format and authentication", category: .sync)
+                } else if code >= 500 {
+                    AppLogger.error("Server error - backend may be experiencing issues", category: .sync)
+                }
+            case .invalidResponse:
+                AppLogger.error("Invalid response format from backend", category: .sync)
+            case .missingConfiguration:
+                AppLogger.error("API configuration missing", category: .sync)
+            }
         } catch {
-            AppLogger.error("Failed to push local state: \(error.localizedDescription)", category: .sync)
+            AppLogger.error("Unexpected error pushing timer state: \(error.localizedDescription)", category: .sync)
         }
     }
 
@@ -401,29 +426,77 @@ final class TimerSyncManager: ObservableObject {
 
     private func sendActionToBackend(_ action: TimerAction, timestamp: Date) {
         guard let accessToken = try? KeychainStore.loadString(.accessToken),
-              let config = ApiClient.Configuration.fromInfoPlist() else {
-            AppLogger.warning("No access token or API config available for backend sync", category: .sync)
+              let config = ApiClient.Configuration.fromInfoPlist(),
+              let timer = self.timer else {
+            AppLogger.warning("No access token, API config, or timer available for backend sync", category: .sync)
             return
         }
 
         let apiClient = ApiClient(configuration: config)
 
-        Task {
+        _Concurrency.Task {
             do {
+                // Get the current timer state to include with the action
+                let (phase, _) = getLocalTimerStateWithTimestamp()
+
                 let actionDto = ApiClient.TimerActionDto(
                     action: action.rawValue,
                     timestamp: timestamp,
-                    deviceId: deviceId
+                    deviceId: deviceId,
+                    phase: phase.rawValue,
+                    remainingSeconds: timer.remainingSeconds,
+                    isRunning: timer.isRunning,
+                    workDuration: timer.workDuration,
+                    breakDuration: timer.breakDuration,
+                    longBreakDuration: timer.longBreakDuration,
+                    autoStartNextSession: timer.autoStartNextSession,
+                    shortBreaksCompleted: timer.shortBreaksCompleted
                 )
 
                 try await apiClient.pushTimerAction(actionDto, accessToken: accessToken)
-                AppLogger.debug("Successfully synced timer action to backend", category: .sync)
+                AppLogger.debug("Successfully synced timer action with complete state to backend", category: .sync)
+
+                // Send APN notification to other devices
+                await sendApnNotification(for: action, timestamp: timestamp)
 
             } catch {
                 AppLogger.error("Failed to sync timer action to backend: \(error.localizedDescription)", category: .sync)
             }
         }
     }
+
+    private func sendApnNotification(for action: TimerAction, timestamp: Date) async {
+        guard let accessToken = try? KeychainStore.loadString(.accessToken),
+              let config = ApiClient.Configuration.fromInfoPlist() else {
+            AppLogger.warning("No access token or API config available for APN notification", category: .sync)
+            return
+        }
+
+        let apiClient = ApiClient(configuration: config)
+
+        do {
+            // Create APN payload for timer sync
+            let timerSyncAction = ApiClient.TimerSyncAction(
+                action: action.rawValue,
+                deviceId: deviceId,
+                timestamp: ISO8601DateFormatter().string(from: timestamp)
+            )
+
+            let apnPayload = ApiClient.ApnNotificationPayload(
+                type: "timer_sync",
+                action: timerSyncAction
+            )
+
+            // Send silent APN notification to other devices
+            try await apiClient.sendApnNotification(payload: apnPayload, accessToken: accessToken)
+            AppLogger.debug("Successfully sent APN notification for timer action: \(action.rawValue)", category: .sync)
+
+        } catch {
+            AppLogger.error("Failed to send APN notification: \(error.localizedDescription)", category: .sync)
+        }
+    }
+
+
 }
 
 // MARK: - Logger Extension

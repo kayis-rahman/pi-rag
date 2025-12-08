@@ -8,9 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		6D46D1BC2EDF9F72006451F6 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 6D46D1BB2EDF9F72006451F6 /* FirebaseCore */; };
-		6D46D1BE2EDF9F72006451F6 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 6D46D1BD2EDF9F72006451F6 /* FirebaseMessaging */; };
 		6D46D1C02EDF9FC9006451F6 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 6D46D1BF2EDF9FC9006451F6 /* FirebaseCore */; };
-		6D46D1C22EDF9FC9006451F6 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 6D46D1C12EDF9FC9006451F6 /* FirebaseMessaging */; };
 		6D64E5562EBCF5EE00AF36E3 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 6D252E152EBB6D810053735D /* GoogleSignIn */; };
 		6D64E5572EBCF5EE00AF36E3 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 6D252E162EBB6D810053735D /* GoogleSignInSwift */; };
 		6D9D92F22EDDD06B00A7F90B /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 6D9D92F12EDDD06B00A7F90B /* GoogleSignIn */; };
@@ -56,6 +54,7 @@
 		6D7300EB2EAAA98400D75371 /* TimeBeamWatchOs Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "TimeBeamWatchOs Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		6D7300F72EAAA98600D75371 /* TimeBeamWatchOs Watch AppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "TimeBeamWatchOs Watch AppTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		6D7301012EAAA98600D75371 /* TimeBeamWatchOs Watch AppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "TimeBeamWatchOs Watch AppUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		6DF922E92EE656870031CCD1 /* TimeBeam iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "TimeBeam iOS.entitlements"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -113,7 +112,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6D46D1C22EDF9FC9006451F6 /* FirebaseMessaging in Frameworks */,
 				6D9D92F22EDDD06B00A7F90B /* GoogleSignIn in Frameworks */,
 				6D46D1C02EDF9FC9006451F6 /* FirebaseCore in Frameworks */,
 				6D9D92F42EDDD06B00A7F90B /* GoogleSignInSwift in Frameworks */,
@@ -124,7 +122,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6D46D1BE2EDF9F72006451F6 /* FirebaseMessaging in Frameworks */,
 				6D64E5572EBCF5EE00AF36E3 /* GoogleSignInSwift in Frameworks */,
 				6D46D1BC2EDF9F72006451F6 /* FirebaseCore in Frameworks */,
 				6D64E5562EBCF5EE00AF36E3 /* GoogleSignIn in Frameworks */,
@@ -172,6 +169,7 @@
 		6D59998A2E780AE300D65722 = {
 			isa = PBXGroup;
 			children = (
+				6DF922E92EE656870031CCD1 /* TimeBeam iOS.entitlements */,
 				6D5999952E780AE300D65722 /* TimeBeam */,
 				6D5999A72E780AE600D65722 /* TimeBeamTests */,
 				6D5999B12E780AE600D65722 /* TimeBeamUITests */,
@@ -226,7 +224,6 @@
 				6D252E152EBB6D810053735D /* GoogleSignIn */,
 				6D252E162EBB6D810053735D /* GoogleSignInSwift */,
 				6D46D1BB2EDF9F72006451F6 /* FirebaseCore */,
-				6D46D1BD2EDF9F72006451F6 /* FirebaseMessaging */,
 			);
 			productName = TimeBeam;
 			productReference = 6D5999932E780AE300D65722 /* TimeBeam.app */;
@@ -252,7 +249,6 @@
 				6D9D92F12EDDD06B00A7F90B /* GoogleSignIn */,
 				6D9D92F32EDDD06B00A7F90B /* GoogleSignInSwift */,
 				6D46D1BF2EDF9FC9006451F6 /* FirebaseCore */,
-				6D46D1C12EDF9FC9006451F6 /* FirebaseMessaging */,
 			);
 			productName = "TimeBeam iOS";
 			productReference = 6D5999932E780AE301 /* TimeBeam iOS.app */;
@@ -688,7 +684,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = "";
+				CODE_SIGN_ENTITLEMENTS = "TimeBeam iOS.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"TimeBeam/Preview Content\"";
@@ -698,12 +694,16 @@
 				INFOPLIST_FILE = TimeBeam/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Time Beam";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -777,7 +777,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = "";
+				CODE_SIGN_ENTITLEMENTS = "TimeBeam iOS.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"TimeBeam/Preview Content\"";
@@ -787,12 +787,16 @@
 				INFOPLIST_FILE = TimeBeam/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Time Beam";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -1228,20 +1232,10 @@
 			package = 6D46D1BA2EDF9F72006451F6 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseCore;
 		};
-		6D46D1BD2EDF9F72006451F6 /* FirebaseMessaging */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 6D46D1BA2EDF9F72006451F6 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseMessaging;
-		};
 		6D46D1BF2EDF9FC9006451F6 /* FirebaseCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 6D46D1BA2EDF9F72006451F6 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseCore;
-		};
-		6D46D1C12EDF9FC9006451F6 /* FirebaseMessaging */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 6D46D1BA2EDF9F72006451F6 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseMessaging;
 		};
 		6D9D92F12EDDD06B00A7F90B /* GoogleSignIn */ = {
 			isa = XCSwiftPackageProductDependency;

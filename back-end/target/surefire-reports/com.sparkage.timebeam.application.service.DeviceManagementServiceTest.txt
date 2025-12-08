@@ -1,0 +1,56 @@
+-------------------------------------------------------------------------------
+Test set: com.sparkage.timebeam.application.service.DeviceManagementServiceTest
+-------------------------------------------------------------------------------
+Tests run: 11, Failures: 2, Errors: 1, Skipped: 0, Time elapsed: 0.231 s <<< FAILURE! -- in com.sparkage.timebeam.application.service.DeviceManagementServiceTest
+com.sparkage.timebeam.application.service.DeviceManagementServiceTest.registerOrUpdateDevice_ShouldCreateNewDevice -- Time elapsed: 0.020 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: com.sparkage.timebeam.infrastructure.persistence.UserDevice@7efd28bd
+ but was: com.sparkage.timebeam.infrastructure.persistence.UserDevice@302edb74
+	at java.base/jdk.internal.reflect.DirectConstructorHandleAccessor.newInstance(DirectConstructorHandleAccessor.java:62)
+	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
+	at com.sparkage.timebeam.application.service.DeviceManagementServiceTest.registerOrUpdateDevice_ShouldCreateNewDevice(DeviceManagementServiceTest.java:105)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+
+com.sparkage.timebeam.application.service.DeviceManagementServiceTest.cleanupStaleDevices_ShouldDeactivateOldDevices -- Time elapsed: 0.001 s <<< ERROR!
+org.mockito.exceptions.misusing.PotentialStubbingProblem: 
+
+Strict stubbing argument mismatch. Please check:
+ - this invocation of 'findStaleDevices' method:
+    deviceRepository.findStaleDevices(
+    2025-11-07T13:42:59.917021Z
+);
+    -> at com.sparkage.timebeam.application.service.DeviceManagementService.cleanupStaleDevices(DeviceManagementService.java:98)
+ - has following stubbing(s) with different arguments:
+    1. deviceRepository.findStaleDevices(
+    2025-11-07T13:42:59.916780Z
+);
+      -> at com.sparkage.timebeam.application.service.DeviceManagementServiceTest.cleanupStaleDevices_ShouldDeactivateOldDevices(DeviceManagementServiceTest.java:159)
+Typically, stubbing argument mismatch indicates user mistake when writing tests.
+Mockito fails early so that you can debug potential problem easily.
+However, there are legit scenarios when this exception generates false negative signal:
+  - stubbing the same method multiple times using 'given().will()' or 'when().then()' API
+    Please use 'will().given()' or 'doReturn().when()' API for stubbing.
+  - stubbed method is intentionally invoked with different arguments by code under test
+    Please use default or 'silent' JUnit Rule (equivalent of Strictness.LENIENT).
+For more information see javadoc for PotentialStubbingProblem class.
+	at com.sparkage.timebeam.application.service.DeviceManagementService.cleanupStaleDevices(DeviceManagementService.java:98)
+	at com.sparkage.timebeam.application.service.DeviceManagementServiceTest.cleanupStaleDevices_ShouldDeactivateOldDevices(DeviceManagementServiceTest.java:163)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+
+com.sparkage.timebeam.application.service.DeviceManagementServiceTest.registerOrUpdateDevice_ShouldUpdateExistingDevice -- Time elapsed: 0.003 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: "fcm-token-123"
+ but was: null
+	at java.base/jdk.internal.reflect.DirectConstructorHandleAccessor.newInstance(DirectConstructorHandleAccessor.java:62)
+	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
+	at com.sparkage.timebeam.application.service.DeviceManagementServiceTest.registerOrUpdateDevice_ShouldUpdateExistingDevice(DeviceManagementServiceTest.java:89)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+

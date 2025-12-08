@@ -1,11 +1,16 @@
-import AppKit
 import AuthenticationServices
 import Combine
 
 import Foundation
 import GoogleSignIn
-import GoogleSignIn
+
+#if os(macOS)
+import AppKit
+#endif
+
+#if os(iOS)
 import UIKit
+#endif
 
 //
 //  AuthManager.swift
@@ -46,12 +51,12 @@ final class AuthManager: ObservableObject {
                 #endif
 
                 // Add timeout to prevent hanging
-                let timeoutTask = Task {
-                    try await Task.sleep(nanoseconds: 10_000_000_000) // 10 seconds timeout
+                let timeoutTask = _Concurrency.Task {
+                    try await _Concurrency.Task.sleep(nanoseconds: 10_000_000_000) // 10 seconds timeout
                     throw NSError(domain: "AuthTimeout", code: -1, userInfo: [NSLocalizedDescriptionKey: "Authentication timeout"])
                 }
 
-                let restoreTask = Task {
+                let restoreTask = _Concurrency.Task {
                     return try await GIDSignIn.sharedInstance.restorePreviousSignIn()
                 }
 
@@ -287,7 +292,7 @@ final class AuthManager: ObservableObject {
 
             // Trigger smart timer sync after successful authentication
             AppLogger.info("Triggering smart timer sync after login", category: .auth)
-            Task { @MainActor in
+            _Concurrency.Task { @MainActor in
                 await TimerSyncManager.shared.smartSyncWithBackend()
             }
         } catch {

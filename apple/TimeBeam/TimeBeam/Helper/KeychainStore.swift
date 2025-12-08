@@ -27,7 +27,13 @@ struct KeychainStore {
 
         let status = SecItemAdd(attributes as CFDictionary, nil)
         guard status == errSecSuccess else {
+            // For development, fall back to UserDefaults if keychain fails
+            #if DEBUG
+            UserDefaults.standard.set(value, forKey: "keychain_fallback_\(item.rawValue)")
+            return
+            #else
             throw NSError(domain: NSOSStatusErrorDomain, code: Int(status))
+            #endif
         }
     }
 
@@ -43,10 +49,20 @@ struct KeychainStore {
         var out: AnyObject?
         let status = SecItemCopyMatching(query as CFDictionary, &out)
         if status == errSecItemNotFound {
+            // Check UserDefaults fallback in DEBUG mode
+            #if DEBUG
+            return UserDefaults.standard.data(forKey: "keychain_fallback_\(item.rawValue)")
+            #else
             return nil
+            #endif
         }
         guard status == errSecSuccess else {
+            // For development, fall back to UserDefaults if keychain fails
+            #if DEBUG
+            return UserDefaults.standard.data(forKey: "keychain_fallback_\(item.rawValue)")
+            #else
             throw NSError(domain: NSOSStatusErrorDomain, code: Int(status))
+            #endif
         }
         return out as? Data
     }
@@ -59,8 +75,18 @@ struct KeychainStore {
         ]
         let status = SecItemDelete(query as CFDictionary)
         guard status == errSecSuccess || status == errSecItemNotFound else {
+            // For development, also clear UserDefaults fallback if keychain fails
+            #if DEBUG
+            UserDefaults.standard.removeObject(forKey: "keychain_fallback_\(item.rawValue)")
+            return
+            #else
             throw NSError(domain: NSOSStatusErrorDomain, code: Int(status))
+            #endif
         }
+        // Always clear UserDefaults fallback
+        #if DEBUG
+        UserDefaults.standard.removeObject(forKey: "keychain_fallback_\(item.rawValue)")
+        #endif
     }
 
     static func saveString(_ string: String, for item: Item) throws {
@@ -70,5 +96,76 @@ struct KeychainStore {
     static func loadString(_ item: Item) throws -> String? {
         guard let data = try load(item) else { return nil }
         return String(data: data, encoding: .utf8)
+    }
+
+    // MARK: - Protocol conformance methods
+
+    func loadString(_ key: String) -> String? {
+        // Try to match key with Item enum, otherwise use key directly
+        if let item = Item(rawValue: key) {
+            return try? Self.loadString(item)
+        }
+        // Fallback: use key as is
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: Self.service,
+            kSecAttrAccount as String: key,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+        var out: AnyObject?
+        guard SecItemCopyMatching(query as CFDictionary, &out) == errSecSuccess,
+              let data = out as? Data else {
+            return nil
+        }
+        return String(data: data, encoding: .utf8)
+    }
+
+    func saveString(_ value: String, forKey key: String) -> Bool {
+        do {
+            // Try to match key with Item enum
+            if let item = Item(rawValue: key) {
+                try Self.saveString(value, for: item)
+                return true
+            }
+            // Fallback: use key as is
+            let data = Data(value.utf8)
+            let query: [String: Any] = [
+                kSecClass as String: kSecClassGenericPassword,
+                kSecAttrService as String: Self.service,
+                kSecAttrAccount as String: key
+            ]
+            SecItemDelete(query as CFDictionary)
+
+            var attributes = query
+            attributes[kSecValueData as String] = data
+            #if os(iOS)
+            attributes[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
+            #endif
+
+            return SecItemAdd(attributes as CFDictionary, nil) == errSecSuccess
+        } catch {
+            return false
+        }
+    }
+
+    func deleteString(_ key: String) -> Bool {
+        do {
+            // Try to match key with Item enum
+            if let item = Item(rawValue: key) {
+                try Self.clear(item)
+                return true
+            }
+            // Fallback: use key as is
+            let query: [String: Any] = [
+                kSecClass as String: kSecClassGenericPassword,
+                kSecAttrService as String: Self.service,
+                kSecAttrAccount as String: key
+            ]
+            let status = SecItemDelete(query as CFDictionary)
+            return status == errSecSuccess || status == errSecItemNotFound
+        } catch {
+            return false
+        }
     }
 }

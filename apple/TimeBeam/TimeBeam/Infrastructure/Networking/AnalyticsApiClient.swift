@@ -82,4 +82,45 @@ class AnalyticsApiClient {
         let decoder = JSONDecoder()
         return try decoder.decode(WeeklyAnalyticsResponse.self, from: data)
     }
+
+    func fetchTaskAnalytics(jwt: String, timeRange: String = "month") async throws -> UserTaskAnalyticsResponse {
+        guard var components = URLComponents(url: baseURL.appendingPathComponent("/api/v1/analytics/tasks"), resolvingAgainstBaseURL: false) else {
+            throw URLError(.badURL)
+        }
+        components.queryItems = [
+            URLQueryItem(name: "timeRange", value: timeRange)
+        ]
+        guard let url = components.url else {
+            throw URLError(.badURL)
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.timeoutInterval = 30
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let http = response as? HTTPURLResponse else {
+            throw URLError(.badServerResponse)
+        }
+
+        guard (200...299).contains(http.statusCode) else {
+            switch http.statusCode {
+            case 401:
+                throw NSError(domain: "AnalyticsAPI", code: 401, userInfo: [NSLocalizedDescriptionKey: "Authentication required. Please sign in."])
+            case 403:
+                throw NSError(domain: "AnalyticsAPI", code: 403, userInfo: [NSLocalizedDescriptionKey: "Access denied. Please check your permissions."])
+            case 404:
+                throw NSError(domain: "AnalyticsAPI", code: 404, userInfo: [NSLocalizedDescriptionKey: "Task analytics endpoint not found."])
+            case 500...599:
+                throw NSError(domain: "AnalyticsAPI", code: http.statusCode, userInfo: [NSLocalizedDescriptionKey: "Server error. Please try again later."])
+            default:
+                throw NSError(domain: "AnalyticsAPI", code: http.statusCode, userInfo: [NSLocalizedDescriptionKey: "Request failed with status \(http.statusCode)"])
+            }
+        }
+
+        let decoder = JSONDecoder()
+        return try decoder.decode(UserTaskAnalyticsResponse.self, from: data)
+    }
 }

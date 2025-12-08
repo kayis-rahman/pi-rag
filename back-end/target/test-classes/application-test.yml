@@ -1,0 +1,35 @@
+# Test configuration for integration tests
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+
+  security:
+    enabled: true
+
+# JWT configuration for tests
+jwt:
+  secret: test-jwt-secret-key-for-testing-purposes-only-not-for-production-use
+  expiration-ms: 86400000  # 24 hours for testing
+
+# Logging for tests
+logging:
+  level:
+    com.sparkage.timebeam: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.test: DEBUG
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"

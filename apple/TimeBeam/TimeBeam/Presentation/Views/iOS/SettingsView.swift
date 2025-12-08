@@ -8,6 +8,7 @@ struct SettingsView: View {
     @AppStorage("hapticsEnabled") private var hapticsEnabled = true
     @AppStorage("appTheme") private var appTheme = AppTheme.system
 
+
     enum AppTheme: String, CaseIterable {
         case light = "Light"
         case dark = "Dark"
@@ -18,7 +19,7 @@ struct SettingsView: View {
 
     var body: some View {
         NavigationStack {
-            Form {
+            List {
                 // Sync & Cloud Section
                 Section("SYNC & CLOUD") {
                     if authManager.isSignedIn {
@@ -40,7 +41,7 @@ struct SettingsView: View {
                         .onAppear {
                             // Refresh auth data if it's incomplete
                             if authManager.displayName?.isEmpty ?? true || authManager.email?.isEmpty ?? true {
-                                Task {
+                                _Concurrency.Task {
                                     await authManager.restoreSession()
                                 }
                             }
@@ -56,7 +57,7 @@ struct SettingsView: View {
                             }
                             Spacer()
                             Button("Sign In") {
-                                Task {
+                                _Concurrency.Task {
                                     do {
                                         try await authManager.signInWithGoogle()
                                     } catch {
@@ -83,7 +84,10 @@ struct SettingsView: View {
                             "\(timer.workDuration / 60) min",
                             value: Binding(
                                 get: { timer.workDuration / 60 },
-                                set: { timer.updateDurations(workMinutes: $0, shortBreakMinutes: timer.breakDuration / 60, longBreakMinutes: timer.longBreakDuration / 60) }
+                                set: {
+                                    timer.updateDurations(workMinutes: $0, shortBreakMinutes: timer.breakDuration / 60, longBreakMinutes: timer.longBreakDuration / 60)
+                                    syncTimerSettingsToiCloud()
+                                }
                             ),
                             in: 15...60,
                             step: 5
@@ -97,7 +101,10 @@ struct SettingsView: View {
                             "\(timer.breakDuration / 60) min",
                             value: Binding(
                                 get: { timer.breakDuration / 60 },
-                                set: { timer.updateDurations(workMinutes: timer.workDuration / 60, shortBreakMinutes: $0, longBreakMinutes: timer.longBreakDuration / 60) }
+                                set: {
+                                    timer.updateDurations(workMinutes: timer.workDuration / 60, shortBreakMinutes: $0, longBreakMinutes: timer.longBreakDuration / 60)
+                                    syncTimerSettingsToiCloud()
+                                }
                             ),
                             in: 3...15,
                             step: 1
@@ -111,7 +118,10 @@ struct SettingsView: View {
                             "\(timer.longBreakDuration / 60) min",
                             value: Binding(
                                 get: { timer.longBreakDuration / 60 },
-                                set: { timer.updateDurations(workMinutes: timer.workDuration / 60, shortBreakMinutes: timer.breakDuration / 60, longBreakMinutes: $0) }
+                                set: {
+                                    timer.updateDurations(workMinutes: timer.workDuration / 60, shortBreakMinutes: timer.breakDuration / 60, longBreakMinutes: $0)
+                                    syncTimerSettingsToiCloud()
+                                }
                             ),
                             in: 10...30,
                             step: 5
@@ -119,6 +129,9 @@ struct SettingsView: View {
                     }
 
                     Toggle("Auto-start next session", isOn: $timer.autoStartNextSession)
+                        .onChange(of: timer.autoStartNextSession) { _ in
+                            syncTimerSettingsToiCloud()
+                        }
                 }
 
                 // Sound & Haptics Section
@@ -180,6 +193,17 @@ struct SettingsView: View {
         soundEnabled = true
         hapticsEnabled = true
         appTheme = .system
+        syncTimerSettingsToiCloud()
+    }
+
+    private func syncTimerSettingsToiCloud() {
+        let settings = TimerSettings(
+            workDuration: timer.workDuration,
+            breakDuration: timer.breakDuration,
+            longBreakDuration: timer.longBreakDuration,
+            autoStartNextSession: timer.autoStartNextSession
+        )
+        iCloudSyncManager.shared.syncTimerSettings(settings)
     }
 
     private func displayNameForProfile() -> String {
@@ -238,7 +262,7 @@ struct AccountManagementView: View {
     @State private var deviceStatsError: String?
 
     var body: some View {
-        Form {
+        List {
             if authManager.isSignedIn {
                 Section("ACCOUNT") {
                     HStack {
@@ -300,7 +324,7 @@ struct AccountManagementView: View {
 
                 Section {
                     Button("Sign Out", role: .destructive) {
-                        Task { await authManager.signOut() }
+                        _Concurrency.Task { await authManager.signOut() }
                     }
                 }
             } else {
@@ -320,7 +344,7 @@ struct AccountManagementView: View {
                     }
 
                     Button("Sign In with Google") {
-                        Task {
+                        _Concurrency.Task {
                             do {
                                 try await authManager.signInWithGoogle()
                             } catch {
@@ -351,7 +375,7 @@ struct AccountManagementView: View {
         isLoadingDeviceStats = true
         deviceStatsError = nil
 
-        Task {
+        _Concurrency.Task {
             do {
                 guard let config = ApiClient.Configuration.fromInfoPlist(),
                       let accessToken = try? KeychainStore.loadString(.accessToken) else {

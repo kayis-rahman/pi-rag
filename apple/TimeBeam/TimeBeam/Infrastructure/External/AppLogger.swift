@@ -1,4 +1,5 @@
-import os
+import Foundation
+import os.log
 
 /// Centralized logging utility using Apple's Unified Logging System
 /// Provides clean API, proper categorization, and automatic privacy controls
@@ -42,6 +43,7 @@ final class AppLogger {
     static func debug(_ message: String, category: Category = .general) {
         #if DEBUG
         logger(for: category).debug("\(message, privacy: .public)")
+        FileLogger.writeToFile(level: "DEBUG", category: category.rawValue, message: message)
         #endif
     }
 
@@ -51,6 +53,9 @@ final class AppLogger {
     ///   - category: Log category for organization
     static func info(_ message: String, category: Category = .general) {
         logger(for: category).info("\(message, privacy: .public)")
+        #if DEBUG
+        FileLogger.writeToFile(level: "INFO", category: category.rawValue, message: message)
+        #endif
     }
 
     /// Warning level logging - potential issues requiring attention
@@ -59,6 +64,9 @@ final class AppLogger {
     ///   - category: Log category for organization
     static func warning(_ message: String, category: Category = .general) {
         logger(for: category).warning("\(message, privacy: .public)")
+        #if DEBUG
+        FileLogger.writeToFile(level: "WARNING", category: category.rawValue, message: message)
+        #endif
     }
 
     /// Error level logging - actual errors requiring immediate action
@@ -67,6 +75,9 @@ final class AppLogger {
     ///   - category: Log category for organization
     static func error(_ message: String, category: Category = .general) {
         logger(for: category).error("\(message, privacy: .public)")
+        #if DEBUG
+        FileLogger.writeToFile(level: "ERROR", category: category.rawValue, message: message)
+        #endif
     }
 
     /// Fault level logging - critical errors that may crash the system
@@ -75,6 +86,9 @@ final class AppLogger {
     ///   - category: Log category for organization
     static func fault(_ message: String, category: Category = .general) {
         logger(for: category).fault("\(message, privacy: .public)")
+        #if DEBUG
+        FileLogger.writeToFile(level: "FAULT", category: category.rawValue, message: message)
+        #endif
     }
 
     // MARK: - Privacy-Aware Logging
@@ -149,5 +163,21 @@ final class AppLogger {
         } else {
             info("UI event: \(event)", category: .ui)
         }
+    }
+
+    // MARK: - File Logging Setup
+
+    /// Initialize file logging system (call this on app startup)
+    /// Should be called from AppDelegate or SwiftUI App's init
+    static func initializeFileLogging() {
+        #if DEBUG
+        FileLogger.initialize()
+        FileLogger.cleanupOldLogs()
+        #endif
+    }
+
+    /// Get the file logger URL for debugging purposes
+    static func getLogFileURL() -> Foundation.URL {
+        return FileLogger.getLogFileURL()
     }
 }

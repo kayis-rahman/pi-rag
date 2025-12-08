@@ -1,0 +1,10 @@
+# Local GitHub Actions Configuration
+--platform ubuntu-latest=catthehacker/ubuntu:act-latest
+--platform postgres=postgres:15
+--env JAVA_VERSION=17
+--env MAVEN_OPTS=-Xmx1024m
+--secret-file .secrets
+--bind
+--reuse
+--pull=false
+--dryrun=false

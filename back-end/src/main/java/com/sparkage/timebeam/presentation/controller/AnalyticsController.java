@@ -75,6 +75,31 @@ public class AnalyticsController {
         }
     }
 
+    @GetMapping("/tasks")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> getTaskAnalytics(
+            Authentication auth,
+            @RequestParam Optional<String> timeRange) {
+
+        String username = auth.getName();
+        UUID userId = UUID.fromString(username);
+        String range = timeRange.orElse("month");
+
+        log.info("getTaskAnalytics userId={}, timeRange={}", userId, range);
+
+        try {
+            Map<String, Object> response = analyticsService.getTaskAnalytics(userId, range);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid parameter: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            log.error("Error fetching task analytics", e);
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("error", "Failed to fetch task analytics"));
+        }
+    }
+
     @GetMapping("/sessions")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getSessions(

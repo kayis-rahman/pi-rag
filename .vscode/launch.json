@@ -4,11 +4,19 @@
             "type": "java",
             "name": "Spring Boot-TimeBeamBackendApplication<timebeam-backend>",
             "request": "launch",
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}/back-end",
             "mainClass": "com.sparkage.timebeam.TimeBeamBackendApplication",
             "projectName": "timebeam-backend",
-            "args": "",
-            "envFile": "${workspaceFolder}/.env"
+            "args": "--spring.profiles.active=dev",
+            "env": {
+                "SPRING_DATASOURCE_URL": "jdbc:postgresql://localhost:5432/timebeam",
+                "SPRING_DATASOURCE_USERNAME": "timebeam",
+                "SPRING_DATASOURCE_PASSWORD": "timebeam",
+                "JWT_SECRET": "change-me-to-a-long-random-secret-for-development",
+                "APP_DEBUG": "false",
+                "FIREBASE_ENABLED": "true",
+                "FIREBASE_SERVICE_ACCOUNT_PATH": "/Users/kayisrahman/Documents/workspace/ideas/time-beam-firebase.json"
+            }
         }
     ]
 }

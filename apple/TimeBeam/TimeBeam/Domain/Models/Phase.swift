@@ -1,9 +1,9 @@
 import Foundation
 
 enum Phase: String, Codable, CaseIterable, Hashable, Identifiable, Sendable {
-    case work
-    case `break`
-    case longBreak
+    case work = "work"
+    case `break` = "short_break"
+    case longBreak = "long_break"
 
     var id: String { rawValue }
 

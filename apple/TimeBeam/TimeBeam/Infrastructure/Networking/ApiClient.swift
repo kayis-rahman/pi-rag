@@ -70,6 +70,16 @@ struct ApiClient {
         let action: String
         let timestamp: Date
         let deviceId: String
+
+        // Include the complete timer state with the action
+        let phase: String
+        let remainingSeconds: Int
+        let isRunning: Bool
+        let workDuration: Int
+        let breakDuration: Int
+        let longBreakDuration: Int
+        let autoStartNextSession: Bool
+        let shortBreaksCompleted: Int
     }
 
     struct DeviceRegistrationDto: Codable {
@@ -89,10 +99,33 @@ struct ApiClient {
         let watchosDevices: Int
     }
 
+    // MARK: - Task DTOs
+
+    struct TaskCreateRequest: Codable {
+        let title: String
+        let description: String?
+    }
+
+    struct TaskUpdateRequest: Codable {
+        let title: String?
+        let description: String?
+        let status: String?
+    }
+
+    struct TaskDto: Codable, Identifiable {
+        let id: UUID
+        let userId: UUID
+        let title: String
+        let description: String?
+        let status: String
+        let createdAt: Date
+        let updatedAt: Date
+    }
+
     enum SessionKind: String {
-        case work = "WORK"
-        case shortBreak = "SHORT_BREAK"
-        case longBreak = "LONG_BREAK"
+        case work = "work"
+        case shortBreak = "short_break"
+        case longBreak = "long_break"
     }
 
     // MARK: - Endpoints
@@ -135,10 +168,14 @@ struct ApiClient {
         return response
     }
 
-    func startSession(kind: SessionKind, accessToken: String) async throws -> SessionRecordDto {
-        LoggerStore.session.info("Starting session of kind: \(kind.rawValue, privacy: .public)")
+    func startSession(kind: SessionKind, taskId: UUID? = nil, accessToken: String) async throws -> SessionRecordDto {
+        LoggerStore.session.info("Starting session of kind: \(kind.rawValue, privacy: .public), taskId: \(String(describing: taskId))")
         var components = URLComponents(url: config.baseURL.appendingPathComponent("/api/sessions/start"), resolvingAgainstBaseURL: false)
-        components?.queryItems = [URLQueryItem(name: "kind", value: kind.rawValue)]
+        var queryItems = [URLQueryItem(name: "kind", value: kind.rawValue)]
+        if let taskId = taskId {
+            queryItems.append(URLQueryItem(name: "taskId", value: taskId.uuidString))
+        }
+        components?.queryItems = queryItems
         guard let url = components?.url else { throw ApiError.invalidResponse }
         var req = URLRequest(url: url)
         req.httpMethod = "POST"
@@ -225,6 +262,99 @@ struct ApiClient {
         return stats
     }
 
+    func updateApnsToken(deviceId: String, apnsToken: String, accessToken: String) async throws {
+        AppLogger.logAPIEvent("apns_token_update_requested", url: "/api/sessions/devices/apns-token")
+        var components = URLComponents(url: config.baseURL.appendingPathComponent("/api/sessions/devices/apns-token"), resolvingAgainstBaseURL: false)
+        components?.queryItems = [
+            URLQueryItem(name: "deviceId", value: deviceId),
+            URLQueryItem(name: "apnsToken", value: apnsToken)
+        ]
+        guard let url = components?.url else { throw ApiError.invalidResponse }
+        var req = URLRequest(url: url)
+        req.httpMethod = "POST"
+        req.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        let _: EmptyResponse = try await perform(&req)
+        AppLogger.logAPIEvent("apns_token_update_success")
+    }
+
+    struct ApnNotificationPayload: Codable {
+        let type: String
+        let action: TimerSyncAction
+    }
+
+    struct TimerSyncAction: Codable {
+        let action: String
+        let deviceId: String
+        let timestamp: String
+    }
+
+    func sendApnNotification(payload: ApnNotificationPayload, accessToken: String) async throws {
+        AppLogger.logAPIEvent("apn_notification_send_requested", url: "/api/notifications/send")
+        var req = try makeRequest(path: "/api/notifications/send", method: "POST", jsonBody: payload)
+        req.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        let _: EmptyResponse = try await perform(&req)
+        AppLogger.logAPIEvent("apn_notification_send_success")
+    }
+
+    // MARK: - Task Management Endpoints
+
+    func createTask(_ request: TaskCreateRequest, accessToken: String) async throws -> TaskDto {
+        AppLogger.logAPIEvent("task_create_requested", url: "/api/tasks")
+        var req = try makeRequest(path: "/api/tasks", method: "POST", jsonBody: request)
+        req.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        let task: TaskDto = try await perform(&req)
+        AppLogger.logAPIEvent("task_create_success")
+        return task
+    }
+
+    func fetchTasks(accessToken: String) async throws -> [TaskDto] {
+        AppLogger.logAPIEvent("tasks_fetch_requested", url: "/api/tasks")
+        var req = URLRequest(url: config.baseURL.appendingPathComponent("/api/tasks"))
+        req.httpMethod = "GET"
+        req.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        let tasks: [TaskDto] = try await perform(req)
+        AppLogger.logAPIEvent("tasks_fetch_success")
+        return tasks
+    }
+
+    func fetchActiveTasks(accessToken: String) async throws -> [TaskDto] {
+        AppLogger.logAPIEvent("active_tasks_fetch_requested", url: "/api/tasks/active")
+        var req = URLRequest(url: config.baseURL.appendingPathComponent("/api/tasks/active"))
+        req.httpMethod = "GET"
+        req.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        let tasks: [TaskDto] = try await perform(req)
+        AppLogger.logAPIEvent("active_tasks_fetch_success")
+        return tasks
+    }
+
+    func fetchTask(id: UUID, accessToken: String) async throws -> TaskDto {
+        AppLogger.logAPIEvent("task_fetch_requested", url: "/api/tasks/\(id.uuidString)")
+        var req = URLRequest(url: config.baseURL.appendingPathComponent("/api/tasks/\(id.uuidString)"))
+        req.httpMethod = "GET"
+        req.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        let task: TaskDto = try await perform(req)
+        AppLogger.logAPIEvent("task_fetch_success")
+        return task
+    }
+
+    func updateTask(id: UUID, _ request: TaskUpdateRequest, accessToken: String) async throws -> TaskDto {
+        AppLogger.logAPIEvent("task_update_requested", url: "/api/tasks/\(id.uuidString)")
+        var req = try makeRequest(path: "/api/tasks/\(id.uuidString)", method: "PUT", jsonBody: request)
+        req.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        let task: TaskDto = try await perform(&req)
+        AppLogger.logAPIEvent("task_update_success")
+        return task
+    }
+
+    func deleteTask(id: UUID, accessToken: String) async throws {
+        AppLogger.logAPIEvent("task_delete_requested", url: "/api/tasks/\(id.uuidString)")
+        var req = URLRequest(url: config.baseURL.appendingPathComponent("/api/tasks/\(id.uuidString)"))
+        req.httpMethod = "DELETE"
+        req.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        let _: EmptyResponse = try await perform(&req)
+        AppLogger.logAPIEvent("task_delete_success")
+    }
+
     // MARK: - Core helpers
 
     func makeRequest<T: Encodable>(path: String, method: String, jsonBody: T) throws -> URLRequest {
@@ -257,10 +387,25 @@ struct ApiClient {
         return try await perform(&mutableRequest)
     }
 
-    enum ApiError: Error {
+    enum ApiError: LocalizedError {
         case invalidResponse
         case httpStatus(code: Int, body: String?)
         case missingConfiguration
+
+        var errorDescription: String? {
+            switch self {
+            case .invalidResponse:
+                return "Invalid response from server"
+            case .httpStatus(let code, let body):
+                if let body = body, !body.isEmpty {
+                    return body
+                } else {
+                    return "Server error (HTTP \(code))"
+                }
+            case .missingConfiguration:
+                return "API configuration is missing"
+            }
+        }
     }
 
     struct EmptyResponse: Decodable {}
