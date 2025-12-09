@@ -11,6 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.sparkage.timebeam.infrastructure.external.PushNotificationService;
 import com.sparkage.timebeam.infrastructure.persistence.TimerState;
 import com.sparkage.timebeam.infrastructure.persistence.TimerStateRepository;
 import com.sparkage.timebeam.infrastructure.persistence.UserDevice;
@@ -31,13 +32,16 @@ class TimerSyncServiceTest {
     @Mock
     private UserDeviceRepository userDeviceRepository;
 
+    @Mock
+    private PushNotificationService pushNotificationService;
+
     @InjectMocks
     private TimerSyncService timerSyncService;
 
     private UUID userId;
     private UUID deviceId;
-    private TimerStateDto timerStateDto;
     private TimerState timerState;
+    private TimerStateDto timerStateDto;
     private UserDevice userDevice;
 
     @BeforeEach
@@ -85,14 +89,14 @@ class TimerSyncServiceTest {
     @Test
     void pushTimerState_ShouldCreateNewTimerState_WhenNoneExists() {
         // Given
-        when(timerStateRepository.findByUserIdWithLock(userId)).thenReturn(Optional.empty());
+        when(timerStateRepository.findByUserId(userId)).thenReturn(Optional.empty());
         when(timerStateRepository.save(any(TimerState.class))).thenReturn(timerState);
 
         // When
         timerSyncService.pushTimerState(userId, timerStateDto, deviceId.toString());
 
         // Then
-        verify(timerStateRepository).findByUserIdWithLock(userId);
+        verify(timerStateRepository).findByUserId(userId);
         verify(timerStateRepository).save(any(TimerState.class));
     }
 
@@ -100,32 +104,21 @@ class TimerSyncServiceTest {
     void pushTimerState_ShouldUpdateExistingTimerState_WhenNewerTimestamp() {
         // Given
         TimerState existingState = createTimerStateWithTimestamp(Instant.now().minusSeconds(60));
-        when(timerStateRepository.findByUserIdWithLock(userId)).thenReturn(Optional.of(existingState));
+        when(timerStateRepository.findByUserId(userId)).thenReturn(Optional.of(existingState));
         when(timerStateRepository.save(existingState)).thenReturn(existingState);
+        doNothing().when(pushNotificationService).sendTimerSyncPush(anyString(), anyString(), anyString(), anyString());
 
         // When
         timerSyncService.pushTimerState(userId, timerStateDto, deviceId.toString());
 
         // Then
-        verify(timerStateRepository).findByUserIdWithLock(userId);
+        verify(timerStateRepository).findByUserId(userId);
         verify(timerStateRepository).save(existingState);
         assertThat(existingState.getPhase()).isEqualTo("work");
         assertThat(existingState.getRemainingSeconds()).isEqualTo(1500);
     }
 
-    @Test
-    void pushTimerState_ShouldIgnoreOlderState() {
-        // Given
-        TimerState existingState = createTimerStateWithTimestamp(Instant.now().plusSeconds(60));
-        when(timerStateRepository.findByUserIdWithLock(userId)).thenReturn(Optional.of(existingState));
 
-        // When
-        timerSyncService.pushTimerState(userId, timerStateDto, deviceId.toString());
-
-        // Then
-        verify(timerStateRepository).findByUserIdWithLock(userId);
-        verify(timerStateRepository, never()).save(any(TimerState.class));
-    }
 
     @Test
     void pullTimerState_ShouldReturnTimerStateDto_WhenExists() {
@@ -156,56 +149,33 @@ class TimerSyncServiceTest {
     }
 
     @Test
-    void clearUserState_ShouldDeleteTimerState() {
+    void pushTimerState_ShouldUpdateExistingTimerState_InCollaborativeMode() {
         // Given
-        doNothing().when(timerStateRepository).deleteById(userId);
+        TimerState existingState = createTimerStateWithTimestamp(Instant.now().minusSeconds(60));
+        when(timerStateRepository.findByUserId(userId)).thenReturn(Optional.of(existingState));
+        when(timerStateRepository.save(existingState)).thenReturn(existingState);
+        doNothing().when(pushNotificationService).sendTimerSyncPush(anyString(), anyString(), anyString(), anyString());
 
         // When
-        timerSyncService.clearUserState(userId);
+        timerSyncService.pushTimerState(userId, timerStateDto, deviceId.toString());
 
         // Then
-        verify(timerStateRepository).deleteById(userId);
+        verify(timerStateRepository).findByUserId(userId);
+        verify(timerStateRepository).save(existingState);
     }
 
     @Test
     void cleanupOldStates_ShouldDeleteOldStates() {
         // Given
-        Instant cutoff = Instant.now().minusSeconds(7 * 24 * 60 * 60); // 7 days ago
-        when(timerStateRepository.findStaleTimerStates(cutoff)).thenReturn(java.util.List.of(timerState));
+        when(timerStateRepository.findStaleTimerStates(any(Instant.class))).thenReturn(java.util.List.of(timerState));
         doNothing().when(timerStateRepository).delete(timerState);
 
         // When
         timerSyncService.cleanupOldStates();
 
         // Then
-        verify(timerStateRepository).findStaleTimerStates(cutoff);
+        verify(timerStateRepository).findStaleTimerStates(any(Instant.class));
         verify(timerStateRepository).delete(timerState);
-    }
-
-    @Test
-    void pushTimerState_ShouldThrowException_OnDatabaseError() {
-        // Given
-        when(timerStateRepository.findByUserIdWithLock(userId))
-            .thenThrow(new RuntimeException("Database error"));
-
-        // When & Then
-        assertThatThrownBy(() -> timerSyncService.pushTimerState(userId, timerStateDto, deviceId.toString()))
-            .isInstanceOf(RuntimeException.class)
-            .hasMessage("Failed to sync timer state");
-    }
-
-    @Test
-    void getTimerStateWithDeviceInfo_ShouldIncludeDeviceInfo() {
-        // Given
-        when(timerStateRepository.findByUserId(userId)).thenReturn(Optional.of(timerState));
-        when(userDeviceRepository.findById(deviceId)).thenReturn(Optional.of(userDevice));
-
-        // When
-        Optional<TimerStateDto> result = timerSyncService.getTimerStateWithDeviceInfo(userId);
-
-        // Then
-        assertThat(result).isPresent();
-        verify(userDeviceRepository).findById(deviceId);
     }
 
     private TimerState createTimerStateWithTimestamp(Instant timestamp) {

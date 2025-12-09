@@ -12,6 +12,10 @@ import UIKit
 import WatchKit
 #endif
 
+#if os(macOS)
+import AppKit
+#endif
+
 #if os(iOS)
 #endif
 
@@ -53,7 +57,7 @@ final class TimerSyncManager: ObservableObject {
     private var isOnline = true
     private var lastActionTimestamp: Date?
     private var isDeviceRegistered = false
-    private let queue = DispatchQueue(label: "com.timebeam.sync", qos: .background)
+    private var isSyncing = false // Prevent concurrent sync operations
 
     // MARK: - Initialization
     private init() {
@@ -84,15 +88,18 @@ final class TimerSyncManager: ObservableObject {
 
     func handleIncomingAction(_ action: TimerAction, from deviceId: String, timestamp: Date) {
         // Ignore our own actions
-        if deviceId == self.deviceId { return }
-
-        // Only process if this action is newer than our last processed action
-        if let lastTimestamp = lastActionTimestamp, timestamp <= lastTimestamp {
-            AppLogger.debug("Ignoring older action: \(action.rawValue) from \(deviceId)", category: .sync)
+        if deviceId == self.deviceId {
+            AppLogger.debug("Ignoring own action: \(action.rawValue) from \(deviceId)", category: .sync)
             return
         }
 
-        AppLogger.info("Executing incoming action: \(action.rawValue)", category: .sync)
+        // Only process if this action is newer than our last processed action
+        if let lastTimestamp = lastActionTimestamp, timestamp <= lastTimestamp {
+            AppLogger.debug("Ignoring older action: \(action.rawValue) from \(deviceId) (last: \(lastTimestamp), current: \(timestamp))", category: .sync)
+            return
+        }
+
+        AppLogger.info("Executing incoming action: \(action.rawValue) from device \(deviceId) at \(timestamp)", category: .sync)
         executeAction(action)
         lastActionTimestamp = timestamp
     }
@@ -137,10 +144,9 @@ final class TimerSyncManager: ObservableObject {
             id: UUID()
         )
 
-        queue.async {
-            self.queuedActions.append(queuedAction)
-            self.saveQueuedActions()
-        }
+        // On @MainActor: safe to mutate and persist
+        self.queuedActions.append(QueuedAction(action: queuedAction.action, timestamp: queuedAction.timestamp, id: queuedAction.id))
+        self.saveQueuedActions()
     }
 
     private func processQueuedActions() {
@@ -148,25 +154,22 @@ final class TimerSyncManager: ObservableObject {
 
         AppLogger.debug("Processing \(queuedActions.count) queued actions", category: .sync)
 
-        queue.async {
-            let actionsToProcess = self.queuedActions
-            self.queuedActions.removeAll()
-            self.saveQueuedActions()
+        // On @MainActor: copy, clear, persist
+        let actionsToProcess = self.queuedActions
+        self.queuedActions.removeAll()
+        self.saveQueuedActions()
 
-            // Send to backend
-            for queuedAction in actionsToProcess {
-                self.sendActionToBackend(queuedAction.action, timestamp: queuedAction.timestamp)
-            }
+        // Send to backend (each call already manages its own async work)
+        for queuedAction in actionsToProcess {
+            self.sendActionToBackend(queuedAction.action, timestamp: queuedAction.timestamp)
         }
     }
 
     private func loadQueuedActions() {
-        queue.async {
-            if let data = UserDefaults.standard.data(forKey: "queuedSyncActions"),
-               let actions = try? JSONDecoder().decode([QueuedAction].self, from: data) {
-                self.queuedActions = actions
-                AppLogger.debug("Loaded \(actions.count) queued actions", category: .sync)
-            }
+        if let data = UserDefaults.standard.data(forKey: "queuedSyncActions"),
+           let actions = try? JSONDecoder().decode([QueuedAction].self, from: data) {
+            self.queuedActions = actions
+            AppLogger.debug("Loaded \(actions.count) queued actions", category: .sync)
         }
     }
 
@@ -199,7 +202,16 @@ final class TimerSyncManager: ObservableObject {
 
     // MARK: - Smart Sync with Pull-First Priority
     func smartSyncWithBackend() async {
-        AppLogger.logSyncEvent("smart_sync_started")
+        // Prevent concurrent sync operations
+        guard !isSyncing else {
+            AppLogger.debug("Sync already in progress, skipping", category: .sync)
+            return
+        }
+
+        isSyncing = true
+        defer { isSyncing = false }
+
+        AppLogger.logSyncEvent("smart_sync_started", details: "device=\(deviceId)")
 
         guard let accessToken = try? KeychainStore.loadString(.accessToken),
               let config = ApiClient.Configuration.fromInfoPlist() else {
@@ -207,7 +219,7 @@ final class TimerSyncManager: ObservableObject {
             return
         }
 
-        AppLogger.debug("Access token found, API config loaded", category: .sync)
+        AppLogger.debug("Access token found, API config loaded for device \(deviceId)", category: .sync)
 
         let apiClient = ApiClient(configuration: config)
 
@@ -222,19 +234,24 @@ final class TimerSyncManager: ObservableObject {
             let backendState = try await apiClient.pullTimerState(accessToken: accessToken)
 
             if let backend = backendState {
-                AppLogger.debug("Backend state timestamp: \(backend.timestamp), phase: \(backend.phase)", category: .sync)
+                AppLogger.debug("Backend state timestamp: \(backend.timestamp), phase: \(backend.phase), device: \(backend.deviceId)", category: .sync)
 
-                // Apply backend state locally - this becomes the authoritative state
-                AppLogger.logSyncEvent("applying_backend_state", details: "pull-first sync approach")
-                await applyBackendStateToLocal(backend)
+                // Check if backend state is from this device or if we should apply it
+                if backend.deviceId == deviceId {
+                    AppLogger.debug("Backend state is from this device (\(deviceId)), no sync needed", category: .sync)
+                } else {
+                    // Apply backend state locally - this becomes the authoritative state
+                    AppLogger.logSyncEvent("applying_backend_state", details: "pull-first sync from device \(backend.deviceId) to device \(deviceId)")
+                    await applyBackendStateToLocal(backend)
+                }
 
                 // Note: We don't push local state on startup anymore
                 // Local state pushing only happens in response to user actions via syncAction()
 
             } else {
                 // No backend state exists - this device becomes the master
-                AppLogger.logSyncEvent("no_backend_state", details: "becoming master device")
-                AppLogger.debug("Initiating local state push as master device", category: .sync)
+                AppLogger.logSyncEvent("no_backend_state", details: "device \(deviceId) becoming master")
+                AppLogger.debug("Initiating local state push as master device \(deviceId)", category: .sync)
                 await pushLocalStateToBackend(accessToken: accessToken, apiClient: apiClient)
             }
 
@@ -262,10 +279,17 @@ final class TimerSyncManager: ObservableObject {
         do {
             try await apiClient.registerDevice(deviceRegistration, accessToken: accessToken)
             isDeviceRegistered = true
-            AppLogger.logSyncEvent("device_registered", details: "Device successfully registered with backend")
+            AppLogger.logSyncEvent("device_registered", details: "Device successfully registered with backend - deviceId: \(deviceId)")
+
+            // Show UI feedback on macOS
+            #if os(macOS)
+            MacAppDelegate.showTemporaryStatus("✓ Device registered")
+            #endif
         } catch {
-            AppLogger.error("Failed to register device: \(error.localizedDescription)", category: .sync)
+            AppLogger.error("Failed to register device \(deviceId): \(error.localizedDescription)", category: .sync)
             // Don't fail the sync if device registration fails - timer sync can still work
+            // But log this as a warning since it may affect sync reliability
+            AppLogger.warning("Device registration failed for \(deviceId) - timer sync may not work properly between devices", category: .sync)
         }
     }
 
@@ -486,6 +510,12 @@ final class TimerSyncManager: ObservableObject {
                 type: "timer_sync",
                 action: timerSyncAction
             )
+
+            // Log the payload for debugging
+            if let payloadData = try? JSONEncoder().encode(apnPayload),
+               let payloadString = String(data: payloadData, encoding: .utf8) {
+                AppLogger.debug("Sending APN notification payload: \(payloadString)", category: .sync)
+            }
 
             // Send silent APN notification to other devices
             try await apiClient.sendApnNotification(payload: apnPayload, accessToken: accessToken)

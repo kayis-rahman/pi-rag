@@ -20,6 +20,7 @@ import java.util.UUID;
  * Creates test users, tasks, sessions, and device registrations
  */
 @Component
+@Profile("e2e")
 public class E2ETestDataSeeder {
 
     @Autowired

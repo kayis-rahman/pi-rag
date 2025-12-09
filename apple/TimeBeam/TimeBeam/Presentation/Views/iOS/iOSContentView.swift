@@ -29,25 +29,6 @@ struct iOSContentView: View {
                 // Timer display
                 CircularTimerView(size: ringSize, showSessionProgress: false)
 
-                // Current task display
-                if let currentTaskId = timer.currentTaskId,
-                   let currentTask = taskService.tasks.first(where: { $0.id == currentTaskId }) {
-                    VStack(spacing: 8) {
-                        Text("Working on:")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        Text(currentTask.title)
-                            .font(.headline)
-                            .foregroundColor(.primary)
-                            .multilineTextAlignment(.center)
-                            .lineLimit(2)
-                    }
-                    .padding(.horizontal)
-                    .padding(.vertical, 8)
-                    .background(Color.themeCardBackground.opacity(0.8))
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                    .frame(maxWidth: ringSize * 0.8)
-                }
 
                 // Session progress indicator
                 CycleProgressView(

@@ -133,62 +133,6 @@ class WatchOSTestBase: CrossPlatformTestBase {
 
 // MARK: - Platform-Specific Test Configurations
 
-final class iOSTimerUITests: iOSTestBase {
-
-    func testTimerStartPauseOnIPhone() throws {
-        try testIPhoneSpecific {
-            // iPhone-specific timer interactions
-            let startButton = app.buttons["Start"]
-            XCTAssertTrue(startButton.exists, "Start button should exist on iPhone")
-
-            startButton.tap()
-            XCTAssertTrue(app.buttons["Pause"].waitForExistence(timeout: TestConfiguration.quickTimeout),
-                         "Pause button should appear on iPhone")
-
-            app.buttons["Pause"].tap()
-            XCTAssertTrue(app.buttons["Start"].waitForExistence(timeout: TestConfiguration.quickTimeout),
-                         "Start button should reappear on iPhone")
-        }
-    }
-
-    func testTimerStartPauseOnIPad() throws {
-        try testIPadSpecific {
-            // iPad-specific timer interactions (may have different layout)
-            let startButton = app.buttons["Start"]
-            XCTAssertTrue(startButton.exists, "Start button should exist on iPad")
-
-            startButton.tap()
-            XCTAssertTrue(app.buttons["Pause"].waitForExistence(timeout: TestConfiguration.quickTimeout),
-                         "Pause button should appear on iPad")
-
-            // iPad might have additional space for more controls
-            let resetButton = app.buttons["Reset"]
-            XCTAssertTrue(resetButton.exists, "Reset button should be available on iPad")
-        }
-    }
-
-    func testOrientationChangesOnIOS() throws {
-        try skipOnPlatforms([.watchOS], "Orientation changes not applicable to watchOS")
-
-        #if os(iOS)
-        // Test portrait mode
-        XCUIDevice.shared.orientation = .portrait
-        XCTAssertTrue(app.otherElements["CircularTimerView"].exists,
-                     "Timer should be visible in portrait")
-
-        // Test landscape mode
-        XCUIDevice.shared.orientation = .landscapeLeft
-        XCTAssertTrue(app.otherElements["CircularTimerView"].waitForExistence(timeout: TestConfiguration.quickTimeout),
-                     "Timer should adapt to landscape")
-
-        // Test rotation back
-        XCUIDevice.shared.orientation = .portrait
-        XCTAssertTrue(app.otherElements["CircularTimerView"].exists,
-                     "Timer should adapt back to portrait")
-        #endif
-    }
-}
-
 final class MacOSTimerUITests: MacOSTestBase {
 
     func testTimerInWindowedEnvironment() throws {

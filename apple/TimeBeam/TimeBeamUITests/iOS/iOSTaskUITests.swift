@@ -225,7 +225,8 @@ final class iOSTaskUITests: XCTestCase {
         let taskAnalyticsCard = app.staticTexts["Task Analytics"]
         if taskAnalyticsCard.waitForExistence(timeout: 5) {
             // Scroll to make it visible
-            app.scrollViews.firstMatch.scrollToElement(element: taskAnalyticsCard)
+            // Scroll to make the element visible
+            taskAnalyticsCard.scrollToVisible()
 
             // Verify all task metrics are present
             let timeSpentLabel = app.staticTexts.containing(NSPredicate(format: "label CONTAINS 'Time Spent'")).firstMatch

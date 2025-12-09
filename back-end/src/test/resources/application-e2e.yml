@@ -6,18 +6,19 @@ spring:
   profiles:
     active: e2e
   datasource:
-    url: jdbc:postgresql://localhost:5432/timebeam_e2e
+    url: jdbc:postgresql://localhost:5432/timebeam
     username: timebeam
     password: timebeam
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: none  # Schema already created
     show-sql: false
     properties:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        default_schema: timebeamtest
   main:
     allow-bean-definition-overriding: true
 

@@ -155,7 +155,7 @@ final class TaskService: ObservableObject {
 
     func deleteTask(id: String) async throws {
         let request = APIRequest.deleteTask(id: id)
-        try await apiClient.performRequest(request) as ApiClient.EmptyResponse
+        _ = try await apiClient.performRequest(request) as ApiClient.EmptyResponse
 
         // Update local cache
         tasks.removeAll { $0.id.uuidString == id }
@@ -465,12 +465,13 @@ struct TaskCompletionSuggestion {
 // MARK: - Recycle Bin Types
 
 struct RecycleBinItem: Codable, Identifiable {
-    let id = UUID()
+    let id: UUID
     let task: UserTask
     let deletedAt: Date
     let expiresAt: Date
 
     init(task: UserTask, deletedAt: Date) {
+        self.id = UUID()
         self.task = task
         self.deletedAt = deletedAt
         // 30 days expiration

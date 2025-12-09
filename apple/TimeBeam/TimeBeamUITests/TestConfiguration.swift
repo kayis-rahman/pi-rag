@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import XCTest
 
 /// Configuration for E2E tests
 struct TestConfiguration {

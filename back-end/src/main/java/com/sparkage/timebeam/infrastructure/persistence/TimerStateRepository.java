@@ -28,8 +28,7 @@ public interface TimerStateRepository extends JpaRepository<TimerState, UUID> {
     // Find timer states by device
     List<TimerState> findByUpdatedByDeviceId(UUID deviceId);
 
-    // Pessimistic locking for conflict resolution
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    // For backwards compatibility - no longer used with optimistic locking
     @Query("SELECT t FROM TimerState t WHERE t.userId = :userId")
     Optional<TimerState> findByUserIdWithLock(@Param("userId") UUID userId);
 

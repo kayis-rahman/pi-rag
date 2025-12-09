@@ -7,6 +7,8 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import jakarta.validation.Valid;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -140,20 +142,49 @@ public class SessionController {
 
     @PostMapping("/timer/action")
     public ResponseEntity<Void> pushTimerAction(@RequestBody TimerActionDto actionDto, Principal principal) {
-        log.debug("push timer action called: action={}, device={}", actionDto.getAction(), actionDto.getDeviceId());
+        log.debug("push timer action called: action={}, device={}, phase={}, remainingSeconds={}, isRunning={}, workDuration={}, breakDuration={}, longBreakDuration={}, autoStartNextSession={}, shortBreaksCompleted={}",
+                actionDto.getAction(), actionDto.getDeviceId(), actionDto.getPhase(), actionDto.getRemainingSeconds(),
+                actionDto.getIsRunning(), actionDto.getWorkDuration(), actionDto.getBreakDuration(),
+                actionDto.getLongBreakDuration(), actionDto.getAutoStartNextSession(), actionDto.getShortBreaksCompleted());
         UUID uid = resolveUserId(principal);
         if (uid == null) return ResponseEntity.status(401).build();
 
         // Store the action as state - now using the complete timer state provided by the client
-        try {
-            TimerStateDto stateFromAction = convertActionToState(actionDto);
-            timerSyncService.pushTimerState(uid, stateFromAction, actionDto.getDeviceId());
-            log.info("timer action pushed for user={}, device={}, action={}, phase={}, remaining={}",
-                    uid, actionDto.getDeviceId(), actionDto.getAction(),
-                    actionDto.getPhase(), actionDto.getRemainingSeconds());
-        } catch (Exception e) {
-            log.error("Failed to process timer action", e);
-            return ResponseEntity.status(400).build();
+        // Retry on optimistic locking failures
+        int maxRetries = 3;
+        for (int attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                TimerStateDto stateFromAction = convertActionToState(actionDto);
+                log.debug("Converted action to state: phase={}, remainingSeconds={}, isRunning={}, workDuration={}, breakDuration={}, longBreakDuration={}, autoStartNextSession={}, shortBreaksCompleted={}",
+                        stateFromAction.getPhase(), stateFromAction.getRemainingSeconds(), stateFromAction.getIsRunning(),
+                        stateFromAction.getWorkDuration(), stateFromAction.getBreakDuration(), stateFromAction.getLongBreakDuration(),
+                        stateFromAction.getAutoStartNextSession(), stateFromAction.getShortBreaksCompleted());
+                timerSyncService.pushTimerState(uid, stateFromAction, actionDto.getDeviceId());
+                log.info("timer action pushed for user={}, device={}, action={}, phase={}, remaining={}",
+                        uid, actionDto.getDeviceId(), actionDto.getAction(),
+                        actionDto.getPhase(), actionDto.getRemainingSeconds());
+                // Success, break out of retry loop
+                break;
+            } catch (org.springframework.orm.ObjectOptimisticLockingFailureException e) {
+                if (attempt == maxRetries) {
+                    log.error("Failed to push timer action after {} attempts due to concurrent updates: user={}, device={}",
+                             maxRetries, uid, actionDto.getDeviceId(), e);
+                    return ResponseEntity.status(409).build(); // Conflict
+                } else {
+                    log.warn("Concurrent update detected during commit, retrying attempt {} for user={}, device={}", attempt + 1, uid, actionDto.getDeviceId());
+                    // Wait a bit before retry
+                    try {
+                        Thread.sleep(100 * attempt);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        log.error("Interrupted during retry", ie);
+                        return ResponseEntity.status(500).build();
+                    }
+                }
+            } catch (Exception e) {
+                log.error("Failed to process timer action", e);
+                return ResponseEntity.status(400).build();
+            }
         }
 
         // Send silent push notification to other devices
@@ -188,15 +219,16 @@ public class SessionController {
         // Use the complete timer state provided by the client instead of hardcoded values
         // This ensures accurate sync between devices
         // Use server timestamp to avoid client clock issues
+        // Provide defaults for null values to handle client bugs
         return new TimerStateDto(
-            actionDto.getPhase(),
-            actionDto.getRemainingSeconds(),
-            actionDto.getIsRunning(),
-            actionDto.getWorkDuration(),
-            actionDto.getBreakDuration(),
-            actionDto.getLongBreakDuration(),
-            actionDto.getAutoStartNextSession(),
-            actionDto.getShortBreaksCompleted(),
+            actionDto.getPhase() != null ? actionDto.getPhase() : "work",
+            actionDto.getRemainingSeconds() != null ? actionDto.getRemainingSeconds() : 0,
+            actionDto.getIsRunning() != null ? actionDto.getIsRunning() : false,
+            actionDto.getWorkDuration() != null ? actionDto.getWorkDuration() : 25,
+            actionDto.getBreakDuration() != null ? actionDto.getBreakDuration() : 5,
+            actionDto.getLongBreakDuration() != null ? actionDto.getLongBreakDuration() : 15,
+            actionDto.getAutoStartNextSession() != null ? actionDto.getAutoStartNextSession() : false,
+            actionDto.getShortBreaksCompleted() != null ? actionDto.getShortBreaksCompleted() : 0,
             Instant.now(), // Use server timestamp
             actionDto.getDeviceId()
         );

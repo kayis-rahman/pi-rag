@@ -43,43 +43,66 @@ public class TimerSyncService {
         log.info("Pushing timer state for user={}, device={}, timestamp={}",
                 userId, deviceIdString, state.getTimestamp());
 
-        try {
-            // Find the device by user and device ID string
-            Optional<UserDevice> deviceOpt = userDeviceRepository.findByUserIdAndDeviceId(userId, deviceIdString);
-            if (deviceOpt.isEmpty()) {
-                throw new IllegalArgumentException("Device not found: user=" + userId + ", deviceId=" + deviceIdString);
+        int maxRetries = 3;
+        for (int attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                // Find the device by user and device ID string
+                Optional<UserDevice> deviceOpt = userDeviceRepository.findByUserIdAndDeviceId(userId, deviceIdString);
+                UUID deviceId = null;
+                if (deviceOpt.isEmpty()) {
+                    log.warn("Device not found for timer state push: user={}, deviceId={}, proceeding without device tracking", userId, deviceIdString);
+                } else {
+                    deviceId = deviceOpt.get().getId();
+                }
+
+                // Clean up any duplicate timer states first (shouldn't happen but handle gracefully)
+                cleanupDuplicateTimerStates(userId);
+
+                // Get or create timer state with optimistic locking
+                Optional<TimerState> existingStateOpt = timerStateRepository.findByUserId(userId);
+
+                if (existingStateOpt.isPresent()) {
+                    TimerState existingState = existingStateOpt.get();
+
+                    // In collaborative mode, we always accept updates
+                    // This allows any device to control the timer at any time
+                    // Update existing state with the new data
+                    updateTimerState(existingState, state, deviceId);
+                    timerStateRepository.save(existingState);
+                    log.info("Updated timer state for user={} with state from device={} (collaborative mode)", userId, deviceIdString);
+
+                    // Send push notification to other devices for real-time sync
+                    pushNotificationService.sendTimerSyncPush(userId.toString(), deviceIdString, "state_update", state.getTimestamp().toString());
+                } else {
+                    // Create new timer state - first device to sync
+                    TimerState newState = createTimerStateFromDto(userId, state, deviceId);
+                    timerStateRepository.save(newState);
+                    log.info("Created new timer state for user={} from device={}", userId, deviceIdString);
+                }
+
+                // Success, break out of retry loop
+                return;
+
+            } catch (org.springframework.orm.ObjectOptimisticLockingFailureException e) {
+                if (attempt == maxRetries) {
+                    log.error("Failed to push timer state after {} attempts due to concurrent updates: user={}, device={}",
+                             maxRetries, userId, deviceIdString, e);
+                    throw new RuntimeException("Failed to sync timer state due to concurrent updates", e);
+                } else {
+                    log.warn("Concurrent update detected, retrying attempt {} for user={}, device={}", attempt + 1, userId, deviceIdString);
+                    // Wait a bit before retry
+                    try {
+                        Thread.sleep(100 * attempt);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        throw new RuntimeException("Interrupted during retry", ie);
+                    }
+                }
+            } catch (Exception e) {
+                log.error("Failed to push timer state for user={} from device={}: {}",
+                         userId, deviceIdString, e.getMessage(), e);
+                throw new RuntimeException("Failed to sync timer state", e);
             }
-            UUID deviceId = deviceOpt.get().getId();
-
-            // Clean up any duplicate timer states first (shouldn't happen but handle gracefully)
-            cleanupDuplicateTimerStates(userId);
-
-            // Get or create timer state with pessimistic locking for safety
-            Optional<TimerState> existingStateOpt = timerStateRepository.findByUserIdWithLock(userId);
-
-            if (existingStateOpt.isPresent()) {
-                TimerState existingState = existingStateOpt.get();
-
-                // In collaborative mode, we always accept updates
-                // This allows any device to control the timer at any time
-                // Update existing state with the new data
-                updateTimerState(existingState, state, deviceId);
-                timerStateRepository.save(existingState);
-                log.info("Updated timer state for user={} with state from device={} (collaborative mode)", userId, deviceIdString);
-
-                // Send push notification to other devices for real-time sync
-                pushNotificationService.sendTimerSyncPush(userId.toString(), deviceIdString, "state_update", state.getTimestamp().toString());
-            } else {
-                // Create new timer state - first device to sync
-                TimerState newState = createTimerStateFromDto(userId, state, deviceId);
-                timerStateRepository.save(newState);
-                log.info("Created new timer state for user={} from device={}", userId, deviceIdString);
-            }
-
-        } catch (Exception e) {
-            log.error("Failed to push timer state for user={} from device={}: {}",
-                     userId, deviceIdString, e.getMessage(), e);
-            throw new RuntimeException("Failed to sync timer state", e);
         }
     }
 

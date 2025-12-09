@@ -617,7 +617,7 @@ public class AnalyticsService {
                     END, 2
                 ) as completion_rate,
                 COALESCE(AVG(CASE WHEN status = 'completed' THEN
-                    EXTRACT(EPOCH FROM (updated_at - created_at)) / 60 END), 0) as average_task_duration,
+                    EXTRACT(EPOCH FROM (t.updated_at - t.created_at)) / 60 END), 0) as average_task_duration,
                 COALESCE(SUM(CASE WHEN sr.duration_seconds IS NOT NULL THEN sr.duration_seconds / 60 END), 0) as total_time_spent
             FROM tasks t
             LEFT JOIN session_records sr ON sr.task_id = t.id AND sr.kind = 'WORK'

@@ -1,6 +1,10 @@
 -- TimeBeam Database Schema - Complete Redesign
 -- Optimized for performance, scalability, and multi-device sync
 
+-- Set schema context (can be overridden for testing)
+-- SET search_path TO public;  -- For production
+-- SET search_path TO timebeamtest;  -- For testing
+
 -- Enable necessary extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";

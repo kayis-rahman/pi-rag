@@ -174,10 +174,7 @@ class PomodoroTimer: ObservableObject {
         // Sync timer pause action
         TimerSyncManager.shared.syncAction(.pause)
 
-        LoggerStore.timer.info("Pausing timer and stopping backend session")
-        _Concurrency.Task {
-            await self.stopBackendSessionIfNeeded()
-        }
+        LoggerStore.timer.info("Pausing timer")
     }
 
     func stop() {
@@ -192,6 +189,9 @@ class PomodoroTimer: ObservableObject {
         LoggerStore.timer.info("Resetting timer")
         pause()
         remainingSeconds = currentDuration
+        _Concurrency.Task {
+            await self.stopBackendSessionIfNeeded()
+        }
         backendSessionId = nil
         currentTaskId = nil
         saveState()

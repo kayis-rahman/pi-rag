@@ -106,11 +106,11 @@ struct TimeBeamApp: App {
                         print("🔄 macOS: Starting authentication and timer sync...")
                         await authManager.restoreSession()
 
-                        // Wait a bit for authentication to complete, then sync timer
-                        try? await _Concurrency.Task.sleep(nanoseconds: 500_000_000) // 0.5 second delay
+                        // macOS gets priority - wait longer to allow iOS to sync first if it's running
+                        _ = try? await _Concurrency.Task.sleep(nanoseconds: 2_000_000_000) // 2 second delay
 
                         if let _ = try? KeychainStore.loadString(.accessToken) {
-                            AppLogger.info("Authentication complete, starting smart timer sync", category: .sync)
+                            AppLogger.info("Authentication complete, starting smart timer sync on macOS", category: .sync)
                             await TimerSyncManager.shared.smartSyncWithBackend()
                         } else {
                             AppLogger.warning("No access token after authentication, skipping timer sync", category: .sync)
@@ -178,11 +178,14 @@ struct TimeBeamApp: App {
         TimerSyncManager.shared.configure(with: timer)
 
         // Smart sync timer state with conflict resolution
-        if let accessToken = try? KeychainStore.loadString(.accessToken) {
-            AppLogger.info("Found access token after login, starting smart timer sync", category: .sync)
+        // iOS gets priority over macOS to prevent race conditions
+        if (try? KeychainStore.loadString(.accessToken)) != nil {
+            AppLogger.info("Found access token after login, starting smart timer sync on iOS", category: .sync)
             _Concurrency.Task {
+                // Small delay to ensure proper initialization
+                _ = try? await _Concurrency.Task.sleep(nanoseconds: 500_000_000) // 0.5 second delay
                 await TimerSyncManager.shared.smartSyncWithBackend()
-                AppLogger.info("Smart timer sync completed", category: .sync)
+                AppLogger.info("Smart timer sync completed on iOS", category: .sync)
             }
         } else {
             AppLogger.warning("No access token found after login, skipping timer sync", category: .sync)
@@ -1093,7 +1096,7 @@ struct EnhancedTaskRow: View {
     private func performUndo() {
         _Concurrency.Task {
             do {
-                _ = try await taskService.undoTaskCompletion(task)
+                try await taskService.undoTaskCompletion(task)
             } catch {
                 AppLogger.error("Failed to undo task completion: \(error.localizedDescription)", category: .general)
             }
@@ -1477,11 +1480,16 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationC
     }
 
     private func requestNotificationPermissions() {
+        AppLogger.info("Requesting notification permissions on macOS", category: .general)
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
+            AppLogger.info("macOS notification permission granted: \(granted)", category: .general)
             if granted {
                 DispatchQueue.main.async {
+                    AppLogger.info("Registering for remote notifications on macOS", category: .general)
                     NSApplication.shared.registerForRemoteNotifications()
                 }
+            } else {
+                AppLogger.warning("macOS notification permission denied - bidirectional sync will not work", category: .general)
             }
             if let error = error {
                 AppLogger.error("Failed to request notification permissions on macOS: \(error.localizedDescription)", category: .general)
@@ -1492,10 +1500,11 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationC
     // MARK: - APNs Token Registration (macOS)
     func application(_ application: NSApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         let tokenString = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
-        AppLogger.info("Successfully registered for remote notifications on macOS, APNs token: \(tokenString)", category: .general)
+        AppLogger.info("Successfully registered for remote notifications on macOS, APNs token: \(tokenString.prefix(10))...", category: .general)
 
         // Store APNs token with backend
         _Concurrency.Task {
+            AppLogger.info("Starting APN token update with backend on macOS", category: .general)
             await updateApnsTokenWithBackend(tokenString)
         }
     }
@@ -1505,6 +1514,7 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationC
     }
 
     private func updateApnsTokenWithBackend(_ apnsToken: String) async {
+        AppLogger.info("Attempting to update APN token with backend on macOS", category: .general)
         guard let accessToken = try? KeychainStore.loadString(.accessToken),
               let config = ApiClient.Configuration.fromInfoPlist() else {
             AppLogger.warning("No access token or API config available for APNs token update on macOS", category: .general)
@@ -1512,13 +1522,25 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationC
         }
 
         let deviceId = await TimerSyncManager.shared.deviceId
+        AppLogger.info("Got deviceId: \(deviceId), updating APN token on macOS", category: .general)
         let apiClient = ApiClient(configuration: config)
 
-        do {
-            try await apiClient.updateApnsToken(deviceId: deviceId, apnsToken: apnsToken, accessToken: accessToken)
-            AppLogger.info("APNs token updated with backend for macOS device: \(deviceId)", category: .general)
-        } catch {
-            AppLogger.error("Failed to update APNs token with backend on macOS: \(error.localizedDescription)", category: .general)
+        // Retry logic for APN token registration
+        let maxRetries = 3
+        for attempt in 1...maxRetries {
+            do {
+                try await apiClient.updateApnsToken(deviceId: deviceId, apnsToken: apnsToken, accessToken: accessToken)
+                AppLogger.info("APNs token updated with backend for macOS device: \(deviceId)", category: .general)
+                return // Success, exit retry loop
+            } catch {
+                if attempt == maxRetries {
+                    AppLogger.error("Failed to update APNs token with backend on macOS after \(maxRetries) attempts: \(error.localizedDescription)", category: .general)
+                } else {
+                    AppLogger.warning("APN token update attempt \(attempt) failed on macOS, retrying: \(error.localizedDescription)", category: .general)
+                    // Wait before retry
+                    _ = try? await _Concurrency.Task.sleep(nanoseconds: UInt64(attempt) * 1_000_000_000) // 1, 2, 3 seconds
+                }
+            }
         }
     }
 
@@ -1538,11 +1560,13 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationC
                let timestamp = ISO8601DateFormatter().date(from: timestampString),
                let action = TimerSyncManager.TimerAction(rawValue: actionString) {
 
+                AppLogger.info("Processing timer sync action: \(actionString) from device \(deviceId) at \(timestampString)", category: .sync)
                 // Handle incoming timer action from another device on main actor
                 _Concurrency.Task { @MainActor in
                     TimerSyncManager.shared.handleIncomingAction(action, from: deviceId, timestamp: timestamp)
                 }
             } else {
+                AppLogger.warning("Failed to parse timer sync APN payload on macOS: \(userInfo)", category: .sync)
                 // Fallback: trigger full timer sync
                 _Concurrency.Task {
                     await TimerSyncManager.shared.smartSyncWithBackend()
@@ -1582,6 +1606,18 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationC
             }
         }
     }
+
+    static func showTemporaryStatus(_ message: String, duration: TimeInterval = 3.0) {
+        DispatchQueue.main.async {
+            let originalTitle = MacAppDelegate.statusItem?.button?.title ?? ""
+            MacAppDelegate.statusItem?.button?.title = message
+
+            // Restore original title after duration
+            DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
+                MacAppDelegate.statusItem?.button?.title = originalTitle
+            }
+        }
+    }
 }
 #endif
 
@@ -1599,14 +1635,19 @@ final class iOSAppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationC
     }
 
     private func requestNotificationPermissions() {
+        AppLogger.info("Requesting notification permissions on iOS", category: .general)
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
+            AppLogger.info("iOS notification permission granted: \(granted)", category: .general)
             if granted {
                 DispatchQueue.main.async {
+                    AppLogger.info("Registering for remote notifications on iOS", category: .general)
                     UIApplication.shared.registerForRemoteNotifications()
                 }
+            } else {
+                AppLogger.warning("iOS notification permission denied - bidirectional sync will not work", category: .general)
             }
             if let error = error {
-                AppLogger.error("Failed to request notification permissions: \(error.localizedDescription)", category: .general)
+                AppLogger.error("Failed to request notification permissions on iOS: \(error.localizedDescription)", category: .general)
             }
         }
     }
@@ -1614,33 +1655,47 @@ final class iOSAppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationC
     // MARK: - APNs Token Registration
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         let tokenString = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
-        AppLogger.info("Successfully registered for remote notifications, APNs token: \(tokenString)", category: .general)
+        AppLogger.info("Successfully registered for remote notifications on iOS, APNs token: \(tokenString.prefix(10))...", category: .general)
 
         // Store APNs token with backend
         _Concurrency.Task {
+            AppLogger.info("Starting APN token update with backend on iOS", category: .general)
             await updateApnsTokenWithBackend(tokenString)
         }
     }
 
     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
-        AppLogger.error("Failed to register for remote notifications: \(error.localizedDescription)", category: .general)
+        AppLogger.error("Failed to register for remote notifications on iOS: \(error.localizedDescription)", category: .general)
     }
 
     private func updateApnsTokenWithBackend(_ apnsToken: String) async {
+        AppLogger.info("Attempting to update APN token with backend on iOS", category: .general)
         guard let accessToken = try? KeychainStore.loadString(.accessToken),
               let config = ApiClient.Configuration.fromInfoPlist() else {
-            AppLogger.warning("No access token or API config available for APNs token update", category: .general)
+            AppLogger.warning("No access token or API config available for APNs token update on iOS", category: .general)
             return
         }
 
         let deviceId = await TimerSyncManager.shared.deviceId
+        AppLogger.info("Got deviceId: \(deviceId), updating APN token on iOS", category: .general)
         let apiClient = ApiClient(configuration: config)
 
-        do {
-            try await apiClient.updateApnsToken(deviceId: deviceId, apnsToken: apnsToken, accessToken: accessToken)
-            AppLogger.info("APNs token updated with backend for device: \(deviceId)", category: .general)
-        } catch {
-            AppLogger.error("Failed to update APNs token with backend: \(error.localizedDescription)", category: .general)
+        // Retry logic for APN token registration
+        let maxRetries = 3
+        for attempt in 1...maxRetries {
+            do {
+                try await apiClient.updateApnsToken(deviceId: deviceId, apnsToken: apnsToken, accessToken: accessToken)
+                AppLogger.info("APNs token updated with backend for iOS device: \(deviceId)", category: .general)
+                return // Success, exit retry loop
+            } catch {
+                if attempt == maxRetries {
+                    AppLogger.error("Failed to update APNs token with backend on iOS after \(maxRetries) attempts: \(error.localizedDescription)", category: .general)
+                } else {
+                    AppLogger.warning("APN token update attempt \(attempt) failed on iOS, retrying: \(error.localizedDescription)", category: .general)
+                    // Wait before retry
+                    _ = try? await _Concurrency.Task.sleep(nanoseconds: UInt64(attempt) * 1_000_000_000) // 1, 2, 3 seconds
+                }
+            }
         }
     }
 
@@ -1650,7 +1705,7 @@ final class iOSAppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationC
         let userInfo = notification.request.content.userInfo
 
         if let type = userInfo["type"] as? String, type == "timer_sync" {
-            AppLogger.info("Received timer sync APN message", category: .sync)
+            AppLogger.info("Received timer sync APN message on iOS", category: .sync)
 
             // Extract sync data from APN payload
             if let actionData = userInfo["action"] as? [String: Any],
@@ -1660,11 +1715,13 @@ final class iOSAppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationC
                let timestamp = ISO8601DateFormatter().date(from: timestampString),
                let action = TimerSyncManager.TimerAction(rawValue: actionString) {
 
+                AppLogger.info("Processing timer sync action: \(actionString) from device \(deviceId) at \(timestampString)", category: .sync)
                 // Handle incoming timer action from another device on main actor
                 _Concurrency.Task { @MainActor in
                     TimerSyncManager.shared.handleIncomingAction(action, from: deviceId, timestamp: timestamp)
                 }
             } else {
+                AppLogger.warning("Failed to parse timer sync APN payload on iOS: \(userInfo)", category: .sync)
                 // Fallback: trigger full timer sync
                 _Concurrency.Task {
                     await TimerSyncManager.shared.smartSyncWithBackend()
@@ -1696,4 +1753,3 @@ final class iOSAppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationC
     }
 }
 #endif
-
