@@ -7,8 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		6D46D1BC2EDF9F72006451F6 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 6D46D1BB2EDF9F72006451F6 /* FirebaseCore */; };
-		6D46D1C02EDF9FC9006451F6 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 6D46D1BF2EDF9FC9006451F6 /* FirebaseCore */; };
 		6D64E5562EBCF5EE00AF36E3 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 6D252E152EBB6D810053735D /* GoogleSignIn */; };
 		6D64E5572EBCF5EE00AF36E3 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 6D252E162EBB6D810053735D /* GoogleSignInSwift */; };
 		6D9D92F22EDDD06B00A7F90B /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 6D9D92F12EDDD06B00A7F90B /* GoogleSignIn */; };
@@ -113,7 +111,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				6D9D92F22EDDD06B00A7F90B /* GoogleSignIn in Frameworks */,
-				6D46D1C02EDF9FC9006451F6 /* FirebaseCore in Frameworks */,
 				6D9D92F42EDDD06B00A7F90B /* GoogleSignInSwift in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -123,7 +120,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				6D64E5572EBCF5EE00AF36E3 /* GoogleSignInSwift in Frameworks */,
-				6D46D1BC2EDF9F72006451F6 /* FirebaseCore in Frameworks */,
 				6D64E5562EBCF5EE00AF36E3 /* GoogleSignIn in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -213,7 +209,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				6D252E1A2EBB75AF0053735D /* PBXTargetDependency */,
 				6D252E182EBB75350053735D /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
@@ -223,7 +218,6 @@
 			packageProductDependencies = (
 				6D252E152EBB6D810053735D /* GoogleSignIn */,
 				6D252E162EBB6D810053735D /* GoogleSignInSwift */,
-				6D46D1BB2EDF9F72006451F6 /* FirebaseCore */,
 			);
 			productName = TimeBeam;
 			productReference = 6D5999932E780AE300D65722 /* TimeBeam.app */;
@@ -248,7 +242,6 @@
 			packageProductDependencies = (
 				6D9D92F12EDDD06B00A7F90B /* GoogleSignIn */,
 				6D9D92F32EDDD06B00A7F90B /* GoogleSignInSwift */,
-				6D46D1BF2EDF9FC9006451F6 /* FirebaseCore */,
 			);
 			productName = "TimeBeam iOS";
 			productReference = 6D5999932E780AE301 /* TimeBeam iOS.app */;
@@ -367,7 +360,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2600;
-				LastUpgradeCheck = 1600;
+				LastUpgradeCheck = 2610;
 				TargetAttributes = {
 					6D5999922E780AE300D65722 = {
 						CreatedOnToolsVersion = 16.0;
@@ -534,10 +527,6 @@
 			isa = PBXTargetDependency;
 			productRef = 6D252E172EBB75350053735D /* GoogleSignIn */;
 		};
-		6D252E1A2EBB75AF0053735D /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			productRef = 6D252E192EBB75AF0053735D /* GoogleSignInSwift */;
-		};
 		6D5999A62E780AE600D65722 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 6D5999922E780AE300D65722 /* TimeBeam */;
@@ -597,6 +586,7 @@
 				CODE_SIGN_ENTITLEMENTS = TimeBeam/TimeBeam.entitlements;
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -619,6 +609,7 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -660,6 +651,7 @@
 				CODE_SIGN_ENTITLEMENTS = TimeBeam/TimeBeam.entitlements;
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -675,6 +667,7 @@
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 			};
 			name = Release;
@@ -730,6 +723,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"TimeBeam/Preview Content\"";
 				DEVELOPMENT_TEAM = 425MSY8FLG;
 				ENABLE_APP_SANDBOX = YES;
@@ -823,6 +817,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"TimeBeam/Preview Content\"";
 				DEVELOPMENT_TEAM = 425MSY8FLG;
 				ENABLE_APP_SANDBOX = YES;
@@ -871,6 +866,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
@@ -893,6 +889,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
@@ -914,6 +911,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
@@ -935,6 +933,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
@@ -1221,21 +1220,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 6D252E142EBB6D810053735D /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
 			productName = GoogleSignIn;
-		};
-		6D252E192EBB75AF0053735D /* GoogleSignInSwift */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 6D252E142EBB6D810053735D /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
-			productName = GoogleSignInSwift;
-		};
-		6D46D1BB2EDF9F72006451F6 /* FirebaseCore */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 6D46D1BA2EDF9F72006451F6 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseCore;
-		};
-		6D46D1BF2EDF9FC9006451F6 /* FirebaseCore */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 6D46D1BA2EDF9F72006451F6 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseCore;
 		};
 		6D9D92F12EDDD06B00A7F90B /* GoogleSignIn */ = {
 			isa = XCSwiftPackageProductDependency;

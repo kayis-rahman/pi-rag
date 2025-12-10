@@ -1,7 +1,5 @@
 package com.sparkage.timebeam.presentation.dto;
 
-import java.time.Instant;
-
 public class TimerStateDto {
     private String phase;
     private Integer remainingSeconds;
@@ -11,7 +9,7 @@ public class TimerStateDto {
     private Integer longBreakDuration;
     private Boolean autoStartNextSession;
     private Integer shortBreaksCompleted;
-    private Instant timestamp;
+    private double lastModifiedTimestamp;
     private String deviceId;
 
     // Default constructor
@@ -21,7 +19,7 @@ public class TimerStateDto {
     public TimerStateDto(String phase, Integer remainingSeconds, Boolean isRunning,
                         Integer workDuration, Integer breakDuration, Integer longBreakDuration,
                         Boolean autoStartNextSession, Integer shortBreaksCompleted,
-                        Instant timestamp, String deviceId) {
+                        Double lastModifiedTimestamp, String deviceId) {
         this.phase = phase;
         this.remainingSeconds = remainingSeconds;
         this.isRunning = isRunning;
@@ -30,7 +28,7 @@ public class TimerStateDto {
         this.longBreakDuration = longBreakDuration;
         this.autoStartNextSession = autoStartNextSession;
         this.shortBreaksCompleted = shortBreaksCompleted;
-        this.timestamp = timestamp;
+        this.lastModifiedTimestamp = lastModifiedTimestamp;
         this.deviceId = deviceId;
     }
 
@@ -59,8 +57,8 @@ public class TimerStateDto {
     public Integer getShortBreaksCompleted() { return shortBreaksCompleted; }
     public void setShortBreaksCompleted(Integer shortBreaksCompleted) { this.shortBreaksCompleted = shortBreaksCompleted; }
 
-    public Instant getTimestamp() { return timestamp; }
-    public void setTimestamp(Instant timestamp) { this.timestamp = timestamp; }
+    public Double getLastModifiedTimestamp() { return lastModifiedTimestamp; }
+    public void setLastModifiedTimestamp(Double lastModifiedTimestamp) { this.lastModifiedTimestamp = lastModifiedTimestamp; }
 
     public String getDeviceId() { return deviceId; }
     public void setDeviceId(String deviceId) { this.deviceId = deviceId; }
@@ -71,7 +69,7 @@ public class TimerStateDto {
                 "phase='" + phase + '\'' +
                 ", remainingSeconds=" + remainingSeconds +
                 ", isRunning=" + isRunning +
-                ", timestamp=" + timestamp +
+                ", lastModifiedTimestamp=" + lastModifiedTimestamp +
                 ", deviceId='" + deviceId + '\'' +
                 '}';
     }

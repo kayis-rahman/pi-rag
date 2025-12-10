@@ -1,0 +1,21 @@
+# Field Name Mismatch Fix
+
+## Problem:
+- Client sends: `lastModifiedTimestamp`
+- Server expects: `timestamp`
+- Results in NullPointerException
+
+## Solution Options:
+1. **Change client**: Rename `lastModifiedTimestamp` to `timestamp` in Swift DTO
+2. **Change server**: Rename `timestamp` to `lastModifiedTimestamp` in Java DTO
+
+## Recommended Fix:
+Change the **server** to match the client, since:
+- Client field name `lastModifiedTimestamp` is more descriptive
+- Avoids breaking existing client code
+- Server can be updated without app store releases
+
+## Implementation:
+1. Rename `TimerStateDto.timestamp` to `TimerStateDto.lastModifiedTimestamp`
+2. Update `TimerSyncService.java` to use `getLastModifiedTimestamp()`
+3. Test timer sync functionality

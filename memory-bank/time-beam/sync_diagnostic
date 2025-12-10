@@ -1,0 +1,22 @@
+# Timer Sync Diagnostic - Current Status
+
+## Server Logs Analysis
+- Need to check for timer sync API calls
+- Need to check for APNs notification sending
+- Need to check for device registration attempts
+
+## Database Analysis
+- Need to check device registrations
+- Need to check APNs token storage
+- Need to check timer state persistence
+
+## App Analysis
+- Need to check iOS/macOS notification handling
+- Need to check timer sync API calls from apps
+- Need to check app logs for sync attempts
+
+## Current Hypotheses
+1. Devices not registered with APNs tokens
+2. Apps not calling sync APIs properly
+3. Notification permissions not granted
+4. Apps not handling silent notifications correctly

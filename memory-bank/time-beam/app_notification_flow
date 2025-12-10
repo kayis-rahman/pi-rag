@@ -1,0 +1,30 @@
+# App Notification Flow Analysis
+
+## iOS/macOS Notification Registration Flow:
+1. App launches → requestNotificationPermissions()
+2. User grants permissions → registerForRemoteNotifications()
+3. System calls → didRegisterForRemoteNotificationsWithDeviceToken()
+4. App stores token → KeychainStore.saveString(token, for: .apnsToken)
+5. App sends token to backend → ApiClient.updateApnsToken()
+6. Backend stores token → UserDevice.apnsToken
+
+## Notification Handling Flow:
+1. Backend sends APNs → silent notification with type: "timer_sync"
+2. App receives → userNotificationCenter(_:willPresent:withCompletionHandler:)
+3. App processes → calls TimerSyncManager.shared.syncTimerState()
+4. App pulls state → updates local timer
+
+## Code Verification:
+- ✅ iOSAppDelegate: has notification permission request
+- ✅ iOSAppDelegate: has remote notification registration
+- ✅ iOSAppDelegate: has token handling methods
+- ✅ iOSAppDelegate: has notification center delegate
+- ✅ TimerSyncManager: has syncTimerState() method
+- ✅ ApiClient: has pushTimerState() and pullTimerState()
+
+## Potential Issues:
+- Notification permissions not granted by user
+- APNs token not sent to backend
+- Silent notifications not processed (app suspended)
+- Timer sync API calls failing
+- Network connectivity issues

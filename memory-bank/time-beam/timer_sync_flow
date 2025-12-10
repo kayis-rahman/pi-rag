@@ -1,0 +1,32 @@
+# Timer Synchronization Flow Analysis
+
+## Expected Flow (macOS → iOS)
+1. User starts timer on macOS
+2. macOS app calls `TimerSyncManager.shared.syncTimerState()`
+3. State pushed to backend via `TimerController.pushTimerState()`
+4. Backend stores state in database
+5. Backend sends APNs to other devices via `PushNotificationService`
+6. iOS receives silent notification with `type: "timer_sync"`
+7. iOS app calls `TimerSyncManager.shared.syncTimerState()`
+8. iOS pulls latest state from backend
+9. iOS applies synced state and starts timer
+
+## Actual Flow (Broken)
+1. User starts timer on macOS ✅
+2. macOS pushes state to backend ✅
+3. Backend stores state ✅
+4. Backend attempts to send APNs ❌ (APNs disabled)
+5. iOS never receives notification ❌
+6. iOS timer remains stopped ❌
+
+## Code Verification
+- macOS timer start: ✅ `macOSContentView.startWithPermission()`
+- Timer sync push: ✅ `TimerSyncManager.syncTimerState()`
+- Backend push endpoint: ✅ `TimerController.pushTimerState()`
+- Backend service: ✅ `TimerSyncService.pushTimerState()`
+- APNs sending: ❌ `PushNotificationService.sendTimerSyncPush()` (disabled)
+- iOS notification handling: ✅ `iOSAppDelegate.userNotificationCenter(_:willPresent:)`
+- iOS sync pull: ✅ `TimerSyncManager.syncTimerState()` called on notification
+
+## Failure Point
+The failure occurs at step 5: APNs are disabled in backend configuration, so iOS devices never receive the timer sync notifications.

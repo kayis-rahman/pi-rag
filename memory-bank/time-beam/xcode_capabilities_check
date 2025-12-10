@@ -1,0 +1,26 @@
+# Xcode Capabilities Check
+
+## Current Bundle IDs:
+- iOS: Checking PRODUCT_BUNDLE_IDENTIFIER
+- macOS: Checking PRODUCT_BUNDLE_IDENTIFIER
+
+## Required Capabilities:
+- **Push Notifications** for both targets
+- **Background Modes** → Remote notifications (iOS)
+- **App Sandbox** → Incoming Connections (macOS)
+
+## Xcode Project Setup:
+1. **Open project** in Xcode GUI
+2. **Select target** → Signing & Capabilities
+3. **Add Push Notifications** capability
+4. **Verify bundle IDs** match backend config
+
+## Bundle ID Verification:
+- Backend expects: `com.sparkage.time-beam.ios` / `com.sparkage.time-beam`
+- Xcode should match these exactly
+
+## Next Steps:
+1. Open Xcode and add capabilities
+2. Verify bundle IDs
+3. Build and test apps
+4. Check for APNs registration

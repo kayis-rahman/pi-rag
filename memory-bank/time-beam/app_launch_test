@@ -1,0 +1,26 @@
+# App Launch Test for APNs Registration
+
+## Test Plan:
+1. **Build iOS app** for simulator
+2. **Build macOS app** 
+3. **Launch apps** and monitor for permission requests
+4. **Check Xcode console** for registration logs
+5. **Verify tokens** in database after launch
+
+## Expected Behavior:
+- Apps should request notification permissions on first launch
+- Should register for remote notifications if granted
+- Should obtain APNs tokens from Apple
+- Should send tokens to backend
+- Database should show has_token = true
+
+## Current Status:
+- Apps have proper notification code ✅
+- Backend ready to receive tokens ✅
+- Certificates missing from Xcode ❌
+
+## Next Steps:
+1. Add APNs certificates to Xcode
+2. Build and launch apps
+3. Monitor registration process
+4. Test timer sync functionality

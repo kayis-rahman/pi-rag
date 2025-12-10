@@ -23,6 +23,13 @@ struct ApiClient {
         self.urlSession = urlSession
     }
 
+    static let shared: ApiClient = {
+        guard let config = Configuration.fromInfoPlist() else {
+            fatalError("API configuration not found in Info.plist")
+        }
+        return ApiClient(configuration: config)
+    }()
+
     // MARK: - DTOs
 
     struct RegisterRequest: Codable {
@@ -54,15 +61,18 @@ struct ApiClient {
     }
 
     struct TimerStateDto: Codable {
-        let phase: String
+        let startTimestamp: Double?
+        let pauseTimestamp: Double?
+        let totalDuration: Int
         let remainingSeconds: Int
+        let phase: String
         let isRunning: Bool
         let workDuration: Int
         let breakDuration: Int
         let longBreakDuration: Int
         let autoStartNextSession: Bool
         let shortBreaksCompleted: Int
-        let timestamp: Date
+        let lastModifiedTimestamp: Double
         let deviceId: String
     }
 
@@ -221,9 +231,21 @@ struct ApiClient {
         }
 
         // Handle 204 No Content - no timer state available
-        if http.statusCode == 204 || data.isEmpty {
-            AppLogger.debug("No timer state available from backend", category: .sync)
+        if http.statusCode == 204 {
+            AppLogger.debug("No timer state available from backend (204)", category: .sync)
             return nil
+        }
+
+        // Log response details for debugging
+        AppLogger.debug("Timer state pull response: status=\(http.statusCode), dataSize=\(data.count)", category: .sync)
+        if let responseString = String(data: data, encoding: .utf8) {
+            AppLogger.debug("Timer state pull response body: \(responseString.prefix(200))", category: .sync)
+        }
+
+        // Handle empty data with other status codes as error
+        if data.isEmpty {
+            AppLogger.error("Empty response from timer state pull (status: \(http.statusCode))", category: .sync)
+            throw ApiError.invalidResponse
         }
 
         // Decode the timer state

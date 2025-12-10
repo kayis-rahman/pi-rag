@@ -1,0 +1,56 @@
+# APNs Certificate Setup Guide for Xcode
+
+## Prerequisites:
+1. **Apple Developer Account** (Paid account required)
+2. **App IDs** configured for push notifications
+3. **Xcode project** ready
+
+## Step 1: Create APNs Key in Apple Developer Console
+1. Go to https://developer.apple.com/account/
+2. Navigate to **Keys** section
+3. Click **+** to create new key
+4. Enter key name (e.g., "TimeBeam APNs Key")
+5. Check **Apple Push Notifications service (APNs)**
+6. Click **Continue** then **Register**
+7. **Download the .p8 file** (keep it secure!)
+8. **Note the Key ID** (e.g., ABC123DEF4)
+
+## Step 2: Get Team ID
+- In Apple Developer Console → Account → Membership
+- Note your **Team ID** (e.g., DEF123GHI5)
+
+## Step 3: Update Backend Configuration
+Update `back-end/src/main/resources/application.yml`:
+```yaml
+apns:
+  enabled: true
+  key-path: /path/to/AuthKey_ABC123DEF4.p8
+  key-id: ABC123DEF4
+  team-id: DEF123GHI5
+  bundle-id-ios: com.sparkage.time-beam.ios
+  bundle-id-macos: com.sparkage.time-beam
+  production: false
+```
+
+## Step 4: Add Certificates to Xcode Project
+1. **Open Xcode project**: `apple/TimeBeam/TimeBeam.xcodeproj`
+2. **Select project** in navigator
+3. **Select iOS target** → **Signing & Capabilities**
+4. **Click +** → **Push Notifications**
+5. **Repeat for macOS target**
+
+## Step 5: Test Certificate Setup
+1. **Build iOS app** for simulator
+2. **Build macOS app**
+3. **Run apps** and grant notification permissions
+4. **Check Xcode console** for registration logs
+5. **Verify tokens** in database
+
+## Current Status:
+- Backend configured for APNs ✅
+- Bundle IDs matched ✅
+- Need certificates in Xcode ❌
+
+## Files to Check:
+- Look for .p8 files in project
+- Check if certificates already exist

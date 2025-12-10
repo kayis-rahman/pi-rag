@@ -47,10 +47,26 @@ final class WatchConnectivityManager: ObservableObject {
     }
 
     // MARK: - Timer Sync Methods
-    func broadcastTimerAction(_ message: TimerSyncManager.ActionMessage) {
+    func broadcastTimerState() {
+        guard let timer = TimerSyncManager.shared.getTimer() else { return }
+        let state = [
+            "startTimestamp": timer.startTimestamp as Any,
+            "pauseTimestamp": timer.pauseTimestamp as Any,
+            "totalDuration": timer.currentDuration,
+            "remainingSeconds": Int(timer.remainingSeconds),
+            "phase": timer.phase.rawValue,
+            "isRunning": timer.isRunning,
+            "workDuration": timer.workDuration,
+            "breakDuration": timer.breakDuration,
+            "longBreakDuration": timer.longBreakDuration,
+            "autoStartNextSession": timer.autoStartNextSession,
+            "shortBreaksCompleted": timer.shortBreaksCompleted,
+            "lastModifiedTimestamp": timer.lastModifiedTimestamp
+        ] as [String: Any]
+
         let payload: [String: Any] = [
             Keys.timerSync: true,
-            Keys.timerState: try! JSONEncoder().encode(message)
+            Keys.timerState: state
         ]
 
         sendMessage(payload)
@@ -59,14 +75,9 @@ final class WatchConnectivityManager: ObservableObject {
     func handleIncomingTimerSync(_ message: [String: Any]) {
         guard message[Keys.timerSync] as? Bool == true else { return }
 
-        if let actionData = message[Keys.timerState] as? Data,
-           let actionMessage = try? JSONDecoder().decode(TimerSyncManager.ActionMessage.self, from: actionData) {
-
-            TimerSyncManager.shared.handleIncomingAction(
-                actionMessage.action,
-                from: actionMessage.deviceId,
-                timestamp: actionMessage.timestamp
-            )
+        if let stateDict = message[Keys.timerState] as? [String: Any] {
+            // Apply the state directly
+            TimerSyncManager.shared.applyIncomingState(stateDict)
         }
     }
 

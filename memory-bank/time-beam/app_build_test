@@ -1,0 +1,25 @@
+# App Build Test with APNs Capabilities
+
+## Build Status:
+- iOS app: Building with Push Notifications capability
+- macOS app: Building with Push Notifications capability
+
+## Expected Results:
+- ✅ Builds should succeed now that capabilities are added
+- ✅ Apps should include push notification entitlements
+- ✅ Ready for APNs token registration testing
+
+## Next Steps After Build:
+1. Launch iOS app on simulator
+2. Launch macOS app
+3. Grant notification permissions
+4. Monitor console for APNs registration
+5. Check database for token storage
+6. Test timer sync
+
+## Verification Points:
+- Xcode console shows permission requests
+- Apps register for remote notifications
+- APNs tokens obtained and stored
+- Backend receives token updates
+- Timer sync works automatically

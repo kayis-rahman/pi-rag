@@ -59,7 +59,7 @@ class TimerSyncServiceTest {
         timerStateDto.setLongBreakDuration(15);
         timerStateDto.setAutoStartNextSession(false);
         timerStateDto.setShortBreaksCompleted(0);
-        timerStateDto.setTimestamp(Instant.now());
+        timerStateDto.setLastModifiedTimestamp(Instant.now());
         timerStateDto.setDeviceId(deviceId.toString());
 
         // Setup TimerState entity

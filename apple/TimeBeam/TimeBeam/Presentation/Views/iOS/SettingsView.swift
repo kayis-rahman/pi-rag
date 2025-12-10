@@ -40,11 +40,11 @@ struct SettingsView: View {
                         }
                         .onAppear {
                             // Refresh auth data if it's incomplete
-                            if authManager.displayName?.isEmpty ?? true || authManager.email?.isEmpty ?? true {
-                                _Concurrency.Task {
-                                    await authManager.restoreSession()
-                                }
-                            }
+                             if authManager.displayName?.isEmpty ?? true || authManager.email?.isEmpty ?? true {
+                                 _Concurrency.Task {
+                                     await authManager.restoreSession()
+                                 }
+                             }
                         }
                     } else {
                         HStack {
@@ -56,8 +56,8 @@ struct SettingsView: View {
                                     .foregroundStyle(.secondary)
                             }
                             Spacer()
-                            Button("Sign In") {
-                                _Concurrency.Task {
+                             Button("Sign In") {
+                                 _Concurrency.Task {
                                     do {
                                         try await authManager.signInWithGoogle()
                                     } catch {
@@ -323,9 +323,9 @@ struct AccountManagementView: View {
                 }
 
                 Section {
-                    Button("Sign Out", role: .destructive) {
-                        _Concurrency.Task { await authManager.signOut() }
-                    }
+                     Button("Sign Out", role: .destructive) {
+                         _Concurrency.Task { await authManager.signOut() }
+                     }
                 }
             } else {
                 Section("ACCOUNT") {
@@ -343,8 +343,8 @@ struct AccountManagementView: View {
                             .foregroundStyle(.secondary)
                     }
 
-                    Button("Sign In with Google") {
-                        _Concurrency.Task {
+                     Button("Sign In with Google") {
+                         _Concurrency.Task {
                             do {
                                 try await authManager.signInWithGoogle()
                             } catch {
@@ -373,9 +373,9 @@ struct AccountManagementView: View {
         guard authManager.isSignedIn else { return }
 
         isLoadingDeviceStats = true
-        deviceStatsError = nil
+         deviceStatsError = nil
 
-        _Concurrency.Task {
+         _Concurrency.Task {
             do {
                 guard let config = ApiClient.Configuration.fromInfoPlist(),
                       let accessToken = try? KeychainStore.loadString(.accessToken) else {

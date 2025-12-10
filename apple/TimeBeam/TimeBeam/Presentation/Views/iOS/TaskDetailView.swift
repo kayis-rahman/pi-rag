@@ -206,7 +206,7 @@ private struct TaskSessionHistoryView: View {
 
         // This would fetch sessions for the task from the backend
         // For now, create mock data
-        try? await _Concurrency.Task.sleep(for: .seconds(0.5)) // Simulate network delay
+        try? await Task.sleep(for: .seconds(0.5)) // Simulate network delay
 
         // Mock session data
         sessions = [

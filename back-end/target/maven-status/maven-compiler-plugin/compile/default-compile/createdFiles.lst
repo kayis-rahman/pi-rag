@@ -1,5 +1,4 @@
 com/sparkage/timebeam/domain/model/SessionRecord.class
-com/sparkage/timebeam/application/service/TimerSyncService.class
 com/sparkage/timebeam/infrastructure/persistence/Task$Status.class
 com/sparkage/timebeam/domain/repository/UserRepository.class
 com/sparkage/timebeam/infrastructure/persistence/Task.class
@@ -21,6 +20,7 @@ com/sparkage/timebeam/presentation/controller/TaskController.class
 com/sparkage/timebeam/presentation/dto/AuthRequests.class
 com/sparkage/timebeam/presentation/dto/UserDto.class
 com/sparkage/timebeam/presentation/dto/AuthRequests$Register.class
+com/sparkage/timebeam/presentation/dto/ApnNotificationPayloadDto.class
 com/sparkage/timebeam/infrastructure/persistence/UserPreferences.class
 com/sparkage/timebeam/infrastructure/persistence/UserDevice.class
 com/sparkage/timebeam/infrastructure/persistence/SessionRecordMapperImpl.class
@@ -65,6 +65,7 @@ com/sparkage/timebeam/presentation/dto/AnalyticsDashboardResponse$MetadataData.c
 com/sparkage/timebeam/infrastructure/persistence/UserJpaRepository.class
 com/sparkage/timebeam/infrastructure/persistence/UserMapperImpl.class
 com/sparkage/timebeam/infrastructure/persistence/SessionRecord$Kind.class
+com/sparkage/timebeam/presentation/dto/TimerSyncActionDto.class
 com/sparkage/timebeam/infrastructure/persistence/User.class
 com/sparkage/timebeam/infrastructure/persistence/TimerState.class
 com/sparkage/timebeam/infrastructure/config/SecurityConfig.class
@@ -74,5 +75,6 @@ com/sparkage/timebeam/infrastructure/external/JwtAuthenticationFilter.class
 com/sparkage/timebeam/domain/model/Task$Status.class
 com/sparkage/timebeam/infrastructure/persistence/TaskMapperImpl.class
 com/sparkage/timebeam/infrastructure/persistence/TaskMapper.class
+com/sparkage/timebeam/presentation/controller/NotificationController.class
 com/sparkage/timebeam/infrastructure/external/ResourceNotFoundException.class
 com/sparkage/timebeam/presentation/dto/SessionRecordDto.class

@@ -1,0 +1,23 @@
+# App Notification Handling Analysis
+
+## iOS/macOS Notification Flow:
+1. App requests notification permissions
+2. User grants permissions
+3. App registers for remote notifications
+4. System calls didRegisterForRemoteNotificationsWithDeviceToken
+5. App stores token and sends to backend
+6. Backend stores token in user_devices table
+7. When timer sync occurs, backend sends APNs to stored tokens
+8. App receives notification and calls syncTimerState()
+
+## Code Verification:
+- iOSAppDelegate: has UNUserNotificationCenterDelegate implementation
+- MacAppDelegate: has UNUserNotificationCenterDelegate implementation
+- Both handle 'timer_sync' type notifications
+- Both call TimerSyncManager.shared.syncTimerState() on notification
+
+## Potential Issues:
+- Notification permissions denied
+- APNs token not registered with backend
+- Silent notifications not waking app
+- Notification delegate not properly set

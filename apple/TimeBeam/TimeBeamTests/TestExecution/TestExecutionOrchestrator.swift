@@ -515,7 +515,7 @@ class DefaultTestRunner: TestRunnerProtocol {
         // This would integrate with actual test runners (XCTest, JUnit, etc.)
         // For now, simulate test execution
 
-        try await Task.sleep(nanoseconds: UInt64(timeout * 0.1 * 1_000_000_000)) // Simulate execution time
+        try await Task.sleep(for: .nanoseconds(UInt64(timeout * 0.1 * 1_000_000_000))) // Simulate execution time
 
         // Simulate realistic test results
         let totalTests = task.testClasses.count * 10

@@ -7,6 +7,7 @@ struct KeychainStore {
         case accessToken = "com.timebeam.auth.accessToken"
         case userDisplayName = "com.timebeam.auth.displayName"
         case userEmail = "com.timebeam.auth.email"
+        case apnsToken = "com.timebeam.apns.token"
     }
 
     private static let service = "com.timebeam.keychain"

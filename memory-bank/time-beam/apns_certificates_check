@@ -1,0 +1,26 @@
+# APNs Certificates Check
+
+## Xcode Project Search:
+- No .p12 or .p8 certificate files found in project
+- No certificate-related files found
+
+## Required for APNs:
+1. **APNs Authentication Key (.p8)** or **Certificate (.p12)**
+2. **Key ID** (for .p8 files)
+3. **Team ID**
+4. **Matching Bundle IDs**
+
+## Current Status:
+- ✅ Bundle IDs configured (but may have mismatch)
+- ✅ Team ID and Key ID configured in backend
+- ✅ Key file exists at configured path
+- ❌ **No certificates found in Xcode project**
+
+## Issue:
+**APNs certificates may not be properly added to Xcode project**
+
+## Required Actions:
+1. **Add APNs certificates** to Xcode project
+2. **Verify bundle IDs match** certificates
+3. **Test certificate validity**
+4. **Check provisioning profiles** include push notifications

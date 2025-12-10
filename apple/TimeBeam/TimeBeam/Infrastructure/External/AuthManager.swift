@@ -2,6 +2,7 @@ import AuthenticationServices
 import Combine
 
 import Foundation
+import _Concurrency
 import GoogleSignIn
 
 #if os(macOS)
@@ -50,24 +51,8 @@ final class AuthManager: ObservableObject {
                 print("[Auth] restoreSession: attempting Google restorePreviousSignIn with timeout")
                 #endif
 
-                // Add timeout to prevent hanging
-                let timeoutTask = _Concurrency.Task {
-                    try await _Concurrency.Task.sleep(nanoseconds: 10_000_000_000) // 10 seconds timeout
-                    throw NSError(domain: "AuthTimeout", code: -1, userInfo: [NSLocalizedDescriptionKey: "Authentication timeout"])
-                }
-
-                let restoreTask = _Concurrency.Task {
-                    return try await GIDSignIn.sharedInstance.restorePreviousSignIn()
-                }
-
-                let user = try await withTaskCancellationHandler {
-                    defer { timeoutTask.cancel() }
-                    let result = try await restoreTask.value
-                    return result
-                } onCancel: {
-                    restoreTask.cancel()
-                    timeoutTask.cancel()
-                }
+                // Restore previous sign-in
+                let user = try await GIDSignIn.sharedInstance.restorePreviousSignIn()
 
                 await applyUser(user)
                 #if DEBUG
@@ -290,11 +275,28 @@ final class AuthManager: ObservableObject {
             // Persist tokens and user info
             try completeSignIn(idToken: idToken, accessToken: login.accessToken, name: name, mail: mail)
 
-            // Trigger smart timer sync after successful authentication
-            AppLogger.info("Triggering smart timer sync after login", category: .auth)
-            _Concurrency.Task { @MainActor in
-                await TimerSyncManager.shared.smartSyncWithBackend()
+            // Register device for push notifications
+            do {
+                try await registerCurrentDevice(accessToken: login.accessToken)
+                AppLogger.info("Device registered successfully after login", category: .auth)
+
+                // Also register APNs token if available
+                if let apnsToken = try? KeychainStore.loadString(.apnsToken) {
+                    do {
+                        try await ApiClient.shared.updateApnsToken(deviceId: TimerSyncManager.shared.deviceId, apnsToken: apnsToken, accessToken: login.accessToken)
+                        AppLogger.info("APNs token registered successfully after login", category: .auth)
+                    } catch {
+                        AppLogger.error("Failed to register APNs token after login: \(error.localizedDescription)", category: .auth)
+                    }
+                }
+            } catch {
+                AppLogger.error("Failed to register device after login: \(error.localizedDescription)", category: .auth)
+                // Don't fail login if device registration fails
             }
+
+            // Trigger timer sync after successful authentication
+            AppLogger.info("Triggering timer sync after login", category: .auth)
+            await TimerSyncManager.shared.syncTimerState()
         } catch {
             #if DEBUG
             print("[Auth] applyUser: backend call failed: \(error)")
@@ -366,12 +368,45 @@ final class AuthManager: ObservableObject {
     }
     #endif
 
+    // MARK: - Device Registration
+
+    private func registerCurrentDevice(accessToken: String) async throws {
+        let deviceId = TimerSyncManager.shared.deviceId
+
+        #if os(iOS)
+        let deviceType = "ios"
+        let deviceName = await UIDevice.current.name
+        let platformVersion = await UIDevice.current.systemVersion
+        #elseif os(macOS)
+        let deviceType = "macos"
+        let deviceName = Host.current().localizedName ?? "Mac"
+        let platformVersion = ProcessInfo.processInfo.operatingSystemVersionString
+        #else
+        let deviceType = "unknown"
+        let deviceName = "Unknown Device"
+        let platformVersion = nil
+        #endif
+
+        let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
+
+        let registration = ApiClient.DeviceRegistrationDto(
+            deviceId: deviceId,
+            deviceName: deviceName,
+            deviceType: deviceType,
+            platformVersion: platformVersion,
+            appVersion: appVersion,
+            fcmToken: nil  // APNs token will be registered separately
+        )
+
+        try await ApiClient.shared.registerDevice(registration, accessToken: accessToken)
+    }
+
     // MARK: - Config
 
     private func clientID() -> String {
         if let dict = Bundle.main.infoDictionary,
-           let cid = dict["GOOGLE_CLIENT_ID"] as? String,
-           !cid.isEmpty {
+            let cid = dict["GOOGLE_CLIENT_ID"] as? String,
+            !cid.isEmpty {
             return cid
         }
         return "512741716533-iks9gube8oh8f0gopnmc3v72pe6u3p5m.apps.googleusercontent.com"

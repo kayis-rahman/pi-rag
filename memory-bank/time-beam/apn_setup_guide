@@ -1,0 +1,47 @@
+# APNs Setup Guide for TimeBeam Timer Sync
+
+## Prerequisites for APNs
+1. **Apple Developer Account**: Paid developer account required
+2. **App IDs**: Separate App IDs for iOS and macOS with Push Notifications capability
+3. **APNs Certificates/Keys**: Either .p12 certificate or .p8 authentication key
+
+## Step 1: Create App IDs with Push Notifications
+1. Go to Apple Developer Console → Certificates, Identifiers & Profiles
+2. Create App ID for iOS: com.sparkage.timebeam.ios
+3. Create App ID for macOS: com.sparkage.timebeam.macos
+4. Enable Push Notifications capability for both
+
+## Step 2: Generate APNs Authentication Key (.p8)
+1. Go to Keys section in Developer Console
+2. Create new key with APNs capability
+3. Download the .p8 file (keep it secure!)
+4. Note the Key ID and Team ID
+
+## Step 3: Configure Backend Environment Variables
+```yaml
+apns:
+  enabled: true
+  key-path: /path/to/AuthKey_ABC123DEF4.p8
+  key-id: ABC123DEF4
+  team-id: DEF123GHI5
+  bundle-id-ios: com.sparkage.timebeam.ios
+  bundle-id-macos: com.sparkage.timebeam.macos
+  production: false  # Set to true for production
+```
+
+## Step 4: Update application.yml
+Replace the current APNs configuration with actual values.
+
+## Step 5: Test APNs Setup
+1. Deploy backend with APNs enabled
+2. Check logs for "APNs client initialized successfully"
+3. Test timer sync between devices
+4. Verify notifications appear in console logs
+
+## Alternative: Use Push Notification Service
+Consider using a service like Firebase Cloud Messaging or OneSignal for easier management, though this requires code changes.
+
+## Current Status
+- APNs is completely disabled in current backend
+- No certificates/keys configured
+- This is why timer sync notifications are not being sent

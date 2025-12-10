@@ -139,11 +139,11 @@ public class TimerSyncIntegrationTest {
     public void testSimultaneousChanges_NewerTimestampWins() throws Exception {
         // Device A sends update with timestamp T1
         TimerStateDto stateT1 = createTimerState(true, "work", 1500);
-        stateT1.setTimestamp(Instant.parse("2025-12-03T10:00:00Z"));
+        stateT1.setLastModifiedTimestamp(Instant.parse("2025-12-03T10:00:00Z"));
 
         // Device B sends update with timestamp T2 (newer)
         TimerStateDto stateT2 = createTimerState(false, "break", 300);
-        stateT2.setTimestamp(Instant.parse("2025-12-03T10:00:01Z"));
+        stateT2.setLastModifiedTimestamp(Instant.parse("2025-12-03T10:00:01Z"));
 
         // Send both updates (simulate concurrent requests)
         mockMvc.perform(post("/api/sessions/timer/state")
@@ -171,11 +171,11 @@ public class TimerSyncIntegrationTest {
 
         // Device A sends update
         TimerStateDto stateA = createTimerState(true, "work", 1500);
-        stateA.setTimestamp(sameTimestamp);
+        stateA.setLastModifiedTimestamp(sameTimestamp);
 
         // Device B sends update with same timestamp
         TimerStateDto stateB = createTimerState(false, "break", 300);
-        stateB.setTimestamp(sameTimestamp);
+        stateB.setLastModifiedTimestamp(sameTimestamp);
 
         mockMvc.perform(post("/api/sessions/timer/state")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -199,7 +199,7 @@ public class TimerSyncIntegrationTest {
     public void testOlderTimestamp_Rejected() throws Exception {
         // Send newer update first
         TimerStateDto newState = createTimerState(true, "work", 1500);
-        newState.setTimestamp(Instant.parse("2025-12-03T10:00:01Z"));
+        newState.setLastModifiedTimestamp(Instant.parse("2025-12-03T10:00:01Z"));
 
         mockMvc.perform(post("/api/sessions/timer/state")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -208,7 +208,7 @@ public class TimerSyncIntegrationTest {
 
         // Try to send older update - should be accepted but ignored
         TimerStateDto oldState = createTimerState(false, "break", 300);
-        oldState.setTimestamp(Instant.parse("2025-12-03T10:00:00Z"));
+        oldState.setLastModifiedTimestamp(Instant.parse("2025-12-03T10:00:00Z"));
 
         mockMvc.perform(post("/api/sessions/timer/state")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -233,7 +233,7 @@ public class TimerSyncIntegrationTest {
 
         // Server has old state
         TimerStateDto serverState = createTimerState(true, "work", 1500);
-        serverState.setTimestamp(Instant.parse("2025-12-03T09:00:00Z"));
+        serverState.setLastModifiedTimestamp(Instant.parse("2025-12-03T09:00:00Z"));
         mockMvc.perform(post("/api/sessions/timer/state")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(serverState)))
@@ -241,7 +241,7 @@ public class TimerSyncIntegrationTest {
 
         // Device comes online with newer state (simulating offline changes)
         TimerStateDto deviceState = createTimerState(false, "break", 300);
-        deviceState.setTimestamp(Instant.parse("2025-12-03T10:00:00Z"));
+        deviceState.setLastModifiedTimestamp(Instant.parse("2025-12-03T10:00:00Z"));
         mockMvc.perform(post("/api/sessions/timer/state")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(deviceState)))
@@ -259,7 +259,7 @@ public class TimerSyncIntegrationTest {
     public void testOfflineDeviceComesOnlineWithOlderState() throws Exception {
         // Server has newer state
         TimerStateDto serverState = createTimerState(false, "break", 300);
-        serverState.setTimestamp(Instant.parse("2025-12-03T10:00:00Z"));
+        serverState.setLastModifiedTimestamp(Instant.parse("2025-12-03T10:00:00Z"));
         mockMvc.perform(post("/api/sessions/timer/state")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(serverState)))
@@ -267,7 +267,7 @@ public class TimerSyncIntegrationTest {
 
         // Device comes online with older state - should be ignored
         TimerStateDto deviceState = createTimerState(true, "work", 1500);
-        deviceState.setTimestamp(Instant.parse("2025-12-03T09:00:00Z"));
+        deviceState.setLastModifiedTimestamp(Instant.parse("2025-12-03T09:00:00Z"));
         mockMvc.perform(post("/api/sessions/timer/state")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(deviceState)))
@@ -507,7 +507,7 @@ public class TimerSyncIntegrationTest {
         boundaryState.setLongBreakDuration(1);
         boundaryState.setAutoStartNextSession(true);
         boundaryState.setShortBreaksCompleted(0);
-        boundaryState.setTimestamp(Instant.now());
+        boundaryState.setLastModifiedTimestamp(Instant.now());
         boundaryState.setDeviceId(deviceId1);
 
         mockMvc.perform(post("/api/sessions/timer/state")
@@ -556,7 +556,7 @@ public class TimerSyncIntegrationTest {
         // Test the conversion logic with null values getting defaults
         TimerActionDto actionDto = new TimerActionDto();
         actionDto.setAction("start");
-        actionDto.setTimestamp(Instant.now());
+        actionDto.setLastModifiedTimestamp(Instant.now());
         actionDto.setDeviceId(deviceId1);
         // Leave other fields null to test defaults
 
@@ -708,7 +708,7 @@ public class TimerSyncIntegrationTest {
         state.setLongBreakDuration(900);
         state.setAutoStartNextSession(true);
         state.setShortBreaksCompleted(0);
-        state.setTimestamp(Instant.now());
+        state.setLastModifiedTimestamp(Instant.now());
         state.setDeviceId(deviceId1);
         return state;
     }
@@ -716,7 +716,7 @@ public class TimerSyncIntegrationTest {
     private TimerActionDto createTimerAction(String action, String deviceId) {
         TimerActionDto actionDto = new TimerActionDto();
         actionDto.setAction(action);
-        actionDto.setTimestamp(Instant.now());
+        actionDto.setLastModifiedTimestamp(Instant.now());
         actionDto.setDeviceId(deviceId);
         actionDto.setPhase("work");
         actionDto.setRemainingSeconds(1500);

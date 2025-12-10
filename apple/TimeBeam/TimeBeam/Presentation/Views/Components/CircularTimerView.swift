@@ -54,7 +54,7 @@ struct CircularTimerView: View {
                     .monospacedDigit()
                     .foregroundColor(Color.themeTextPrimary)
 
-                // Phase label
+                // PomodoroTimer.Phase label
                 Text(timer.phase.displayName)
                     .font(.system(size: size * 0.06, weight: .medium, design: .rounded))
                     .foregroundColor(Color.themeTextSecondary)
@@ -72,7 +72,7 @@ struct CircularTimerView: View {
     }
 }
 
-// Phase display names are defined in Phase.swift
+// PomodoroTimer.Phase display names are defined in PomodoroTimer.Phase.swift
 
 // Angular gradient extension
 extension AngularGradient {

@@ -1,23 +1,7 @@
 import Foundation
 import SwiftUI
 
-// Shared Phase enum for watchOS target
-
-enum Phase: String, Codable, CaseIterable, Hashable, Identifiable, Sendable {
-    case work
-    case break
-    case longBreak
-
-    var id: Self { self }
-
-    var displayName: String {
-        switch self {
-        case .work: return "Focus"
-        case .break: return "Break"
-        case .longBreak: return "Long Break"
-        }
-    }
-}
+// Phase enum defined in Phase.swift
 
 @MainActor
 class PomodoroTimer: ObservableObject {
@@ -155,10 +139,11 @@ class PomodoroTimer: ObservableObject {
 }
 
 // MARK: - Extensions
-extension Int {
+extension Double {
     var mmss: String {
-        let minutes = self / 60
-        let seconds = self % 60
+        let totalSeconds = Int(self)
+        let minutes = totalSeconds / 60
+        let seconds = totalSeconds % 60
         return String(format: "%02d:%02d", minutes, seconds)
     }
 }

@@ -70,7 +70,7 @@ struct TaskAnalyticsView: View {
             do {
                 // This would call the backend analytics API
                 // For now, create mock data
-                try await _Concurrency.Task.sleep(for: .seconds(1))
+                try await Task.sleep(for: .seconds(1))
 
                 analyticsData = TaskAnalyticsData(
                     metrics: TaskMetrics(

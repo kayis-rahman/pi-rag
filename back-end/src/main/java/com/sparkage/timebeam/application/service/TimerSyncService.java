@@ -40,8 +40,8 @@ public class TimerSyncService {
      */
     @Transactional
     public void pushTimerState(UUID userId, TimerStateDto state, String deviceIdString) {
-        log.info("Pushing timer state for user={}, device={}, timestamp={}",
-                userId, deviceIdString, state.getTimestamp());
+                log.info("Pushing timer state for user={}, device={}, timestamp={}",
+                         userId, deviceIdString, state.getLastModifiedTimestamp());
 
         int maxRetries = 3;
         for (int attempt = 1; attempt <= maxRetries; attempt++) {
@@ -72,7 +72,7 @@ public class TimerSyncService {
                     log.info("Updated timer state for user={} with state from device={} (collaborative mode)", userId, deviceIdString);
 
                     // Send push notification to other devices for real-time sync
-                    pushNotificationService.sendTimerSyncPush(userId.toString(), deviceIdString, "state_update", state.getTimestamp().toString());
+                    pushNotificationService.sendTimerSyncPush(userId.toString(), deviceIdString, "state_update", state.getLastModifiedTimestamp().toString());
                 } else {
                     // Create new timer state - first device to sync
                     TimerState newState = createTimerStateFromDto(userId, state, deviceId);
@@ -232,18 +232,19 @@ public class TimerSyncService {
     }
 
     private TimerStateDto convertToDto(TimerState state) {
-        TimerStateDto dto = new TimerStateDto();
-        dto.setPhase(state.getPhase());
-        dto.setRemainingSeconds(state.getRemainingSeconds());
-        dto.setIsRunning(state.isRunning());
-        dto.setWorkDuration(state.getWorkDurationMinutes());
-        dto.setBreakDuration(state.getBreakDurationMinutes());
-        dto.setLongBreakDuration(state.getLongBreakDurationMinutes());
-        dto.setAutoStartNextSession(state.isAutoStartNext());
-        dto.setShortBreaksCompleted(state.getShortBreaksCompleted());
-        dto.setTimestamp(state.getLastUpdatedAt());
-        dto.setDeviceId(state.getUpdatedByDeviceId() != null ? state.getUpdatedByDeviceId().toString() : null);
-        return dto;
+        // Use the constructor with all fields for consistency
+        return new TimerStateDto(
+            state.getPhase(),
+            state.getRemainingSeconds(),
+            state.isRunning(),
+            state.getWorkDurationMinutes(),
+            state.getBreakDurationMinutes(),
+            state.getLongBreakDurationMinutes(),
+            state.isAutoStartNext(),
+            state.getShortBreaksCompleted(),
+            state.getLastUpdatedAt().toEpochMilli() / 1000.0, // lastModifiedTimestamp as Double (Unix timestamp)
+            state.getUpdatedByDeviceId() != null ? state.getUpdatedByDeviceId().toString() : null // deviceId as String
+        );
     }
 
     /**

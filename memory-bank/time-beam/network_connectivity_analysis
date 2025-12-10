@@ -1,0 +1,30 @@
+# Network Connectivity Analysis for APNs Delivery
+
+## APNs Requirements
+- Device must be online and connected to internet
+- APNs uses ports 443 (HTTPS) and 2197 (binary protocol)
+- VPNs can interfere with APNs delivery
+- Firewalls may block APNs traffic
+
+## Backend to APNs Communication
+- Backend uses Pushy library to send notifications
+- Requires valid APNs certificate/key
+- Must use correct environment (development/production)
+- APNs servers: gateway.sandbox.push.apple.com (dev) or gateway.push.apple.com (prod)
+
+## Current Backend Configuration
+- APNs enabled: false (so no communication attempted)
+- No certificate/key configured
+- Environment not specified
+
+## Potential Network Issues
+1. **VPN Interference**: Common cause of APNs delivery failures
+2. **Corporate Firewalls**: May block APNs ports
+3. **Backend Offline**: Can't reach APNs servers
+4. **DNS Issues**: Can't resolve APNs hostnames
+
+## Testing Steps
+1. Disable VPN temporarily
+2. Check backend server connectivity to internet
+3. Verify APNs certificate validity
+4. Test direct APNs connection from backend

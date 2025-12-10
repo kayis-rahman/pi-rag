@@ -37,7 +37,7 @@ final class TaskService: ObservableObject {
             userId: response.userId,
             title: response.title,
             description: response.description,
-            status: Task.Status(rawValue: response.status) ?? .todo,
+            status: UserTask.Status(rawValue: response.status) ?? .todo,
             createdAt: response.createdAt,
             updatedAt: response.updatedAt
         )
@@ -62,7 +62,7 @@ final class TaskService: ObservableObject {
                 userId: dto.userId,
                 title: dto.title,
                 description: dto.description,
-                status: Task.Status(rawValue: dto.status) ?? .todo,
+                status: UserTask.Status(rawValue: dto.status) ?? .todo,
                 createdAt: dto.createdAt,
                 updatedAt: dto.updatedAt
             )
@@ -86,7 +86,7 @@ final class TaskService: ObservableObject {
                 userId: dto.userId,
                 title: dto.title,
                 description: dto.description,
-                status: Task.Status(rawValue: dto.status) ?? .todo,
+                status: UserTask.Status(rawValue: dto.status) ?? .todo,
                 createdAt: dto.createdAt,
                 updatedAt: dto.updatedAt
             )
@@ -105,7 +105,7 @@ final class TaskService: ObservableObject {
             userId: response.userId,
             title: response.title,
             description: response.description,
-            status: Task.Status(rawValue: response.status) ?? .todo,
+            status: UserTask.Status(rawValue: response.status) ?? .todo,
             createdAt: response.createdAt,
             updatedAt: response.updatedAt
         )
@@ -132,7 +132,7 @@ final class TaskService: ObservableObject {
             userId: response.userId,
             title: response.title,
             description: response.description,
-            status: Task.Status(rawValue: response.status) ?? .todo,
+            status: UserTask.Status(rawValue: response.status) ?? .todo,
             createdAt: response.createdAt,
             updatedAt: response.updatedAt
         )

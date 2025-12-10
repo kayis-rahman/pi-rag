@@ -40,7 +40,7 @@ struct TimeBeamApp: App {
     #endif
 
     @StateObject var timer = PomodoroTimer()
-    @StateObject var logger = SessionLogger()
+    // @StateObject var logger = SessionLogger()
     @StateObject var authManager = AuthManager()
     @StateObject var taskService = TaskService()
     @StateObject var analyticsManager = AnalyticsManager(
@@ -76,7 +76,7 @@ struct TimeBeamApp: App {
                         }
                     }
                     .environmentObject(timer)
-                    .environmentObject(logger)
+                // .environmentObject(logger)
                     .environmentObject(authManager)
                     .environmentObject(taskService)
                     .environmentObject(analyticsManager)
@@ -94,7 +94,7 @@ struct TimeBeamApp: App {
             #else
             macOSContentView()
                 .environmentObject(timer)
-                .environmentObject(logger)
+                // .environmentObject(logger)
                 .environmentObject(authManager)
                 .environmentObject(taskService)
                 .environmentObject(analyticsManager)
@@ -107,14 +107,9 @@ struct TimeBeamApp: App {
                         await authManager.restoreSession()
 
                         // macOS gets priority - wait longer to allow iOS to sync first if it's running
-                        _ = try? await _Concurrency.Task.sleep(nanoseconds: 2_000_000_000) // 2 second delay
+                        try? await _Concurrency.Task.sleep(nanoseconds: 2_000_000_000) // 2 second delay
 
-                        if let _ = try? KeychainStore.loadString(.accessToken) {
-                            AppLogger.info("Authentication complete, starting smart timer sync on macOS", category: .sync)
-                            await TimerSyncManager.shared.smartSyncWithBackend()
-                        } else {
-                            AppLogger.warning("No access token after authentication, skipping timer sync", category: .sync)
-                        }
+
                     }
                 }
                 .onAppear {
@@ -127,7 +122,7 @@ struct TimeBeamApp: App {
                         }
                         let start = Date().addingTimeInterval(-TimeInterval(duration))
                         let record = SessionRecord(startedAt: start, duration: TimeInterval(duration), kind: kind)
-                        logger.add(record: record)
+                        // logger.add(record: record)
                     }
 
                     // Configure timer sync manager
@@ -171,25 +166,11 @@ struct TimeBeamApp: App {
             }
             let start = Date().addingTimeInterval(-TimeInterval(duration))
             let record = SessionRecord(startedAt: start, duration: TimeInterval(duration), kind: kind)
-            logger.add(record: record)
+            // logger.add(record: record)
         }
 
         // Configure timer sync manager
         TimerSyncManager.shared.configure(with: timer)
-
-        // Smart sync timer state with conflict resolution
-        // iOS gets priority over macOS to prevent race conditions
-        if (try? KeychainStore.loadString(.accessToken)) != nil {
-            AppLogger.info("Found access token after login, starting smart timer sync on iOS", category: .sync)
-            _Concurrency.Task {
-                // Small delay to ensure proper initialization
-                _ = try? await _Concurrency.Task.sleep(nanoseconds: 500_000_000) // 0.5 second delay
-                await TimerSyncManager.shared.smartSyncWithBackend()
-                AppLogger.info("Smart timer sync completed on iOS", category: .sync)
-            }
-        } else {
-            AppLogger.warning("No access token found after login, skipping timer sync", category: .sync)
-        }
 
         // Mark app as ready
         isAppReady = true
@@ -1076,7 +1057,7 @@ struct EnhancedTaskRow: View {
             isCompleting = true
         }
 
-        _Concurrency.Task {
+                    _Concurrency.Task {
             do {
                 // First mark as completed, then soft delete
                 _ = try await taskService.updateTask(task, status: .completed)
@@ -1094,7 +1075,7 @@ struct EnhancedTaskRow: View {
     }
 
     private func performUndo() {
-        _Concurrency.Task {
+                    _Concurrency.Task {
             do {
                 try await taskService.undoTaskCompletion(task)
             } catch {
@@ -1320,7 +1301,7 @@ struct DeletedTasksView: View {
     }
 
     private func restoreTask(_ item: RecycleBinItem) {
-        _Concurrency.Task {
+                    _Concurrency.Task {
             do {
                 try await taskService.restoreTask(from: item)
             } catch {
@@ -1502,7 +1483,15 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationC
         let tokenString = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
         AppLogger.info("Successfully registered for remote notifications on macOS, APNs token: \(tokenString.prefix(10))...", category: .general)
 
-        // Store APNs token with backend
+        // Store APNs token in Keychain for later registration
+        do {
+            try KeychainStore.saveString(tokenString, for: .apnsToken)
+            AppLogger.info("APNs token stored in Keychain on macOS", category: .general)
+        } catch {
+            AppLogger.error("Failed to store APNs token in Keychain on macOS: \(error.localizedDescription)", category: .general)
+        }
+
+        // Try to register APNs token with backend if we have authentication
         _Concurrency.Task {
             AppLogger.info("Starting APN token update with backend on macOS", category: .general)
             await updateApnsTokenWithBackend(tokenString)
@@ -1538,7 +1527,7 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationC
                 } else {
                     AppLogger.warning("APN token update attempt \(attempt) failed on macOS, retrying: \(error.localizedDescription)", category: .general)
                     // Wait before retry
-                    _ = try? await _Concurrency.Task.sleep(nanoseconds: UInt64(attempt) * 1_000_000_000) // 1, 2, 3 seconds
+                    _ = try? await Task.sleep(nanoseconds: UInt64(attempt) * 1_000_000_000) // 1, 2, 3 seconds
                 }
             }
         }
@@ -1552,25 +1541,9 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationC
         if let type = userInfo["type"] as? String, type == "timer_sync" {
             AppLogger.info("Received timer sync APN message on macOS", category: .sync)
 
-            // Extract sync data from APN payload
-            if let actionData = userInfo["action"] as? [String: Any],
-               let actionString = actionData["action"] as? String,
-               let deviceId = actionData["deviceId"] as? String,
-               let timestampString = actionData["timestamp"] as? String,
-               let timestamp = ISO8601DateFormatter().date(from: timestampString),
-               let action = TimerSyncManager.TimerAction(rawValue: actionString) {
-
-                AppLogger.info("Processing timer sync action: \(actionString) from device \(deviceId) at \(timestampString)", category: .sync)
-                // Handle incoming timer action from another device on main actor
-                _Concurrency.Task { @MainActor in
-                    TimerSyncManager.shared.handleIncomingAction(action, from: deviceId, timestamp: timestamp)
-                }
-            } else {
-                AppLogger.warning("Failed to parse timer sync APN payload on macOS: \(userInfo)", category: .sync)
-                // Fallback: trigger full timer sync
-                _Concurrency.Task {
-                    await TimerSyncManager.shared.smartSyncWithBackend()
-                }
+            // Always trigger full timer sync for reliability
+                    _Concurrency.Task {
+                await TimerSyncManager.shared.syncTimerState()
             }
 
             // Don't show notification for silent sync messages
@@ -1589,8 +1562,8 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationC
             AppLogger.info("User tapped timer sync notification on macOS", category: .sync)
 
             // Trigger timer sync when user taps notification
-            _Concurrency.Task {
-                await TimerSyncManager.shared.smartSyncWithBackend()
+                    _Concurrency.Task {
+                await TimerSyncManager.shared.syncTimerState()
             }
         }
 
@@ -1657,7 +1630,15 @@ final class iOSAppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationC
         let tokenString = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
         AppLogger.info("Successfully registered for remote notifications on iOS, APNs token: \(tokenString.prefix(10))...", category: .general)
 
-        // Store APNs token with backend
+        // Store APNs token in Keychain for later registration
+        do {
+            try KeychainStore.saveString(tokenString, for: .apnsToken)
+            AppLogger.info("APNs token stored in Keychain on iOS", category: .general)
+        } catch {
+            AppLogger.error("Failed to store APNs token in Keychain on iOS: \(error.localizedDescription)", category: .general)
+        }
+
+        // Try to register APNs token with backend if we have authentication
         _Concurrency.Task {
             AppLogger.info("Starting APN token update with backend on iOS", category: .general)
             await updateApnsTokenWithBackend(tokenString)
@@ -1693,7 +1674,7 @@ final class iOSAppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationC
                 } else {
                     AppLogger.warning("APN token update attempt \(attempt) failed on iOS, retrying: \(error.localizedDescription)", category: .general)
                     // Wait before retry
-                    _ = try? await _Concurrency.Task.sleep(nanoseconds: UInt64(attempt) * 1_000_000_000) // 1, 2, 3 seconds
+                    _ = try? await Task.sleep(nanoseconds: UInt64(attempt) * 1_000_000_000) // 1, 2, 3 seconds
                 }
             }
         }
@@ -1707,25 +1688,9 @@ final class iOSAppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationC
         if let type = userInfo["type"] as? String, type == "timer_sync" {
             AppLogger.info("Received timer sync APN message on iOS", category: .sync)
 
-            // Extract sync data from APN payload
-            if let actionData = userInfo["action"] as? [String: Any],
-               let actionString = actionData["action"] as? String,
-               let deviceId = actionData["deviceId"] as? String,
-               let timestampString = actionData["timestamp"] as? String,
-               let timestamp = ISO8601DateFormatter().date(from: timestampString),
-               let action = TimerSyncManager.TimerAction(rawValue: actionString) {
-
-                AppLogger.info("Processing timer sync action: \(actionString) from device \(deviceId) at \(timestampString)", category: .sync)
-                // Handle incoming timer action from another device on main actor
-                _Concurrency.Task { @MainActor in
-                    TimerSyncManager.shared.handleIncomingAction(action, from: deviceId, timestamp: timestamp)
-                }
-            } else {
-                AppLogger.warning("Failed to parse timer sync APN payload on iOS: \(userInfo)", category: .sync)
-                // Fallback: trigger full timer sync
-                _Concurrency.Task {
-                    await TimerSyncManager.shared.smartSyncWithBackend()
-                }
+            // Always trigger full timer sync for reliability
+                    _Concurrency.Task {
+                await TimerSyncManager.shared.syncTimerState()
             }
 
             // Don't show notification for silent sync messages
@@ -1744,8 +1709,8 @@ final class iOSAppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationC
             AppLogger.info("User tapped timer sync notification", category: .sync)
 
             // Trigger timer sync when user taps notification
-            _Concurrency.Task {
-                await TimerSyncManager.shared.smartSyncWithBackend()
+                    _Concurrency.Task {
+                await TimerSyncManager.shared.syncTimerState()
             }
         }
 

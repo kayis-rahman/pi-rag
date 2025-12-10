@@ -3,9 +3,26 @@ import os
 
 import SwiftUI
 
+import Combine
+
+enum Phase: String, Codable, CaseIterable, Hashable, Identifiable, Sendable {
+    case work = "work"
+    case `break` = "short_break"
+    case longBreak = "long_break"
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .work: return "Work"
+        case .break: return "Break"
+        case .longBreak: return "Long Break"
+        }
+    }
+}
+
 @MainActor
 class PomodoroTimer: ObservableObject {
-    // Phase is now imported from Phase.swift
 
     struct TimerState: Codable {
         let phase: Phase
@@ -19,13 +36,20 @@ class PomodoroTimer: ObservableObject {
         let shortBreaksCompleted: Int
         let backendSessionId: UUID?
         let currentTaskId: UUID?
-        let lastModifiedTimestamp: Date  // When this state was last modified
+        let lastModifiedTimestamp: Double  // When this state was last modified
 
         // Custom decoder for backward compatibility
         init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
             phase = try container.decode(Phase.self, forKey: .phase)
-            remainingSeconds = try container.decode(Int.self, forKey: .remainingSeconds)
+            // Handle backward compatibility: remainingSeconds could be Double or Int
+            if let intValue = try? container.decode(Int.self, forKey: .remainingSeconds) {
+                remainingSeconds = intValue
+            } else if let doubleValue = try? container.decode(Double.self, forKey: .remainingSeconds) {
+                remainingSeconds = Int(doubleValue)
+            } else {
+                remainingSeconds = 25 * 60 // Default fallback
+            }
             isRunning = try container.decode(Bool.self, forKey: .isRunning)
             lastActiveDate = try container.decodeIfPresent(Date.self, forKey: .lastActiveDate)
             workDuration = try container.decode(Int.self, forKey: .workDuration)
@@ -36,12 +60,12 @@ class PomodoroTimer: ObservableObject {
             backendSessionId = try container.decodeIfPresent(UUID.self, forKey: .backendSessionId)
             currentTaskId = try container.decodeIfPresent(UUID.self, forKey: .currentTaskId)
 
-            // For backward compatibility, use current date if timestamp not present
-            lastModifiedTimestamp = try container.decodeIfPresent(Date.self, forKey: .lastModifiedTimestamp) ?? Date()
+            // For backward compatibility, use current timestamp if not present
+            lastModifiedTimestamp = try container.decodeIfPresent(Double.self, forKey: .lastModifiedTimestamp) ?? Date().timeIntervalSince1970
         }
 
         // Memberwise initializer for creating new instances
-        init(phase: Phase, remainingSeconds: Int, isRunning: Bool, lastActiveDate: Date?, workDuration: Int, breakDuration: Int, longBreakDuration: Int, autoStartNextSession: Bool, shortBreaksCompleted: Int, backendSessionId: UUID?, currentTaskId: UUID?, lastModifiedTimestamp: Date) {
+        init(phase: Phase, remainingSeconds: Int, isRunning: Bool, lastActiveDate: Date?, workDuration: Int, breakDuration: Int, longBreakDuration: Int, autoStartNextSession: Bool, shortBreaksCompleted: Int, backendSessionId: UUID?, currentTaskId: UUID?, lastModifiedTimestamp: Double) {
             self.phase = phase
             self.remainingSeconds = remainingSeconds
             self.isRunning = isRunning
@@ -57,7 +81,7 @@ class PomodoroTimer: ObservableObject {
         }
     }
 
-    @Published private(set) var phase: Phase = .work
+    @Published var phase: Phase = .work
     @Published private(set) var remainingSeconds: Int
     @Published private(set) var isRunning: Bool = false
     @Published private(set) var shortBreaksCompleted: Int = 0
@@ -76,7 +100,7 @@ class PomodoroTimer: ObservableObject {
     var onSessionCompleted: ((Phase, Int) -> Void)?
 
     var progress: Double {
-        let current = Double(currentDuration - remainingSeconds)
+        let current = Double(currentDuration) - Double(remainingSeconds)
         let total = Double(currentDuration)
         return total > 0 ? current / total : 0
     }
@@ -90,16 +114,36 @@ class PomodoroTimer: ObservableObject {
     }
 
     private var timerTask: _Concurrency.Task<Void, Never>? = nil
+    private var timerCancellable: AnyCancellable?
+    private var startTime: Date?
+    var startTimestamp: Double?
+    var pauseTimestamp: Double?
+    var lastModifiedTimestamp: Double
     private let stateKey = "PomodoroTimerState.v2"
 
     init() {
+        // Initialize all stored properties first
         self.workDuration = 25 * 60
         self.breakDuration = 5 * 60
         self.longBreakDuration = 15 * 60
-        self.remainingSeconds = self.workDuration
+        self.remainingSeconds = 25 * 60 // Default value, will be updated
+        self.phase = .work
+        self.isRunning = false
+        self.autoStartNextSession = false
+        self.shortBreaksCompleted = 0
+        self.backendSessionId = nil
+        self.currentTaskId = nil
+        self.startTimestamp = nil
+        self.pauseTimestamp = nil
+        self.lastModifiedTimestamp = Date().timeIntervalSince1970
 
         LoggerStore.timer.info("Timer initialized")
 
+        // Load state after initialization
+        loadAndApplyState()
+    }
+
+    private func loadAndApplyState() {
         if let state = loadState() {
             self.phase = state.phase
             self.remainingSeconds = state.remainingSeconds
@@ -129,6 +173,7 @@ class PomodoroTimer: ObservableObject {
 
     deinit {
         timerTask?.cancel()
+        timerCancellable?.cancel()
         LoggerStore.timer.info("Timer deinitialized")
     }
 
@@ -136,22 +181,37 @@ class PomodoroTimer: ObservableObject {
     func start() {
         guard !isRunning else { LoggerStore.timer.debug("start() called but timer already running"); return }
         isRunning = true
+        self.startTimestamp = Date().timeIntervalSince1970
+        self.pauseTimestamp = nil
+        self.lastModifiedTimestamp = Date().timeIntervalSince1970
         saveState()
         updatePlatformUI()
 
         LoggerStore.timer.info("Starting timer phase \(self.phase.rawValue)")
 
-        // Sync timer start action
-        TimerSyncManager.shared.syncAction(.start)
+        // Sync timer state
+        _Concurrency.Task { await TimerSyncManager.shared.syncTimerState() }
+        #if os(iOS)
+        WatchConnectivityManager.shared?.broadcastTimerState()
+        #endif
 
         _Concurrency.Task {
             await self.startBackendSessionIfNeeded()
         }
 
-        timerTask = _Concurrency.Task {
-            while !_Concurrency.Task.isCancelled {
-                do { try await _Concurrency.Task.sleep(for: .seconds(1)) } catch { break }
-                guard self.isRunning else { LoggerStore.timer.debug("Timer paused, task exiting"); break }
+        // Cancel any existing timer before starting new one
+        timerCancellable?.cancel()
+        timerCancellable = nil
+
+        LoggerStore.timer.info("Starting timer cancellable")
+        timerCancellable = Timer.publish(every: 1, on: .main, in: .common)
+            .autoconnect()
+            .sink { _ in
+                LoggerStore.timer.debug("Timer tick: isRunning=\(self.isRunning), remaining=\(self.remainingSeconds)")
+                guard self.isRunning else {
+                    LoggerStore.timer.debug("Timer tick ignored: not running")
+                    return
+                }
                 self.remainingSeconds -= 1
                 self.updatePlatformUI()
                 if self.remainingSeconds <= 0 {
@@ -160,21 +220,58 @@ class PomodoroTimer: ObservableObject {
                 }
                 self.saveState()
             }
-        }
     }
 
-    func pause() {
-        guard isRunning else { LoggerStore.timer.debug("pause() called but timer not running"); return }
-        isRunning = false
-        timerTask?.cancel()
-        timerTask = nil
+    func startFromSync() {
+        guard !isRunning else { LoggerStore.timer.debug("startFromSync() called but timer already running"); return }
+        isRunning = true
+        self.startTime = Date()
         saveState()
         updatePlatformUI()
 
-        // Sync timer pause action
-        TimerSyncManager.shared.syncAction(.pause)
+        // Cancel any existing timer before starting new one
+        timerCancellable?.cancel()
+        timerCancellable = nil
+
+        LoggerStore.timer.info("Starting timer cancellable")
+        timerCancellable = Timer.publish(every: 1, on: .main, in: .common)
+            .autoconnect()
+            .sink { _ in
+                LoggerStore.timer.debug("Timer tick: isRunning=\(self.isRunning), remaining=\(self.remainingSeconds)")
+                guard self.isRunning else {
+                    LoggerStore.timer.debug("Timer tick ignored: not running")
+                    return
+                }
+                self.remainingSeconds -= 1
+                self.updatePlatformUI()
+                if self.remainingSeconds <= 0 {
+                    LoggerStore.timer.info("Timer reached zero, advancing phase")
+                    self.advanceToNextPhase(autoStart: self.autoStartNextSession)
+                }
+                self.saveState()
+            }
+
+        // Sync timer state
+        _Concurrency.Task { await TimerSyncManager.shared.syncTimerState() }
+        #if os(iOS)
+        WatchConnectivityManager.shared?.broadcastTimerState()
+        #endif
 
         LoggerStore.timer.info("Pausing timer")
+    }
+
+    func pause() {
+        LoggerStore.timer.info("Pausing timer")
+        self.isRunning = false
+        self.pauseTimestamp = Date().timeIntervalSince1970
+        timerCancellable?.cancel()
+        timerCancellable = nil
+        saveState()
+        updatePlatformUI()
+
+        _Concurrency.Task {
+            await TimerSyncManager.shared.syncTimerState()
+        }
     }
 
     func stop() {
@@ -198,7 +295,10 @@ class PomodoroTimer: ObservableObject {
         updatePlatformUI()
 
         // Sync timer reset action
-        TimerSyncManager.shared.syncAction(.reset)
+        _Concurrency.Task { await TimerSyncManager.shared.syncTimerState() }
+        #if os(iOS)
+        WatchConnectivityManager.shared?.broadcastTimerState()
+        #endif
     }
 
     // MARK: - Duration Helpers
@@ -234,8 +334,9 @@ class PomodoroTimer: ObservableObject {
 
     // MARK: - Sync Methods
     func applySyncedState(phase: Phase, remainingSeconds: Int, isRunning: Bool,
-                          workDuration: Int, breakDuration: Int, longBreakDuration: Int,
-                          autoStartNextSession: Bool, shortBreaksCompleted: Int, currentTaskId: UUID? = nil) {
+                           workDuration: Int, breakDuration: Int, longBreakDuration: Int,
+                           autoStartNextSession: Bool, shortBreaksCompleted: Int, currentTaskId: UUID? = nil,
+                           startTimestamp: Double?, pauseTimestamp: Double?, lastModifiedTimestamp: Double) {
         LoggerStore.timer.info("Applying synced timer state: phase=\(phase.rawValue), remaining=\(remainingSeconds), running=\(isRunning), currentTaskId=\(String(describing: currentTaskId))")
 
         let wasRunning = self.isRunning
@@ -252,10 +353,50 @@ class PomodoroTimer: ObservableObject {
         self.autoStartNextSession = autoStartNextSession
         self.shortBreaksCompleted = shortBreaksCompleted
         self.currentTaskId = currentTaskId
+        self.startTimestamp = startTimestamp
+        self.pauseTimestamp = pauseTimestamp
+        self.lastModifiedTimestamp = lastModifiedTimestamp
 
-        // Handle running state
+        // If remaining seconds is 0 or negative and timer is running, reset to full duration
+        if self.remainingSeconds <= 0 && isRunning {
+            self.remainingSeconds = self.currentDuration
+        }
+
+        // Handle running state WITHOUT triggering sync actions to prevent loops
         if isRunning && !wasRunning {
-            start()
+            // Start timer without triggering sync action to prevent loops
+            self.isRunning = true
+            self.startTime = Date()
+            saveState()
+            updatePlatformUI()
+
+            LoggerStore.timer.info("Starting timer phase \(self.phase.rawValue) from sync (no sync action)")
+
+            _Concurrency.Task {
+                await self.startBackendSessionIfNeeded()
+            }
+
+        // Cancel any existing timer before starting new one
+        timerCancellable?.cancel()
+        timerCancellable = nil
+
+        LoggerStore.timer.info("Starting timer cancellable")
+        timerCancellable = Timer.publish(every: 1, on: .main, in: .common)
+            .autoconnect()
+            .sink { _ in
+                LoggerStore.timer.debug("Timer tick: isRunning=\(self.isRunning), remaining=\(self.remainingSeconds)")
+                guard self.isRunning else {
+                    LoggerStore.timer.debug("Timer tick ignored: not running")
+                    return
+                }
+                self.remainingSeconds -= 1
+                self.updatePlatformUI()
+                if self.remainingSeconds <= 0 {
+                    LoggerStore.timer.info("Timer reached zero, advancing phase")
+                    self.advanceToNextPhase(autoStart: self.autoStartNextSession)
+                }
+                self.saveState()
+            }
         } else if !isRunning && wasRunning {
             // Already paused above
         }
@@ -294,7 +435,7 @@ class PomodoroTimer: ObservableObject {
     // MARK: - Backend session sync
     private func startBackendSessionIfNeeded() async {
         guard self.backendSessionId == nil else {
-            LoggerStore.session.debug("Not starting backend session: already exists id=\(self.backendSessionId!.uuidString, privacy: .public)")
+            LoggerStore.session.debug("Not starting backend session: already exists id=\(self.backendSessionId!.uuidString)")
             return
         }
         guard let token = self.sessionToken, !token.isEmpty,
@@ -348,6 +489,7 @@ class PomodoroTimer: ObservableObject {
         self.onSessionCompleted?(self.phase, self.currentDuration)
         NotificationManager.shared.sendSessionDoneNotification(phase: self.phase.rawValue)
 
+        self.lastModifiedTimestamp = Date().timeIntervalSince1970
         LoggerStore.timer.info("Advancing phase from \(self.phase.rawValue) (autoStart: \(autoStart))")
         _Concurrency.Task {
             await self.stopBackendSessionIfNeeded()
@@ -402,15 +544,19 @@ class PomodoroTimer: ObservableObject {
             shortBreaksCompleted: self.shortBreaksCompleted,
             backendSessionId: self.backendSessionId,
             currentTaskId: self.currentTaskId,
-            lastModifiedTimestamp: Date()  // Always update timestamp when saving
+            lastModifiedTimestamp: self.lastModifiedTimestamp
         )
-        if let data = try? JSONEncoder().encode(state) {
-            UserDefaults.standard.set(data, forKey: self.stateKey)
+
+        do {
+            let data = try JSONEncoder().encode(state)
+            UserDefaults.standard.set(data, forKey: stateKey)
+        } catch {
+            LoggerStore.timer.error("Failed to save timer state: \(error.localizedDescription)")
         }
     }
 
     private func loadState() -> TimerState? {
-        guard let data = UserDefaults.standard.data(forKey: self.stateKey) else { return nil }
+        guard let data = UserDefaults.standard.data(forKey: stateKey) else { return nil }
         return try? JSONDecoder().decode(TimerState.self, from: data)
     }
 }

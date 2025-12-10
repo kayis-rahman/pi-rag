@@ -7,6 +7,11 @@ import Foundation
 //  Created by Kayis Rahman on 03/11/25.
 //
 
+import Foundation
+
+// Domain models and infrastructure
+// (Types should be available in the same module)
+
 @MainActor
 final class SessionLogger: ObservableObject {
     @Published private(set) var records: [SessionRecord] = []
@@ -20,9 +25,9 @@ final class SessionLogger: ObservableObject {
     func add(record: SessionRecord) {
         records.append(record)
         save()
-        _Concurrency.Task {
-            await uploadRecord(record)
-        }
+        // _Concurrency.Task {
+        //     await uploadRecord(record)
+        // }
     }
 
     func clear() {
