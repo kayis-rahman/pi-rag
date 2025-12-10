@@ -1,5 +1,7 @@
 package com.sparkage.timebeam.presentation.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 public class TimerStateDto {
     private String phase;
     private Integer remainingSeconds;
@@ -9,6 +11,7 @@ public class TimerStateDto {
     private Integer longBreakDuration;
     private Boolean autoStartNextSession;
     private Integer shortBreaksCompleted;
+    @JsonFormat(shape = JsonFormat.Shape.NUMBER)
     private double lastModifiedTimestamp;
     private String deviceId;
 
