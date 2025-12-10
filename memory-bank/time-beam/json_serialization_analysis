@@ -1,0 +1,24 @@
+# JSON Serialization Analysis - Issue Persists
+
+## Current Problem:
+- Backend still sending `lastModifiedTimestamp` as string
+- Swift expecting Double (numeric)
+- JSON parsing fails: "data couldn't be read because it is missing"
+
+## Investigation Needed:
+1. **Backend JSON Output**: Check actual API response format
+2. **Annotation Effectiveness**: Verify @JsonFormat is working
+3. **Field Type**: Confirm double vs Double usage
+4. **Swift Decoding**: Check if Swift expects different format
+
+## Possible Issues:
+1. **Annotation not applied**: @JsonFormat might not be working
+2. **Type mismatch**: Backend still using Double instead of double
+3. **Caching**: Old compiled classes still in use
+4. **Swift expectations**: Swift might need different JSON format
+
+## Debug Steps:
+1. Test API directly to see JSON output
+2. Check compiled class files
+3. Verify annotation is present
+4. Check Swift decoding logic

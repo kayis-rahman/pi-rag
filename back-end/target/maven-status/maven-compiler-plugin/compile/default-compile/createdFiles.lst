@@ -1,4 +1,5 @@
 com/sparkage/timebeam/domain/model/SessionRecord.class
+com/sparkage/timebeam/application/service/TimerSyncService.class
 com/sparkage/timebeam/infrastructure/persistence/Task$Status.class
 com/sparkage/timebeam/domain/repository/UserRepository.class
 com/sparkage/timebeam/infrastructure/persistence/Task.class
@@ -68,6 +69,7 @@ com/sparkage/timebeam/infrastructure/persistence/SessionRecord$Kind.class
 com/sparkage/timebeam/presentation/dto/TimerSyncActionDto.class
 com/sparkage/timebeam/infrastructure/persistence/User.class
 com/sparkage/timebeam/infrastructure/persistence/TimerState.class
+com/sparkage/timebeam/infrastructure/external/PushNotificationService$DeviceTokenInfo.class
 com/sparkage/timebeam/infrastructure/config/SecurityConfig.class
 com/sparkage/timebeam/application/service/AnalyticsService$1.class
 com/sparkage/timebeam/presentation/dto/SessionsResponseDto$PaginationInfo.class
