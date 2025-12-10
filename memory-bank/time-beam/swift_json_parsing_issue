@@ -1,0 +1,43 @@
+# Swift JSON Parsing Issue - ROOT CAUSE FOUND
+
+## 🎯 Critical Discovery: Backend vs Frontend Mismatch
+
+### Backend Sends (CORRECT):
+```json
+{"lastModifiedTimestamp":1.765383273388E9, ...}
+```
+**Value**: `1.765383273388E9` (scientific notation for 1,765,383,273.388)
+
+### User Sees (INCORRECT):
+```json
+{"lastModifiedTimestamp":1, ...}
+```
+**Value**: `1` (truncated!)
+
+### Root Cause Analysis:
+1. **Backend**: Correctly sends scientific notation for large Double
+2. **Swift JSONDecoder**: Should handle scientific notation correctly
+3. **Issue**: Swift is parsing `1.765383273388E9` but somehow getting `1`
+
+### Possible Causes:
+1. **JSONDecoder configuration**: Missing number decoding strategy
+2. **Double overflow**: Large number causing precision issues
+3. **Logging truncation**: The actual value is correct but logs show truncated
+4. **Type conversion**: Scientific notation not parsed correctly
+
+### Investigation Added:
+- **Pre-decoding debug**: Print raw JSON before parsing
+- **Post-decoding debug**: Print parsed timestamp value
+- **Scientific notation check**: Verify JSON contains correct format
+
+### Expected Debug Output:
+```
+DEBUG: About to decode JSON: {"lastModifiedTimestamp":1.765383273388E9, ...}
+DEBUG: JSON decoding successful, timestamp: 1765383273.388
+```
+
+### Solution Plan:
+1. **Check debug output** to see actual parsing behavior
+2. **Fix JSONDecoder** if configuration issue
+3. **Handle large numbers** properly if overflow issue
+4. **Verify scientific notation** parsing

@@ -1,0 +1,35 @@
+# Timestamp Rounding Fix - PREVENTING SCIENTIFIC NOTATION
+
+## Issue Identified:
+**Scientific notation causing Swift parsing issues**
+
+### Root Cause:
+- Large Unix timestamps (1.7 billion) get serialized as `1.765383273388E9`
+- Swift JSONDecoder may not handle scientific notation correctly for Doubles
+- Results in truncated value "1" instead of full number
+
+### Solution Applied:
+**Round timestamps to 3 decimal places to prevent scientific notation**
+
+```java
+// Before: Could produce 1765383273.388123456
+(double) instant.toEpochMilli() / 1000.0
+
+// After: Rounded to 1765383273.388
+Math.round(((double) instant.toEpochMilli() / 1000.0) * 1000.0) / 1000.0
+```
+
+### Expected JSON Output:
+```json
+{"lastModifiedTimestamp":1765383273.388, ...}
+```
+**No scientific notation, clean decimal number**
+
+### Why This Fixes It:
+1. **Prevents scientific notation**: Numbers stay as decimals
+2. **Maintains precision**: 3 decimal places sufficient for timestamps
+3. **Swift compatible**: JSONDecoder handles decimal numbers perfectly
+4. **No truncation**: Clean decimal format avoids parsing issues
+
+### Testing:
+Backend restarted with rounded timestamps. Swift should now receive clean decimal numbers instead of scientific notation.

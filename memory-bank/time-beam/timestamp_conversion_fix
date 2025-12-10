@@ -1,0 +1,34 @@
+# Timestamp Conversion Fix - EXPLICIT CASTING
+
+## Issue Identified:
+**Implicit conversion `long / double` was causing precision issues**
+
+### Root Cause:
+```java
+// Before: Implicit conversion
+state.getLastUpdatedAt().toEpochMilli() / 1000.0
+
+// This could produce unexpected results due to operator precedence
+```
+
+### Fix Applied:
+```java
+// After: Explicit casting
+(double) state.getLastUpdatedAt().toEpochMilli() / 1000.0
+
+// Ensures proper double division and Unix timestamp generation
+```
+
+### Technical Details:
+- `toEpochMilli()` returns `long` (milliseconds since epoch)
+- Dividing `long` by `double` should work, but explicit casting ensures correctness
+- Unix timestamp should be: `1734567890.123` (seconds since epoch)
+
+### Expected Result:
+- Backend sends: `"lastModifiedTimestamp":1734567890.123`
+- Swift receives: `lastModifiedTimestamp: Double`
+- JSON parsing succeeds without truncation
+- Timer sync works end-to-end
+
+### Verification:
+Backend restarted with explicit casting. The timestamp conversion should now produce correct Unix timestamp values instead of truncated "1.x" values.

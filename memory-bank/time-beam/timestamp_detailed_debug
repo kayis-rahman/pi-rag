@@ -1,0 +1,33 @@
+# Timestamp Detailed Debug - ENHANCED LOGGING
+
+## Investigation Added:
+**Comprehensive timestamp conversion debugging**
+
+### Code Changes:
+```java
+// Enhanced debug logging
+log.info("TIMER_SYNC_DEBUG: Pulled timer state - Instant: {}, EpochMilli: {}, Unix: {}",
+        state.getLastUpdatedAt(), state.getLastUpdatedAt().toEpochMilli(), unixTimestamp);
+```
+
+### Debug Information Captured:
+1. **Original Instant**: `2025-12-10T16:09:56.637157Z`
+2. **Epoch Milliseconds**: `1765382996637`
+3. **Unix Timestamp**: `1765382996.637`
+
+### Expected Values:
+- **Instant**: Recent timestamp (within last few minutes)
+- **EpochMilli**: Large number (~1.7 trillion milliseconds)
+- **Unix**: Unix timestamp (~1.7 billion seconds)
+
+### Analysis Goals:
+1. **Verify conversion accuracy**: Is the math correct?
+2. **Check for truncation**: Is the value being cut off somewhere?
+3. **Compare with user logs**: Does backend send what user receives?
+4. **Identify the "1" source**: Why is user seeing "1" instead of full number?
+
+### Next Steps:
+- Check backend logs for TIMER_SYNC_DEBUG output
+- Compare with user's Swift app logs
+- Identify where the truncation occurs
+- Fix the root cause

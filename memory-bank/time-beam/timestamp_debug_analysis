@@ -1,0 +1,32 @@
+# Timestamp Debug Analysis - ADDED LOGGING
+
+## Investigation Added:
+**Debug logging for timestamp conversion values**
+
+### Code Changes:
+```java
+// Added debug logging to see actual timestamp values
+double unixTimestamp = (double) state.getLastUpdatedAt().toEpochMilli() / 1000.0;
+log.debug("Pulled timer state for user={}, device={}, timestamp={}, unix={}",
+         userId, state.getUpdatedByDeviceId(), state.getLastUpdatedAt(), unixTimestamp);
+```
+
+### Database Check:
+- Query shows actual `last_updated_at` values from database
+- Check if timestamps are reasonable (should be recent)
+
+### Expected Debug Output:
+```
+Pulled timer state for user=xxx, device=yyy, timestamp=2025-12-10T15:35:37.467227Z, unix=1734567890.123
+```
+
+### Analysis Goals:
+1. **Verify timestamp values**: Are they reasonable Unix timestamps?
+2. **Check conversion**: Is `toEpochMilli() / 1000.0` producing correct values?
+3. **Identify truncation**: Why is Swift seeing "1" instead of full number?
+
+### Next Steps:
+- Check backend logs for debug output
+- Verify database timestamp values
+- Compare with Swift error logs
+- Fix any conversion issues found

@@ -239,7 +239,7 @@ struct ApiClient {
         // Log response details for debugging
         AppLogger.debug("Timer state pull response: status=\(http.statusCode), dataSize=\(data.count)", category: .sync)
         if let responseString = String(data: data, encoding: .utf8) {
-            AppLogger.debug("Timer state pull response body: \(responseString.prefix(200))", category: .sync)
+            AppLogger.debug("Timer state pull response body: \(responseString)", category: .sync) // Log full response
         }
 
         // Handle empty data with other status codes as error
@@ -248,10 +248,22 @@ struct ApiClient {
             throw ApiError.invalidResponse
         }
 
+        // Debug: Check if JSON is valid before decoding
+        if let jsonString = String(data: data, encoding: .utf8) {
+            print("DEBUG: About to decode JSON: \(jsonString)")
+            // Check if the timestamp looks correct
+            if jsonString.contains("\"lastModifiedTimestamp\":") {
+                print("DEBUG: Found timestamp in JSON")
+            }
+        }
+
         // Decode the timer state
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
+
+        print("DEBUG: Starting JSON decoding...")
         let state = try decoder.decode(TimerStateDto.self, from: data)
+        print("DEBUG: JSON decoding successful, timestamp: \(state.lastModifiedTimestamp)")
         AppLogger.logAPIEvent("timer_state_pull_success", url: "/api/sessions/timer/state")
         return state
     }

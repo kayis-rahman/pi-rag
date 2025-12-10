@@ -117,8 +117,8 @@ public class TimerSyncService {
             if (stateOpt.isPresent()) {
                 TimerState state = stateOpt.get();
                 TimerStateDto dto = convertToDto(state);
-                log.debug("Pulled timer state for user={}, device={}, timestamp={}",
-                         userId, state.getUpdatedByDeviceId(), state.getLastUpdatedAt());
+                double unixTimestamp = Math.round(((double) state.getLastUpdatedAt().toEpochMilli() / 1000.0) * 1000.0) / 1000.0; // Round to 3 decimal places
+                log.info("TIMER_SYNC_DEBUG: Pushed timer state - Unix timestamp: {}", unixTimestamp);
                 return Optional.of(dto);
             } else {
                 log.debug("No timer state found for user={}", userId);
@@ -242,7 +242,7 @@ public class TimerSyncService {
             state.getLongBreakDurationMinutes(),
             state.isAutoStartNext(),
             state.getShortBreaksCompleted(),
-            state.getLastUpdatedAt().toEpochMilli() / 1000.0, // lastModifiedTimestamp as Double (Unix timestamp)
+            (double) state.getLastUpdatedAt().toEpochMilli() / 1000.0, // lastModifiedTimestamp as Double (Unix timestamp)
             state.getUpdatedByDeviceId() != null ? state.getUpdatedByDeviceId().toString() : null // deviceId as String
         );
     }

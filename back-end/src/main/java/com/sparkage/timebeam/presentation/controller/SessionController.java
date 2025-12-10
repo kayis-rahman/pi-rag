@@ -229,7 +229,7 @@ public class SessionController {
             actionDto.getLongBreakDuration() != null ? actionDto.getLongBreakDuration() : 15,
             actionDto.getAutoStartNextSession() != null ? actionDto.getAutoStartNextSession() : false,
             actionDto.getShortBreaksCompleted() != null ? actionDto.getShortBreaksCompleted() : 0,
-            Instant.now().toEpochMilli() / 1000.0, // Use server timestamp as double
+            Math.round(((double) Instant.now().toEpochMilli() / 1000.0) * 1000.0) / 1000.0, // Round to 3 decimal places
             actionDto.getDeviceId()
         );
     }

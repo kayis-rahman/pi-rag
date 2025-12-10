@@ -1,0 +1,29 @@
+# Swift JSON Debug - ADDED DECODING DEBUG
+
+## Investigation Added:
+**Print JSON before decoding to see exact data Swift receives**
+
+### Code Changes:
+```swift
+// Added debug print before JSON decoding
+if let jsonString = String(data: data, encoding: .utf8) {
+    print("DEBUG: About to decode JSON: \(jsonString)")
+}
+```
+
+### Goals:
+1. **See exact JSON** Swift app receives (not truncated logs)
+2. **Compare with backend** to identify discrepancies
+3. **Verify timestamp value** in the actual response
+4. **Check JSON structure** matches TimerStateDto
+
+### Expected Debug Output:
+```
+DEBUG: About to decode JSON: {"phase":"work","remainingSeconds":1481,"isRunning":false,"workDuration":1500,"breakDuration":300,"longBreakDuration":900,"autoStartNextSession":true,"shortBreaksCompleted":0,"lastModifiedTimestamp":1765382996.637,"deviceId":"xxx"}
+```
+
+### Analysis Points:
+- Is timestamp the full number or "1"?
+- Does JSON structure match Swift expectations?
+- Are there any hidden characters or encoding issues?
+- Compare with backend debug logs
