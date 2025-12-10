@@ -117,7 +117,7 @@ public class TimerSyncService {
             if (stateOpt.isPresent()) {
                 TimerState state = stateOpt.get();
                 TimerStateDto dto = convertToDto(state);
-                double unixTimestamp = Math.round(((double) state.getLastUpdatedAt().toEpochMilli() / 1000.0) * 1000.0) / 1000.0; // Round to 3 decimal places
+                double unixTimestamp = Math.round(((double) state.getLastUpdatedAt().toEpochMilli() / 1000.0) * 100.0) / 100.0; // Round to 2 decimal places
                 log.info("TIMER_SYNC_DEBUG: Pushed timer state - Unix timestamp: {}", unixTimestamp);
                 return Optional.of(dto);
             } else {

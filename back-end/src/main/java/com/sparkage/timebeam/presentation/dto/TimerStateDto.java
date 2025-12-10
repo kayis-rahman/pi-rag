@@ -11,7 +11,7 @@ public class TimerStateDto {
     private Integer longBreakDuration;
     private Boolean autoStartNextSession;
     private Integer shortBreaksCompleted;
-    private double lastModifiedTimestamp;
+    private Double lastModifiedTimestamp;
     private String deviceId;
 
     // Default constructor
