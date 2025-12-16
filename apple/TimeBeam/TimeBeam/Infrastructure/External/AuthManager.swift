@@ -3,14 +3,14 @@ import Combine
 
 import Foundation
 import _Concurrency
+
+#if os(iOS)
 import GoogleSignIn
+import UIKit
+#endif
 
 #if os(macOS)
 import AppKit
-#endif
-
-#if os(iOS)
-import UIKit
 #endif
 
 //
@@ -19,12 +19,6 @@ import UIKit
 //
 //  Created by Kayis Rahman on 03/11/25.
 //
-
-#if os(iOS)
-#endif
-
-#if os(macOS)
-#endif
 
 @MainActor
 final class AuthManager: ObservableObject {
@@ -44,7 +38,7 @@ final class AuthManager: ObservableObject {
         let cachedName = try? KeychainStore.loadString(.userDisplayName)
         let cachedEmail = try? KeychainStore.loadString(.userEmail)
 
-        #if os(iOS) || os(macOS)
+        #if os(iOS)
         if GIDSignIn.sharedInstance.hasPreviousSignIn() {
             do {
                 #if DEBUG
@@ -85,7 +79,7 @@ final class AuthManager: ObservableObject {
         print("[Auth] signOut: begin")
         #endif
 
-        #if os(iOS) || os(macOS)
+        #if os(iOS)
         GIDSignIn.sharedInstance.signOut()
         #endif
 
@@ -157,172 +151,57 @@ final class AuthManager: ObservableObject {
     #elseif os(macOS)
     func signInWithGoogle() async throws {
         #if DEBUG
-        print("[Auth] signInWithGoogle(macOS): begin")
-        print("[Auth] signInWithGoogle(macOS): clientID = \(clientID())")
+        print("[Auth] signInWithGoogle(macOS): Starting real OAuth flow")
         #endif
 
-        let config = GIDConfiguration(clientID: clientID())
-        GIDSignIn.sharedInstance.configuration = config
+        // Create Google OAuth URL with proper encoding
+        let clientId = clientID()
+        let redirectUri = "com.sparkage.time-beam:/oauth2redirect"
+        let scope = "openid email profile"
 
-        #if DEBUG
-        print("[Auth] signInWithGoogle(macOS): configuration set, clientID = \(config.clientID)")
-        #endif
+        var components = URLComponents(string: "https://accounts.google.com/o/oauth2/v2/auth")
+        components?.queryItems = [
+            URLQueryItem(name: "client_id", value: clientId),
+            URLQueryItem(name: "redirect_uri", value: redirectUri),
+            URLQueryItem(name: "scope", value: scope),
+            URLQueryItem(name: "response_type", value: "code"),
+            URLQueryItem(name: "access_type", value: "offline")
+        ]
 
-        guard let window = macOSPresentationWindow() else {
-            #if DEBUG
-            print("[Auth] signInWithGoogle(macOS): no presenter - macOSPresentationWindow() returned nil")
-            print("[Auth] signInWithGoogle(macOS): keyWindow = \(NSApplication.shared.keyWindow?.description ?? "nil")")
-            print("[Auth] signInWithGoogle(macOS): mainWindow = \(NSApplication.shared.mainWindow?.description ?? "nil")")
-            print("[Auth] signInWithGoogle(macOS): windows count = \(NSApplication.shared.windows.count)")
-            #endif
-            throw SignInError.noPresenter
+        guard let url = components?.url else {
+            throw SignInError.invalidRequest
         }
 
         #if DEBUG
-        print("[Auth] signInWithGoogle(macOS): window found = \(window.description)")
-        print("[Auth] signInWithGoogle(macOS): calling GIDSignIn.sharedInstance.signIn()")
+        print("[Auth] signInWithGoogle(macOS): OAuth URL: \(url.absoluteString)")
         #endif
 
-        do {
-            let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: window)
-            #if DEBUG
-            print("[Auth] signInWithGoogle(macOS): Google sign-in success, applying user")
-            #endif
-            try await applySignInResult(result)
-        } catch {
-            #if DEBUG
-            print("[Auth] signInWithGoogle(macOS): signIn() threw error = \(error)")
-            print("[Auth] signInWithGoogle(macOS): error domain = \((error as NSError).domain)")
-            print("[Auth] signInWithGoogle(macOS): error code = \((error as NSError).code)")
-            print("[Auth] signInWithGoogle(macOS): error description = \((error as NSError).localizedDescription)")
-            #endif
-            throw error
-        }
-    }
-    #else
-    // watchOS and other platforms: no-op sign-in (sign-in is delegated to iPhone/macOS)
-    func signInWithGoogle() async throws {
-        #if DEBUG
-        print("[Auth] signInWithGoogle(watchOS/other): SDK unavailable")
-        #endif
-        throw SignInError.sdkUnavailable
-    }
-    #endif
-
-    // MARK: - Private helpers
-
-    private func completeSignIn(idToken: String, accessToken: String, name: String, mail: String) throws {
-        #if DEBUG
-        print("[Auth] completeSignIn: saving tokens and user info (idTokenLen=\(idToken.count), accessTokenLen=\(accessToken.count), nameLen=\(name.count), emailRedacted=\(redactEmail(mail)))")
-        #endif
-
-        try KeychainStore.saveString(idToken, for: .idToken)
-        try KeychainStore.saveString(accessToken, for: .accessToken)
-        try KeychainStore.saveString(name, for: .userDisplayName)
-        try KeychainStore.saveString(mail, for: .userEmail)
-
-        self.isSignedIn = true
-        self.displayName = name
-        self.email = mail
-
-        WatchConnectivityManager.shared?.pushAuthStateToCounterpart(
-            isSignedIn: true,
-            displayName: name,
-            email: mail
-        )
-
-        #if DEBUG
-        print("[Auth] completeSignIn: finished, isSignedIn=true")
-        #endif
-    }
-
-    #if os(iOS) || os(macOS)
-    private func applyUser(_ user: GIDGoogleUser) async {
-        #if DEBUG
-        print("[Auth] applyUser: begin")
-        #endif
-
-        let idToken = user.idToken?.tokenString ?? ""
-        let name = user.profile?.name ?? ""
-        let mail = user.profile?.email ?? ""
-
-        #if DEBUG
-        print("[Auth] applyUser: got Google user (nameLen=\(name.count), emailRedacted=\(redactEmail(mail)), idTokenLen=\(idToken.count))")
-        #endif
-
-        // Backend API call after Google sign-in succeeded (login only; register skipped)
-        do {
-            #if DEBUG
-            print("[Auth] applyUser: preparing ApiClient config from Info.plist")
-            #endif
-            guard let cfg = ApiClient.Configuration.fromInfoPlist() else {
-                #if DEBUG
-                print("[Auth] applyUser: missing API configuration")
-                #endif
-                throw ApiClient.ApiError.missingConfiguration
-            }
-            let api = ApiClient(configuration: cfg)
-
-            #if DEBUG
-            print("[Auth] applyUser: calling backend login for emailRedacted=\(redactEmail(mail))")
-            #endif
-            let login = try await api.login(email: mail)
-
-            #if DEBUG
-            print("[Auth] applyUser: backend login success (accessTokenLen=\(login.accessToken.count))")
-            #endif
-
-            // Persist tokens and user info
-            try completeSignIn(idToken: idToken, accessToken: login.accessToken, name: name, mail: mail)
-
-            // Register device for push notifications
-            do {
-                try await registerCurrentDevice(accessToken: login.accessToken)
-                AppLogger.info("Device registered successfully after login", category: .auth)
-
-                // Also register APNs token if available
-                if let apnsToken = try? KeychainStore.loadString(.apnsToken) {
-                    do {
-                        try await ApiClient.shared.updateApnsToken(deviceId: TimerSyncManager.shared.deviceId, apnsToken: apnsToken, accessToken: login.accessToken)
-                        AppLogger.info("APNs token registered successfully after login", category: .auth)
-                    } catch {
-                        AppLogger.error("Failed to register APNs token after login: \(error.localizedDescription)", category: .auth)
-                    }
-                }
-            } catch {
-                AppLogger.error("Failed to register device after login: \(error.localizedDescription)", category: .auth)
-                // Don't fail login if device registration fails
-            }
-
-            // Trigger timer sync after successful authentication
-            AppLogger.info("Triggering timer sync after login", category: .auth)
-            await TimerSyncManager.shared.syncTimerState()
-        } catch {
-            #if DEBUG
-            print("[Auth] applyUser: backend call failed: \(error)")
-            #endif
-            // If backend call fails, ensure state reflects failure
-            self.isSignedIn = false
-            // Optionally sign out from Google to avoid partial auth state:
-            // GIDSignIn.sharedInstance.signOut()
+        // Open in default browser
+        await MainActor.run {
+            NSWorkspace.shared.open(url)
         }
 
         #if DEBUG
-        print("[Auth] applyUser: end")
+        print("[Auth] signInWithGoogle(macOS): Browser opened - waiting for OAuth callback")
         #endif
     }
 
-    private func applySignInResult(_ result: GIDSignInResult) async throws {
+    // Handle OAuth callback and complete sign-in
+    func handleOAuthCallback(_ url: URL) async throws {
         #if DEBUG
-        print("[Auth] applySignInResult: received Google result, forwarding user")
+        print("[Auth] handleOAuthCallback: OAuth callback received: \(url.absoluteString)")
         #endif
-        await applyUser(result.user)
+
+        // TODO: Implement OAuth token exchange
+        print("OAuth callback received - token exchange implementation pending")
     }
     #endif
 
     enum SignInError: Error {
         case noPresenter
         case sdkUnavailable
+        case invalidRequest
+        case invalidResponse
     }
 
     // MARK: - iOS presenters

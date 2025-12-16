@@ -1,0 +1,22 @@
+# OAuth URL Scheme Handling Fix
+
+## Problem
+OAuth callback from Google was opening a new app instance instead of routing to the existing running instance on macOS.
+
+## Root Cause
+macOS Launch Services was launching a new instance because:
+1. Missing `LSApplicationCategoryType` in Info.plist
+2. App wasn't properly bringing itself to foreground on URL receipt
+3. Launch Services didn't recognize the app as capable of handling URLs while running
+
+## Solution
+1. **Added LSApplicationCategoryType**: Set to `public.app-category.productivity` in Info.plist
+2. **Enhanced URL Handler**: Modified `handleOAuthCallback` to activate app and bring window to front
+3. **Proper Window Management**: Ensured main window becomes key when OAuth callback received
+
+## Code Changes
+- Info.plist: Added `<key>LSApplicationCategoryType</key><string>public.app-category.productivity</string>`
+- MacAppDelegate.handleOAuthCallback: Added `NSApplication.shared.activate(ignoringOtherApps: true)` and window activation
+
+## Result
+OAuth callbacks now properly route to existing app instance, preventing duplicate initialization and maintaining user session context.

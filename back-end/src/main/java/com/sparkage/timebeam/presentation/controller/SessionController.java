@@ -229,8 +229,9 @@ public class SessionController {
             actionDto.getLongBreakDuration() != null ? actionDto.getLongBreakDuration() : 15,
             actionDto.getAutoStartNextSession() != null ? actionDto.getAutoStartNextSession() : false,
             actionDto.getShortBreaksCompleted() != null ? actionDto.getShortBreaksCompleted() : 0,
-            Math.round(((double) Instant.now().toEpochMilli() / 1000.0) * 1000.0) / 1000.0, // Round to 3 decimal places
-            actionDto.getDeviceId()
+            Instant.now(), // Use server timestamp as Instant
+            actionDto.getDeviceId(),
+            actionDto.getWorkDuration() != null ? actionDto.getWorkDuration() : 25 // totalDuration
         );
     }
 

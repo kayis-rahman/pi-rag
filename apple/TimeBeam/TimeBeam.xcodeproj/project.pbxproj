@@ -7,10 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		6D64E5562EBCF5EE00AF36E3 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 6D252E152EBB6D810053735D /* GoogleSignIn */; };
-		6D64E5572EBCF5EE00AF36E3 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 6D252E162EBB6D810053735D /* GoogleSignInSwift */; };
-		6D9D92F22EDDD06B00A7F90B /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 6D9D92F12EDDD06B00A7F90B /* GoogleSignIn */; };
-		6D9D92F42EDDD06B00A7F90B /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 6D9D92F32EDDD06B00A7F90B /* GoogleSignInSwift */; };
+
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -64,13 +61,13 @@
 			);
 			target = 6D5999922E780AE300D65722 /* TimeBeam */;
 		};
-		6D73011C2EAAAE4300D75371 /* Exceptions for "TimeBeam" folder in "TimeBeamWatchOs Watch App" target */ = {
+		6D73011C2EAAAE4300D75371 /* Exceptions for "TimeBeam" folder in "TimeBeam iOS" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Extension/AppExtensions.swift,
 				Helper/KeychainStore.swift,
 			);
-			target = 6D7300EA2EAAA98400D75371 /* TimeBeamWatchOs Watch App */;
+			target = 6D7300EA2EAAA98400D75371 /* TimeBeam iOS */;
 		};
 		6D73011D2EAAAE4300D75371 /* Exceptions for "TimeBeam" folder in "TimeBeam iOS" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
@@ -88,7 +85,7 @@
 			exceptions = (
 				6D73011A2EAAAC2300D75371 /* Exceptions for "TimeBeam" folder in "TimeBeam" target */,
 				6D73011D2EAAAE4300D75371 /* Exceptions for "TimeBeam" folder in "TimeBeam iOS" target */,
-				6D73011C2EAAAE4300D75371 /* Exceptions for "TimeBeam" folder in "TimeBeamWatchOs Watch App" target */,
+				6D73011C2EAAAE4300D75371 /* Exceptions for "TimeBeam" folder in "TimeBeam iOS" target */,
 			);
 			path = TimeBeam;
 			sourceTree = "<group>";
@@ -110,8 +107,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6D9D92F22EDDD06B00A7F90B /* GoogleSignIn in Frameworks */,
-				6D9D92F42EDDD06B00A7F90B /* GoogleSignInSwift in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -119,8 +114,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6D64E5572EBCF5EE00AF36E3 /* GoogleSignInSwift in Frameworks */,
-				6D64E5562EBCF5EE00AF36E3 /* GoogleSignIn in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -216,8 +209,6 @@
 			);
 			name = TimeBeam;
 			packageProductDependencies = (
-				6D252E152EBB6D810053735D /* GoogleSignIn */,
-				6D252E162EBB6D810053735D /* GoogleSignInSwift */,
 			);
 			productName = TimeBeam;
 			productReference = 6D5999932E780AE300D65722 /* TimeBeam.app */;
@@ -240,8 +231,6 @@
 			);
 			name = "TimeBeam iOS";
 			packageProductDependencies = (
-				6D9D92F12EDDD06B00A7F90B /* GoogleSignIn */,
-				6D9D92F32EDDD06B00A7F90B /* GoogleSignInSwift */,
 			);
 			productName = "TimeBeam iOS";
 			productReference = 6D5999932E780AE301 /* TimeBeam iOS.app */;
@@ -293,9 +282,9 @@
 			productReference = 6D5999AE2E780AE600D65722 /* TimeBeamUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
-		6D7300EA2EAAA98400D75371 /* TimeBeamWatchOs Watch App */ = {
+		6D7300EA2EAAA98400D75371 /* TimeBeam iOS */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 6D7301132EAAA98600D75371 /* Build configuration list for PBXNativeTarget "TimeBeamWatchOs Watch App" */;
+			buildConfigurationList = 6D7301132EAAA98600D75371 /* Build configuration list for PBXNativeTarget "TimeBeam iOS" */;
 			buildPhases = (
 				6D7300E72EAAA98400D75371 /* Sources */,
 				6D7300E82EAAA98400D75371 /* Frameworks */,
@@ -305,11 +294,11 @@
 			);
 			dependencies = (
 			);
-			name = "TimeBeamWatchOs Watch App";
+			name = "TimeBeam iOS";
 			packageProductDependencies = (
 			);
-			productName = "TimeBeamWatchOs Watch App";
-			productReference = 6D7300EB2EAAA98400D75371 /* TimeBeamWatchOs Watch App.app */;
+			productName = "TimeBeam iOS";
+			productReference = 6D5999932E780AE301 /* TimeBeam iOS.app */;
 			productType = "com.apple.product-type.application";
 		};
 		6D7300F62EAAA98600D75371 /* TimeBeamWatchOs Watch AppTests */ = {
@@ -399,8 +388,6 @@
 			mainGroup = 6D59998A2E780AE300D65722;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				6D252E142EBB6D810053735D /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
-				6D46D1BA2EDF9F72006451F6 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 6D5999942E780AE300D65722 /* Products */;
@@ -411,7 +398,7 @@
 				6D5999922E780AE302 /* TimeBeam iOS */,
 				6D5999A32E780AE600D65722 /* TimeBeamTests */,
 				6D5999AD2E780AE600D65722 /* TimeBeamUITests */,
-				6D7300EA2EAAA98400D75371 /* TimeBeamWatchOs Watch App */,
+				6D7300EA2EAAA98400D75371 /* TimeBeam iOS */,
 				6D7300F62EAAA98600D75371 /* TimeBeamWatchOs Watch AppTests */,
 				6D7301002EAAA98600D75371 /* TimeBeamWatchOs Watch AppUITests */,
 			);
@@ -523,10 +510,7 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		6D252E182EBB75350053735D /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			productRef = 6D252E172EBB75350053735D /* GoogleSignIn */;
-		};
+
 		6D5999A62E780AE600D65722 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 6D5999922E780AE300D65722 /* TimeBeam */;
@@ -539,12 +523,12 @@
 		};
 		6D7300F92EAAA98600D75371 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 6D7300EA2EAAA98400D75371 /* TimeBeamWatchOs Watch App */;
+			target = 6D7300EA2EAAA98400D75371 /* TimeBeam iOS */;
 			targetProxy = 6D7300F82EAAA98600D75371 /* PBXContainerItemProxy */;
 		};
 		6D7301032EAAA98600D75371 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 6D7300EA2EAAA98400D75371 /* TimeBeamWatchOs Watch App */;
+			target = 6D7300EA2EAAA98400D75371 /* TimeBeam iOS */;
 			targetProxy = 6D7301022EAAA98600D75371 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -585,6 +569,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_ENTITLEMENTS = TimeBeam/TimeBeam.entitlements;
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = YES;
+				COMPILATION_CACHE_ENABLE_CACHING = YES;
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
@@ -609,6 +594,7 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				OTHER_SWIFT_FLAGS = "-Xfrontend -warn-long-function-bodies=200 -Xfrontend -warn-long-expression-type-checking=200";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -650,6 +636,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_ENTITLEMENTS = TimeBeam/TimeBeam.entitlements;
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = YES;
+				COMPILATION_CACHE_ENABLE_CACHING = YES;
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
@@ -726,7 +713,7 @@
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"TimeBeam/Preview Content\"";
 				DEVELOPMENT_TEAM = 425MSY8FLG;
-				ENABLE_APP_SANDBOX = YES;
+				ENABLE_APP_SANDBOX = NO;
 				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
@@ -820,7 +807,7 @@
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"TimeBeam/Preview Content\"";
 				DEVELOPMENT_TEAM = 425MSY8FLG;
-				ENABLE_APP_SANDBOX = YES;
+				ENABLE_APP_SANDBOX = NO;
 				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
@@ -1157,7 +1144,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		6D7301132EAAA98600D75371 /* Build configuration list for PBXNativeTarget "TimeBeamWatchOs Watch App" */ = {
+		6D7301132EAAA98600D75371 /* Build configuration list for PBXNativeTarget "TimeBeam iOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				6D73010D2EAAA98600D75371 /* Debug */,
@@ -1187,50 +1174,11 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		6D252E142EBB6D810053735D /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 9.0.0;
-			};
-		};
-		6D46D1BA2EDF9F72006451F6 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 12.6.0;
-			};
-		};
+
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		6D252E152EBB6D810053735D /* GoogleSignIn */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 6D252E142EBB6D810053735D /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
-			productName = GoogleSignIn;
-		};
-		6D252E162EBB6D810053735D /* GoogleSignInSwift */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 6D252E142EBB6D810053735D /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
-			productName = GoogleSignInSwift;
-		};
-		6D252E172EBB75350053735D /* GoogleSignIn */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 6D252E142EBB6D810053735D /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
-			productName = GoogleSignIn;
-		};
-		6D9D92F12EDDD06B00A7F90B /* GoogleSignIn */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 6D252E142EBB6D810053735D /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
-			productName = GoogleSignIn;
-		};
-		6D9D92F32EDDD06B00A7F90B /* GoogleSignInSwift */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 6D252E142EBB6D810053735D /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
-			productName = GoogleSignInSwift;
-		};
+
 /* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 6D59998B2E780AE300D65722 /* Project object */;

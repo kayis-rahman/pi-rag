@@ -50,21 +50,45 @@ command_exists() {
 wait_for_db() {
     print_status "Waiting for PostgreSQL database to be ready..."
 
-    local max_attempts=30
+    local max_attempts=3
     local attempt=1
 
+    # First wait for postgres system database
     while [ $attempt -le $max_attempts ]; do
-        if PGPASSWORD=$E2E_DB_PASSWORD psql -h localhost -U $E2E_DB_USER -d $E2E_DB_NAME -c "SELECT 1;" >/dev/null 2>&1; then
-            print_success "Database is ready!"
-            return 0
+        if PGPASSWORD=$E2E_DB_PASSWORD psql -h localhost -U $E2E_DB_USER -d postgres -c "SELECT 1;" >/dev/null 2>&1; then
+            print_success "PostgreSQL system database is ready!"
+            break
         fi
 
-        print_status "Attempt $attempt/$max_attempts: Database not ready yet, waiting..."
+        print_status "Attempt $attempt/$max_attempts: PostgreSQL not ready yet, waiting..."
         sleep 2
         ((attempt++))
     done
 
-    print_error "Database failed to start after $max_attempts attempts"
+    if [ $attempt -gt $max_attempts ]; then
+        print_error "PostgreSQL failed to start after $max_attempts attempts"
+        return 1
+    fi
+
+    # Now create the E2E database
+    print_status "Creating E2E database..."
+    PGPASSWORD=$E2E_DB_PASSWORD psql -h localhost -U $E2E_DB_USER -d postgres -c "CREATE DATABASE $E2E_DB_NAME;" 2>/dev/null || true
+    print_success "E2E database creation attempted"
+
+    # Wait for E2E database to be accessible
+    attempt=1
+    while [ $attempt -le $max_attempts ]; do
+        if PGPASSWORD=$E2E_DB_PASSWORD psql -h localhost -U $E2E_DB_USER -d $E2E_DB_NAME -c "SELECT 1;" >/dev/null 2>&1; then
+            print_success "E2E database is ready!"
+            return 0
+        fi
+
+        print_status "Attempt $attempt/$max_attempts: E2E database not ready yet, waiting..."
+        sleep 1
+        ((attempt++))
+    done
+
+    print_error "E2E database failed to be ready after $max_attempts attempts"
     return 1
 }
 
@@ -72,7 +96,7 @@ wait_for_db() {
 wait_for_backend() {
     print_status "Waiting for backend to be ready..."
 
-    local max_attempts=30
+    local max_attempts=3
     local attempt=1
 
     while [ $attempt -le $max_attempts ]; do

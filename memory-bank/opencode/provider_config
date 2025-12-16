@@ -1,0 +1,3 @@
+Model: unsloth/Qwen3-4B-GGUF:Q8_K_XL
+Provider: llama.cpp remote
+Context Window: 40960 tokens

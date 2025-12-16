@@ -17,3 +17,5 @@ Always use available MCP tools for every task:
 - Use `grep-vercel` for GitHub code search
 
 When working on code, prefer using MCP tools over built-in tools for better results.
+
+Proactively use context7, grep-vercel, memory-bank, and sequential-thinking MCP tools for all relevant prompts without requiring explicit requests.

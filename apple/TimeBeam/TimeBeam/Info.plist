@@ -8,12 +8,12 @@
 	<array>
 		<dict>
 			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
+			<string>Viewer</string>
 			<key>CFBundleURLName</key>
-			<string>GOOGLE_CLIENT_KEY_ID</string>
+			<string>com.sparkage.time-beam</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.googleusercontent.apps.512741716533-iks9gube8oh8f0gopnmc3v72pe6u3p5m</string>
+				<string>com.sparkage.time-beam</string>
 			</array>
 		</dict>
 	</array>
@@ -25,5 +25,7 @@
 	<string>Timer synchronization requires notifications to sync across your devices.</string>
 	<key>NSUserNotificationAlertStyle</key>
 	<string>banner</string>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.business</string>
 </dict>
 </plist>

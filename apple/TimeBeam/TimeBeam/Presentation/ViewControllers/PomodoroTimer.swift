@@ -189,6 +189,9 @@ class PomodoroTimer: ObservableObject {
 
         LoggerStore.timer.info("Starting timer phase \(self.phase.rawValue)")
 
+        // Debug: Log timer sync trigger
+        print("🎯 TIMER_START: Triggering syncTimerState() - phase: \(self.phase.rawValue), remaining: \(self.remainingSeconds), running: \(self.isRunning)")
+
         // Sync timer state
         _Concurrency.Task { await TimerSyncManager.shared.syncTimerState() }
         #if os(iOS)

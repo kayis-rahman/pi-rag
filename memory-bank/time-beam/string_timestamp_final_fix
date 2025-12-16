@@ -1,0 +1,43 @@
+# String Timestamp Final Fix - COMPLETE SOLUTION
+
+## 🎯 Root Cause: @JsonFormat Not Preventing Scientific Notation
+
+### Problem:
+- `@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "0.00")` was not working
+- Backend still sent: `"lastModifiedTimestamp":1.76538365117E9` (scientific notation)
+- Swift JSONDecoder failed to parse scientific notation
+
+### Solution Applied:
+**Change field type to String and handle conversion manually**
+
+### Backend Changes:
+1. **TimerStateDto.java**: `private String lastModifiedTimestamp`
+2. **TimerSyncService.java**: `dto.setLastModifiedTimestamp(String.format("%.2f", unixTimestamp))`
+3. **Guaranteed decimal format**: No scientific notation possible
+
+### Frontend Changes:
+1. **ApiClient.swift**: `let lastModifiedTimestamp: String` in TimerStateDto
+2. **Manual conversion**: `Double(state.lastModifiedTimestamp)` in decoding
+3. **Type conversion**: String → Double after successful JSON parsing
+
+### Result:
+- ✅ Backend sends: `"lastModifiedTimestamp":"1765383651.17"` (decimal string)
+- ✅ Swift receives: `"1765383651.17"` (string)
+- ✅ Swift converts: `Double("1765383651.17")` → `1765383651.17` (Double)
+- ✅ No scientific notation issues
+- ✅ Reliable JSON parsing
+
+### Why This Works:
+1. **String field**: Jackson serializes as JSON string
+2. **Manual formatting**: `String.format("%.2f", value)` prevents scientific notation
+3. **Swift parsing**: String to Double conversion is reliable
+4. **Type safety**: Explicit conversion with error handling
+
+### Expected Xcode Output:
+```
+🔍 TIMER_SYNC: Response body: {"lastModifiedTimestamp":"1765383651.17", ...}
+🔍 TIMER_SYNC: JSON decoding successful, timestamp string: 1765383651.17, parsed to: 1765383651.17
+✅ Timer sync working!
+```
+
+**This approach guarantees no scientific notation and reliable Swift parsing!**

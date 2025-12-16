@@ -1,6 +1,9 @@
 package com.sparkage.timebeam.presentation.dto;
 
+import java.time.Instant;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonFormat.Shape;
 
 public class TimerStateDto {
     private String phase;
@@ -11,7 +14,9 @@ public class TimerStateDto {
     private Integer longBreakDuration;
     private Boolean autoStartNextSession;
     private Integer shortBreaksCompleted;
-    private Double lastModifiedTimestamp;
+    private Integer totalDuration;
+    @JsonFormat(shape = Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
+    private Instant lastModifiedTimestamp;
     private String deviceId;
 
     // Default constructor
@@ -19,9 +24,9 @@ public class TimerStateDto {
 
     // Constructor with all fields (no primary device concept)
     public TimerStateDto(String phase, Integer remainingSeconds, Boolean isRunning,
-                        Integer workDuration, Integer breakDuration, Integer longBreakDuration,
-                        Boolean autoStartNextSession, Integer shortBreaksCompleted,
-                        Double lastModifiedTimestamp, String deviceId) {
+                         Integer workDuration, Integer breakDuration, Integer longBreakDuration,
+                         Boolean autoStartNextSession, Integer shortBreaksCompleted,
+                         Instant lastModifiedTimestamp, String deviceId, Integer totalDuration) {
         this.phase = phase;
         this.remainingSeconds = remainingSeconds;
         this.isRunning = isRunning;
@@ -30,6 +35,7 @@ public class TimerStateDto {
         this.longBreakDuration = longBreakDuration;
         this.autoStartNextSession = autoStartNextSession;
         this.shortBreaksCompleted = shortBreaksCompleted;
+        this.totalDuration = totalDuration;
         this.lastModifiedTimestamp = lastModifiedTimestamp;
         this.deviceId = deviceId;
     }
@@ -59,8 +65,11 @@ public class TimerStateDto {
     public Integer getShortBreaksCompleted() { return shortBreaksCompleted; }
     public void setShortBreaksCompleted(Integer shortBreaksCompleted) { this.shortBreaksCompleted = shortBreaksCompleted; }
 
-    public Double getLastModifiedTimestamp() { return lastModifiedTimestamp; }
-    public void setLastModifiedTimestamp(Double lastModifiedTimestamp) { this.lastModifiedTimestamp = lastModifiedTimestamp; }
+    public Integer getTotalDuration() { return totalDuration; }
+    public void setTotalDuration(Integer totalDuration) { this.totalDuration = totalDuration; }
+
+    public Instant getLastModifiedTimestamp() { return lastModifiedTimestamp; }
+    public void setLastModifiedTimestamp(Instant lastModifiedTimestamp) { this.lastModifiedTimestamp = lastModifiedTimestamp; }
 
     public String getDeviceId() { return deviceId; }
     public void setDeviceId(String deviceId) { this.deviceId = deviceId; }

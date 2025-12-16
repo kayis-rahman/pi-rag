@@ -30,6 +30,28 @@ struct ApiClient {
         return ApiClient(configuration: config)
     }()
 
+    // MARK: - Concurrent Request Prevention
+
+    /// Atomic flag to prevent concurrent APNs token update requests
+    private static var isUpdatingAPNsToken = false
+
+    // MARK: - Token Management
+
+    /// Get a valid access token from multiple sources with fallback
+    static func getValidAccessToken() -> String? {
+        // Try Keychain first (primary source)
+        if let token = try? KeychainStore.loadString(.accessToken) {
+            print("🔑 TIMER_SYNC: Found token in Keychain, length: \(token.count)")
+            return token
+        }
+
+        print("⚠️ TIMER_SYNC: No token in Keychain, trying AuthManager cache")
+        // Fallback to AuthManager's cached token
+        // Note: This would require AuthManager.shared.currentAccessToken property
+        // For now, return nil to trigger proper error handling
+        return nil
+    }
+
     // MARK: - DTOs
 
     struct RegisterRequest: Codable {
@@ -210,17 +232,54 @@ struct ApiClient {
 
     func pushTimerState(_ state: TimerStateDto, accessToken: String) async throws {
         AppLogger.logAPIEvent("timer_state_push_requested", url: "/api/sessions/timer/state")
-        var req = try makeRequest(path: "/api/sessions/timer/state", method: "POST", jsonBody: state)
-        req.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-        let _: EmptyResponse = try await perform(&req)
-        AppLogger.logAPIEvent("timer_state_push_success")
+
+        // Diagnostic logging for Authorization header issue
+        print("🔐 TIMER_SYNC_PUSH: Token loaded, length: \(accessToken.count)")
+        print("🔐 TIMER_SYNC_PUSH: Token prefix: \(accessToken.prefix(10))...")
+
+        do {
+            var req = try makeRequest(path: "/api/sessions/timer/state", method: "POST", jsonBody: state)
+            req.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+
+            // Diagnostic logging for Authorization header
+            print("🔐 TIMER_SYNC_PUSH: Headers after setting: \(req.allHTTPHeaderFields ?? [:])")
+            print("🔐 TIMER_SYNC_PUSH: Authorization header: \(req.value(forHTTPHeaderField: "Authorization") ?? "MISSING")")
+
+            let _: EmptyResponse = try await perform(&req)
+            AppLogger.logAPIEvent("timer_state_push_success")
+        } catch let error as ApiError {
+            if case .httpStatus(let code, _) = error, code == 403 {
+            // Retry once with fresh token if 403 (auth failure)
+            print("🔄 TIMER_SYNC_PUSH: 403 error, retrying with fresh token")
+            if let freshToken = ApiClient.getValidAccessToken(), freshToken != accessToken {
+                var req = try makeRequest(path: "/api/sessions/timer/state", method: "POST", jsonBody: state)
+                req.setValue("Bearer \(freshToken)", forHTTPHeaderField: "Authorization")
+
+                print("🔄 TIMER_SYNC_PUSH: Retry headers: \(req.allHTTPHeaderFields ?? [:])")
+                let _: EmptyResponse = try await perform(&req)
+                AppLogger.logAPIEvent("timer_state_push_success")
+                return
+            }
+            // Re-throw if retry failed or no fresh token
+            throw error
+        }
+        }
     }
 
     func pullTimerState(accessToken: String) async throws -> TimerStateDto? {
         AppLogger.logAPIEvent("timer_state_pull_requested", url: "/api/sessions/timer/state")
+
+        // Diagnostic logging for Authorization header issue
+        print("🔐 TIMER_SYNC_PULL: Token loaded, length: \(accessToken.count)")
+        print("🔐 TIMER_SYNC_PULL: Token prefix: \(accessToken.prefix(10))...")
+
         var req = URLRequest(url: config.baseURL.appendingPathComponent("/api/sessions/timer/state"))
         req.httpMethod = "GET"
         req.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+
+        // Diagnostic logging for Authorization header
+        print("🔐 TIMER_SYNC_PULL: Headers after setting: \(req.allHTTPHeaderFields ?? [:])")
+        print("🔐 TIMER_SYNC_PULL: Authorization header: \(req.value(forHTTPHeaderField: "Authorization") ?? "MISSING")")
 
         let (data, response) = try await urlSession.data(for: req)
         guard let http = response as? HTTPURLResponse else {
@@ -301,6 +360,18 @@ struct ApiClient {
     }
 
     func updateApnsToken(deviceId: String, apnsToken: String, accessToken: String) async throws {
+        // Prevent concurrent APNs token update requests to avoid 403 errors
+        guard !Self.isUpdatingAPNsToken else {
+            AppLogger.info("Skipping concurrent APNs token update request for device: \(deviceId)", category: .api)
+            return // Silently skip to prevent errors
+        }
+        Self.isUpdatingAPNsToken = true
+        defer { Self.isUpdatingAPNsToken = false }
+
+        // Debug logging for APNs token update
+        print("📡 APNS_UPDATE: deviceId=\(deviceId), tokenLength=\(accessToken.count)")
+        print("📡 APNS_UPDATE: tokenPrefix=\(accessToken.prefix(20))...")
+
         AppLogger.logAPIEvent("apns_token_update_requested", url: "/api/sessions/devices/apns-token")
         var components = URLComponents(url: config.baseURL.appendingPathComponent("/api/sessions/devices/apns-token"), resolvingAgainstBaseURL: false)
         components?.queryItems = [
@@ -311,6 +382,10 @@ struct ApiClient {
         var req = URLRequest(url: url)
         req.httpMethod = "POST"
         req.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+
+        // Debug: Check headers before sending
+        print("📡 APNS_UPDATE: Headers before send: \(req.allHTTPHeaderFields ?? [:])")
+
         let _: EmptyResponse = try await perform(&req)
         AppLogger.logAPIEvent("apns_token_update_success")
     }

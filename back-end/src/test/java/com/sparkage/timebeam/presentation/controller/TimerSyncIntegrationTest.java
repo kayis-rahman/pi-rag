@@ -556,7 +556,7 @@ public class TimerSyncIntegrationTest {
         // Test the conversion logic with null values getting defaults
         TimerActionDto actionDto = new TimerActionDto();
         actionDto.setAction("start");
-        actionDto.setLastModifiedTimestamp(Instant.now());
+        actionDto.setTimestamp(Instant.now());
         actionDto.setDeviceId(deviceId1);
         // Leave other fields null to test defaults
 
@@ -716,7 +716,7 @@ public class TimerSyncIntegrationTest {
     private TimerActionDto createTimerAction(String action, String deviceId) {
         TimerActionDto actionDto = new TimerActionDto();
         actionDto.setAction(action);
-        actionDto.setLastModifiedTimestamp(Instant.now());
+        actionDto.setTimestamp(Instant.now());
         actionDto.setDeviceId(deviceId);
         actionDto.setPhase("work");
         actionDto.setRemainingSeconds(1500);

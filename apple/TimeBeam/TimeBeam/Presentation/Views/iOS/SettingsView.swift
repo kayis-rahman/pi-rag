@@ -134,6 +134,20 @@ struct SettingsView: View {
                         }
                 }
 
+                // Manual Sync Section (for testing)
+                Section("MANUAL SYNC") {
+                    Button("Sync Timer State Now") {
+                        Task {
+                            print("🔄 MANUAL_SYNC: User triggered manual sync")
+                            await TimerSyncManager.shared.syncTimerState()
+                        }
+                    }
+                    .foregroundColor(.blue)
+                    Text("Manually sync timer state with other devices")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+
                 // Sound & Haptics Section
                 Section("Sound & Haptics") {
                     Toggle("Sound", isOn: $soundEnabled)

@@ -1,0 +1,22 @@
+# OAuth URL Scheme Sandboxing Issue Fix
+
+## Problem
+OAuth callback from Google opened a new app instance instead of routing to existing instance, caused by app sandboxing restrictions.
+
+## Root Cause
+macOS sandboxed apps have restricted URL scheme handling capabilities. When sandboxing is enabled, the system cannot properly route custom URL schemes to running app instances, causing new instances to be launched instead.
+
+## Solution
+Disabled app sandboxing to allow proper URL scheme handling for OAuth authentication.
+
+## Code Changes
+1. **TimeBeam.entitlements**: Set `com.apple.security.app-sandbox` to `false`
+2. **project.pbxproj**: Set `ENABLE_APP_SANDBOX = NO` in both Debug and Release configurations
+
+## Security Implications
+- Sandboxing provides additional security by restricting app access to system resources
+- Disabling sandboxing increases attack surface but is necessary for OAuth URL scheme handling
+- For production deployment, consider if sandboxing can be selectively enabled or if this trade-off is acceptable
+
+## Result
+OAuth callbacks now properly route to existing app instance, enabling complete authentication flow without duplicate app launches.

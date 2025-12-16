@@ -1442,6 +1442,8 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationC
     private let notificationDelegate = NotificationDelegate()
     private static var statusItem: NSStatusItem?
 
+
+
     override init() {
         super.init()
         MacAppDelegate.shared = self
@@ -1457,6 +1459,99 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationC
             let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
             item.button?.title = ""
             MacAppDelegate.statusItem = item
+        }
+
+        // Set up Apple Event Manager for URL handling (legacy support)
+        let appleEventManager = NSAppleEventManager.shared()
+        appleEventManager.setEventHandler(self, andSelector: #selector(handleURLEvent(_:replyEvent:)), forEventClass: AEEventClass(kInternetEventClass), andEventID: AEEventID(kAEGetURL))
+
+        // Ensure URL scheme registration
+        registerURLScheme()
+    }
+
+    private func registerURLScheme() {
+        // This helps ensure the URL scheme is properly registered
+        let bundleId = Bundle.main.bundleIdentifier ?? "com.sparkage.time-beam"
+        print("[Auth] URL scheme registration: bundleId=\(bundleId)")
+    }
+
+    // Handle OAuth callback URLs (modern delegate method)
+    func application(_ application: NSApplication, open urls: [URL]) -> Bool {
+        print("[DEBUG] NSApplicationDelegate application(_:open:) called with \(urls.count) URLs")
+        for url in urls {
+            print("[DEBUG] Processing URL: \(url.absoluteString)")
+            if url.scheme == "com.sparkage.time-beam" {
+                print("[DEBUG] Found matching scheme, handling OAuth callback via delegate method")
+                handleOAuthCallback(url)
+                return true
+            } else {
+                print("[DEBUG] URL scheme '\(url.scheme ?? "nil")' does not match expected 'com.sparkage.time-beam'")
+            }
+        }
+        print("[DEBUG] No matching URL schemes found in delegate method, returning false")
+        return false
+    }
+
+    // Handle OAuth callback URLs (legacy Apple Events method)
+    @objc func handleURLEvent(_ event: NSAppleEventDescriptor, replyEvent: NSAppleEventDescriptor) {
+        if let urlString = event.paramDescriptor(forKeyword: AEKeyword(keyDirectObject))?.stringValue,
+           let url = URL(string: urlString) {
+            print("[DEBUG] NSAppleEventManager handleURLEvent called with URL: \(url.absoluteString)")
+            if url.scheme == "com.sparkage.time-beam" {
+                print("[DEBUG] Found matching scheme, handling OAuth callback via Apple Events")
+                handleOAuthCallback(url)
+            } else {
+                print("[DEBUG] URL scheme '\(url.scheme ?? "nil")' does not match expected 'com.sparkage.time-beam' in Apple Events")
+            }
+        } else {
+            print("[DEBUG] Could not extract URL from Apple Event")
+        }
+    }
+
+    // Ensure app becomes active when handling URL
+    func applicationDidBecomeActive(_ notification: Notification) {
+        // This ensures the app is properly activated
+        NSApplication.shared.activate(ignoringOtherApps: true)
+    }
+
+    private func handleOAuthCallback(_ url: URL) {
+        print("[Auth] handleOAuthCallback: OAuth callback received: \(url.absoluteString)")
+
+        // Ensure app becomes active and window comes to front
+        NSApplication.shared.activate(ignoringOtherApps: true)
+        if let window = NSApplication.shared.mainWindow {
+            window.makeKeyAndOrderFront(nil)
+        }
+
+        // Extract authorization code from URL
+        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+              let queryItems = components.queryItems,
+              let codeItem = queryItems.first(where: { $0.name == "code" }),
+              let code = codeItem.value else {
+            print("[Auth] handleOAuthCallback: No authorization code found")
+
+            // Show error to user
+            Task { @MainActor in
+                let alert = NSAlert()
+                alert.messageText = "OAuth Failed"
+                alert.informativeText = "No authorization code received from Google."
+                alert.alertStyle = .warning
+                alert.addButton(withTitle: "OK")
+                alert.runModal()
+            }
+            return
+        }
+
+        print("[Auth] handleOAuthCallback: Authorization code received: \(code.prefix(20))...")
+
+        // Show success message to user
+        Task { @MainActor in
+            let alert = NSAlert()
+            alert.messageText = "OAuth Successful!"
+            alert.informativeText = "Authorization code received successfully.\n\nCode: \(code.prefix(20))...\n\nToken exchange will be implemented next."
+            alert.alertStyle = .informational
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
         }
     }
 
@@ -1504,9 +1599,18 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationC
 
     private func updateApnsTokenWithBackend(_ apnsToken: String) async {
         AppLogger.info("Attempting to update APN token with backend on macOS", category: .general)
-        guard let accessToken = try? KeychainStore.loadString(.accessToken),
-              let config = ApiClient.Configuration.fromInfoPlist() else {
-            AppLogger.warning("No access token or API config available for APNs token update on macOS", category: .general)
+
+        // Debug: Check access token availability
+        guard let accessToken = try? KeychainStore.loadString(.accessToken) else {
+            AppLogger.warning("No access token available for APNs token update on macOS", category: .general)
+            return
+        }
+
+        print("🔑 macOS_APNS: Access token loaded, length: \(accessToken.count)")
+        print("🔑 macOS_APNS: Token prefix: \(accessToken.prefix(20))...")
+
+        guard let config = ApiClient.Configuration.fromInfoPlist() else {
+            AppLogger.warning("No API config available for APNs token update on macOS", category: .general)
             return
         }
 
@@ -1518,6 +1622,7 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationC
         let maxRetries = 3
         for attempt in 1...maxRetries {
             do {
+                print("🔄 macOS_APNS: Attempt \(attempt) - calling updateApnsToken")
                 try await apiClient.updateApnsToken(deviceId: deviceId, apnsToken: apnsToken, accessToken: accessToken)
                 AppLogger.info("APNs token updated with backend for macOS device: \(deviceId)", category: .general)
                 return // Success, exit retry loop

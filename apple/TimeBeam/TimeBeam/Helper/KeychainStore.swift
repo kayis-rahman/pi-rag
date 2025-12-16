@@ -26,6 +26,11 @@ struct KeychainStore {
         attributes[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
         #endif
 
+        // Add shared access group for cross-platform token sharing
+        #if os(iOS) || os(macOS)
+        attributes[kSecAttrAccessGroup as String] = "425MSY8FLG.com.sparkage.time-beam"
+        #endif
+
         let status = SecItemAdd(attributes as CFDictionary, nil)
         guard status == errSecSuccess else {
             // For development, fall back to UserDefaults if keychain fails
@@ -39,13 +44,18 @@ struct KeychainStore {
     }
 
     static func load(_ item: Item) throws -> Data? {
-        let query: [String: Any] = [
+        var query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
             kSecAttrAccount as String: item.rawValue,
             kSecReturnData as String: true,
             kSecMatchLimit as String: kSecMatchLimitOne
         ]
+
+        // Add shared access group for cross-platform token sharing
+        #if os(iOS) || os(macOS)
+        query[kSecAttrAccessGroup as String] = "425MSY8FLG.com.sparkage.time-beam"
+        #endif
 
         var out: AnyObject?
         let status = SecItemCopyMatching(query as CFDictionary, &out)
@@ -69,11 +79,16 @@ struct KeychainStore {
     }
 
     static func clear(_ item: Item) throws {
-        let query: [String: Any] = [
+        var query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
             kSecAttrAccount as String: item.rawValue
         ]
+
+        // Add shared access group for cross-platform token sharing
+        #if os(iOS) || os(macOS)
+        query[kSecAttrAccessGroup as String] = "425MSY8FLG.com.sparkage.time-beam"
+        #endif
         let status = SecItemDelete(query as CFDictionary)
         guard status == errSecSuccess || status == errSecItemNotFound else {
             // For development, also clear UserDefaults fallback if keychain fails
