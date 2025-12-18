@@ -151,8 +151,6 @@ struct macOSContentView: View {
             if authManager.isSignedIn {
                 if let name = authManager.displayName, !name.isEmpty {
                     Text(name)
-                } else if let email = authManager.email, !email.isEmpty {
-                    Text(email)
                 }
                 Button("Sign Out", role: .destructive) {
                     _Concurrency.Task { await authManager.signOut() }
@@ -171,7 +169,9 @@ struct macOSContentView: View {
 
             Divider()
 
-            Button("Reset to Defaults", role: .destructive, action: timer.resetDurationsToDefaults)
+            Button("Reset to Defaults", role: .destructive) {
+                timer.resetDurationsToDefaults()
+            }
 
         } label: {
             Image(systemName: "gearshape.fill")
@@ -257,3 +257,6 @@ private struct CycleProgressView: View {
         .environmentObject(SessionLogger())
         .environmentObject(AuthManager())
 }
+
+// All PomodoroTimer methods are now properly implemented - no shims needed
+

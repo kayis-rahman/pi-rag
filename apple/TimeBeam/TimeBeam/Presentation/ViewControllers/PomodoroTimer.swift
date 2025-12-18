@@ -375,7 +375,9 @@ class PomodoroTimer: ObservableObject {
                 }
                 self.saveState()
             }
-        } else if !isRunning && wasRunning {
+        }
+
+        if !isRunning && wasRunning {
             // Already paused above
         }
 
@@ -411,7 +413,7 @@ class PomodoroTimer: ObservableObject {
     }
 
     // MARK: - Backend session sync
-    private func startBackendSessionIfNeeded() async {
+    func startBackendSessionIfNeeded() async {
         guard self.backendSessionId == nil else {
             LoggerStore.session.debug("Not starting backend session: already exists id=\(self.backendSessionId!.uuidString)")
             return
@@ -439,7 +441,7 @@ class PomodoroTimer: ObservableObject {
         }
     }
 
-    private func stopBackendSessionIfNeeded() async {
+    func stopBackendSessionIfNeeded() async {
         guard let sessionId = self.backendSessionId else {
             LoggerStore.session.debug("Not stopping backend session: no active sessionId")
             return
@@ -463,7 +465,7 @@ class PomodoroTimer: ObservableObject {
 
     // MARK: - Private Methods
 
-    private func advanceToNextPhase(autoStart: Bool) {
+    func advanceToNextPhase(autoStart: Bool) {
         self.onSessionCompleted?(self.phase, self.currentDuration)
         NotificationManager.shared.sendSessionDoneNotification(phase: self.phase.rawValue)
 
@@ -501,7 +503,7 @@ class PomodoroTimer: ObservableObject {
         self.updatePlatformUI()
     }
 
-    private func updatePlatformUI() {
+    func updatePlatformUI() {
         #if os(macOS)
         let badgeLabel = isRunning ? remainingSeconds.mmss : nil
         NSApplication.shared.dockTile.badgeLabel = badgeLabel
@@ -509,7 +511,7 @@ class PomodoroTimer: ObservableObject {
         #endif
     }
 
-    private func saveState() {
+    func saveState() {
         let state = TimerState(
             phase: self.phase,
             remainingSeconds: self.remainingSeconds,
@@ -533,7 +535,7 @@ class PomodoroTimer: ObservableObject {
         }
     }
 
-    private func loadState() -> TimerState? {
+    func loadState() -> TimerState? {
         guard let data = UserDefaults.standard.data(forKey: stateKey) else { return nil }
         return try? JSONDecoder().decode(TimerState.self, from: data)
     }
