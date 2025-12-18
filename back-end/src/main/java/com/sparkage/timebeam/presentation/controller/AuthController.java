@@ -76,9 +76,18 @@ public class AuthController {
             return ResponseEntity.status(401).body(body);
         }
 
-        // Successful login
+        // Successful login - return user info and token
         AppLogger.logAuthEvent("login_success", login.getEmail());
-        return ResponseEntity.ok(Map.of("accessToken", token.get()));
+        Optional<UserDto> userDto = userService.findByEmail(login.getEmail())
+            .flatMap(user -> userService.findDtoById(user.getId()));
+        if (userDto.isPresent()) {
+            return ResponseEntity.ok(Map.of(
+                "accessToken", token.get(),
+                "user", userDto.get()
+            ));
+        } else {
+            return ResponseEntity.ok(Map.of("accessToken", token.get()));
+        }
     }
 
 

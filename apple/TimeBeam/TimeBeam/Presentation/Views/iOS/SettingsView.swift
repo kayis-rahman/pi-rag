@@ -26,11 +26,15 @@ struct SettingsView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             HStack {
                                 VStack(alignment: .leading, spacing: 4) {
-                                    Text(displayNameForProfile())
-                                        .font(.system(size: 16, weight: .medium))
-                                    Text(displayEmailForProfile())
-                                        .font(.system(size: 14))
-                                        .foregroundStyle(.secondary)
+                                    if !displayNameForProfile().isEmpty {
+                                        Text(displayNameForProfile())
+                                            .font(.system(size: 16, weight: .medium))
+                                    }
+                                    if !displayEmailForProfile().isEmpty {
+                                        Text(displayEmailForProfile())
+                                            .font(.system(size: 14))
+                                            .foregroundStyle(.secondary)
+                                    }
                                 }
                                 Spacer()
                                 Image(systemName: "person.circle.fill")
@@ -224,21 +228,14 @@ struct SettingsView: View {
         if let name = authManager.displayName, !name.isEmpty {
             return name
         }
-        // Try to extract name from email if available
-        if let email = authManager.email, !email.isEmpty {
-            let components = email.split(separator: "@")
-            if let localPart = components.first {
-                return String(localPart).replacingOccurrences(of: ".", with: " ").capitalized
-            }
-        }
-        return "TimeBeam User"
+        return ""
     }
 
     private func displayEmailForProfile() -> String {
         if let email = authManager.email, !email.isEmpty {
             return email
         }
-        return "Sign in to sync data"
+        return ""
     }
 
     private func clearAllData() {

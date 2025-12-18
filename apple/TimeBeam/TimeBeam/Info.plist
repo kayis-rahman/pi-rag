@@ -2,8 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>API_BASE_URL</key>
-	<string>http://192.168.0.173:8080</string>
+ 	<key>API_BASE_URL</key>
+ 	<string>http://localhost:8080</string>
+ 	<key>GOOGLE_CLIENT_ID</key>
+ 	<string>512741716533-iks9gube8oh8f0gopnmc3v72pe6u3p5m.apps.googleusercontent.com</string>
+ 	<key>GOOGLE_CLIENT_SECRET</key>
+ 	<string>YOUR_GOOGLE_CLIENT_SECRET_HERE</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

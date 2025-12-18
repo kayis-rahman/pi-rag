@@ -65,6 +65,13 @@ struct ApiClient {
 
     struct LoginResponse: Codable {
         let accessToken: String
+        let user: UserDto?
+    }
+
+    struct UserDto: Codable {
+        let id: UUID
+        let email: String
+        let displayName: String
     }
 
     struct SessionPayload: Codable {
