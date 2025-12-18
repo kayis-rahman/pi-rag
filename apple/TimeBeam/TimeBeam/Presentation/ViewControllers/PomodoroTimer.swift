@@ -181,16 +181,13 @@ class PomodoroTimer: ObservableObject {
 
         LoggerStore.timer.info("Starting timer phase \(self.phase.rawValue)")
 
-        timerCancellable = Timer.publish(every: 1, on: .main, in: .common)
-            .autoconnect()
-            .sink { _ in
-                guard self.isRunning else {
-                    return
-                }
-
         // Cancel any existing timer before starting new one
         timerCancellable?.cancel()
         timerCancellable = nil
+
+        // Set running state
+        isRunning = true
+        startTime = Date()
 
         LoggerStore.timer.info("Starting timer cancellable")
         timerCancellable = Timer.publish(every: 1, on: .main, in: .common)

@@ -1665,7 +1665,27 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationC
         completionHandler()
     }
 
+    static func updateStatusItem(title: String?) {
+        DispatchQueue.main.async {
+            if let title, !title.isEmpty {
+                MacAppDelegate.statusItem?.button?.title = title
+            } else {
+                MacAppDelegate.statusItem?.button?.title = ""
+            }
+        }
+    }
 
+    static func showTemporaryStatus(_ message: String, duration: TimeInterval = 3.0) {
+        DispatchQueue.main.async {
+            let originalTitle = MacAppDelegate.statusItem?.button?.title ?? ""
+            MacAppDelegate.statusItem?.button?.title = message
+
+            // Restore original title after duration
+            DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
+                MacAppDelegate.statusItem?.button?.title = originalTitle
+            }
+        }
+    }
 }
 #endif
 
