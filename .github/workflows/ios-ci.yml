@@ -14,7 +14,7 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: macos-latest
+    runs-on: self-hosted
 
     steps:
     - name: Checkout code
@@ -68,7 +68,7 @@ jobs:
           CODE_SIGNING_ALLOWED=NO
 
   swift-package-test:
-    runs-on: macos-latest
+    runs-on: self-hosted
 
     steps:
     - name: Checkout code
@@ -85,7 +85,7 @@ jobs:
         swift test
 
   vulnerability-check:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
     - name: Checkout code

@@ -12,7 +12,7 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
     - name: Checkout code
@@ -74,7 +74,7 @@ jobs:
         SPRING_VERSION: '3.2.0'
 
   sonarcloud:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: build-and-test
 
     steps:

@@ -14,7 +14,7 @@ jobs:
     uses: ./.github/workflows/ios-ci.yml
 
   security-audit:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [backend-health, ios-health]
 
     steps:
@@ -48,7 +48,7 @@ jobs:
         SPRING_VERSION: '3.2.0'
 
   code-quality-report:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [backend-health, ios-health]
 
     steps:
