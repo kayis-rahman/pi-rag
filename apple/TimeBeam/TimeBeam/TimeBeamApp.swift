@@ -1567,7 +1567,12 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationC
     // MARK: - APNs Token Registration (macOS)
     func application(_ application: NSApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         let tokenString = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
-        AppLogger.info("Successfully registered for remote notifications on macOS", category: .general)
+        AppLogger.info("Successfully registered for remote notifications on macOS, APNs token: \(tokenString.prefix(10))...", category: .general)
+
+        // Store APNs token in Keychain for later registration
+        do {
+            try KeychainStore.saveString(tokenString, for: .apnsToken)
+            AppLogger.info("APNs token stored in Keychain on macOS", category: .general)
         } catch {
             AppLogger.error("Failed to store APNs token in Keychain on macOS: \(error.localizedDescription)", category: .general)
         }
@@ -1660,27 +1665,7 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationC
         completionHandler()
     }
 
-    static func updateStatusItem(title: String?) {
-        DispatchQueue.main.async {
-            if let title, !title.isEmpty {
-                MacAppDelegate.statusItem?.button?.title = title
-            } else {
-                MacAppDelegate.statusItem?.button?.title = ""
-            }
-        }
-    }
 
-    static func showTemporaryStatus(_ message: String, duration: TimeInterval = 3.0) {
-        DispatchQueue.main.async {
-            let originalTitle = MacAppDelegate.statusItem?.button?.title ?? ""
-            MacAppDelegate.statusItem?.button?.title = message
-
-            // Restore original title after duration
-            DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
-                MacAppDelegate.statusItem?.button?.title = originalTitle
-            }
-        }
-    }
 }
 #endif
 
@@ -1805,6 +1790,28 @@ final class iOSAppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationC
         }
 
         completionHandler()
+    }
+
+    static func updateStatusItem(title: String?) {
+        DispatchQueue.main.async {
+            if let title, !title.isEmpty {
+                MacAppDelegate.statusItem?.button?.title = title
+            } else {
+                MacAppDelegate.statusItem?.button?.title = ""
+            }
+        }
+    }
+
+    static func showTemporaryStatus(_ message: String, duration: TimeInterval = 3.0) {
+        DispatchQueue.main.async {
+            let originalTitle = MacAppDelegate.statusItem?.button?.title ?? ""
+            MacAppDelegate.statusItem?.button?.title = message
+
+            // Restore original title after duration
+            DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
+                MacAppDelegate.statusItem?.button?.title = originalTitle
+            }
+        }
     }
 }
 #endif
