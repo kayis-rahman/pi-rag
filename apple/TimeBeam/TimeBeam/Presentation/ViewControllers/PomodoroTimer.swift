@@ -122,11 +122,11 @@ class PomodoroTimer: ObservableObject {
     private let stateKey = "PomodoroTimerState.v2"
 
     init() {
-        // Initialize all stored properties first
+        // Initialize with defaults first
         self.workDuration = 25 * 60
         self.breakDuration = 5 * 60
         self.longBreakDuration = 15 * 60
-        self.remainingSeconds = 25 * 60 // Default value, will be updated
+        self.remainingSeconds = 25 * 60
         self.phase = .work
         self.isRunning = false
         self.autoStartNextSession = false
@@ -137,25 +137,24 @@ class PomodoroTimer: ObservableObject {
         self.pauseTimestamp = nil
         self.lastModifiedTimestamp = Date().timeIntervalSince1970
 
-        LoggerStore.timer.info("Timer initialized")
-
-        // Load state after initialization
+        // Load saved state and apply it
         loadAndApplyState()
     }
 
     private func loadAndApplyState() {
         if let state = loadState() {
-            self.phase = state.phase
-            self.remainingSeconds = state.remainingSeconds
-            self.isRunning = false
+            // Load saved durations first
             self.workDuration = state.workDuration
             self.breakDuration = state.breakDuration
             self.longBreakDuration = state.longBreakDuration
+            self.phase = state.phase
+            self.remainingSeconds = state.remainingSeconds
+            self.isRunning = false
             self.autoStartNextSession = state.autoStartNextSession
             self.shortBreaksCompleted = state.shortBreaksCompleted
             self.backendSessionId = state.backendSessionId
             self.currentTaskId = state.currentTaskId
-            LoggerStore.timer.debug("Loaded timer state: phase=\(self.phase.rawValue), backendSessionId=\(String(describing: self.backendSessionId)), currentTaskId=\(String(describing: self.currentTaskId))")
+            LoggerStore.timer.debug("Loaded timer state: phase=\(self.phase.rawValue), workDuration=\(self.workDuration), backendSessionId=\(String(describing: self.backendSessionId)), currentTaskId=\(String(describing: self.currentTaskId))")
             if let lastActive = state.lastActiveDate, state.isRunning {
                 let elapsed = Int(Date().timeIntervalSince(lastActive))
                 let updated = max(0, state.remainingSeconds - elapsed)
@@ -166,8 +165,7 @@ class PomodoroTimer: ObservableObject {
                 }
             }
         } else {
-            self.remainingSeconds = self.workDuration
-            LoggerStore.timer.debug("Using default durations")
+            // Keep default durations that were set in init
         }
     }
 
@@ -179,28 +177,16 @@ class PomodoroTimer: ObservableObject {
 
     // MARK: - Public Methods
     func start() {
-        guard !isRunning else { LoggerStore.timer.debug("start() called but timer already running"); return }
-        isRunning = true
-        self.startTimestamp = Date().timeIntervalSince1970
-        self.pauseTimestamp = nil
-        self.lastModifiedTimestamp = Date().timeIntervalSince1970
-        saveState()
-        updatePlatformUI()
+        guard !isRunning else { return }
 
         LoggerStore.timer.info("Starting timer phase \(self.phase.rawValue)")
 
-        // Debug: Log timer sync trigger
-        print("🎯 TIMER_START: Triggering syncTimerState() - phase: \(self.phase.rawValue), remaining: \(self.remainingSeconds), running: \(self.isRunning)")
-
-        // Sync timer state
-        _Concurrency.Task { await TimerSyncManager.shared.syncTimerState() }
-        #if os(iOS)
-        WatchConnectivityManager.shared?.broadcastTimerState()
-        #endif
-
-        _Concurrency.Task {
-            await self.startBackendSessionIfNeeded()
-        }
+        timerCancellable = Timer.publish(every: 1, on: .main, in: .common)
+            .autoconnect()
+            .sink { _ in
+                guard self.isRunning else {
+                    return
+                }
 
         // Cancel any existing timer before starting new one
         timerCancellable?.cancel()
@@ -226,23 +212,12 @@ class PomodoroTimer: ObservableObject {
     }
 
     func startFromSync() {
-        guard !isRunning else { LoggerStore.timer.debug("startFromSync() called but timer already running"); return }
-        isRunning = true
-        self.startTime = Date()
-        saveState()
-        updatePlatformUI()
+        guard !isRunning else { return }
 
-        // Cancel any existing timer before starting new one
-        timerCancellable?.cancel()
-        timerCancellable = nil
-
-        LoggerStore.timer.info("Starting timer cancellable")
         timerCancellable = Timer.publish(every: 1, on: .main, in: .common)
             .autoconnect()
             .sink { _ in
-                LoggerStore.timer.debug("Timer tick: isRunning=\(self.isRunning), remaining=\(self.remainingSeconds)")
                 guard self.isRunning else {
-                    LoggerStore.timer.debug("Timer tick ignored: not running")
                     return
                 }
                 self.remainingSeconds -= 1

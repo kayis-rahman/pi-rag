@@ -41,11 +41,11 @@ struct TimeBeamApp: App {
 
     @StateObject var timer = PomodoroTimer()
     // @StateObject var logger = SessionLogger()
-    @StateObject var authManager = AuthManager()
+    @StateObject var authManager = AuthManager.shared
     @StateObject var taskService = TaskService()
     @StateObject var analyticsManager = AnalyticsManager(
         apiClient: AnalyticsApiClient(baseURL: ApiClient.Configuration.fromInfoPlist()?.baseURL ?? URL(string: "http://localhost:8080")!),
-        authManager: AuthManager()
+        authManager: AuthManager.shared
     )
 
     @State private var isAppReady = false
@@ -103,7 +103,6 @@ struct TimeBeamApp: App {
                     AppLogger.initializeFileLogging()
                     
                     _Concurrency.Task {
-                        print("🔄 macOS: Starting authentication and timer sync...")
                         await authManager.restoreSession()
 
                         // macOS gets priority - wait longer to allow iOS to sync first if it's running
@@ -1472,23 +1471,31 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationC
     private func registerURLScheme() {
         // This helps ensure the URL scheme is properly registered
         let bundleId = Bundle.main.bundleIdentifier ?? "com.sparkage.time-beam"
-        print("[Auth] URL scheme registration: bundleId=\(bundleId)")
+
+    }
+
+    private func isSupportedOAuthURL(_ url: URL) -> Bool {
+        guard let scheme = url.scheme else { return false }
+        // Primary app scheme
+        if scheme == "com.sparkage.time-beam" { return true }
+        // Also allow Google-minted scheme from Info.plist (GOOGLE_REDIRECT_URI)
+        if let redirect = Bundle.main.infoDictionary?["GOOGLE_REDIRECT_URI"] as? String,
+           let redirectURL = URL(string: redirect),
+           let redirectScheme = redirectURL.scheme,
+           scheme == redirectScheme {
+            return true
+        }
+        return false
     }
 
     // Handle OAuth callback URLs (modern delegate method)
     func application(_ application: NSApplication, open urls: [URL]) -> Bool {
-        print("[DEBUG] NSApplicationDelegate application(_:open:) called with \(urls.count) URLs")
         for url in urls {
-            print("[DEBUG] Processing URL: \(url.absoluteString)")
-            if url.scheme == "com.sparkage.time-beam" {
-                print("[DEBUG] Found matching scheme, handling OAuth callback via delegate method")
+            if isSupportedOAuthURL(url) {
                 handleOAuthCallback(url)
                 return true
-            } else {
-                print("[DEBUG] URL scheme '\(url.scheme ?? "nil")' does not match expected 'com.sparkage.time-beam'")
             }
         }
-        print("[DEBUG] No matching URL schemes found in delegate method, returning false")
         return false
     }
 
@@ -1496,15 +1503,9 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationC
     @objc func handleURLEvent(_ event: NSAppleEventDescriptor, replyEvent: NSAppleEventDescriptor) {
         if let urlString = event.paramDescriptor(forKeyword: AEKeyword(keyDirectObject))?.stringValue,
            let url = URL(string: urlString) {
-            print("[DEBUG] NSAppleEventManager handleURLEvent called with URL: \(url.absoluteString)")
-            if url.scheme == "com.sparkage.time-beam" {
-                print("[DEBUG] Found matching scheme, handling OAuth callback via Apple Events")
+            if isSupportedOAuthURL(url) {
                 handleOAuthCallback(url)
-            } else {
-                print("[DEBUG] URL scheme '\(url.scheme ?? "nil")' does not match expected 'com.sparkage.time-beam' in Apple Events")
             }
-        } else {
-            print("[DEBUG] Could not extract URL from Apple Event")
         }
     }
 
@@ -1529,36 +1530,26 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationC
               let codeItem = queryItems.first(where: { $0.name == "code" }),
               let code = codeItem.value else {
             print("[Auth] handleOAuthCallback: No authorization code found")
-
-            // Show error to user
-            Task { @MainActor in
-                let alert = NSAlert()
-                alert.messageText = "OAuth Failed"
-                alert.informativeText = "No authorization code received from Google."
-                alert.alertStyle = .warning
-                alert.addButton(withTitle: "OK")
-                alert.runModal()
-            }
             return
         }
 
         print("[Auth] handleOAuthCallback: Authorization code received: \(code.prefix(20))...")
 
-        // Show success message to user
-        Task { @MainActor in
-            let alert = NSAlert()
-            alert.messageText = "OAuth Successful!"
-            alert.informativeText = "Authorization code received successfully.\n\nCode: \(code.prefix(20))...\n\nToken exchange will be implemented next."
-            alert.alertStyle = .informational
-            alert.addButton(withTitle: "OK")
-            alert.runModal()
+        // Pass the authorization code to AuthManager for token exchange
+        Task {
+            do {
+                try await AuthManager.shared.handleOAuthCallback(url)
+            } catch {
+                print("[Auth] OAuth callback failed: \(error)")
+                // Error handled silently - logged above
+            }
         }
+
+        // Authentication completed successfully
     }
 
     private func requestNotificationPermissions() {
-        AppLogger.info("Requesting notification permissions on macOS", category: .general)
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
-            AppLogger.info("macOS notification permission granted: \(granted)", category: .general)
             if granted {
                 DispatchQueue.main.async {
                     AppLogger.info("Registering for remote notifications on macOS", category: .general)
@@ -1576,12 +1567,7 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationC
     // MARK: - APNs Token Registration (macOS)
     func application(_ application: NSApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         let tokenString = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
-        AppLogger.info("Successfully registered for remote notifications on macOS, APNs token: \(tokenString.prefix(10))...", category: .general)
-
-        // Store APNs token in Keychain for later registration
-        do {
-            try KeychainStore.saveString(tokenString, for: .apnsToken)
-            AppLogger.info("APNs token stored in Keychain on macOS", category: .general)
+        AppLogger.info("Successfully registered for remote notifications on macOS", category: .general)
         } catch {
             AppLogger.error("Failed to store APNs token in Keychain on macOS: \(error.localizedDescription)", category: .general)
         }
@@ -1606,8 +1592,7 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationC
             return
         }
 
-        print("🔑 macOS_APNS: Access token loaded, length: \(accessToken.count)")
-        print("🔑 macOS_APNS: Token prefix: \(accessToken.prefix(20))...")
+
 
         guard let config = ApiClient.Configuration.fromInfoPlist() else {
             AppLogger.warning("No API config available for APNs token update on macOS", category: .general)
@@ -1622,7 +1607,7 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationC
         let maxRetries = 3
         for attempt in 1...maxRetries {
             do {
-                print("🔄 macOS_APNS: Attempt \(attempt) - calling updateApnsToken")
+
                 try await apiClient.updateApnsToken(deviceId: deviceId, apnsToken: apnsToken, accessToken: accessToken)
                 AppLogger.info("APNs token updated with backend for macOS device: \(deviceId)", category: .general)
                 return // Success, exit retry loop
@@ -1823,3 +1808,4 @@ final class iOSAppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationC
     }
 }
 #endif
+
