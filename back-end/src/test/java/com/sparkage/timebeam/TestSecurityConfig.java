@@ -1,5 +1,7 @@
 package com.sparkage.timebeam;
 
+import com.sparkage.timebeam.infrastructure.external.PushNotificationService;
+import org.mockito.Mockito;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,11 +10,11 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
-import org.springframework.security.web.SecurityFilterChain;
 
 import java.util.UUID;
 
@@ -48,5 +50,12 @@ public class TestSecurityConfig {
                 .build();
 
         return new InMemoryUserDetailsManager(user);
+    }
+
+    @Bean
+    @Primary
+    public PushNotificationService pushNotificationService() {
+        // Mock implementation for tests
+        return Mockito.mock(PushNotificationService.class);
     }
 }

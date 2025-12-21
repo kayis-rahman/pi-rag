@@ -227,14 +227,13 @@ final class AuthManager: ObservableObject {
         return nil
     }
 
-    private func googleClientSecret() -> String {
+    private func googleClientSecret() -> String? {
         if let dict = Bundle.main.infoDictionary,
             let secret = dict["GOOGLE_CLIENT_SECRET"] as? String,
             !secret.isEmpty {
             return secret
         }
-        // Placeholder - should be in Info.plist
-        return "GOCSPX-placeholder-client-secret"
+        return nil
     }
 
     @objc private func handleOAuthCompleted() {
