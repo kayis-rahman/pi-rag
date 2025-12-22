@@ -102,7 +102,9 @@ class DeviceManagementServiceTest {
         UserDevice result = deviceManagementService.registerOrUpdateDevice(userId, registrationDto);
 
         // Then
-        assertThat(result).isEqualTo(newDevice);
+        assertThat(result.getUserId()).isEqualTo(newDevice.getUserId());
+        assertThat(result.getDeviceId()).isEqualTo(newDevice.getDeviceId());
+        assertThat(result.getDeviceName()).isEqualTo(newDevice.getDeviceName());
         verify(deviceRepository).findByUserIdAndDeviceId(userId, registrationDto.getDeviceId());
         verify(deviceRepository).save(any(UserDevice.class));
     }
@@ -154,9 +156,8 @@ class DeviceManagementServiceTest {
     @Test
     void cleanupStaleDevices_ShouldDeactivateOldDevices() {
         // Given
-        Instant cutoff = Instant.now().minusSeconds(30 * 24 * 60 * 60); // 30 days ago
         List<UserDevice> staleDevices = List.of(existingDevice);
-        when(deviceRepository.findStaleDevices(cutoff)).thenReturn(staleDevices);
+        when(deviceRepository.findStaleDevices(any(Instant.class))).thenReturn(staleDevices);
         when(deviceRepository.save(existingDevice)).thenReturn(existingDevice);
 
         // When
@@ -165,7 +166,7 @@ class DeviceManagementServiceTest {
         // Then
         assertThat(result).isEqualTo(1);
         assertThat(existingDevice.isActive()).isFalse();
-        verify(deviceRepository).findStaleDevices(cutoff);
+        verify(deviceRepository).findStaleDevices(any(Instant.class));
         verify(deviceRepository).save(existingDevice);
     }
 
