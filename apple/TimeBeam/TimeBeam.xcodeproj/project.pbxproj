@@ -6,10 +6,6 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXBuildFile section */
-
-/* End PBXBuildFile section */
-
 /* Begin PBXContainerItemProxy section */
 		6D5999A52E780AE600D65722 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -202,7 +198,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				6D252E182EBB75350053735D /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				6D5999952E780AE300D65722 /* TimeBeam */,
@@ -510,7 +505,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-
 		6D5999A62E780AE600D65722 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 6D5999922E780AE300D65722 /* TimeBeam */;
@@ -1172,14 +1166,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 6D59998B2E780AE300D65722 /* Project object */;
 }
