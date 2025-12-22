@@ -18,10 +18,12 @@ import org.slf4j.LoggerFactory;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Cross-Device Continuity Manager
@@ -110,15 +112,14 @@ public class CrossDeviceContinuityManager {
             "macos", 1,    // Highest priority for work
             "ios", 2,        // Medium priority
             "watchos", 3    // Lowest priority for notifications
-        ));
+        );
         
         return events.stream()
-                .max(Comparator.comparingInt(
-                    (e1, e2) -> {
-                        Integer priority1 = devicePriority.getOrDefault(e1.getSourceDeviceId(), 4);
-                        Integer priority2 = devicePriority.getOrDefault(e2.getSourceDeviceId(), 4);
-                        return priority1.compareTo(priority2);
-                    })
+                .sorted(Comparator.comparing(
+                    (TimerStateChangeEvent e) -> devicePriority.getOrDefault(e.getSourceDeviceId(), 4))
+                )
+                .filter(Objects::nonNull)
+                .findFirst()
                 .orElse(null);
     }
     
@@ -245,7 +246,7 @@ public class CrossDeviceContinuityManager {
                             .title("Use Remote Timer")
                             .build()
                 ))
-                .priority(.HIGH)
+                .priority(Priority.HIGH)
                 .build();
         
         return notification;

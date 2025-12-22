@@ -1,99 +1,94 @@
 package com.sparkage.timebeam.application.dto;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 
 /**
- * Vector clock for causal ordering of concurrent events
- * Prevents race conditions in distributed timer synchronization
+ * Rich push notification with interactive actions
  */
-public class VectorClock {
-    private String deviceId;
-    private Map<String, Long> counters;
-    
-    private VectorClock() {
-        this.counters = new java.util.HashMap<>();
+public class RichPushNotification {
+    private String userId;
+    private String title;
+    private String subtitle;
+    private String body;
+    private Priority priority;
+    private List<PushNotificationAction> actions;
+
+    private RichPushNotification() {}
+
+    public static Builder builder() {
+        return new Builder();
     }
-    
-    @JsonCreator
-    public static VectorClock create(String deviceId) {
-        VectorClock clock = new VectorClock();
-        clock.deviceId = deviceId;
-        return clock;
-    }
-    
-    /**
-     * Increment counter for current device
-     */
-    public void increment(String key) {
-        counters.merge(key, 1L, Long::sum);
-    }
-    
-    /**
-     * Increment counter for local device
-     */
-    public void incrementLocal() {
-        counters.merge(deviceId, 1L, Long::sum);
-    }
-    
-    /**
-     * Update counters from another vector clock
-     */
-    public void update(VectorClock other) {
-        for (Map.Entry<String, Long> entry : other.counters.entrySet()) {
-            counters.merge(entry.getKey(), entry.getValue(), Math::max);
+
+    public static class Builder {
+        private String userId;
+        private String title;
+        private String subtitle;
+        private String body;
+        private Priority priority;
+        private List<PushNotificationAction> actions;
+
+        public Builder userId(String userId) {
+            this.userId = userId;
+            return this;
+        }
+
+        public Builder title(String title) {
+            this.title = title;
+            return this;
+        }
+
+        public Builder subtitle(String subtitle) {
+            this.subtitle = subtitle;
+            return this;
+        }
+
+        public Builder body(String body) {
+            this.body = body;
+            return this;
+        }
+
+        public Builder priority(Priority priority) {
+            this.priority = priority;
+            return this;
+        }
+
+        public Builder actions(List<PushNotificationAction> actions) {
+            this.actions = actions;
+            return this;
+        }
+
+        public RichPushNotification build() {
+            RichPushNotification notification = new RichPushNotification();
+            notification.userId = this.userId;
+            notification.title = this.title;
+            notification.subtitle = this.subtitle;
+            notification.body = this.body;
+            notification.priority = this.priority;
+            notification.actions = this.actions;
+            return notification;
         }
     }
-    
-    /**
-     * Check if this clock happened before another
-     */
-    public boolean happenedBefore(VectorClock other) {
-        for (Map.Entry<String, Long> entry : counters.entrySet()) {
-            Long otherCount = other.counters.getOrDefault(entry.getKey(), 0L);
-            if (entry.getValue() < otherCount) {
-                return true;
-            }
-        }
-        return false;
-    }
-    
-    /**
-     * Check if clocks are concurrent (no ordering)
-     */
-    public boolean isConcurrentWith(VectorClock other) {
-        boolean thisBeforeOther = this.happenedBefore(other);
-        boolean otherBeforeThis = other.happenedBefore(this);
-        return !thisBeforeOther && !otherBeforeThis;
-    }
-    
-    /**
-     * Merge two vector clocks
-     */
-    public VectorClock merge(VectorClock other) {
-        VectorClock merged = new VectorClock();
-        merged.deviceId = deviceId;
-        
-        for (String key : counters.keySet()) {
-            Long thisCount = counters.getOrDefault(key, 0L);
-            Long otherCount = other.counters.getOrDefault(key, 0L);
-            merged.counters.put(key, Math.max(thisCount, otherCount));
-        }
-        
-        return merged;
-    }
-    
-    /**
-     * Get all counters as unmodifiable map
-     */
-    public java.util.Map<String, Long> getCounters() {
-        return java.util.Collections.unmodifiableMap(counters);
-    }
-    
-    /**
-     * Get device ID
-     */
-    public String getDeviceId() {
-        return deviceId;
+
+    // Getters and setters
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
+
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+
+    public String getSubtitle() { return subtitle; }
+    public void setSubtitle(String subtitle) { this.subtitle = subtitle; }
+
+    public String getBody() { return body; }
+    public void setBody(String body) { this.body = body; }
+
+    public Priority getPriority() { return priority; }
+    public void setPriority(Priority priority) { this.priority = priority; }
+
+    public List<PushNotificationAction> getActions() { return actions; }
+    public void setActions(List<PushNotificationAction> actions) { this.actions = actions; }
+
+    public enum Priority {
+        LOW, MEDIUM, HIGH
     }
 }
