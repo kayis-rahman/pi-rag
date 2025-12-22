@@ -1,120 +1,74 @@
 package com.sparkage.timebeam.infrastructure.persistence;
 
-import java.time.Instant;
-import java.util.UUID;
+import com.sparkage.timebeam.domain.model.TimerState;
 
 import jakarta.persistence.*;
+import java.util.UUID;
 
-@Entity
-@Table(name = "user_devices", indexes = {
-    @Index(columnList = "user_id, is_active, last_seen_at DESC")
-})
-public class UserDevice {
-    @Id
-    @Column(columnDefinition = "uuid")
-    private UUID id;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.Param;
+import org.springframework.stereotype.Repository;
 
-    @Column(name = "user_id", columnDefinition = "uuid", nullable = false)
-    private UUID userId;
+/**
+ * Repository for UserDevice entities with enhanced queries for multi-device sync
+ */
+@Repository
+public interface UserDeviceRepository extends JpaRepository<UserDevice, UUID> {
 
-    @Column(name = "device_id", nullable = false, length = 255)
-    private String deviceId;
-
-    @Column(name = "device_name")
-    private String deviceName;
-
-    @Column(name = "device_type")
-    private String deviceType;
-
-    @Column(name = "platform_version")
-    private String platformVersion;
-
-    @Column(name = "app_version")
-    private String appVersion;
-
-    @Column(name = "apns_token", columnDefinition = "TEXT")
-    private String apnsToken;
-
-    @Column(name = "fcm_token", columnDefinition = "TEXT")
-    private String fcmToken;
-
-    @Column(name = "last_seen_at", nullable = false)
-    private Instant lastSeenAt;
-
-    @Column(name = "is_active", nullable = false)
-    private boolean active;
-
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt;
-
-    public UserDevice() {}
-
-    public UserDevice(UUID id, UUID userId, String deviceId, String deviceName,
-                     String deviceType, String platformVersion, String appVersion,
-                     String apnsToken, String fcmToken, Instant lastSeenAt, boolean active, Instant createdAt) {
-        this.id = id;
-        this.userId = userId;
-        this.deviceId = deviceId;
-        this.deviceName = deviceName;
-        this.deviceType = deviceType;
-        this.platformVersion = platformVersion;
-        this.appVersion = appVersion;
-        this.apnsToken = apnsToken;
-        this.fcmToken = fcmToken;
-        this.lastSeenAt = lastSeenAt;
-        this.active = active;
-        this.createdAt = createdAt;
-    }
-
-    // Getters and setters
-    public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
-
-    public UUID getUserId() { return userId; }
-    public void setUserId(UUID userId) { this.userId = userId; }
-
-    public String getDeviceId() { return deviceId; }
-    public void setDeviceId(String deviceId) { this.deviceId = deviceId; }
-
-    public String getDeviceName() { return deviceName; }
-    public void setDeviceName(String deviceName) { this.deviceName = deviceName; }
-
-    public String getDeviceType() { return deviceType; }
-    public void setDeviceType(String deviceType) { this.deviceType = deviceType; }
-
-    public String getPlatformVersion() { return platformVersion; }
-    public void setPlatformVersion(String platformVersion) { this.platformVersion = platformVersion; }
-
-    public String getAppVersion() { return appVersion; }
-    public void setAppVersion(String appVersion) { this.appVersion = appVersion; }
-
-    public String getApnsToken() { return apnsToken; }
-    public void setApnsToken(String apnsToken) { this.apnsToken = apnsToken; }
-
-    public String getFcmToken() { return fcmToken; }
-    public void setFcmToken(String fcmToken) { this.fcmToken = fcmToken; }
-
-    public Instant getLastSeenAt() { return lastSeenAt; }
-    public void setLastSeenAt(Instant lastSeenAt) { this.lastSeenAt = lastSeenAt; }
-
-    public boolean isActive() { return active; }
-    public void setActive(boolean active) { this.active = active; }
-
-    public Instant getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
-
-    @PrePersist
-    protected void onCreate() {
-        if (createdAt == null) {
-            createdAt = Instant.now();
-        }
-        if (lastSeenAt == null) {
-            lastSeenAt = Instant.now();
-        }
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        lastSeenAt = Instant.now();
+    // Find all active devices for a user
+    @Query("SELECT d FROM UserDevice d WHERE d.userId = :userId AND d.active = true")
+    List<UserDevice> findActiveDevices(@Param("userId") UUID userId);
+    
+    // Find all devices for a user (active and inactive)
+    List<UserDevice> findByUserId(@Param("userId") UUID userId);
+    
+    // Find device by user and device ID
+    Optional<UserDevice> findByUserIdAndDeviceId(@Param("userId") UUID userId, @Param("deviceId") String deviceId);
+    
+    // Check if device exists for user
+    boolean existsByUserIdAndDeviceId(@Param("userId") UUID userId, @Param("deviceId") String deviceId);
+    
+    // Find devices that haven't been seen recently (for cleanup)
+    @Query("SELECT d FROM UserDevice d WHERE d.lastSeenAt < :cutoffTime AND d.active = true")
+    List<UserDevice> findStaleDevices(@Param("cutoffTime") Instant cutoffTime);
+    
+    // Find active devices for a user (optimized query name)
+    @Query("SELECT d FROM UserDevice d WHERE d.userId = :userId AND d.active = true")
+    List<UserDevice> findActiveDevices(@Param("userId") UUID userId);
+    
+    // Count active devices for a user
+    @Query("SELECT COUNT(d) FROM UserDevice d WHERE d.userId = :userId AND d.active = true")
+    long countByUserIdAndActiveTrue(@Param("userId") UUID userId);
+    
+    // Find devices by type
+    List<UserDevice> findByUserIdAndDeviceType(@Param("userId") UUID userId, @Param("deviceType") String deviceType);
+    
+    // Update last seen time for a device (using @Modifying for better performance)
+    @Modifying
+    @Query("UPDATE UserDevice d SET d.lastSeenAt = :now WHERE d.id = :deviceId")
+    void updateLastSeen(@Param("deviceId") UUID deviceId, @Param("now") Instant now);
+    
+    // Update last seen time for a device with timer state update
+    @Modifying
+    @Query("UPDATE UserDevice d SET d.lastSeenAt = :now, d.timerStateId = :timerStateId WHERE d.id = :deviceId")
+    void updateLastSeenWithTimerState(@Param("deviceId") UUID deviceId, @Param("now") Instant now, @Param("timerStateId") UUID timerStateId);
+    
+    // Create new device
+    default UserDevice createNewDevice(UUID userId, String deviceId, String deviceName, String deviceType, String platformVersion, String appVersion, String apnsToken, String fcmToken) {
+        return UserDevice.builder()
+                .id(UUID.randomUUID())
+                .userId(userId)
+                .deviceId(deviceId)
+                .deviceName(deviceName)
+                .deviceType(deviceType)
+                .platformVersion(platformVersion)
+                .appVersion(appVersion)
+                .apnsToken(apnsToken)
+                .fcmToken(fcmToken)
+                .active(true)
+                .lastSeen(java.time.Instant.now())
+                .createdAt(java.time.Instant.now())
+                .build();
     }
 }
