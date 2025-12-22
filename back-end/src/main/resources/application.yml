@@ -4,7 +4,7 @@ server:
 
 spring:
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/timebeam}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://${SPRING_DATASOURCE_HOST}:SPRING_DATASOURCE_PORT/timebeam}
     username: ${SPRING_DATASOURCE_USERNAME:timebeam}
     password: ${SPRING_DATASOURCE_PASSWORD:timebeam}
     driver-class-name: org.postgresql.Driver
