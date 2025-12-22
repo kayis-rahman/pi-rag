@@ -1,5 +1,18 @@
 # Agents Configuration
 
+## Issue Tracking
+
+This project uses **bd (beads)** for issue tracking.
+Run `bd prime` for workflow context, or install hooks (`bd hooks install`) for auto-injection.
+
+**Quick reference:**
+- `bd ready` - Find unblocked work
+- `bd create "Title" --type task --priority 2` - Create issue
+- `bd close <id>` - Complete work
+- `bd sync` - Sync with git (run at session end)
+
+For full workflow details: `bd prime`
+
 ## General Instructions
 
 Always use available MCP tools for every task:
@@ -15,6 +28,14 @@ Always use available MCP tools for every task:
 - Use `filesystem` for file operations
 - Use `context7` for API documentation search
 - Use `grep-vercel` for GitHub code search
+
+### MCP Server Prepending Requirement
+**For every user prompt to opencode, prepend the following:**
+```
+use all mcp servers "sequential-thinking", "context7", "pg-aiguide"
+```
+
+This applies to ALL prompts to ensure optimal tool selection and comprehensive analysis.
 
 Use all available MCP tools by default for all agent modes and each prompt where relevant.
 
@@ -39,6 +60,31 @@ Opencode integrates with Beads for persistent, git-native issue tracking. Use Be
 - Sync to git: `bd sync`
 
 This ensures AI-assisted planning (via opencode) feeds into persistent issue tracking (via Beads), aligning with the Landing workflow.
+
+## Error Fixing Workflow
+
+**When fixing errors (except compilation errors), always follow this debug process:**
+
+1. **Check logs first** - Examine the following log files before analyzing code:
+   - Backend logs: `backend/logs/timebeam.log`
+   - macOS logs: `/Users/kayisrahman/Documents/TimeBeamLogs/timebeam_macos.log`
+   - iOS logs: `/Users/kayisrahman/Documents/TimeBeamLogs/timebeam_ios.log`
+
+2. **Analyze code and solutions** - After reviewing logs, identify root cause and implement fixes
+
+**This workflow applies to:**
+- Runtime errors
+- Logic errors  
+- Integration errors
+- Performance issues
+- Data inconsistencies
+- User-reported issues
+
+**This workflow does NOT apply to:**
+- Compilation errors
+- Syntax errors
+- Type errors
+- Build failures
 
 ## Landing the Plane (Session Completion)
 
