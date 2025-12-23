@@ -227,6 +227,101 @@ This system enables surgical task management, prevents mental overload, and ensu
 - NEVER say "ready to push when you are" - YOU must push
 - If push fails, resolve and retry until it succeeds
 
+## MVP Epic Task Mapping with Tags
+
+### Epic Overview
+- **Epic:** time-beam-60i - TimeBeam MVP Implementation Epic (P1)
+- **Scope:** Complete end-to-end Pomodoro app MVP across Spring Boot backend, iOS/macOS/watchOS native clients, Android native client, and basic web frontend
+- **Total Tasks:** 19 (1 epic + 18 subtasks)
+- **Priority Sequence:** iOS first (P1), Android second (P2), Backend/Web third (P2-P3), CI/CD last (P3)
+
+### Task Mapping by Release Sequence
+
+#### iOS First (P1 Priority - 3 tasks)
+- **time-beam-nfe:** Polish iOS implementation - accessibility, performance, offline support
+  - Tags: ios, architectural, feature, p1
+  - Dependencies: None
+  - Status: open
+- **time-beam-kz4:** Prepare iOS app store submission - assets, provisioning, TestFlight
+  - Tags: ios, release, config, p1
+  - Dependencies: time-beam-nfe
+  - Status: open
+- **time-beam-s8y:** Implement basic multi-device synchronization - iOS-to-iOS sync
+  - Tags: ios, feature, reliability, p1
+  - Dependencies: time-beam-mh3 (backend polish)
+  - Status: open
+
+#### Android Second (P2 Priority - 6 tasks)
+- **time-beam-4pt:** Setup Android project with MVVM architecture - Kotlin, Jetpack, Retrofit
+  - Tags: android, architectural, feature, p2
+  - Dependencies: None
+  - Status: open
+- **time-beam-95k:** Implement Android API layer with Retrofit - JWT auth, error handling
+  - Tags: android, feature, security, p2
+  - Dependencies: time-beam-4pt
+  - Status: open
+- **time-beam-c5j:** Build Android core UI screens - auth, timer, task list, settings
+  - Tags: android, feature, architectural, p2
+  - Dependencies: time-beam-95k
+  - Status: open
+- **time-beam-m90:** Add Android testing - unit, instrumented, UI tests
+  - Tags: android, testing, reliability, p2
+  - Dependencies: time-beam-c5j
+  - Status: open
+- **time-beam-4kt:** Setup Android deployment - build variants, signing, APK generation
+  - Tags: android, config, release, p2
+  - Dependencies: time-beam-m90
+  - Status: open
+- **time-beam-n6d:** Prepare Android app store submission - Play Store assets, release builds
+  - Tags: android, release, config, p2
+  - Dependencies: time-beam-4kt
+  - Status: open
+
+#### Backend/Web Third (P2-P3 Priority - 4 tasks)
+- **time-beam-mh3:** Polish backend implementation - security, error handling, logging
+  - Tags: backend, architectural, security, p2
+  - Dependencies: None
+  - Status: open
+- **time-beam-fnh:** Implement basic web frontend - responsive React/Vue.js app
+  - Tags: web, feature, architectural, p3
+  - Dependencies: time-beam-mh3
+  - Status: open
+- **time-beam-e63:** End-to-end integration testing - cross-platform data sync verification
+  - Tags: testing, reliability, cross-platform, p2
+  - Dependencies: time-beam-kz4, time-beam-n6d
+  - Status: open
+- **time-beam-8vw:** Create deployment and API documentation - setup guides, API docs
+  - Tags: docs, config, release, p2
+  - Dependencies: time-beam-mh3
+  - Status: open
+
+#### CI/CD Last (P3 Priority - 4 tasks)
+- **time-beam-15p:** Deploy backend to production - Docker, HTTPS, monitoring
+  - Tags: backend, infrastructure, release, p3
+  - Dependencies: time-beam-mh3
+  - Status: open
+- **time-beam-vex:** Setup iOS CI pipeline - Xcode build automation, test execution
+  - Tags: ios, testing, config, p3
+  - Dependencies: time-beam-kz4
+  - Status: open
+- **time-beam-0h3:** Setup Android CI pipeline - Gradle build, tests, APK artifacts
+  - Tags: android, testing, config, p3
+  - Dependencies: time-beam-n6d
+  - Status: open
+- **time-beam-bi8:** Setup backend CI pipeline - Maven build, tests, security scans
+  - Tags: backend, testing, config, p3
+  - Dependencies: time-beam-15p
+  - Status: open
+
+### Tag Categories and Usage
+- **Component:** backend, ios, android, web, infrastructure, cross-platform
+- **Type:** feature, bug, architectural, redesign, security, reliability, release, testing, config, docs
+- **Priority:** p1, p2, p3
+- **Phase:** alpha, beta, prod, general
+
+### Memory Bank Integration
+Task relationships and tag mappings stored in memory-bank for efficient querying and context preservation.
+
 ## SRP Refactoring Guidelines
 
 ### Single Responsibility Principle (SRP) Analysis and Refactoring
