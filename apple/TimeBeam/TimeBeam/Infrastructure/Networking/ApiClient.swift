@@ -30,9 +30,9 @@ struct ApiClient {
         let lastSyncTime: Date
     }
 
-    /**
-     * Task DTO
-     */
+/**
+ * Task DTO
+ */
     struct TaskDto: Codable {
         let id: UUID
         let userId: UUID
@@ -85,6 +85,8 @@ struct ApiClient {
             self.deviceId = deviceId
         }
      }
+     
+     
 
      // MARK: - Private Helpers
 
@@ -269,26 +271,43 @@ struct ApiClient {
           }
       }
       
-      func fetchSessions(accessToken: String) async throws -> [SessionRecordDto] {
-          let url = baseURL.appendingPathComponent("sessions")
-          var request = URLRequest(url: url)
-          request.httpMethod = "GET"
-          request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-          request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+func fetchSessions(accessToken: String) async throws -> [SessionRecordDto] {
+           let url = baseURL.appendingPathComponent("sessions")
+           var request = URLRequest(url: url)
+           request.httpMethod = "GET"
+           request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+           request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
 
-          let (data, response) = try await urlSession.data(for: request)
+           let (data, response) = try await urlSession.data(for: request)
 
-          guard let httpResponse = response as? HTTPURLResponse else {
-              throw ApiError.networkError("Invalid response type")
-          }
-          guard httpResponse.statusCode == 200 else {
-              throw ApiError.networkError("Fetch sessions failed with status: \(httpResponse.statusCode)")
-          }
+           guard let httpResponse = response as? HTTPURLResponse else {
+               throw ApiError.networkError("Invalid response type")
+           }
+           guard httpResponse.statusCode == 200 else {
+               throw ApiError.networkError("Fetch sessions failed with status: \(httpResponse.statusCode)")
+           }
 
-          return try JSONDecoder().decode([SessionRecordDto].self, from: data)
-      }
+           return try JSONDecoder().decode([SessionRecordDto].self, from: data)
+       }
+       
+       /**
+        * Register device with backend
+        */
+       func registerDevice(_ registration: DeviceRegistrationDto, accessToken: String) async throws {
+           guard let request = try createBaseRequest(path: "devices/register", method: "POST", body: registration, accessToken: accessToken) else {
+               throw ApiError.networkError("Failed to create request")
+           }
+           let (data, response) = try await urlSession.data(for: request)
 
-    func pushTimerState(_ state: TimerStateDto, accessToken: String) async throws {
+           guard let httpResponse = response as? HTTPURLResponse else {
+               throw ApiError.networkError("Invalid response type")
+           }
+           guard httpResponse.statusCode == 200 else {
+               throw ApiError.networkError("Register device failed with status: \(httpResponse.statusCode)")
+           }
+       }
+
+     func pushTimerState(_ state: TimerStateDto, accessToken: String) async throws {
         guard let request = try createBaseRequest(path: "sessions/timer/state", method: "POST", body: state, accessToken: accessToken) else {
             throw ApiError.networkError("Failed to create request")
         }
