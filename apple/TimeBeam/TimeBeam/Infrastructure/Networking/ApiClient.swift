@@ -18,22 +18,34 @@ struct ApiClient {
         self.accessToken = nil
     }
 
-    /**
-     * Device statistics for account management
-     */
-    struct DeviceStats: Codable {
-        let totalDevices: Int
-        let activeDevices: Int
-        let iosDevices: Int
-        let macDevices: Int
-        let watchosDevices: Int
-        let lastSyncTime: Date
-    }
+/**
+ * Device statistics for account management
+ */
+struct DeviceStats: Codable {
+    let totalDevices: Int
+    let activeDevices: Int
+    let iosDevices: Int
+    let macDevices: Int
+    let watchosDevices: Int
+    let lastSyncTime: Date
+}
+
+/**
+ * Device registration DTO
+ */
+struct DeviceRegistrationDto: Codable {
+    let deviceId: String
+    let deviceName: String
+    let deviceType: String
+    let platformVersion: String
+    let appVersion: String
+    let fcmToken: String?
+}
 
 /**
  * Task DTO
  */
-    struct TaskDto: Codable {
+struct TaskDto: Codable {
         let id: UUID
         let userId: UUID
         let title: String

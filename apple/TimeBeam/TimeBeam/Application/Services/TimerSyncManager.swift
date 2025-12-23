@@ -12,6 +12,7 @@ final class TimerSyncManager: ObservableObject {
     var deviceId: String
     private var timer: PomodoroTimer?
     private var queuedSyncNeeded: Bool = false
+    private var deviceRegistered: Bool = false
 
     func getTimer() -> PomodoroTimer? { timer }
 

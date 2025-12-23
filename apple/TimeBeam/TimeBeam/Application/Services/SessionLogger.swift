@@ -60,7 +60,14 @@ final class SessionLogger: ObservableObject {
         guard let cfg = Configuration.fromInfoPlist() else { return }
         let api = ApiClient(baseURL: cfg.baseURL)
         do {
-            try await api.postSession(record, accessToken: tokenString)
+            // Convert SessionRecord to SessionRecordDto for API call
+            let sessionDto = ApiClient.SessionRecordDto(
+                id: record.id,
+                startedAt: record.startedAt,
+                duration: record.duration,
+                kind: record.kind.rawValue
+            )
+            try await api.postSession(sessionDto, accessToken: tokenString)
         } catch {
             // Optionally: Queue for retry or handle upload failure here
         }
@@ -78,7 +85,7 @@ final class SessionLogger: ObservableObject {
                 SessionRecord(
                     id: payload.id,
                     startedAt: payload.startedAt,
-                    duration: payload.duration,
+                    duration: Double(payload.durationSeconds),
                     kind: SessionRecord.Kind(rawValue: payload.kind) ?? .work
                 )
             }
