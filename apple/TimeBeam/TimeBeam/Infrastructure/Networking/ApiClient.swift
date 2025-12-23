@@ -191,67 +191,102 @@ struct ApiClient {
         let success: Bool
     }
 
-    // MARK: - Session Methods
+// MARK: - Session Methods
 
-    struct SessionRecordDto: Codable {
-        let id: UUID
-        let userId: UUID?
-        let startedAt: Date
-        let durationSeconds: Int
-        let kind: String
-        let taskId: UUID?
+      struct SessionRecordDto: Codable {
+          let id: UUID
+          let userId: UUID?
+          let startedAt: Date
+          let durationSeconds: Int
+          let kind: String
+          let taskId: UUID?
 
-        init(id: UUID, startedAt: Date, duration: TimeInterval, kind: String) {
-            self.id = id
-            self.userId = nil // Will be set by server
-            self.startedAt = startedAt
-            self.durationSeconds = Int(duration)
-            self.kind = kind.uppercased()
-            self.taskId = nil
-        }
-    }
+          init(id: UUID, startedAt: Date, duration: TimeInterval, kind: String) {
+              self.id = id
+              self.userId = nil // Will be set by server
+              self.startedAt = startedAt
+              self.durationSeconds = Int(duration)
+              self.kind = kind.uppercased()
+              self.taskId = nil
+          }
+      }
 
-    func startSession(kind: String, taskId: UUID?, accessToken: String) async throws -> SessionRecordDto {
-        var url = baseURL.appendingPathComponent("sessions/start")
-        var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
-        components?.queryItems = [URLQueryItem(name: "kind", value: kind)]
-        if let taskId = taskId {
-            components?.queryItems?.append(URLQueryItem(name: "taskId", value: taskId.uuidString))
-        }
-        if let finalURL = components?.url {
-            url = finalURL
-        }
+      func startSession(kind: String, taskId: UUID?, accessToken: String) async throws -> SessionRecordDto {
+          var url = baseURL.appendingPathComponent("sessions/start")
+          var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+          components?.queryItems = [URLQueryItem(name: "kind", value: kind)]
+          if let taskId = taskId {
+              components?.queryItems?.append(URLQueryItem(name: "taskId", value: taskId.uuidString))
+          }
+          if let finalURL = components?.url {
+              url = finalURL
+          }
 
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+          var request = URLRequest(url: url)
+          request.httpMethod = "POST"
+          request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+          request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
 
-        let (data, response) = try await urlSession.data(for: request)
+          let (data, response) = try await urlSession.data(for: request)
 
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw ApiError.networkError("Invalid response type")
-        }
-        guard httpResponse.statusCode == 201 || httpResponse.statusCode == 200 else {
-            throw ApiError.networkError("Start session failed with status: \(httpResponse.statusCode)")
-        }
+          guard let httpResponse = response as? HTTPURLResponse else {
+              throw ApiError.networkError("Invalid response type")
+          }
+          guard httpResponse.statusCode == 201 || httpResponse.statusCode == 200 else {
+              throw ApiError.networkError("Start session failed with status: \(httpResponse.statusCode)")
+          }
 
-        return try JSONDecoder().decode(SessionRecordDto.self, from: data)
-    }
+          return try JSONDecoder().decode(SessionRecordDto.self, from: data)
+      }
 
-    func stopSession(id: UUID, accessToken: String) async throws {
-        guard let request = try createBaseRequest(path: "sessions/\(id)/stop", method: "POST", body: EmptyResponse(success: true), accessToken: accessToken) else {
-            throw ApiError.networkError("Failed to create request")
-        }
-        let (data, response) = try await urlSession.data(for: request)
+      func stopSession(id: UUID, accessToken: String) async throws {
+          guard let request = try createBaseRequest(path: "sessions/\(id)/stop", method: "POST", body: EmptyResponse(success: true), accessToken: accessToken) else {
+              throw ApiError.networkError("Failed to create request")
+          }
+          let (data, response) = try await urlSession.data(for: request)
 
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw ApiError.networkError("Invalid response type")
-        }
-        guard httpResponse.statusCode == 200 else {
-            throw ApiError.networkError("Stop session failed with status: \(httpResponse.statusCode)")
-        }
-    }
+          guard let httpResponse = response as? HTTPURLResponse else {
+              throw ApiError.networkError("Invalid response type")
+          }
+          guard httpResponse.statusCode == 200 else {
+              throw ApiError.networkError("Stop session failed with status: \(httpResponse.statusCode)")
+          }
+      }
+      
+      // MARK: - Session Management Methods (Added for iOS timer sync)
+      
+      func postSession(_ session: SessionRecordDto, accessToken: String) async throws {
+          guard let request = try createBaseRequest(path: "sessions", method: "POST", body: session, accessToken: accessToken) else {
+              throw ApiError.networkError("Failed to create request")
+          }
+          let (data, response) = try await urlSession.data(for: request)
+
+          guard let httpResponse = response as? HTTPURLResponse else {
+              throw ApiError.networkError("Invalid response type")
+          }
+          guard httpResponse.statusCode == 201 || httpResponse.statusCode == 200 else {
+              throw ApiError.networkError("Post session failed with status: \(httpResponse.statusCode)")
+          }
+      }
+      
+      func fetchSessions(accessToken: String) async throws -> [SessionRecordDto] {
+          let url = baseURL.appendingPathComponent("sessions")
+          var request = URLRequest(url: url)
+          request.httpMethod = "GET"
+          request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+          request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+
+          let (data, response) = try await urlSession.data(for: request)
+
+          guard let httpResponse = response as? HTTPURLResponse else {
+              throw ApiError.networkError("Invalid response type")
+          }
+          guard httpResponse.statusCode == 200 else {
+              throw ApiError.networkError("Fetch sessions failed with status: \(httpResponse.statusCode)")
+          }
+
+          return try JSONDecoder().decode([SessionRecordDto].self, from: data)
+      }
 
     func pushTimerState(_ state: TimerStateDto, accessToken: String) async throws {
         guard let request = try createBaseRequest(path: "sessions/timer/state", method: "POST", body: state, accessToken: accessToken) else {

@@ -55,6 +55,172 @@ struct TimeBeamApp: App {
     @State private var previousTab = 0
     @State private var transitionDirection: TransitionDirection = .none
 
+    #if os(iOS)
+    private func registerDeviceIfNeeded() async {
+        // Get device information
+        let deviceId = UIDevice.current.identifierForVendor?.uuidString ?? "unknown-device"
+        let deviceName = UIDevice.current.name
+        let platformVersion = UIDevice.current.systemVersion
+        let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
+
+        let registration = ApiClient.DeviceRegistrationDto(
+            deviceId: deviceId,
+            deviceType: "iOS",
+            deviceName: deviceName,
+            platformVersion: platformVersion,
+            appVersion: appVersion
+        )
+
+        // Try to register device
+        do {
+            var apiClient = ApiClient(baseURL: Configuration.fromInfoPlist()?.baseURL ?? URL(string: "http://localhost:8080")!)
+
+            // Get access token if available
+            if let accessToken = try? KeychainStore.loadString(.accessToken) {
+                try await apiClient.registerDevice(registration, accessToken: accessToken)
+                AppLogger.info("Device registered successfully: \(deviceId)", category: .general)
+            } else {
+                AppLogger.info("No access token available for device registration, will retry after authentication", category: .general)
+            }
+        } catch {
+            AppLogger.error("Device registration failed: \(error.localizedDescription)", category: .general)
+            // Don't fail app startup for device registration errors
+        }
+    }
+    #endif
+
+    private func setupApp() async {
+        // Initialize file logging system
+        AppLogger.initializeFileLogging()
+
+        // Initialize iCloud sync
+        _ = iCloudSyncManager.shared
+
+        // Load timer settings from iCloud
+        if let iCloudSettings = iCloudSyncManager.shared.loadTimerSettings() {
+            timer.updateDurations(
+                workMinutes: iCloudSettings.workDuration / 60,
+                shortBreakMinutes: iCloudSettings.breakDuration / 60,
+                longBreakMinutes: iCloudSettings.longBreakDuration / 60
+            )
+            timer.autoStartNextSession = iCloudSettings.autoStartNextSession
+            AppLogger.info("Loaded timer settings from iCloud", category: .sync)
+        }
+
+        // Restore authentication state
+        await authManager.restoreSession()
+
+        // Register device with backend (iOS only)
+        #if os(iOS)
+        await registerDeviceIfNeeded()
+        #endif
+
+        // Initialize UTC offset calculation and caching
+        await ServerTimeOffsetManager.shared.initializeOffset()
+
+        // Setup timer completion handler
+        timer.onSessionCompleted = { phase, duration in
+            let kind: SessionRecord.Kind
+            switch phase {
+            case .work: kind = .work
+            case .break: kind = .shortBreak
+            case .longBreak: kind = .longBreak
+            }
+            let start = Date().addingTimeInterval(-TimeInterval(duration))
+            let record = SessionRecord(startedAt: start, duration: TimeInterval(duration), kind: kind)
+            // logger.add(record: record)
+        }
+
+        // Configure timer sync manager
+        TimerSyncManager.shared.configure(with: timer)
+
+        // Mark app as ready
+        isAppReady = true
+    }
+
+    #if os(iOS)
+    private func registerDeviceIfNeeded() async {
+        // Get device information
+        let deviceId = UIDevice.current.identifierForVendor?.uuidString ?? "unknown-device"
+        let deviceName = UIDevice.current.name
+        let platformVersion = UIDevice.current.systemVersion
+        let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
+
+        let registration = ApiClient.DeviceRegistrationDto(
+            deviceId: deviceId,
+            deviceType: "iOS",
+            deviceName: deviceName,
+            platformVersion: platformVersion,
+            appVersion: appVersion
+        )
+
+        // Try to register device
+        do {
+            var apiClient = ApiClient(baseURL: Configuration.fromInfoPlist()?.baseURL ?? URL(string: "http://localhost:8080")!)
+
+            // Get access token if available
+            if let accessToken = try? KeychainStore.loadString(.accessToken) {
+                try await apiClient.registerDevice(registration, accessToken: accessToken)
+                AppLogger.info("Device registered successfully: \(deviceId)", category: .general)
+            } else {
+                AppLogger.info("No access token available for device registration, will retry after authentication", category: .general)
+            }
+        } catch {
+            AppLogger.error("Device registration failed: \(error.localizedDescription)", category: .general)
+            // Don't fail app startup for device registration errors
+        }
+    }
+    #endif
+
+    private func setupApp() async {
+        // Initialize file logging system
+        AppLogger.initializeFileLogging()
+
+        // Initialize iCloud sync
+        _ = iCloudSyncManager.shared
+
+        // Load timer settings from iCloud
+        if let iCloudSettings = iCloudSyncManager.shared.loadTimerSettings() {
+            timer.updateDurations(
+                workMinutes: iCloudSettings.workDuration / 60,
+                shortBreakMinutes: iCloudSettings.breakDuration / 60,
+                longBreakMinutes: iCloudSettings.longBreakDuration / 60
+            )
+            timer.autoStartNextSession = iCloudSettings.autoStartNextSession
+            AppLogger.info("Loaded timer settings from iCloud", category: .sync)
+        }
+
+        // Restore authentication state
+        await authManager.restoreSession()
+
+        // Register device with backend (iOS only)
+        #if os(iOS)
+        await registerDeviceIfNeeded()
+        #endif
+
+        // Initialize UTC offset calculation and caching
+        await ServerTimeOffsetManager.shared.initializeOffset()
+
+        // Setup timer completion handler
+        timer.onSessionCompleted = { phase, duration in
+            let kind: SessionRecord.Kind
+            switch phase {
+            case .work: kind = .work
+            case .break: kind = .shortBreak
+            case .longBreak: kind = .longBreak
+            }
+            let start = Date().addingTimeInterval(-TimeInterval(duration))
+            let record = SessionRecord(startedAt: start, duration: TimeInterval(duration), kind: kind)
+            // logger.add(record: record)
+        }
+
+        // Configure timer sync manager
+        TimerSyncManager.shared.configure(with: timer)
+
+        // Mark app as ready
+        isAppReady = true
+    }
+
     var body: some Scene {
         WindowGroup {
             #if os(iOS)
@@ -101,7 +267,7 @@ struct TimeBeamApp: App {
                 .onAppear {
                     // Initialize file logging system
                     AppLogger.initializeFileLogging()
-                    
+
                     _Concurrency.Task {
                         await authManager.restoreSession()
 
@@ -134,15 +300,7 @@ struct TimeBeamApp: App {
         #endif
     }
 
-    private func setupApp() async {
-        // Initialize file logging system
-        AppLogger.initializeFileLogging()
-
-        // Initialize iCloud sync
-        _ = iCloudSyncManager.shared
-
-        // Load timer settings from iCloud
-        if let iCloudSettings = iCloudSyncManager.shared.loadTimerSettings() {
+// MARK: - Sidebar Tab View
             timer.updateDurations(
                 workMinutes: iCloudSettings.workDuration / 60,
                 shortBreakMinutes: iCloudSettings.breakDuration / 60,
@@ -154,6 +312,14 @@ struct TimeBeamApp: App {
 
         // Restore authentication state
         await authManager.restoreSession()
+
+        // Register device with backend (iOS only)
+        #if os(iOS)
+        await registerDeviceIfNeeded()
+        #endif
+
+        // Initialize UTC offset calculation and caching
+        await ServerTimeOffsetManager.shared.initializeOffset()
 
         // Setup timer completion handler
         timer.onSessionCompleted = { phase, duration in
@@ -1439,7 +1605,7 @@ struct LoadingView: View {
 final class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
     static var shared: MacAppDelegate?
     private let notificationDelegate = NotificationDelegate()
-    private static var statusItem: NSStatusItem?
+    static var statusItem: NSStatusItem?
 
 
 
@@ -1606,7 +1772,13 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationC
 
         let deviceId = await TimerSyncManager.shared.deviceId
         AppLogger.info("Got deviceId: \(deviceId), updating APN token on macOS", category: .general)
-        let apiClient = ApiClient(baseURL: config.baseURL)
+        var apiClient = ApiClient(baseURL: config.baseURL)
+        apiClient.onAuthenticationFailure = {
+            // Handle authentication failure on macOS
+            Task { @MainActor in
+                await AuthManager.shared.signOut()
+            }
+        }
 
         // Retry logic for APN token registration
         let maxRetries = 3
@@ -1665,7 +1837,7 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationC
         completionHandler()
     }
 
-    static func updateStatusItem(title: String?) {
+    static func updateStatusItem_for_macOS(title: String?) {
         DispatchQueue.main.async {
             if let title, !title.isEmpty {
                 MacAppDelegate.statusItem?.button?.title = title
@@ -1754,7 +1926,13 @@ final class iOSAppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationC
 
         let deviceId = await TimerSyncManager.shared.deviceId
         AppLogger.info("Got deviceId: \(deviceId), updating APN token on iOS", category: .general)
-        let apiClient = ApiClient(baseURL: config.baseURL)
+        var apiClient = ApiClient(baseURL: config.baseURL)
+        apiClient.onAuthenticationFailure = {
+            // Handle authentication failure on iOS
+            Task { @MainActor in
+                await AuthManager.shared.signOut()
+            }
+        }
 
         // Retry logic for APN token registration
         let maxRetries = 3
@@ -1813,25 +1991,11 @@ final class iOSAppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationC
     }
 
     static func updateStatusItem(title: String?) {
-        DispatchQueue.main.async {
-            if let title, !title.isEmpty {
-                MacAppDelegate.statusItem?.button?.title = title
-            } else {
-                MacAppDelegate.statusItem?.button?.title = ""
-            }
-        }
+        // No-op on iOS - status items are macOS only
     }
 
     static func showTemporaryStatus(_ message: String, duration: TimeInterval = 3.0) {
-        DispatchQueue.main.async {
-            let originalTitle = MacAppDelegate.statusItem?.button?.title ?? ""
-            MacAppDelegate.statusItem?.button?.title = message
-
-            // Restore original title after duration
-            DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
-                MacAppDelegate.statusItem?.button?.title = originalTitle
-            }
-        }
+        // No-op on iOS - status items are macOS only
     }
 }
 #endif

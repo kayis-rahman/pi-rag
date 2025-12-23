@@ -28,7 +28,7 @@ class AnalyticsManager: ObservableObject {
 
     func fetchDashboard(timeRange: String = "week", breakdown: String = "weekday") async {
         guard authManager.isSignedIn,
-              let baseURL = ApiClient.Configuration.fromInfoPlist()?.baseURL else {
+              let baseURL = Configuration.fromInfoPlist()?.baseURL else {
             // Not signed in or no API config, use local data
             return
         }

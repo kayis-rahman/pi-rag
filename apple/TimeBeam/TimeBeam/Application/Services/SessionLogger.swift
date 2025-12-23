@@ -57,8 +57,8 @@ final class SessionLogger: ObservableObject {
         guard let tokenString = try? KeychainStore.loadString(.accessToken), !tokenString.isEmpty else {
             return
         }
-        guard let cfg = ApiClient.Configuration.fromInfoPlist() else { return }
-        let api = ApiClient(configuration: cfg)
+        guard let cfg = Configuration.fromInfoPlist() else { return }
+        let api = ApiClient(baseURL: cfg.baseURL)
         do {
             try await api.postSession(record, accessToken: tokenString)
         } catch {
@@ -70,8 +70,8 @@ final class SessionLogger: ObservableObject {
         guard let tokenString = try? KeychainStore.loadString(.accessToken), !tokenString.isEmpty else {
             return
         }
-        guard let cfg = ApiClient.Configuration.fromInfoPlist() else { return }
-        let api = ApiClient(configuration: cfg)
+        guard let cfg = Configuration.fromInfoPlist() else { return }
+        let api = ApiClient(baseURL: cfg.baseURL)
         do {
             let remoteSessions = try await api.fetchSessions(accessToken: tokenString)
             let mapped = remoteSessions.map { payload in
