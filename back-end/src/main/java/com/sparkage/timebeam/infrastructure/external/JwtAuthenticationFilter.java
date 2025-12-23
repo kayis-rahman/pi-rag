@@ -30,6 +30,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String authHeader = request.getHeader("Authorization");
+        log.debug("🔍 JwtAuthenticationFilter: Authorization header present: {}", authHeader != null ? "YES" : "NO");
+        if (authHeader != null) {
+            log.debug("🔍 JwtAuthenticationFilter: Header value: {}...", authHeader.substring(0, Math.min(20, authHeader.length())));
+        }
+
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
             try {
@@ -38,10 +43,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     UserDetails principal = User.withUsername(userId.toString()).password("").authorities(Collections.emptyList()).build();
                     UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
                     SecurityContextHolder.getContext().setAuthentication(auth);
+                    log.debug("✅ JwtAuthenticationFilter: Valid token for user: {}", userId);
+                } else {
+                    log.debug("❌ JwtAuthenticationFilter: Invalid token");
                 }
             } catch (Exception ex) {
-                log.debug("Invalid JWT: {}", ex.getMessage());
+                log.debug("❌ JwtAuthenticationFilter: JWT processing error: {}", ex.getMessage());
             }
+        } else {
+            log.debug("⚠️ JwtAuthenticationFilter: No Bearer token found, proceeding with anonymous authentication");
         }
         filterChain.doFilter(request, response);
     }

@@ -8,9 +8,28 @@
 import Foundation
 import Combine
 import CryptoKit
+
 #if os(macOS)
 import AppKit
+#elseif os(iOS)
+import AuthenticationServices
 #endif
+
+/**
+ * Configuration from Info.plist
+ */
+struct Configuration {
+    let baseURL: URL
+
+    static func fromInfoPlist() -> Configuration? {
+        guard
+            let dict = Bundle.main.infoDictionary,
+            let base = dict["API_BASE_URL"] as? String,
+            let url = URL(string: base)
+        else { return nil }
+        return Configuration(baseURL: url)
+    }
+}
 
 @MainActor
 final class AuthManager: ObservableObject {
@@ -94,8 +113,38 @@ final class AuthManager: ObservableObject {
         NSWorkspace.shared.open(authURL)
 
         #elseif os(iOS)
-        // iOS: Would use GIDSignIn, but not implemented for now
-        throw NSError(domain: "AuthError", code: -1, userInfo: [NSLocalizedDescriptionKey: "iOS OAuth not implemented"])
+        // iOS: Use ASWebAuthenticationSession for OAuth
+        guard let clientId = googleClientId() else {
+            throw NSError(domain: "AuthError", code: -1, userInfo: [NSLocalizedDescriptionKey: "Missing GOOGLE_CLIENT_ID in Info.plist"])
+        }
+        let redirectUri = googleRedirectUri()
+        let scope = "openid email profile"
+
+        // Generate PKCE values
+        let pkce = makePKCE()
+        self.pkce = pkce
+
+        // Persist PKCE for callback (in case app restarts between sign-in and callback)
+        persistPKCE(pkce)
+
+        var components = URLComponents(string: "https://accounts.google.com/o/oauth2/v2/auth")!
+        components.queryItems = [
+            URLQueryItem(name: "client_id", value: clientId),
+            URLQueryItem(name: "redirect_uri", value: redirectUri),
+            URLQueryItem(name: "scope", value: scope),
+            URLQueryItem(name: "response_type", value: "code"),
+            URLQueryItem(name: "access_type", value: "offline"),
+            URLQueryItem(name: "code_challenge", value: pkce.challenge),
+            URLQueryItem(name: "code_challenge_method", value: pkce.method),
+            URLQueryItem(name: "prompt", value: "consent")
+        ]
+
+        guard let authURL = components.url else {
+            throw NSError(domain: "AuthError", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid OAuth URL"])
+        }
+
+        // Start OAuth session
+        return try await performOAuthWithWebAuthentication(authURL: authURL)
         #endif
     }
 
@@ -252,7 +301,7 @@ final class AuthManager: ObservableObject {
 
         do {
             // Call backend login with the email (like the working implementation)
-            guard let cfg = ApiClient.Configuration.fromInfoPlist() else {
+            guard let baseURL = Configuration.fromInfoPlist()?.baseURL else {
                 #if DEBUG
                 print("[Auth] completeOAuthSignIn: missing API configuration")
                 #endif
@@ -262,9 +311,12 @@ final class AuthManager: ObservableObject {
                 return
             }
 
-            let api = ApiClient(configuration: cfg)
+            let api = ApiClient(baseURL: baseURL)
 
             #if DEBUG
+            print("[DEBUG] API Base URL: \(baseURL)")
+            print("[DEBUG] Login endpoint: \(baseURL)/auth/login")
+            print("[DEBUG] User email: \(redactEmail(email))")
             print("[Auth] completeOAuthSignIn: calling backend login for email=\(redactEmail(email))")
             #endif
 
@@ -327,6 +379,58 @@ final class AuthManager: ObservableObject {
         return "\(shown)***@\(domain)"
     }
 
+    #if os(iOS)
+    private func performOAuthWithWebAuthentication(authURL: URL) async throws {
+        return try await withCheckedThrowingContinuation { continuation in
+            // Create presentation context provider that will be retained
+            let presentationProvider = OAuthPresentationContextProvider()
+
+            let session = ASWebAuthenticationSession(url: authURL, callbackURLScheme: "com.sparkage.time-beam") { callbackURL, error in
+                if let error = error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+
+                guard let callbackURL = callbackURL else {
+                    continuation.resume(throwing: NSError(domain: "AuthError", code: -1, userInfo: [NSLocalizedDescriptionKey: "No callback URL received"]))
+                    return
+                }
+
+                // Handle the callback asynchronously
+                Task {
+                    do {
+                        try await self.handleOAuthCallback(callbackURL)
+                        continuation.resume()
+                    } catch {
+                        continuation.resume(throwing: error)
+                    }
+                }
+            }
+
+            // Ensure we're on the main thread for UI operations
+            let setupAndStartSession = {
+                // Set presentation context provider BEFORE starting
+                session.presentationContextProvider = presentationProvider
+
+                // Double-check that it's set
+                guard session.presentationContextProvider != nil else {
+                    continuation.resume(throwing: NSError(domain: "AuthError", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to set presentation context provider"]))
+                    return
+                }
+
+                // Now start the session
+                session.start()
+            }
+
+            if Thread.isMainThread {
+                setupAndStartSession()
+            } else {
+                DispatchQueue.main.async(execute: setupAndStartSession)
+            }
+        }
+    }
+    #endif
+
     enum SignInError: Error {
         case noPresenter
         case sdkUnavailable
@@ -367,7 +471,8 @@ final class AuthManager: ObservableObject {
     }
 
     private func base64URLEncode(_ data: Data) -> String {
-        return data.base64EncodedString()
+        let base64 = data.base64EncodedString()
+        return base64
             .replacingOccurrences(of: "+", with: "-")
             .replacingOccurrences(of: "/", with: "_")
             .replacingOccurrences(of: "=", with: "")
@@ -408,3 +513,30 @@ final class AuthManager: ObservableObject {
         return "com.sparkage.time-beam:/oauth2redirect"
     }
 }
+
+#if os(iOS)
+class OAuthPresentationContextProvider: NSObject, ASWebAuthenticationPresentationContextProviding {
+    func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
+        // Get the key window - this is the most reliable approach
+        if let keyWindow = UIApplication.shared.keyWindow {
+            return keyWindow
+        }
+
+        // Fallback: Get window from connected scenes (iOS 13+)
+        if #available(iOS 13.0, *) {
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let window = windowScene.windows.first {
+                return window
+            }
+        }
+
+        // Last resort: Use deprecated windows array
+        if let window = UIApplication.shared.windows.first {
+            return window
+        }
+
+        // If all else fails, this will cause a runtime error, but that's better than silent failure
+        fatalError("Unable to find a suitable presentation anchor for ASWebAuthenticationSession")
+    }
+}
+#endif
