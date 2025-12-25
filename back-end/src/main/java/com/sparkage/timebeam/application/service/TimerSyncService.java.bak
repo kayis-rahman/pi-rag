@@ -15,17 +15,21 @@ import com.sparkage.timebeam.infrastructure.persistence.TimerState;
 import com.sparkage.timebeam.infrastructure.persistence.TimerStateRepository;
 import com.sparkage.timebeam.presentation.dto.TimerStateDto;
 import com.sparkage.timebeam.presentation.dto.TimerActionDto;
+import com.sparkage.timebeam.presentation.dto.TimerActionDto;
 
 @Service
 public class TimerSyncService {
     private static final Logger log = LoggerFactory.getLogger(TimerSyncService.class);
 
     private final TimerStateRepository timerStateRepository;
+    private final UserDeviceRepository userDeviceRepository;
     private final PushNotificationService pushNotificationService;
 
     public TimerSyncService(TimerStateRepository timerStateRepository,
+                           UserDeviceRepository userDeviceRepository,
                            PushNotificationService pushNotificationService) {
         this.timerStateRepository = timerStateRepository;
+        this.userDeviceRepository = userDeviceRepository;
         this.pushNotificationService = pushNotificationService;
     }
 
@@ -36,12 +40,21 @@ public class TimerSyncService {
      */
     @Transactional
     public void pushTimerState(UUID userId, TimerStateDto state, String deviceIdString) {
-        log.info("Pushing timer state for user={}, device={}, timestamp={}",
-                 userId, deviceIdString, state.getLastModifiedTimestamp());
+                log.info("Pushing timer state for user={}, device={}, timestamp={}",
+                         userId, deviceIdString, state.getLastModifiedTimestamp());
 
         int maxRetries = 3;
         for (int attempt = 1; attempt <= maxRetries; attempt++) {
             try {
+                // Find the device by user and device ID string
+                Optional<UserDevice> deviceOpt = userDeviceRepository.findByUserIdAndDeviceId(userId, deviceIdString);
+                UUID deviceId = null;
+                if (deviceOpt.isEmpty()) {
+                    log.warn("Device not found for timer state push: user={}, deviceId={}, proceeding without device tracking", userId, deviceIdString);
+                } else {
+                    deviceId = deviceOpt.get().getId();
+                }
+
                 // Clean up any duplicate timer states first (shouldn't happen but handle gracefully)
                 cleanupDuplicateTimerStates(userId);
 
@@ -54,7 +67,7 @@ public class TimerSyncService {
                     // In collaborative mode, we always accept updates
                     // This allows any device to control the timer at any time
                     // Update existing state with the new data
-                    updateTimerState(existingState, state);
+                    updateTimerState(existingState, state, deviceId);
                     timerStateRepository.save(existingState);
                     log.info("Updated timer state for user={} with state from device={} (collaborative mode)", userId, deviceIdString);
 
@@ -62,7 +75,7 @@ public class TimerSyncService {
                     pushNotificationService.sendTimerSyncPush(userId.toString(), deviceIdString, "state_update", state.getLastModifiedTimestamp().toString());
                 } else {
                     // Create new timer state - first device to sync
-                    TimerState newState = createTimerStateFromDto(userId, state);
+                    TimerState newState = createTimerStateFromDto(userId, state, deviceId);
                     timerStateRepository.save(newState);
                     log.info("Created new timer state for user={} from device={}", userId, deviceIdString);
                 }
@@ -73,7 +86,7 @@ public class TimerSyncService {
             } catch (org.springframework.orm.ObjectOptimisticLockingFailureException e) {
                 if (attempt == maxRetries) {
                     log.error("Failed to push timer state after {} attempts due to concurrent updates: user={}, device={}",
-                              maxRetries, userId, deviceIdString, e);
+                             maxRetries, userId, deviceIdString, e);
                     throw new RuntimeException("Failed to sync timer state due to concurrent updates", e);
                 } else {
                     log.warn("Concurrent update detected, retrying attempt {} for user={}, device={}", attempt + 1, userId, deviceIdString);
@@ -167,6 +180,16 @@ public class TimerSyncService {
                 TimerState state = stateOpt.get();
                 TimerStateDto dto = convertToDto(state);
 
+                // Add device info if available
+                if (state.getUpdatedByDeviceId() != null) {
+                    Optional<UserDevice> deviceOpt = userDeviceRepository.findById(state.getUpdatedByDeviceId());
+                    deviceOpt.ifPresent(device -> {
+                        // Device info could be added to dto if needed in future
+                        log.debug("Timer state last updated by device: {} ({})",
+                                 device.getDeviceName(), device.getDeviceType());
+                    });
+                }
+
                 return Optional.of(dto);
             }
         } catch (Exception e) {
@@ -178,7 +201,7 @@ public class TimerSyncService {
 
     // Helper methods
 
-    private void updateTimerState(TimerState existingState, TimerStateDto newState) {
+    private void updateTimerState(TimerState existingState, TimerStateDto newState, UUID deviceId) {
         existingState.setPhase(newState.getPhase());
         existingState.setRemainingSeconds(newState.getRemainingSeconds());
         existingState.setRunning(newState.getIsRunning());
@@ -188,9 +211,10 @@ public class TimerSyncService {
         existingState.setAutoStartNext(newState.getAutoStartNextSession());
         existingState.setShortBreaksCompleted(newState.getShortBreaksCompleted());
         existingState.setLastUpdatedAt(Instant.now());
+        existingState.setUpdatedByDeviceId(deviceId);
     }
 
-    private TimerState createTimerStateFromDto(UUID userId, TimerStateDto dto) {
+    private TimerState createTimerStateFromDto(UUID userId, TimerStateDto dto, UUID deviceId) {
         TimerState state = new TimerState();
         state.setUserId(userId);
         state.setPhase(dto.getPhase());
@@ -202,6 +226,7 @@ public class TimerSyncService {
         state.setAutoStartNext(dto.getAutoStartNextSession());
         state.setShortBreaksCompleted(dto.getShortBreaksCompleted());
         state.setLastUpdatedAt(Instant.now());
+        state.setUpdatedByDeviceId(deviceId);
         state.setVersion(1L);
         return state;
     }
@@ -218,7 +243,7 @@ public class TimerSyncService {
             state.isAutoStartNext(),
             state.getShortBreaksCompleted(),
             state.getLastUpdatedAt(), // lastModifiedTimestamp as Instant (ISO 8601)
-            null, // deviceId as String (not used in this method)
+            state.getUpdatedByDeviceId() != null ? state.getUpdatedByDeviceId().toString() : null, // deviceId as String
             state.getWorkDurationMinutes() // totalDuration
         );
     }

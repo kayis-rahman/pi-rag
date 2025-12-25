@@ -71,7 +71,6 @@
 /Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/presentation/dto/TimerEventDto.java
 /Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/infrastructure/external/ResourceNotFoundException.java
 /Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/domain/repository/TaskRepository.java
-/Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/application/dto/TimerStateDto.java
 /Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/infrastructure/persistence/SessionRecordMapper.java
 /Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/infrastructure/external/AccessDeniedException.java
 /Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/infrastructure/persistence/TimerEvent.java
