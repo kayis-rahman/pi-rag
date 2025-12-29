@@ -193,6 +193,29 @@ public class PushNotificationService {
     }
 
     /**
+     * Store or update APNs token for a device
+     */
+    public void storeApnsToken(String userId, String deviceId, String apnsToken) {
+        try {
+            UUID userUuid = UUID.fromString(userId);
+            java.util.Optional<com.sparkage.timebeam.infrastructure.persistence.UserDevice> deviceOpt =
+                userDeviceRepository.findByUserIdAndDeviceId(userUuid, deviceId);
+
+            if (deviceOpt.isPresent()) {
+                com.sparkage.timebeam.infrastructure.persistence.UserDevice device = deviceOpt.get();
+                device.setApnsToken(apnsToken);
+                userDeviceRepository.save(device);
+                log.info("Updated APNs token for user={}, device={}", userId, deviceId);
+            } else {
+                log.warn("Device not found for user={}, device={}, cannot store APNs token", userId, deviceId);
+            }
+        } catch (Exception e) {
+            log.error("Failed to store APNs token for user={}, device={}: {}", userId, deviceId, e.getMessage(), e);
+            throw new RuntimeException("Failed to store APNs token", e);
+        }
+    }
+
+    /**
      * Get APNs tokens with platform for a user, excluding specified device
      */
     private List<DeviceTokenInfo> getApnsTokensWithPlatformForUser(String userId, String excludeDeviceId) {
