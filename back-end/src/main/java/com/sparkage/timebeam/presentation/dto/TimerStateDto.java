@@ -4,6 +4,7 @@ import java.time.Instant;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonFormat.Shape;
+import com.sparkage.timebeam.infrastructure.persistence.TimerState;
 
 public class TimerStateDto {
     private String phase;
@@ -43,6 +44,24 @@ public class TimerStateDto {
         this.pauseTimestamp = pauseTimestamp;
         this.lastModifiedTimestamp = lastModifiedTimestamp;
         this.deviceId = deviceId;
+    }
+
+    public static TimerStateDto convertToDto(TimerState state) {
+        TimerStateDto dto = new TimerStateDto();
+        dto.setPhase(state.getPhase());
+        dto.setRemainingSeconds(state.getRemainingSeconds());
+        dto.setIsRunning(state.isRunning());
+        dto.setWorkDuration(state.getWorkDurationMinutes());
+        dto.setBreakDuration(state.getBreakDurationMinutes());
+        dto.setLongBreakDuration(state.getLongBreakDurationMinutes());
+        dto.setAutoStartNextSession(state.isAutoStartNext());
+        dto.setShortBreaksCompleted(state.getShortBreaksCompleted());
+        dto.setLastModifiedTimestamp(state.getLastUpdatedAt());
+        dto.setDeviceId(state.getUpdatedByDeviceId() != null ? state.getUpdatedByDeviceId().toString() : null);
+        dto.setTotalDuration(state.getTotalDuration());
+        dto.setStartTimestamp(state.getStartTimestamp());
+        dto.setPauseTimestamp(state.getPauseTimestamp());
+        return dto;
     }
 
     // Getters and Setters

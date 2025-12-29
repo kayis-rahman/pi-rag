@@ -38,6 +38,15 @@ public class TimerState {
     @Column(name = "short_breaks_completed", nullable = false)
     private int shortBreaksCompleted;
 
+    @Column(name = "total_duration")
+    private Integer totalDuration;
+
+    @Column(name = "start_timestamp")
+    private Double startTimestamp;
+
+    @Column(name = "pause_timestamp")
+    private Double pauseTimestamp;
+
     @Column(name = "last_updated_at", nullable = false)
     private Instant lastUpdatedAt;
 
@@ -52,7 +61,8 @@ public class TimerState {
 
     public TimerState(UUID userId, String phase, int remainingSeconds, boolean running,
                      int workDurationMinutes, int breakDurationMinutes, int longBreakDurationMinutes,
-                     boolean autoStartNext, int shortBreaksCompleted, Instant lastUpdatedAt,
+                     boolean autoStartNext, int shortBreaksCompleted, Integer totalDuration,
+                     Double startTimestamp, Double pauseTimestamp, Instant lastUpdatedAt,
                      UUID updatedByDeviceId, long version) {
         this.userId = userId;
         this.phase = phase;
@@ -63,6 +73,9 @@ public class TimerState {
         this.longBreakDurationMinutes = longBreakDurationMinutes;
         this.autoStartNext = autoStartNext;
         this.shortBreaksCompleted = shortBreaksCompleted;
+        this.totalDuration = totalDuration;
+        this.startTimestamp = startTimestamp;
+        this.pauseTimestamp = pauseTimestamp;
         this.lastUpdatedAt = lastUpdatedAt;
         this.updatedByDeviceId = updatedByDeviceId;
         this.version = version;
@@ -96,6 +109,15 @@ public class TimerState {
     public int getShortBreaksCompleted() { return shortBreaksCompleted; }
     public void setShortBreaksCompleted(int shortBreaksCompleted) { this.shortBreaksCompleted = shortBreaksCompleted; }
 
+    public Integer getTotalDuration() { return totalDuration; }
+    public void setTotalDuration(Integer totalDuration) { this.totalDuration = totalDuration; }
+
+    public Double getStartTimestamp() { return startTimestamp; }
+    public void setStartTimestamp(Double startTimestamp) { this.startTimestamp = startTimestamp; }
+
+    public Double getPauseTimestamp() { return pauseTimestamp; }
+    public void setPauseTimestamp(Double pauseTimestamp) { this.pauseTimestamp = pauseTimestamp; }
+
     public Instant getLastUpdatedAt() { return lastUpdatedAt; }
     public void setLastUpdatedAt(Instant lastUpdatedAt) { this.lastUpdatedAt = lastUpdatedAt; }
 
@@ -125,6 +147,9 @@ public class TimerState {
             15, // longBreakDurationMinutes
             false, // autoStartNext
             0, // shortBreaksCompleted
+            25 * 60, // totalDuration (25 minutes in seconds)
+            null, // startTimestamp (timer not started)
+            null, // pauseTimestamp (timer not paused)
             Instant.now(), // lastUpdatedAt
             deviceId, // updatedByDeviceId
             1L // version

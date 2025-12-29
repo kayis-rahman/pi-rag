@@ -23,8 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.sparkage.timebeam.infrastructure.persistence.UserDevice;
 import com.sparkage.timebeam.infrastructure.persistence.UserDeviceRepository;
 
-@Servicepublic
-class PushNotificationService {
+@Service
+public class PushNotificationService {
     private static final Logger log = LoggerFactory.getLogger(PushNotificationService.class);
 
     /**
@@ -50,18 +50,25 @@ class PushNotificationService {
 
     @Value("${apns.key-path:#{null}}")
     private String apnsKeyPath;
+
     @Value("${apns.key-id:#{null}}")
     private String apnsKeyId;
+
     @Value("${apns.team-id:#{null}}")
     private String apnsTeamId;
+
     @Value("${apns.bundle-id-ios:com.sparkage.timebeam.ios}")
     private String apnsBundleIdIos;
+
     @Value("${apns.bundle-id-macos:com.sparkage.timebeam.macos}")
     private String apnsBundleIdMacos;
+
     @Value("${apns.enabled:false}")
     private boolean apnsEnabled;
+
     @Value("${apns.production:false}")
     private boolean apnsProduction;
+
     private ApnsClient apnsClient;
     private final UserDeviceRepository userDeviceRepository;
 
@@ -81,4 +88,137 @@ class PushNotificationService {
                 builder.setApnsServer(ApnsClientBuilder.PRODUCTION_APNS_HOST);
             } else {
                 builder.setApnsServer(ApnsClientBuilder.DEVELOPMENT_APNS_HOST);
-            }            // Load APNs signing key            File signingKeyFile = new File(apnsKeyPath);            ApnsSigningKey signingKey = ApnsSigningKey.loadFromPkcs8File(                signingKeyFile,                apnsTeamId,                apnsKeyId            );            builder.setSigningKey(signingKey);            apnsClient = builder.build();            log.info("APNs client initialized successfully for {}", apnsProduction ? "production" : "development");        } catch (Exception e) {            log.error("Failed to initialize APNs client", e);        }    }    /**     * Send silent APNs message to trigger timer sync on other devices     */    public void sendTimerSyncPush(String userId, String deviceId, String action, String timestamp) {        if (!apnsEnabled || apnsClient == null) {            log.debug("APNs not enabled, skipping push for user: {}", userId);            return;        }        try {            // Get APNs tokens with platform info for this user (excluding the sending device)            List<DeviceTokenInfo> deviceTokens = getApnsTokensWithPlatformForUser(userId, deviceId);            if (deviceTokens.isEmpty()) {                log.debug("No APNs tokens found for user: {}", userId);                return;            }            // Create payload for silent notification matching iOS app expectations            String payload = String.format(                "{\"aps\":{\"content-available\":1,\"sound\":\"\"},\"type\":\"timer_sync\",\"action\":{\"action\":\"%s\",\"deviceId\":\"%s\",\"timestamp\":\"%s\"}}",                action, deviceId, timestamp            );            // Send to all devices using platform-specific bundle IDs            for (DeviceTokenInfo deviceToken : deviceTokens) {                String bundleId = getBundleIdForPlatform(deviceToken.getPlatform());                SimpleApnsPushNotification push = new SimpleApnsPushNotification(                    TokenUtil.sanitizeTokenString(deviceToken.getApnsToken()),                    bundleId,                    payload                );                try {                    Future<PushNotificationResponse<SimpleApnsPushNotification>> responseFuture =                        apnsClient.sendNotification(push);                    // For async handling, you might want to add a listener                    PushNotificationResponse<SimpleApnsPushNotification> response = responseFuture.get();                    if (response.isAccepted()) {                        log.debug("APNs message sent successfully to {} device with token: {}",                            deviceToken.getPlatform(), deviceToken.getApnsToken().substring(0, 10) + "...");                    } else {                        log.error("APNs message rejected for {} token {}: {}", deviceToken.getPlatform(),                            deviceToken.getApnsToken().substring(0, 10) + "...", response.getRejectionReason());                    }                } catch (Exception e) {                    log.error("Failed to send APNs message to {} token: {}", deviceToken.getPlatform(),                        deviceToken.getApnsToken().substring(0, 10) + "...", e);                }            }            log.info("Sent timer sync APNs messages to {} devices for user: {}", deviceTokens.size(), userId);        } catch (Exception e) {            log.error("Failed to send timer sync APNs messages for user: {}", userId, e);        }    }    /**     * Get APNs tokens for a user (excluding the sending device)     */    private List<String> getApnsTokensForUser(String userId, String excludeDeviceId) {        try {            UUID userUUID = UUID.fromString(userId);            List<UserDevice> devices = userDeviceRepository.findByUserIdAndActiveTrue(userUUID);            return devices.stream()                    .filter(device -> !device.getDeviceId().equals(excludeDeviceId))                    .filter(device -> device.getApnsToken() != null && !device.getApnsToken().trim().isEmpty())                    .map(UserDevice::getApnsToken)                    .collect(Collectors.toList());        } catch (Exception e) {            log.error("Failed to get APNs tokens for user: {}", userId, e);            return List.of();        }    }    /**     * Get APNs tokens with platform info for a user (excluding the sending device)     */    private List<DeviceTokenInfo> getApnsTokensWithPlatformForUser(String userId, String excludeDeviceId) {        try {            UUID userUUID = UUID.fromString(userId);            List<UserDevice> devices = userDeviceRepository.findByUserIdAndActiveTrue(userUUID);            return devices.stream()                    .filter(device -> !device.getDeviceId().equals(excludeDeviceId))                    .filter(device -> device.getApnsToken() != null && !device.getApnsToken().trim().isEmpty())                    .map(device -> new DeviceTokenInfo(device.getApnsToken(), determinePlatform(device.getDeviceType())))                    .collect(Collectors.toList());        } catch (Exception e) {            log.error("Failed to get APNs tokens with platform for user: {}", userId, e);            return List.of();        }    }    /**     * Determine platform from device type string     */    private String determinePlatform(String deviceType) {        if (deviceType == null) return "ios"; // default to iOS        String lowerDeviceType = deviceType.toLowerCase();        if (lowerDeviceType.contains("mac") || lowerDeviceType.equals("macos")) {            return "macos";        } else if (lowerDeviceType.contains("watch") || lowerDeviceType.equals("watchos")) {            return "watchos";        } else {            return "ios"; // default to iOS for iPhone, iPad, etc.        }    }    /**     * Get the appropriate bundle ID for a platform     */    private String getBundleIdForPlatform(String platform) {        switch (platform.toLowerCase()) {            case "macos":                return apnsBundleIdMacos;            case "watchos":                return apnsBundleIdIos; // watchOS uses iOS bundle ID            case "ios":            default:                return apnsBundleIdIos;        }    }    /**     * Store APNs token when app registers for push notifications     */    @Transactional    public void storeApnsToken(String userId, String deviceId, String apnsToken) {        try {            UUID userUUID = UUID.fromString(userId);            UserDevice device = userDeviceRepository.findByUserIdAndDeviceId(userUUID, deviceId)                    .orElse(null);            if (device != null) {                device.setApnsToken(apnsToken);                userDeviceRepository.save(device);                log.info("APNs token updated for user: {}, device: {}", userId, deviceId);            } else {                log.warn("Device not found for APNs token update: user={}, device={}", userId, deviceId);            }        } catch (Exception e) {            log.error("Failed to store APNs token for user: {}, device: {}", userId, deviceId, e);        }    }}
+            }
+
+            // Load APNs signing key
+            File signingKeyFile = new File(apnsKeyPath);
+            ApnsSigningKey signingKey = ApnsSigningKey.loadFromPkcs8File(
+                signingKeyFile,
+                apnsTeamId,
+                apnsKeyId
+            );
+
+            builder.setSigningKey(signingKey);
+            apnsClient = builder.build();
+
+            log.info("APNs client initialized successfully for {}", apnsProduction ? "production" : "development");
+
+        } catch (Exception e) {
+            log.error("Failed to initialize APNs client", e);
+        }
+    }
+
+    /**
+     * Send silent APNs message to trigger timer sync on other devices
+     */
+    public void sendTimerSyncPush(String userId, String deviceId, String action, String timestamp) {
+        if (!apnsEnabled || apnsClient == null) {
+            log.debug("APNs not enabled, skipping push for user: {}", userId);
+            return;
+        }
+
+        try {
+            // Get APNs tokens with platform info for this user (excluding sending device)
+            List<DeviceTokenInfo> deviceTokens = getApnsTokensWithPlatformForUser(userId, deviceId);
+            if (deviceTokens.isEmpty()) {
+                log.debug("No APNs tokens found for user: {}", userId);
+                return;
+            }
+
+            // Create payload for silent notification matching iOS app expectations
+            String payload = String.format(
+                "{\"aps\":{\"content-available\":1,\"sound\":\"\"},\"type\":\"timer_sync\",\"action\":{\"action\":\"%s\",\"deviceId\":\"%s\",\"timestamp\":\"%s\"}}",
+                action, deviceId, timestamp
+            );
+
+            // Send to all devices using platform-specific bundle IDs
+            for (DeviceTokenInfo deviceToken : deviceTokens) {
+                String bundleId = getBundleIdForPlatform(deviceToken.getPlatform());
+                SimpleApnsPushNotification push = new SimpleApnsPushNotification(
+                    TokenUtil.sanitizeTokenString(deviceToken.getApnsToken()),
+                    bundleId,
+                    payload
+                );
+
+                Future<PushNotificationResponse<SimpleApnsPushNotification>> response = apnsClient.sendNotification(push);
+                log.debug("Timer sync push sent to token: {}, bundle: {}, user: {}",
+                         deviceToken.getApnsToken(), bundleId, userId);
+            }
+
+        } catch (Exception e) {
+            log.error("Failed to send timer sync push for user: {}, device: {}", userId, deviceId, e);
+        }
+    }
+
+    /**
+     * Send timer event push notification to other devices
+     */
+    public void sendTimerEventPush(String userId, String deviceId, String eventType, String timerData) {
+        if (!apnsEnabled || apnsClient == null) {
+            log.debug("APNs not enabled, skipping timer event push for user: {}", userId);
+            return;
+        }
+
+        try {
+            // Get APNs tokens with platform info for this user (excluding sending device)
+            List<DeviceTokenInfo> deviceTokens = getApnsTokensWithPlatformForUser(userId, deviceId);
+            if (deviceTokens.isEmpty()) {
+                log.debug("No APNs tokens found for user: {}", userId);
+                return;
+            }
+
+            // Create payload for timer event notification
+            String payload = String.format(
+                "{\"aps\":{\"content-available\":1,\"sound\":\"\"},\"type\":\"timer_event\",\"eventType\":\"%s\",\"deviceId\":\"%s\",\"timerData\":%s}",
+                eventType, deviceId, timerData
+            );
+
+            // Send to all devices using platform-specific bundle IDs
+            for (DeviceTokenInfo deviceToken : deviceTokens) {
+                String bundleId = getBundleIdForPlatform(deviceToken.getPlatform());
+                SimpleApnsPushNotification push = new SimpleApnsPushNotification(
+                    TokenUtil.sanitizeTokenString(deviceToken.getApnsToken()),
+                    bundleId,
+                    payload
+                );
+
+                Future<PushNotificationResponse<SimpleApnsPushNotification>> response = apnsClient.sendNotification(push);
+                log.debug("Timer event push sent to token: {}, bundle: {}, user: {}, eventType: {}",
+                         deviceToken.getApnsToken(), bundleId, userId, eventType);
+            }
+
+        } catch (Exception e) {
+            log.error("Failed to send timer event push for user: {}, device: {}, eventType: {}", userId, deviceId, eventType, e);
+        }
+    }
+
+    /**
+     * Get APNs tokens with platform for a user, excluding specified device
+     */
+    private List<DeviceTokenInfo> getApnsTokensWithPlatformForUser(String userId, String excludeDeviceId) {
+        UUID userUuid = UUID.fromString(userId);
+        return userDeviceRepository.findByUserId(userUuid)
+                .stream()
+                .filter(device -> !device.getDeviceId().equals(excludeDeviceId))
+                .filter(device -> device.getActive())
+                .map(device -> new DeviceTokenInfo(
+                    device.getApnsToken(),
+                    device.getDeviceType()
+                ))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Get appropriate bundle ID for platform
+     */
+    private String getBundleIdForPlatform(String platform) {
+        if (platform == null) {
+            return apnsBundleIdIos;
+        }
+        return switch (platform.toLowerCase()) {
+            case "ios" -> apnsBundleIdIos;
+            case "macos" -> apnsBundleIdMacos;
+            default -> apnsBundleIdIos;
+        };
+    }
+}
