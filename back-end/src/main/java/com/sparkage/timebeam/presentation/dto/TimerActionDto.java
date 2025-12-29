@@ -1,75 +1,55 @@
 package com.sparkage.timebeam.presentation.dto;
 
-import java.time.Instant;
+import com.sparkage.timebeam.domain.model.TimerActionType;
+import com.sparkage.timebeam.domain.model.TimerState;
 
 public class TimerActionDto {
-    private String action;
-    private Instant timestamp;
+    private TimerActionType actionType;
+    private TimerState timerState;
     private String deviceId;
-
-    // Include the complete timer state with the action
-    private String phase;
-    private Integer remainingSeconds;
-    private Boolean isRunning;
-    private Integer workDuration;
-    private Integer breakDuration;
-    private Integer longBreakDuration;
-    private Boolean autoStartNextSession;
-    private Integer shortBreaksCompleted;
-
+    private Long timestamp;
+    
     // Default constructor
     public TimerActionDto() {}
-
+    
     // Constructor with all fields
-    public TimerActionDto(String action, Instant timestamp, String deviceId) {
-        this.action = action;
+    public TimerActionDto(TimerActionType actionType, TimerState timerState, String deviceId, Long timestamp) {
+        this.actionType = actionType;
+        this.timerState = timerState;
+        this.deviceId = deviceId;
         this.timestamp = timestamp;
+    }
+    
+    // Getters and setters
+    public TimerActionType getActionType() {
+        return actionType;
+    }
+    
+    public void setActionType(TimerActionType actionType) {
+        this.actionType = actionType;
+    }
+    
+    public TimerState getTimerState() {
+        return timerState;
+    }
+    
+    public void setTimerState(TimerState timerState) {
+        this.timerState = timerState;
+    }
+    
+    public String getDeviceId() {
+        return deviceId;
+    }
+    
+    public void setDeviceId(String deviceId) {
         this.deviceId = deviceId;
     }
-
-    // Getters and Setters
-    public String getAction() { return action; }
-    public void setAction(String action) { this.action = action; }
-
-    public Instant getTimestamp() { return timestamp; }
-    public void setTimestamp(Instant timestamp) { this.timestamp = timestamp; }
-
-    public String getDeviceId() { return deviceId; }
-    public void setDeviceId(String deviceId) { this.deviceId = deviceId; }
-
-    public String getPhase() { return phase; }
-    public void setPhase(String phase) { this.phase = phase; }
-
-    public Integer getRemainingSeconds() { return remainingSeconds; }
-    public void setRemainingSeconds(Integer remainingSeconds) { this.remainingSeconds = remainingSeconds; }
-
-    public Boolean getIsRunning() { return isRunning; }
-    public void setIsRunning(Boolean isRunning) { this.isRunning = isRunning; }
-
-    public Integer getWorkDuration() { return workDuration; }
-    public void setWorkDuration(Integer workDuration) { this.workDuration = workDuration; }
-
-    public Integer getBreakDuration() { return breakDuration; }
-    public void setBreakDuration(Integer breakDuration) { this.breakDuration = breakDuration; }
-
-    public Integer getLongBreakDuration() { return longBreakDuration; }
-    public void setLongBreakDuration(Integer longBreakDuration) { this.longBreakDuration = longBreakDuration; }
-
-    public Boolean getAutoStartNextSession() { return autoStartNextSession; }
-    public void setAutoStartNextSession(Boolean autoStartNextSession) { this.autoStartNextSession = autoStartNextSession; }
-
-    public Integer getShortBreaksCompleted() { return shortBreaksCompleted; }
-    public void setShortBreaksCompleted(Integer shortBreaksCompleted) { this.shortBreaksCompleted = shortBreaksCompleted; }
-
-    @Override
-    public String toString() {
-        return "TimerActionDto{" +
-                "action='" + action + '\'' +
-                ", timestamp=" + timestamp +
-                ", deviceId='" + deviceId + '\'' +
-                ", phase='" + phase + '\'' +
-                ", remainingSeconds=" + remainingSeconds +
-                ", isRunning=" + isRunning +
-                '}';
+    
+    public Long getTimestamp() {
+        return timestamp;
+    }
+    
+    public void setTimestamp(Long timestamp) {
+        this.timestamp = timestamp;
     }
 }

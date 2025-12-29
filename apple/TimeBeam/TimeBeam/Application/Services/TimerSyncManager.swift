@@ -3,6 +3,15 @@ import SwiftUI
 import Foundation
 import _Concurrency
 
+// MARK: - Timer Action Enum
+enum TimerAction: String, Codable {
+    case start = "start"
+    case pause = "pause"
+    case reset = "reset"
+    case stop = "stop"
+    case advance = "advance"
+}
+
 @MainActor
 final class TimerSyncManager: ObservableObject {
     static let shared = TimerSyncManager()
@@ -12,7 +21,9 @@ final class TimerSyncManager: ObservableObject {
     var deviceId: String
     private var timer: PomodoroTimer?
     private var queuedSyncNeeded: Bool = false
-
+    private var deviceRegistered: Bool = false
+    private var lastSyncTimestamp: Date = Date.distantPast
+    
     func getTimer() -> PomodoroTimer? { timer }
 
     // MARK: - Initialization
@@ -34,22 +45,76 @@ final class TimerSyncManager: ObservableObject {
         }
     }
 
-    // MARK: - State Sync
-    func syncTimerState() async {
-        print("🚀 TIMER_SYNC_START: syncTimerState() called")
+    // MARK: - Event-based Sync - Only sync on meaningful actions
+    func syncTimerAction(_ action: TimerAction) async {
+        print("🚀 TIMER_SYNC_ACTION: syncTimerAction(\(action.rawValue)) called")
         guard let timer = timer else {
             print("⚠️ TIMER_SYNC_SKIP: No timer configured yet, queuing for later")
             // Queue the sync to run when timer is configured
             queuedSyncNeeded = true
             return
         }
+        await performActionSync(action)
+    }
+    
+    func syncTimerState() async {
+        print("🚀 TIMER_SYNC_STATE: syncTimerState() called for full state sync")
+        guard let timer = timer else {
+            print("⚠️ TIMER_SYNC_SKIP: No timer configured yet, queuing for later")
+            queuedSyncNeeded = true
+            return
+        }
         await performSyncTimerState()
+    }
+
+    private func performActionSync(_ action: TimerAction) async {
+        guard let timer = timer else { return }
+        isSyncing = true
+        print("✅ TIMER_SYNC_ACTIVE: Performing action sync for \(action.rawValue)")
+        defer { isSyncing = false }
+
+        do {
+            guard let accessToken = ApiClient.getValidAccessToken() else {
+                LoggerStore.timer.error("No access token available for sync")
+                print("❌ TIMER_SYNC: No access token available from any source")
+                return
+            }
+
+            // Push action to backend
+            let actionDto = ApiClient.TimerActionDto(
+                action: action.rawValue,
+                phase: timer.phase.rawValue,
+                remainingSeconds: Int(timer.remainingSeconds),
+                isRunning: timer.isRunning,
+                workDuration: timer.workDuration,
+                breakDuration: timer.breakDuration,
+                longBreakDuration: timer.longBreakDuration,
+                autoStartNextSession: timer.autoStartNextSession,
+                shortBreaksCompleted: timer.shortBreaksCompleted,
+                startTimestamp: timer.startTimestamp,
+                pauseTimestamp: timer.pauseTimestamp,
+                lastModifiedTimestamp: timer.lastModifiedTimestamp,
+                deviceId: deviceId
+            )
+
+            print("📤 TIMER_SYNC_ACTION_PUSH: Pushing action - \(action.rawValue), phase: \(timer.phase.rawValue), remaining: \(timer.remainingSeconds)")
+            try await ApiClient.shared.pushTimerAction(actionDto, accessToken: accessToken)
+            
+            // Only pull state occasionally for conflict resolution
+            // This is more efficient than pulling every second
+            if shouldPullState() {
+                await pullLatestState(accessToken: accessToken)
+            }
+
+        } catch {
+            LoggerStore.timer.error("Failed to sync timer action: \(error.localizedDescription)")
+        }
     }
 
     private func performSyncTimerState() async {
         guard let timer = timer else { return }
         isSyncing = true
-        print("✅ TIMER_SYNC_ACTIVE: Starting sync process")
+        print("✅ TIMER_SYNC_ACTIVE: Starting full state sync process")
         defer { isSyncing = false }
 
         do {
@@ -75,8 +140,8 @@ final class TimerSyncManager: ObservableObject {
                 breakDuration: timer.breakDuration,
                 longBreakDuration: timer.longBreakDuration,
                 autoStartNextSession: timer.autoStartNextSession,
-                  shortBreaksCompleted: timer.shortBreaksCompleted,
-                  lastModifiedTimestamp: timer.lastModifiedTimestamp,
+                shortBreaksCompleted: timer.shortBreaksCompleted,
+                lastModifiedTimestamp: timer.lastModifiedTimestamp,
                 deviceId: deviceId
             )
 
@@ -86,7 +151,18 @@ final class TimerSyncManager: ObservableObject {
 
             try await ApiClient.shared.pushTimerState(stateDto, accessToken: accessToken)
 
-            // Pull latest state from backend
+            // Pull latest state from backend for conflict resolution (only when needed)
+            await pullLatestState(accessToken: accessToken)
+            
+        } catch {
+            LoggerStore.timer.error("Failed to sync timer state: \(error.localizedDescription)")
+        }
+    }
+    
+    private func pullLatestState(accessToken: String) async {
+        guard let timer = timer else { return }
+        
+        do {
             if let pulledState = try await ApiClient.shared.pullTimerState(accessToken: accessToken) {
                 // Diagnostic logging for pulled state
                 print("📥 TIMER_SYNC_PULL: Received state - phase: \(pulledState.phase), remaining: \(pulledState.remainingSeconds), running: \(pulledState.isRunning), device: \(pulledState.deviceId)")
@@ -99,7 +175,7 @@ final class TimerSyncManager: ObservableObject {
                 print("📊 TIMER_SYNC_COMPARE: Current modified: \(currentModified), Pulled modified: \(pulledModified), Should sync: \(currentModified < pulledModified)")
 
                 // Apply if more recent
-                  if timer.lastModifiedTimestamp < pulledState.lastModifiedTimestamp {
+                if timer.lastModifiedTimestamp < pulledState.lastModifiedTimestamp {
                     // For cross-device sync, use the exact remainingSeconds from the remote state
                     // instead of trying to recalculate based on timestamps
                     print("✅ TIMER_SYNC_APPLY: Applying synced state to local timer")
@@ -114,14 +190,27 @@ final class TimerSyncManager: ObservableObject {
                         shortBreaksCompleted: pulledState.shortBreaksCompleted,
                         startTimestamp: pulledState.startTimestamp,
                         pauseTimestamp: pulledState.pauseTimestamp,
-                          lastModifiedTimestamp: pulledState.lastModifiedTimestamp
+                        lastModifiedTimestamp: pulledState.lastModifiedTimestamp
                     )
                     print("✅ TIMER_SYNC_APPLY: State applied successfully")
                 }
             }
         } catch {
-            LoggerStore.timer.error("Failed to sync timer state: \(error.localizedDescription)")
+            LoggerStore.timer.error("Failed to pull latest timer state: \(error.localizedDescription)")
         }
+    }
+    
+    private func shouldPullState() -> Bool {
+        // Only pull state for conflict resolution when needed, not every time
+        // We can do this occasionally or when we detect significant differences
+        let now = Date()
+        let timeSinceLastSync = now.timeIntervalSince(lastSyncTimestamp)
+        // Pull state every 30 seconds or when it's been a while since last sync
+        return timeSinceLastSync > 30 || lastSyncTimestamp == Date.distantPast
+    }
+    
+    func updateLastSyncTimestamp() {
+        lastSyncTimestamp = Date()
     }
 
     // MARK: - Watch Connectivity
@@ -165,5 +254,14 @@ final class TimerSyncManager: ObservableObject {
             )
         }
     }
+}
+
+// MARK: - Timer Action Enum
+enum TimerAction: String, Codable {
+    case start = "start"
+    case pause = "pause"
+    case reset = "reset"
+    case stop = "stop"
+    case advance = "advance"
 }
 

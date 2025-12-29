@@ -8,16 +8,16 @@ final class TaskService: ObservableObject {
     private let apiClient: ApiClientProtocol
     private let keychainStore: KeychainStoreProtocol
 
-    init(apiClient: ApiClientProtocol? = nil,
-         keychainStore: KeychainStoreProtocol = KeychainStore()) {
+init(apiClient: ApiClientProtocol? = nil,
+          keychainStore: KeychainStoreProtocol = KeychainStore()) {
         if let apiClient = apiClient {
             self.apiClient = apiClient
-        } else if let config = ApiClient.Configuration.fromInfoPlist() {
-            self.apiClient = ApiClient(configuration: config)
+        } else if let config = Configuration.fromInfoPlist() {
+            self.apiClient = ApiClient(baseURL: config.baseURL)
         } else {
             // Fallback for tests or when Info.plist is not available
             let fallbackURL = URL(string: "http://localhost:8080")!
-            self.apiClient = ApiClient(configuration: ApiClient.Configuration(baseURL: fallbackURL))
+            self.apiClient = ApiClient(baseURL: fallbackURL)
         }
         self.keychainStore = keychainStore
         loadCachedTasks()

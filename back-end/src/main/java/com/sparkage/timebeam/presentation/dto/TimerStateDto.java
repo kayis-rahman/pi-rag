@@ -15,6 +15,8 @@ public class TimerStateDto {
     private Boolean autoStartNextSession;
     private Integer shortBreaksCompleted;
     private Integer totalDuration;
+    private Double startTimestamp;
+    private Double pauseTimestamp;
     @JsonFormat(shape = Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
     private Instant lastModifiedTimestamp;
     private String deviceId;
@@ -26,7 +28,8 @@ public class TimerStateDto {
     public TimerStateDto(String phase, Integer remainingSeconds, Boolean isRunning,
                          Integer workDuration, Integer breakDuration, Integer longBreakDuration,
                          Boolean autoStartNextSession, Integer shortBreaksCompleted,
-                         Instant lastModifiedTimestamp, String deviceId, Integer totalDuration) {
+                         Integer totalDuration, Double startTimestamp, Double pauseTimestamp,
+                         Instant lastModifiedTimestamp, String deviceId) {
         this.phase = phase;
         this.remainingSeconds = remainingSeconds;
         this.isRunning = isRunning;
@@ -36,6 +39,8 @@ public class TimerStateDto {
         this.autoStartNextSession = autoStartNextSession;
         this.shortBreaksCompleted = shortBreaksCompleted;
         this.totalDuration = totalDuration;
+        this.startTimestamp = startTimestamp;
+        this.pauseTimestamp = pauseTimestamp;
         this.lastModifiedTimestamp = lastModifiedTimestamp;
         this.deviceId = deviceId;
     }
@@ -67,6 +72,12 @@ public class TimerStateDto {
 
     public Integer getTotalDuration() { return totalDuration; }
     public void setTotalDuration(Integer totalDuration) { this.totalDuration = totalDuration; }
+
+    public Double getStartTimestamp() { return startTimestamp; }
+    public void setStartTimestamp(Double startTimestamp) { this.startTimestamp = startTimestamp; }
+
+    public Double getPauseTimestamp() { return pauseTimestamp; }
+    public void setPauseTimestamp(Double pauseTimestamp) { this.pauseTimestamp = pauseTimestamp; }
 
     public Instant getLastModifiedTimestamp() { return lastModifiedTimestamp; }
     public void setLastModifiedTimestamp(Instant lastModifiedTimestamp) { this.lastModifiedTimestamp = lastModifiedTimestamp; }

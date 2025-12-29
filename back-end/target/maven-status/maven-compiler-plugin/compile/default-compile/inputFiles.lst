@@ -1,5 +1,8 @@
 /Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/infrastructure/persistence/UserPreferencesRepository.java
+/Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/infrastructure/persistence/TimerEventRepository.java
+/Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/presentation/controller/TimerEventController.java
 /Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/application/service/CrossDeviceContinuityManager.java
+/Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/application/service/TimerEventService.java
 /Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/infrastructure/persistence/TimerStateRepository.java
 /Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/application/service/UserService.java
 /Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/infrastructure/persistence/UserJpaRepository.java
@@ -17,6 +20,7 @@
 /Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/infrastructure/persistence/Task.java
 /Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/infrastructure/persistence/UserDevice.java
 /Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/application/service/DeviceManagementService.java
+/Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/presentation/controller/TimeController.java
 /Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/infrastructure/config/SecurityConfig.java
 /Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/presentation/dto/TaskFilterRequest.java
 /Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/infrastructure/persistence/TaskRepository.java
@@ -25,6 +29,7 @@
 /Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/E2ETestDataSeeder.java
 /Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/application/dto/DeviceHeartbeatDto.java
 /Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/infrastructure/external/JwtUtils.java
+/Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/infrastructure/config/WebSocketConfig.java
 /Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/infrastructure/persistence/UserDeviceRepository.java
 /Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/infrastructure/persistence/SessionRecord.java
 /Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/infrastructure/persistence/User.java
@@ -62,11 +67,12 @@
 /Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/presentation/dto/ApnNotificationPayloadDto.java
 /Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/domain/model/User.java
 /Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/presentation/dto/TimerStateDto.java
+/Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/presentation/dto/TimerEventDto.java
 /Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/infrastructure/external/ResourceNotFoundException.java
 /Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/domain/repository/TaskRepository.java
-/Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/application/dto/TimerStateDto.java
 /Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/infrastructure/persistence/SessionRecordMapper.java
 /Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/infrastructure/external/AccessDeniedException.java
+/Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/infrastructure/persistence/TimerEvent.java
 /Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/domain/model/Task.java
 /Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/infrastructure/config/SecurityUtil.java
 /Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/presentation/dto/AuthRequests.java
