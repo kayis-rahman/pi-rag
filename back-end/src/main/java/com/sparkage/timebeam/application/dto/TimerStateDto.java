@@ -1,104 +1,96 @@
-package com.sparkage.timebeam.domain.model;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+package com.sparkage.timebeam.application.dto;
 
 import java.time.Instant;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonFormat.Shape;
+
 /**
- * Event representing a timer state change for multi-device synchronization
+ * Timer state DTO for application layer
  */
-public class TimerStateChangeEvent {
-    private UUID userId;
-    private String sourceDeviceId;
-    private TimerStateDto previousState;
-    private TimerStateDto newState;
+public class TimerStateDto {
     private String phase;
-    private String action;
-    private Instant timestamp;
-    
-    private TimerStateChangeEvent() {}
-    
-    public static Builder builder() {
-        return new Builder();
+    private Integer remainingSeconds;
+    private Boolean isRunning;
+    private Integer workDuration;
+    private Integer breakDuration;
+    private Integer longBreakDuration;
+    private Boolean autoStartNextSession;
+    private Integer shortBreaksCompleted;
+    private Integer totalDuration;
+    @JsonFormat(shape = Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
+    private Instant lastModifiedTimestamp;
+    private String deviceId;
+    private UUID userId;
+
+    // Default constructor
+    public TimerStateDto() {}
+
+    // Constructor with all fields
+    public TimerStateDto(String phase, Integer remainingSeconds, Boolean isRunning,
+                         Integer workDuration, Integer breakDuration, Integer longBreakDuration,
+                         Boolean autoStartNextSession, Integer shortBreaksCompleted,
+                         Instant lastModifiedTimestamp, String deviceId, Integer totalDuration) {
+        this.phase = phase;
+        this.remainingSeconds = remainingSeconds;
+        this.isRunning = isRunning;
+        this.workDuration = workDuration;
+        this.breakDuration = breakDuration;
+        this.longBreakDuration = longBreakDuration;
+        this.autoStartNextSession = autoStartNextSession;
+        this.shortBreaksCompleted = shortBreaksCompleted;
+        this.totalDuration = totalDuration;
+        this.lastModifiedTimestamp = lastModifiedTimestamp;
+        this.deviceId = deviceId;
     }
-    
-    public static class Builder {
-        private UUID userId;
-        private String sourceDeviceId;
-        private TimerStateDto previousState;
-        private TimerStateDto newState;
-        private String phase;
-        private String action;
-        private Instant timestamp;
-        
-        public Builder userId(UUID userId) {
-            this.userId = userId;
-            return this;
-        }
-        
-        public Builder sourceDeviceId(String sourceDeviceId) {
-            this.sourceDeviceId = sourceDeviceId;
-            return this;
-        }
-        
-        public Builder previousState(TimerStateDto previousState) {
-            this.previousState = previousState;
-            return this;
-        }
-        
-        public Builder newState(TimerStateDto newState) {
-            this.newState = newState;
-            return this;
-        }
-        
-        public Builder phase(String phase) {
-            this.phase = phase;
-            return this;
-        }
-        
-        public Builder action(String action) {
-            this.action = action;
-            return this;
-        }
-        
-        public Builder timestamp(Instant timestamp) {
-            this.timestamp = timestamp;
-            return this;
-        }
-        
-        public TimerStateChangeEvent build() {
-            TimerStateChangeEvent event = new TimerStateChangeEvent();
-            event.userId = this.userId;
-            event.sourceDeviceId = this.sourceDeviceId;
-            event.previousState = this.previousState;
-            event.newState = this.newState;
-            event.phase = this.phase;
-            event.action = this.action;
-            event.timestamp = this.timestamp;
-            return event;
-        }
-    }
-    
-    // Getters
-    public UUID getUserId() { return userId; }
-    public void setUserId(UUID userId) { this.userId = userId; }
-    
-    public String getSourceDeviceId() { return sourceDeviceId; }
-    public void setSourceDeviceId(String sourceDeviceId) { this.sourceDeviceId = sourceDeviceId; }
-    
-    public TimerStateDto getPreviousState() { return previousState; }
-    public void setPreviousState(TimerStateDto previousState) { this.previousState = previousState; }
-    
-    public TimerStateDto getNewState() { return newState; }
-    public void setNewState(TimerStateDto newState) { this.newState = newState; }
-    
+
+    // Getters and Setters
     public String getPhase() { return phase; }
     public void setPhase(String phase) { this.phase = phase; }
-    
-    public String getAction() { return action; }
-    public void setAction(String action) { this.action = action; }
-    
-    public Instant getTimestamp() { return timestamp; }
-    public void setTimestamp(Instant timestamp) { this.timestamp = timestamp; }
+
+    public Integer getRemainingSeconds() { return remainingSeconds; }
+    public void setRemainingSeconds(Integer remainingSeconds) { this.remainingSeconds = remainingSeconds; }
+
+    public Boolean getIsRunning() { return isRunning; }
+    public void setIsRunning(Boolean isRunning) { this.isRunning = isRunning; }
+
+    public Integer getWorkDuration() { return workDuration; }
+    public void setWorkDuration(Integer workDuration) { this.workDuration = workDuration; }
+
+    public Integer getBreakDuration() { return breakDuration; }
+    public void setBreakDuration(Integer breakDuration) { this.breakDuration = breakDuration; }
+
+    public Integer getLongBreakDuration() { return longBreakDuration; }
+    public void setLongBreakDuration(Integer longBreakDuration) { this.longBreakDuration = longBreakDuration; }
+
+    public Boolean getAutoStartNextSession() { return autoStartNextSession; }
+    public void setAutoStartNextSession(Boolean autoStartNextSession) { this.autoStartNextSession = autoStartNextSession; }
+
+    public Integer getShortBreaksCompleted() { return shortBreaksCompleted; }
+    public void setShortBreaksCompleted(Integer shortBreaksCompleted) { this.shortBreaksCompleted = shortBreaksCompleted; }
+
+    public Integer getTotalDuration() { return totalDuration; }
+    public void setTotalDuration(Integer totalDuration) { this.totalDuration = totalDuration; }
+
+    public Instant getLastModifiedTimestamp() { return lastModifiedTimestamp; }
+    public void setLastModifiedTimestamp(Instant lastModifiedTimestamp) { this.lastModifiedTimestamp = lastModifiedTimestamp; }
+
+    public String getDeviceId() { return deviceId; }
+    public void setDeviceId(String deviceId) { this.deviceId = deviceId; }
+
+    public UUID getUserId() { return userId; }
+    public void setUserId(UUID userId) { this.userId = userId; }
+
+    @Override
+    public String toString() {
+        return "TimerStateDto{" +
+                "phase='" + phase + '\'' +
+                ", remainingSeconds=" + remainingSeconds +
+                ", isRunning=" + isRunning +
+                ", lastModifiedTimestamp=" + lastModifiedTimestamp +
+                ", deviceId='" + deviceId + '\'' +
+                ", userId=" + userId +
+                '}';
+    }
 }

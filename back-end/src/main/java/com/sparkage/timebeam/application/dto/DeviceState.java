@@ -1,6 +1,8 @@
 package com.sparkage.timebeam.application.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.sparkage.timebeam.domain.model.TimerStateChangeEvent;
+import java.util.List;
 
 /**
  * Device state for cross-device synchronization
@@ -11,7 +13,7 @@ public class DeviceState {
         CONFLICT_RESOLUTION_REQUIRED,
         INACTIVE
     }
-    
+
     private State state;
     private TimerStateChangeEvent conflictEvent;
     private List<TimerStateChangeEvent> recentEvents;
