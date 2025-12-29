@@ -189,7 +189,7 @@ public class SessionController {
 
         // Send silent push notification to other devices
         try {
-            pushService.sendTimerSyncPush(uid.toString(), actionDto.getDeviceId(), actionDto.getAction(), actionDto.getTimestamp().toString());
+            pushService.sendTimerSyncPush(uid.toString(), actionDto.getDeviceId(), actionDto.getAction().toString(), actionDto.getTimestamp().toString());
         } catch (Exception e) {
             log.warn("Failed to send push notification for timer sync, but action was stored successfully", e);
             // Don't fail the request if push fails - the action is still stored
@@ -215,23 +215,48 @@ public class SessionController {
     }
 
     // Helper to convert action to state - now uses the complete timer state provided by the client
+    // Helper to convert action to state - now uses complete timer state provided by client
     private TimerStateDto convertActionToState(TimerActionDto actionDto) {
-        // Use the complete timer state provided by the client instead of hardcoded values
+        // Use the complete timer state provided by client instead of hardcoded values
         // This ensures accurate sync between devices
         // Use server timestamp to avoid client clock issues
-        // Provide defaults for null values to handle client bugs
+        // Provide defaults for primitive values
+
+        // Calculate total duration based on phase (same logic as TimerSyncService)
+        int workDuration = actionDto.getWorkDuration() > 0 ? actionDto.getWorkDuration() : 25;
+        int breakDuration = actionDto.getBreakDuration() > 0 ? actionDto.getBreakDuration() : 5;
+        int longBreakDuration = actionDto.getLongBreakDuration() > 0 ? actionDto.getLongBreakDuration() : 15;
+        int totalDuration;
+
+        String phase = actionDto.getPhase() != null ? actionDto.getPhase() : "work";
+        switch (phase) {
+            case "work":
+                totalDuration = workDuration * 60;
+                break;
+            case "break":
+                totalDuration = breakDuration * 60;
+                break;
+            case "longBreak":
+                totalDuration = longBreakDuration * 60;
+                break;
+            default:
+                totalDuration = workDuration * 60;
+        }
+
         return new TimerStateDto(
-            actionDto.getPhase() != null ? actionDto.getPhase() : "work",
-            actionDto.getRemainingSeconds() != null ? actionDto.getRemainingSeconds() : 0,
-            actionDto.getIsRunning() != null ? actionDto.getIsRunning() : false,
-            actionDto.getWorkDuration() != null ? actionDto.getWorkDuration() : 25,
-            actionDto.getBreakDuration() != null ? actionDto.getBreakDuration() : 5,
-            actionDto.getLongBreakDuration() != null ? actionDto.getLongBreakDuration() : 15,
-            actionDto.getAutoStartNextSession() != null ? actionDto.getAutoStartNextSession() : false,
-            actionDto.getShortBreaksCompleted() != null ? actionDto.getShortBreaksCompleted() : 0,
-            Instant.now(), // Use server timestamp as Instant
-            actionDto.getDeviceId(),
-            actionDto.getWorkDuration() != null ? actionDto.getWorkDuration() : 25 // totalDuration
+            phase,                                                 // 1. phase
+            actionDto.getRemainingSeconds(),                          // 2. remainingSeconds (int -> Integer)
+            actionDto.isRunning(),                                  // 3. isRunning (boolean -> Boolean)
+            workDuration,                                          // 4. workDuration
+            breakDuration,                                          // 5. breakDuration
+            longBreakDuration,                                      // 6. longBreakDuration
+            actionDto.isAutoStartNextSession(),                      // 7. autoStartNextSession (boolean -> Boolean)
+            actionDto.getShortBreaksCompleted(),                      // 8. shortBreaksCompleted
+            totalDuration,                                          // 9. totalDuration
+            null,                                                  // 10. startTimestamp (timer not started yet)
+            null,                                                  // 11. pauseTimestamp (timer not paused yet)
+            Instant.now(),                                          // 12. lastModifiedTimestamp (server timestamp)
+            actionDto.getDeviceId()                                  // 13. deviceId
         );
     }
 
