@@ -74,7 +74,7 @@ final class TimerSyncManager: ObservableObject {
         defer { isSyncing = false }
 
         do {
-            guard let accessToken = ApiClient.getValidAccessToken() else {
+            guard let accessToken = AuthManager.shared.getValidAccessToken() else {
                 LoggerStore.timer.error("No access token available for sync")
                 print("❌ TIMER_SYNC: No access token available from any source")
                 return
@@ -115,7 +115,7 @@ final class TimerSyncManager: ObservableObject {
         defer { isSyncing = false }
 
         do {
-            guard let accessToken = ApiClient.getValidAccessToken() else {
+            guard let accessToken = AuthManager.shared.getValidAccessToken() else {
                 LoggerStore.timer.error("No access token available for sync")
                 print("❌ TIMER_SYNC: No access token available from any source")
                 return
@@ -185,8 +185,8 @@ final class TimerSyncManager: ObservableObject {
                         longBreakDuration: pulledState.longBreakDuration,
                         autoStartNextSession: pulledState.autoStartNextSession,
                         shortBreaksCompleted: pulledState.shortBreaksCompleted,
-                        startTimestamp: pulledState.startTimestamp,
-                        pauseTimestamp: pulledState.pauseTimestamp,
+                        startTimestamp: pulledState.startTimestamp ?? 0,
+                        pauseTimestamp: pulledState.pauseTimestamp ?? 0,
                         lastModifiedTimestamp: pulledState.lastModifiedTimestamp
                     )
                     print("✅ TIMER_SYNC_APPLY: State applied successfully")

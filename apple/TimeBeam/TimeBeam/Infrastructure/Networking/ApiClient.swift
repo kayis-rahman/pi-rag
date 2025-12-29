@@ -12,14 +12,49 @@ struct ApiClient {
     /// Callback for authentication failures
     var onAuthenticationFailure: (() -> Void)?
 
+    /**
+     * Configuration from Info.plist
+     * This is defined here to allow ApiClient.Configuration.fromInfoPlist() pattern used in codebase
+     */
+    struct Configuration {
+        let baseURL: URL
+
+        static func fromInfoPlist() -> Configuration? {
+            guard
+                let dict = Bundle.main.infoDictionary,
+                let base = dict["API_BASE_URL"] as? String,
+                let url = URL(string: base)
+            else { return nil }
+            return Configuration(baseURL: url)
+        }
+    }
+
     init(baseURL: URL, urlSession: URLSession = .shared) {
         self.baseURL = baseURL
         self.urlSession = urlSession
         self.accessToken = nil
     }
 
-/**
- * Device statistics for account management
+    // MARK: - Singleton Instance
+
+    private static var _shared: ApiClient?
+
+    public static var shared: ApiClient {
+        if let instance = _shared {
+            return instance
+        }
+
+        guard let config = ApiClient.Configuration.fromInfoPlist() else {
+            fatalError("ApiClient.shared: Configuration not found - API_BASE_URL must be set in Info.plist")
+        }
+
+        let instance = ApiClient(baseURL: config.baseURL)
+        _shared = instance
+        return instance
+    }
+
+    /**
+     * Device statistics for account management
  */
 struct DeviceStats: Codable {
     let totalDevices: Int
@@ -70,6 +105,8 @@ struct TaskDto: Codable {
         let totalDuration: Int?
         let lastModifiedTimestamp: Double?
         let deviceId: String?
+        let startTimestamp: Double?
+        let pauseTimestamp: Double?
 
         init(
             phase: String? = nil,
@@ -82,7 +119,9 @@ struct TaskDto: Codable {
             shortBreaksCompleted: Int? = nil,
             totalDuration: Int? = nil,
             lastModifiedTimestamp: Double? = nil,
-            deviceId: String? = nil
+            deviceId: String? = nil,
+            startTimestamp: Double? = nil,
+            pauseTimestamp: Double? = nil
         ) {
             self.phase = phase
             self.remainingSeconds = remainingSeconds
@@ -95,6 +134,8 @@ struct TaskDto: Codable {
             self.totalDuration = totalDuration
             self.lastModifiedTimestamp = lastModifiedTimestamp
             self.deviceId = deviceId
+            self.startTimestamp = startTimestamp
+            self.pauseTimestamp = pauseTimestamp
         }
      }
 
@@ -248,22 +289,23 @@ struct TaskDto: Codable {
 
 // MARK: - Session Methods
 
-      struct SessionRecordDto: Codable {
-          let id: UUID
-          let userId: UUID?
-          let startedAt: Date
-          let durationSeconds: Int
-          let kind: String
-          let taskId: UUID?
+    struct SessionRecordDto: Codable {
+        let id: UUID
+        let userId: UUID?
+        let startedAt: Date
+        let durationSeconds: Int
+        let kind: String
+        let taskId: UUID?
 
-          init(id: UUID, startedAt: Date, duration: TimeInterval, kind: String) {
-              self.id = id
-              self.userId = nil // Will be set by server
-              self.startedAt = startedAt
-              self.durationSeconds = Int(duration)
-              self.kind = kind.uppercased()
-              self.taskId = nil
-          }
+        init(id: UUID, startedAt: Date, duration: TimeInterval, kind: String, taskId: UUID? = nil) {
+            self.id = id
+            self.userId = nil // Will be set by server
+            self.startedAt = startedAt
+            self.durationSeconds = Int(duration)
+            self.kind = kind.uppercased()
+            self.taskId = taskId
+        }
+    }
       }
 
       func startSession(kind: String, taskId: UUID?, accessToken: String) async throws -> SessionRecordDto {
@@ -570,13 +612,41 @@ func fetchSessions(accessToken: String) async throws -> [SessionRecordDto] {
             throw ApiError.networkError("Delete task failed with status: \(httpResponse.statusCode)")
         }
     }
-    // func postSession(_ record: SessionRecord, accessToken: String) async throws
-    // func fetchSessions(accessToken: String) async throws -> [SessionRecordDto]
-}
 
+    func postSession(_ session: SessionRecord, accessToken: String) async throws {
+        guard let request = try createBaseRequest(path: "sessions", method: "POST", body: session, accessToken: accessToken) else {
+            throw ApiError.networkError("Failed to create request")
+        }
+        let (data, response) = try await urlSession.data(for: request)
 
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw ApiError.networkError("Invalid response type")
+        }
+        guard httpResponse.statusCode == 201 || httpResponse.statusCode == 200 else {
+            throw ApiError.networkError("Post session failed with status: \(httpResponse.statusCode)")
+        }
+    }
 
-// MARK: - Error Handling
+    func fetchSessions(accessToken: String) async throws -> [SessionRecordDto] {
+        let url = baseURL.appendingPathComponent("sessions")
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+
+        let (data, response) = try await urlSession.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw ApiError.networkError("Invalid response type")
+        }
+        guard httpResponse.statusCode == 200 else {
+            throw ApiError.networkError("Fetch sessions failed with status: \(httpResponse.statusCode)")
+        }
+
+        return try JSONDecoder().decode([SessionRecordDto].self, from: data)
+    }
+
+    // MARK: - Error Handling
 enum ApiError: Error {
     case invalidURL
     case encodingFailed(Error)

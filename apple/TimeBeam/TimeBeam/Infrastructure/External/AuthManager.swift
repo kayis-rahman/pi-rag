@@ -78,6 +78,32 @@ final class AuthManager: ObservableObject {
         self.email = nil
     }
 
+    // MARK: - Token Management
+
+    func getValidAccessToken() -> String? {
+        // Check if signed in first
+        guard isSignedIn else {
+            LoggerStore.auth.warning("getValidAccessToken called but not signed in")
+            return nil
+        }
+
+        // Try to load from Keychain
+        do {
+            if let token = try KeychainStore.loadString(.accessToken), !token.isEmpty {
+                // TODO: Add expiration check when token expiration is tracked
+                // For now, assume token is valid if present
+                LoggerStore.auth.debug("getValidAccessToken: Token found (length: \(token.count))")
+                return token
+            } else {
+                LoggerStore.auth.warning("getValidAccessToken: No token found in Keychain")
+            }
+        } catch {
+            LoggerStore.auth.error("getValidAccessToken: Failed to load token: \(error.localizedDescription)")
+        }
+
+        return nil
+    }
+
     func signInWithGoogle() async throws {
         #if os(macOS)
         // macOS: Open Safari with OAuth URL (PKCE)

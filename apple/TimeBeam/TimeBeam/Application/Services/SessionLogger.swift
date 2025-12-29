@@ -73,15 +73,15 @@ final class SessionLogger: ObservableObject {
         guard let cfg = ApiClient.Configuration.fromInfoPlist() else { return }
         let api = ApiClient.shared
         do {
-            let remoteSessions = try await api.fetchSessions(accessToken: tokenString)
-            let mapped = remoteSessions.map { payload in
-                SessionRecord(
-                    id: payload.id,
-                    startedAt: payload.startedAt,
-                    duration: payload.duration,
-                    kind: SessionRecord.Kind(rawValue: payload.kind) ?? .work
-                )
-            }
+             let remoteSessions = try await api.fetchSessions(accessToken: tokenString)
+             let mapped = remoteSessions.map { payload in
+                  SessionRecord(
+                     id: payload.id,
+                     startedAt: payload.startedAt,
+                     duration: TimeInterval(payload.durationSeconds),
+                     kind: SessionRecord.Kind(rawValue: payload.kind) ?? .work
+                 )
+             }
             await MainActor.run {
                 self.records = mapped
                 self.save()
