@@ -6,7 +6,7 @@ import java.util.List;
  * Rich push notification with interactive actions
  */
 public class RichPushNotification {
-    private String userId;
+    private UUID userId;
     private String title;
     private String subtitle;
     private String body;
@@ -20,15 +20,20 @@ public class RichPushNotification {
     }
 
     public static class Builder {
-        private String userId;
+        private UUID userId;
         private String title;
         private String subtitle;
         private String body;
         private Priority priority;
         private List<PushNotificationAction> actions;
 
-        public Builder userId(String userId) {
+        public Builder userId(UUID userId) {
             this.userId = userId;
+            return this;
+        }
+
+        public Builder userId(String userId) {
+            this.userId = userId != null ? UUID.fromString(userId) : null;
             return this;
         }
 
@@ -70,8 +75,8 @@ public class RichPushNotification {
     }
 
     // Getters and setters
-    public String getUserId() { return userId; }
-    public void setUserId(String userId) { this.userId = userId; }
+    public UUID getUserId() { return userId; }
+    public void setUserId(UUID userId) { this.userId = userId; }
 
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }

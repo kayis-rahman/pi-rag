@@ -20,7 +20,6 @@ import java.util.UUID;
  * Creates test users, tasks, sessions, and device registrations
  */
 @Component
-@Profile("e2e")
 public class E2ETestDataSeeder {
 
     @Autowired
@@ -91,8 +90,8 @@ public class E2ETestDataSeeder {
                 "Complete project documentation",
                 "Write comprehensive documentation for the TimeBeam project",
                 Task.Status.todo,
-                now.minusDays(2).atZone(ZoneOffset.UTC).toInstant(),
-                now.minusDays(2).atZone(ZoneOffset.UTC).toInstant()
+                now.minusDays(2).toInstant(ZoneOffset.UTC),
+                now.minusDays(2).toInstant(ZoneOffset.UTC)
             ),
 
             new Task(
@@ -101,8 +100,8 @@ public class E2ETestDataSeeder {
                 "Implement user authentication",
                 "Add login/logout functionality with JWT tokens",
                 Task.Status.in_progress,
-                now.minusDays(1).atZone(ZoneOffset.UTC).toInstant(),
-                now.minusHours(2).atZone(ZoneOffset.UTC).toInstant()
+                now.minusDays(1).toInstant(ZoneOffset.UTC),
+                now.minusHours(2).toInstant(ZoneOffset.UTC)
             ),
 
             new Task(
@@ -111,8 +110,8 @@ public class E2ETestDataSeeder {
                 "Set up CI/CD pipeline",
                 "Configure automated testing and deployment",
                 Task.Status.completed,
-                now.minusDays(3).atZone(ZoneOffset.UTC).toInstant(),
-                now.minusHours(1).atZone(ZoneOffset.UTC).toInstant()
+                now.minusDays(3).toInstant(ZoneOffset.UTC),
+                now.minusHours(1).toInstant(ZoneOffset.UTC)
             ),
 
             new Task(
@@ -121,8 +120,8 @@ public class E2ETestDataSeeder {
                 "Design user interface",
                 "Create wireframes and mockups for the mobile app",
                 Task.Status.todo,
-                now.minusHours(12).atZone(ZoneOffset.UTC).toInstant(),
-                now.minusHours(12).atZone(ZoneOffset.UTC).toInstant()
+                now.minusHours(12).toInstant(ZoneOffset.UTC),
+                now.minusHours(12).toInstant(ZoneOffset.UTC)
             )
         );
 
@@ -136,8 +135,8 @@ public class E2ETestDataSeeder {
                 "Database optimization",
                 "Improve query performance and add indexes",
                 Task.Status.todo,
-                Instant.from(now.minusDays(1)),
-                Instant.from(now.minusDays(1))
+                now.minusDays(1).toInstant(ZoneOffset.UTC),
+                now.minusDays(1).toInstant(ZoneOffset.UTC)
             )
         );
 
@@ -154,7 +153,7 @@ public class E2ETestDataSeeder {
                 TEST_USER_ID,
                 null, // deviceId
                 UUID.fromString("550e8400-e29b-41d4-a716-446655440011"), // Authentication task
-                now.minusDays(1).minusMinutes(30).atZone(ZoneOffset.UTC).toInstant(),
+                now.minusDays(1).minusMinutes(30).toInstant(ZoneOffset.UTC),
                 1800, // 30 minutes
                 SessionRecord.Kind.WORK,
                 true, // completed
@@ -169,7 +168,7 @@ public class E2ETestDataSeeder {
                 TEST_USER_ID,
                 null, // deviceId
                 null, // taskId
-                now.minusDays(1).minusMinutes(5).atZone(ZoneOffset.UTC).toInstant(),
+                now.minusDays(1).minusMinutes(5).toInstant(ZoneOffset.UTC),
                 300, // 5 minutes
                 SessionRecord.Kind.SHORT_BREAK,
                 true, // completed
@@ -184,7 +183,7 @@ public class E2ETestDataSeeder {
                 TEST_USER_ID,
                 null, // deviceId
                 UUID.fromString("550e8400-e29b-41d4-a716-446655440010"), // Documentation task
-                now.minusHours(2).atZone(ZoneOffset.UTC).toInstant(),
+                now.minusHours(2).toInstant(ZoneOffset.UTC),
                 7200, // 2 hours
                 SessionRecord.Kind.WORK,
                 true, // completed
@@ -199,7 +198,7 @@ public class E2ETestDataSeeder {
                 TEST_USER_ID,
                 null, // deviceId
                 null, // taskId
-                now.minusHours(1).atZone(ZoneOffset.UTC).toInstant(),
+                now.minusHours(1).toInstant(ZoneOffset.UTC),
                 1800, // 30 minutes
                 SessionRecord.Kind.LONG_BREAK,
                 true, // completed
