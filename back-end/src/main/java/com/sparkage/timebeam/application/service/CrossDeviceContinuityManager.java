@@ -2,14 +2,15 @@ package com.sparkage.timebeam.application.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sparkage.timebeam.domain.model.TimerState;
-import com.sparkage.timebeam.domain.model.TimerStateChangeEvent;
+import com.sparkage.timebeam.application.dto.DeviceState;
+import com.sparkage.timebeam.application.dto.PushNotificationAction;
+import com.sparkage.timebeam.application.dto.RichPushNotification;
 import com.sparkage.timebeam.application.dto.TimerStateDto;
-import com.sparkage.timebeam.application.dto.VectorClock;
+import com.sparkage.timebeam.application.dto.ConflictResolutionStrategy;
+import com.sparkage.timebeam.domain.model.TimerStateChangeEvent;
 import com.sparkage.timebeam.infrastructure.persistence.UserDeviceRepository;
 import com.sparkage.timebeam.infrastructure.persistence.UserSyncPreferences;
 import com.sparkage.timebeam.infrastructure.persistence.UserSyncPreferencesRepository;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
@@ -31,23 +32,24 @@ import java.util.stream.Collectors;
  */
 @Service
 public class CrossDeviceContinuityManager {
+
     private static final Logger log = LoggerFactory.getLogger(CrossDeviceContinuityManager.class);
-    
+
     private final UserDeviceRepository deviceRepository;
     private final UserSyncPreferencesRepository preferencesRepository;
     private final ObjectMapper objectMapper;
-    
+
     // In-memory cache for device states
     private final Map<UUID, DeviceState> deviceStates = new ConcurrentHashMap<>();
-    
+
     public CrossDeviceContinuityManager(UserDeviceRepository deviceRepository,
-                                     UserSyncPreferencesRepository preferencesRepository,
-                                     ObjectMapper objectMapper) {
+                                         UserSyncPreferencesRepository preferencesRepository,
+                                         ObjectMapper objectMapper) {
         this.deviceRepository = deviceRepository;
         this.preferencesRepository = preferencesRepository;
         this.objectMapper = objectMapper;
     }
-    
+
     /**
      * Handle concurrent timer event from multiple devices
      * Implements smart conflict resolution based on user preferences
@@ -55,37 +57,41 @@ public class CrossDeviceContinuityManager {
     @Transactional
     public TimerStateChangeEvent resolveConflict(UUID userId, List<TimerStateChangeEvent> concurrentEvents) {
         log.info("Resolving conflict for user={}, concurrentEvents={}", userId, concurrentEvents.size());
-        
+
         // Get user's conflict resolution preference
         ConflictResolutionStrategy strategy = getConflictResolutionStrategy(userId);
         TimerStateChangeEvent resolvedEvent = null;
-        
+
         switch (strategy) {
             case LATEST_EVENT_WINS:
                 resolvedEvent = resolveLatestEvent(concurrentEvents);
                 break;
-                
+
             case DEVICE_PRIORITY:
                 resolvedEvent = resolveDevicePriority(concurrentEvents);
                 break;
-                
+
             case USER_CHOICE:
                 resolvedEvent = resolveUserChoice(userId, concurrentEvents);
                 break;
-                
+
             case TIME_BASED:
                 resolvedEvent = resolveTimeBased(concurrentEvents);
                 break;
+
+            default:
+                log.warn("Unknown conflict resolution strategy: {}, defaulting to LATEST_EVENT_WINS", strategy);
+                resolvedEvent = resolveLatestEvent(concurrentEvents);
         }
-        
+
         // Record conflict resolution in database
         if (resolvedEvent != null) {
             recordConflictResolution(userId, concurrentEvents, resolvedEvent);
         }
-        
+
         return resolvedEvent;
     }
-    
+
     /**
      * Get user's conflict resolution preference
      */
@@ -94,7 +100,7 @@ public class CrossDeviceContinuityManager {
         return prefs.map(UserSyncPreferences::getConflictResolutionStrategy)
                   .orElse(ConflictResolutionStrategy.LATEST_EVENT_WINS);
     }
-    
+
     /**
      * Resolve conflict using latest event (chronological)
      */
@@ -103,40 +109,40 @@ public class CrossDeviceContinuityManager {
                 .max(Comparator.comparing(TimerStateChangeEvent::getTimestamp))
                 .orElse(null);
     }
-    
+
     /**
      * Resolve conflict using device priority
      */
     private TimerStateChangeEvent resolveDevicePriority(List<TimerStateChangeEvent> events) {
         Map<String, Integer> devicePriority = Map.of(
             "macos", 1,    // Highest priority for work
-            "ios", 2,        // Medium priority
-            "watchos", 3    // Lowest priority for notifications
+            "ios", 2,      // Medium priority
+            "watchos", 3   // Lowest priority for notifications
         );
-        
+
         return events.stream()
                 .sorted(Comparator.comparing(
-                    (TimerStateChangeEvent e) -> devicePriority.getOrDefault(e.getSourceDeviceId(), 4))
-                )
+                    (TimerStateChangeEvent e) -> devicePriority.getOrDefault(e.getSourceDeviceId(), 4)
+                ))
                 .filter(Objects::nonNull)
                 .findFirst()
                 .orElse(null);
     }
-    
+
     /**
      * Generate user choice for conflict resolution
      */
     private TimerStateChangeEvent resolveUserChoice(UUID userId, List<TimerStateChangeEvent> events) {
         // Find the two most recent conflicting events
         List<TimerStateChangeEvent> recentEvents = events.stream()
-                .sorted(Comparator.comparing(TimerStateChangeEvent::getTimestamp))
+                .sorted(Comparator.comparing(TimerStateChangeEvent::getTimestamp).reversed())
                 .limit(2)
                 .toList();
-        
+
         if (recentEvents.size() < 2) {
             return resolveLatestEvent(events);
         }
-        
+
         // Create user choice event with preference data
         TimerStateChangeEvent conflictEvent = TimerStateChangeEvent.builder()
                 .userId(userId)
@@ -145,60 +151,60 @@ public class CrossDeviceContinuityManager {
                 .action("USER_CHOICE")
                 .timestamp(Instant.now())
                 .build();
-        
+
         // Store in device cache for UI presentation
         deviceStates.put(userId, DeviceState.builder()
                 .conflictEvent(conflictEvent)
                 .recentEvents(recentEvents)
                 .state(DeviceState.State.CONFLICT_RESOLUTION_REQUIRED)
                 .build());
-        
+
         return conflictEvent;
     }
-    
+
     /**
      * Resolve conflict based on time remaining calculations
      */
     private TimerStateChangeEvent resolveTimeBased(List<TimerStateChangeEvent> events) {
         return events.stream()
-                .max(Comparator.comparingInt((e1, e2) -> {
-                    Integer time1 = e1.getNewState().getRemainingSeconds();
-                    Integer time2 = e2.getNewState().getRemainingSeconds();
-                    return Integer.compare(time1, time2);
+                .max(Comparator.comparingInt(e -> {
+                    TimerStateDto state = e.getNewState();
+                    return state != null ? state.getRemainingSeconds() : 0;
                 }))
                 .orElse(null);
     }
-    
+
     /**
      * Record conflict resolution for analytics and debugging
      */
-    private void recordConflictResolution(UUID userId, List<TimerStateChangeEvent> originalEvents, 
-                                           TimerStateChangeEvent resolvedEvent) {
+    private void recordConflictResolution(UUID userId,
+                                          List<TimerStateChangeEvent> originalEvents,
+                                          TimerStateChangeEvent resolvedEvent) {
         try {
             JsonNode resolution = objectMapper.createObjectNode();
-            resolution.put("userId", userId.toString());
-            resolution.put("originalEventCount", originalEvents.size());
-            resolution.put("resolvedAction", resolvedEvent.getAction());
-            resolution.put("resolvedBy", resolvedEvent.getSourceDeviceId());
-            resolution.put("resolvedAt", resolvedEvent.getTimestamp().toString());
-            
+            ((com.fasterxml.jackson.databind.node.ObjectNode) resolution).put("userId", userId.toString());
+            ((com.fasterxml.jackson.databind.node.ObjectNode) resolution).put("originalEventCount", originalEvents.size());
+            ((com.fasterxml.jackson.databind.node.ObjectNode) resolution).put("resolvedAction", resolvedEvent.getAction());
+            ((com.fasterxml.jackson.databind.node.ObjectNode) resolution).put("resolvedBy", resolvedEvent.getSourceDeviceId());
+            ((com.fasterxml.jackson.databind.node.ObjectNode) resolution).put("resolvedAt", resolvedEvent.getTimestamp().toString());
+
             // Store resolution in a separate table or log for analytics
             log.info("Conflict resolution recorded: {}", resolution.toString());
-            
+
         } catch (Exception e) {
             log.error("Failed to record conflict resolution", e);
         }
     }
-    
+
     /**
      * Get current device state for user
      */
     public DeviceState getCurrentDeviceState(UUID userId) {
-        return deviceStates.get(userId, DeviceState.builder()
+        return deviceStates.getOrDefault(userId, DeviceState.builder()
                 .state(DeviceState.State.ACTIVE)
                 .build());
     }
-    
+
     /**
      * Update device state after conflict resolution
      */
@@ -208,28 +214,28 @@ public class CrossDeviceContinuityManager {
                 .conflictEvent(resolvedEvent)
                 .build());
     }
-    
+
     /**
      * Clear device state when user makes choice
      */
     public void clearConflictState(UUID userId) {
-        deviceStates.computeIfPresent(userId, (deviceState) -> {
-            deviceState.toBuilder()
+        deviceStates.computeIfPresent(userId, (id, deviceState) ->
+            DeviceState.builder()
                     .state(DeviceState.State.ACTIVE)
                     .conflictEvent(null)
-                    .build();
-        });
+                    .build()
+        );
     }
-    
+
     /**
      * Generate rich push notification for conflict resolution
      */
     public RichPushNotification generateConflictNotification(UUID userId, DeviceState deviceState) {
-        if (deviceState.getState() != DeviceState.State.CONFLICT_RESOLUTION_REQUIRED || 
+        if (deviceState.getState() != DeviceState.State.CONFLICT_RESOLUTION_REQUIRED ||
             deviceState.getConflictEvent() == null) {
             return null;
         }
-        
+
         TimerStateChangeEvent conflictEvent = deviceState.getConflictEvent();
         RichPushNotification notification = RichPushNotification.builder()
                 .userId(userId)
@@ -246,12 +252,12 @@ public class CrossDeviceContinuityManager {
                             .title("Use Remote Timer")
                             .build()
                 ))
-                .priority(Priority.HIGH)
+                .priority(RichPushNotification.Priority.HIGH)
                 .build();
-        
+
         return notification;
     }
-    
+
     /**
      * Build conflict message for notification
      */
@@ -259,10 +265,10 @@ public class CrossDeviceContinuityManager {
         if (conflictEvent.getPreviousState() == null || conflictEvent.getNewState() == null) {
             return "Timer state changed";
         }
-        
+
         Integer currentRemaining = conflictEvent.getPreviousState().getRemainingSeconds();
         Integer remoteRemaining = conflictEvent.getNewState().getRemainingSeconds();
-        
+
         return String.format("Your timer: %d:%02d\nRemote timer: %d:%02d\nWhich would you like to keep?",
                         currentRemaining / 60, currentRemaining % 60,
                         remoteRemaining / 60, remoteRemaining % 60);

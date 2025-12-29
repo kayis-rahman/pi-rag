@@ -58,7 +58,7 @@ final class SessionLogger: ObservableObject {
             return
         }
         guard let cfg = ApiClient.Configuration.fromInfoPlist() else { return }
-        let api = ApiClient(configuration: cfg)
+        let api = ApiClient.shared
         do {
             try await api.postSession(record, accessToken: tokenString)
         } catch {
@@ -71,7 +71,7 @@ final class SessionLogger: ObservableObject {
             return
         }
         guard let cfg = ApiClient.Configuration.fromInfoPlist() else { return }
-        let api = ApiClient(configuration: cfg)
+        let api = ApiClient.shared
         do {
             let remoteSessions = try await api.fetchSessions(accessToken: tokenString)
             let mapped = remoteSessions.map { payload in
