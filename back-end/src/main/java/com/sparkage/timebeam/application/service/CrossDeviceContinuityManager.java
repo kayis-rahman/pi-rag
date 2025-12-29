@@ -4,9 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sparkage.timebeam.application.dto.DeviceState;
 import com.sparkage.timebeam.application.dto.PushNotificationAction;
-import com.sparkage.timebeam.application.dto.RichPushNotification;
 import com.sparkage.timebeam.application.dto.TimerStateDto;
 import com.sparkage.timebeam.application.dto.ConflictResolutionStrategy;
+import com.sparkage.timebeam.application.dto.RichPushNotification;
 import com.sparkage.timebeam.domain.model.TimerStateChangeEvent;
 import com.sparkage.timebeam.infrastructure.persistence.UserDeviceRepository;
 import com.sparkage.timebeam.infrastructure.persistence.UserSyncPreferences;
@@ -24,7 +24,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 /**
  * Cross-Device Continuity Manager
@@ -238,7 +237,7 @@ public class CrossDeviceContinuityManager {
 
         TimerStateChangeEvent conflictEvent = deviceState.getConflictEvent();
         RichPushNotification notification = RichPushNotification.builder()
-                .userId(userId)
+                .userId(userId.toString())
                 .title("Timer Conflict Detected")
                 .subtitle("Multiple devices have timer conflicts")
                 .body(buildConflictMessage(conflictEvent))

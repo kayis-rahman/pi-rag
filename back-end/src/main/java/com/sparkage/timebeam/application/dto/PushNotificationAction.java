@@ -1,102 +1,44 @@
 package com.sparkage.timebeam.application.dto;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.List;
-
 /**
- * Rich push notification with interactive actions
+ * Push notification action for interactive notifications
  */
-public class RichPushNotification {
-    private UUID userId;
+public class PushNotificationAction {
+    private String id;
     private String title;
-    private String subtitle;
-    private String body;
-    private Priority priority;
-    private List<PushNotificationAction> actions;
-    
-    private RichPushNotification() {}
-    
+
+    public PushNotificationAction() {}
+
     public static Builder builder() {
         return new Builder();
     }
-    
+
     public static class Builder {
-        private UUID userId;
+        private String id;
         private String title;
-        private String subtitle;
-        private String body;
-        private Priority priority;
-        private List<PushNotificationAction> actions;
-        
-        public Builder userId(UUID userId) {
-            this.userId = userId;
+
+        public Builder id(String id) {
+            this.id = id;
             return this;
         }
-        
+
         public Builder title(String title) {
             this.title = title;
             return this;
         }
-        
-        public Builder subtitle(String subtitle) {
-            this.subtitle = subtitle;
-            return this;
-        }
-        
-        public Builder body(String body) {
-            this.body = body;
-            return this;
-        }
-        
-        public Builder priority(Priority priority) {
-            this.priority = priority;
-            return this;
-        }
-        
-        public Builder actions(List<PushNotificationAction> actions) {
-            this.actions = actions;
-            return this;
-        }
-        
-        public RichPushNotification build() {
-            RichPushNotification notification = new RichPushNotification();
-            notification.userId = this.userId;
-            notification.title = this.title;
-            notification.subtitle = this.subtitle;
-            notification.body = this.body;
-            notification.priority = this.priority;
-            notification.actions = this.actions;
-            return notification;
+
+        public PushNotificationAction build() {
+            PushNotificationAction action = new PushNotificationAction();
+            action.id = this.id;
+            action.title = this.title;
+            return action;
         }
     }
-    
-    // Getters and setters
-    public UUID getUserId() { return userId; }
-    public void setUserId(UUID userId) { this.userId = userId; }
-    
+
+    // Getters
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
+
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
-    
-    public String getSubtitle() { return subtitle; }
-    public void setSubtitle(String subtitle) { this.subtitle = subtitle; }
-    
-    public String getBody() { return body; }
-    public void setBody(String body) { this.body = body; }
-    
-    public Priority getPriority() { return priority; }
-    public void setPriority(Priority priority) { this.priority = priority; }
-    
-    public List<PushNotificationAction> getActions() { return actions; }
-    public void setActions(List<PushNotificationAction> actions) { this.actions = actions; }
-    
-    public enum Priority {
-        LOW, MEDIUM, HIGH
-    }
-    
-    @JsonCreator
-    public static RichPushNotification fromJson(String json) {
-        // Jackson deserialization
-        return null; // Would implement proper JSON parsing
-    }
 }
