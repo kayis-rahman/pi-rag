@@ -55,7 +55,7 @@ public class DeviceManagementService {
      */
     @Transactional(readOnly = true)
     public List<UserDevice> getActiveDevices(UUID userId) {
-        List<UserDevice> devices = deviceRepository.findByUserIdAndActiveTrue(userId);
+        List<UserDevice> devices = deviceRepository.findActiveDevicesByUserId(userId);
         log.debug("Found {} active devices for user={}", devices.size(), userId);
         return devices;
     }
@@ -132,7 +132,7 @@ public class DeviceManagementService {
     @Transactional(readOnly = true)
     public DeviceStats getDeviceStats(UUID userId) {
         List<UserDevice> allDevices = deviceRepository.findByUserId(userId);
-        List<UserDevice> activeDevices = deviceRepository.findByUserIdAndActiveTrue(userId);
+        List<UserDevice> activeDevices = deviceRepository.findActiveDevicesByUserId(userId);
 
         long iosDevices = activeDevices.stream()
                 .filter(d -> "ios".equals(d.getDeviceType()))
@@ -158,9 +158,6 @@ public class DeviceManagementService {
     private void updateDeviceInfo(UserDevice device, DeviceRegistrationDto registration) {
         device.setDeviceName(registration.getDeviceName());
         device.setDeviceType(registration.getDeviceType());
-        device.setPlatformVersion(registration.getPlatformVersion());
-        device.setAppVersion(registration.getAppVersion());
-        device.setApnsToken(registration.getApnsToken());
         device.setLastSeenAt(Instant.now());
         device.setActive(true);
     }
@@ -172,9 +169,6 @@ public class DeviceManagementService {
         device.setDeviceId(registration.getDeviceId());
         device.setDeviceName(registration.getDeviceName());
         device.setDeviceType(registration.getDeviceType());
-        device.setPlatformVersion(registration.getPlatformVersion());
-        device.setAppVersion(registration.getAppVersion());
-        device.setApnsToken(registration.getApnsToken());
         device.setLastSeenAt(Instant.now());
         device.setActive(true);
         return device;
