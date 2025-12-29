@@ -1636,9 +1636,44 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationC
         if let type = userInfo["type"] as? String, type == "timer_sync" {
             AppLogger.info("Received timer sync APN message on macOS", category: .sync)
 
-            // Always trigger full timer sync for reliability
-                    _Concurrency.Task {
-                await TimerSyncManager.shared.syncTimerState()
+            // Parse action from notification and apply event-based sync
+            if let actionDict = userInfo["action"] as? [String: Any],
+               let actionType = actionDict["action"] as? String,
+               let sourceDeviceId = actionDict["deviceId"] as? String,
+               let timestampString = actionDict["timestamp"] as? String,
+               let timestamp = Double(timestampString) {
+
+                AppLogger.info("Processing timer action from notification: \(actionType), device: \(sourceDeviceId)", category: .sync)
+
+                // Apply the incoming action (event-based sync)
+                _Concurrency.Task {
+                    // Get current timer state for metadata
+                    let currentPhase = timer.phase.rawValue
+                    let workDuration = timer.workDuration
+                    let breakDuration = timer.breakDuration
+                    let longBreakDuration = timer.longBreakDuration
+                    let autoStartNext = timer.autoStartNextSession
+                    let shortBreaksCompleted = timer.shortBreaksCompleted
+
+                    TimerSyncManager.shared.applyIncomingAction(
+                        actionType,
+                        phase: currentPhase,
+                        isRunning: timer.isRunning,
+                        workDuration: workDuration,
+                        breakDuration: breakDuration,
+                        longBreakDuration: longBreakDuration,
+                        autoStartNextSession: autoStartNext,
+                        shortBreaksCompleted: shortBreaksCompleted,
+                        sourceDeviceId: sourceDeviceId,
+                        timestamp: timestamp
+                    )
+                }
+            } else {
+                // Fallback to full state sync if parsing fails
+                AppLogger.warning("Could not parse action from timer sync notification, falling back to full sync", category: .sync)
+                _Concurrency.Task {
+                    await TimerSyncManager.shared.syncTimerState()
+                }
             }
 
             // Don't show notification for silent sync messages
@@ -1656,8 +1691,8 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationC
         if let type = userInfo["type"] as? String, type == "timer_sync" {
             AppLogger.info("User tapped timer sync notification on macOS", category: .sync)
 
-            // Trigger timer sync when user taps notification
-                    _Concurrency.Task {
+            // Trigger full timer sync when user taps notification (to ensure latest state)
+            _Concurrency.Task {
                 await TimerSyncManager.shared.syncTimerState()
             }
         }
@@ -1783,9 +1818,44 @@ final class iOSAppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationC
         if let type = userInfo["type"] as? String, type == "timer_sync" {
             AppLogger.info("Received timer sync APN message on iOS", category: .sync)
 
-            // Always trigger full timer sync for reliability
-                    _Concurrency.Task {
-                await TimerSyncManager.shared.syncTimerState()
+            // Parse action from notification and apply event-based sync
+            if let actionDict = userInfo["action"] as? [String: Any],
+               let actionType = actionDict["action"] as? String,
+               let sourceDeviceId = actionDict["deviceId"] as? String,
+               let timestampString = actionDict["timestamp"] as? String,
+               let timestamp = Double(timestampString) {
+
+                AppLogger.info("Processing timer action from notification on iOS: \(actionType), device: \(sourceDeviceId)", category: .sync)
+
+                // Apply the incoming action (event-based sync)
+                _Concurrency.Task {
+                    // Get current timer state for metadata
+                    let currentPhase = timer.phase.rawValue
+                    let workDuration = timer.workDuration
+                    let breakDuration = timer.breakDuration
+                    let longBreakDuration = timer.longBreakDuration
+                    let autoStartNext = timer.autoStartNextSession
+                    let shortBreaksCompleted = timer.shortBreaksCompleted
+
+                    TimerSyncManager.shared.applyIncomingAction(
+                        actionType,
+                        phase: currentPhase,
+                        isRunning: timer.isRunning,
+                        workDuration: workDuration,
+                        breakDuration: breakDuration,
+                        longBreakDuration: longBreakDuration,
+                        autoStartNextSession: autoStartNext,
+                        shortBreaksCompleted: shortBreaksCompleted,
+                        sourceDeviceId: sourceDeviceId,
+                        timestamp: timestamp
+                    )
+                }
+            } else {
+                // Fallback to full state sync if parsing fails
+                AppLogger.warning("Could not parse action from timer sync notification on iOS, falling back to full sync", category: .sync)
+                _Concurrency.Task {
+                    await TimerSyncManager.shared.syncTimerState()
+                }
             }
 
             // Don't show notification for silent sync messages
@@ -1801,10 +1871,10 @@ final class iOSAppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationC
         let userInfo = response.notification.request.content.userInfo
 
         if let type = userInfo["type"] as? String, type == "timer_sync" {
-            AppLogger.info("User tapped timer sync notification", category: .sync)
+            AppLogger.info("User tapped timer sync notification on iOS", category: .sync)
 
-            // Trigger timer sync when user taps notification
-                    _Concurrency.Task {
+            // Trigger full timer sync when user taps notification (to ensure latest state)
+            _Concurrency.Task {
                 await TimerSyncManager.shared.syncTimerState()
             }
         }

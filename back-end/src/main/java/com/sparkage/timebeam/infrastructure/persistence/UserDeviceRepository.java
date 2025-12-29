@@ -41,6 +41,10 @@ public interface UserDeviceRepository extends JpaRepository<UserDevice, UUID> {
     // Find devices by type
     List<UserDevice> findByUserIdAndDeviceType(@Param("userId") UUID userId, @Param("deviceType") String deviceType);
 
+    // Find all active devices for a user (returns list instead of count)
+    @Query("SELECT d FROM UserDevice d WHERE d.userId = :userId AND d.active = true")
+    List<UserDevice> findActiveDevicesByUserId(@Param("userId") UUID userId);
+
     // Update last seen time for a device (using @Modifying for better performance)
     @Modifying
     @Query("UPDATE UserDevice d SET d.lastSeenAt = :now WHERE d.id = :deviceId")

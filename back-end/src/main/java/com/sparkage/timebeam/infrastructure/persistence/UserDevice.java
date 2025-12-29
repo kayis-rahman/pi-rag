@@ -35,6 +35,18 @@ public class UserDevice {
     @Column(name = "last_seen_at")
     private Instant lastSeenAt;
 
+    @Column(name = "timer_state_id", columnDefinition = "uuid")
+    private UUID timerStateId;
+
+    @Column(name = "apns_token", length = 500)
+    private String apnsToken;
+
+    @Column(name = "platform_version", length = 50)
+    private String platformVersion;
+
+    @Column(name = "app_version", length = 50)
+    private String appVersion;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -162,6 +174,30 @@ public class UserDevice {
     protected void onCreate() {
         createdAt = Instant.now();
         updatedAt = Instant.now();
+    }
+
+    public String getApnsToken() {
+        return apnsToken;
+    }
+
+    public void setApnsToken(String apnsToken) {
+        this.apnsToken = apnsToken;
+    }
+
+    public String getPlatformVersion() {
+        return platformVersion;
+    }
+
+    public void setPlatformVersion(String platformVersion) {
+        this.platformVersion = platformVersion;
+    }
+
+    public String getAppVersion() {
+        return appVersion;
+    }
+
+    public void setAppVersion(String appVersion) {
+        this.appVersion = appVersion;
     }
 
     @PreUpdate

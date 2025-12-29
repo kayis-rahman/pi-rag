@@ -1,6 +1,7 @@
 package com.sparkage.timebeam.application.dto;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Rich push notification with interactive actions

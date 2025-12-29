@@ -40,7 +40,7 @@ public class DeviceHeartbeatService {
         UserDevice device = deviceRepository.findByUserIdAndDeviceId(userId, deviceId)
             .orElseGet(() -> createDevice(userId, deviceId, platform));
         
-        device.setLastSeen(Instant.now());
+        device.setLastSeenAt(Instant.now());
         device.setActive(true);
         deviceRepository.save(device);
         
@@ -64,8 +64,8 @@ public class DeviceHeartbeatService {
             .map(entry -> DeviceHeartbeatDto.builder()
                 .deviceId(entry.getKey())
                 .platform((String) entry.getValue().get("platform"))
-                .lastSeen((Instant) entry.getValue().get("lastSeen"))
-                .isActive(true)
+                .lastSeenAt((Instant) entry.getValue().get("lastSeen"))
+                .active(true)
                 .build())
             .toList();
     }
@@ -131,8 +131,8 @@ public class DeviceHeartbeatService {
                 .deviceId(deviceId)
                 .deviceName(generateDeviceName(platform))
                 .platform(platform)
-                .isActive(true)
-                .lastSeen(Instant.now())
+                .active(true)
+                .lastSeenAt(Instant.now())
                 .createdAt(Instant.now())
                 .build();
     }
@@ -157,6 +157,6 @@ public class DeviceHeartbeatService {
         if (registration.getPushToken() != null && !registration.getPushToken().isEmpty()) {
             device.setPushToken(registration.getPushToken());
         }
-        device.setLastSeen(Instant.now());
+        device.setLastSeenAt(Instant.now());
     }
 }

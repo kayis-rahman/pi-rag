@@ -80,26 +80,23 @@ final class TimerSyncManager: ObservableObject {
                 return
             }
 
-            // Push action to backend
+            // Push action to backend - only send action + static metadata (no continuously changing fields)
             let actionDto = ApiClient.TimerActionDto(
                 action: action.rawValue,
                 phase: timer.phase.rawValue,
-                remainingSeconds: Int(timer.remainingSeconds),
                 isRunning: timer.isRunning,
                 workDuration: timer.workDuration,
                 breakDuration: timer.breakDuration,
                 longBreakDuration: timer.longBreakDuration,
                 autoStartNextSession: timer.autoStartNextSession,
                 shortBreaksCompleted: timer.shortBreaksCompleted,
-                startTimestamp: timer.startTimestamp,
-                pauseTimestamp: timer.pauseTimestamp,
-                lastModifiedTimestamp: timer.lastModifiedTimestamp,
-                deviceId: deviceId
+                deviceId: deviceId,
+                timestamp: Date().timeIntervalSince1970
             )
 
-            print("📤 TIMER_SYNC_ACTION_PUSH: Pushing action - \(action.rawValue), phase: \(timer.phase.rawValue), remaining: \(timer.remainingSeconds)")
+            print("📤 TIMER_SYNC_ACTION_PUSH: Pushing action - \(action.rawValue), phase: \(timer.phase.rawValue), isRunning: \(timer.isRunning)")
             try await ApiClient.shared.pushTimerAction(actionDto, accessToken: accessToken)
-            
+
             // Only pull state occasionally for conflict resolution
             // This is more efficient than pulling every second
             if shouldPullState() {
@@ -254,14 +251,107 @@ final class TimerSyncManager: ObservableObject {
             )
         }
     }
-}
 
-// MARK: - Timer Action Enum
-enum TimerAction: String, Codable {
-    case start = "start"
-    case pause = "pause"
-    case reset = "reset"
-    case stop = "stop"
-    case advance = "advance"
+    // MARK: - Incoming Action Handling (Event-Based Sync)
+
+    /**
+     * Handle incoming timer action from another device
+     * This implements event-based synchronization where actions are interpreted and applied
+     */
+    func applyIncomingAction(_ action: String,
+                           phase: String,
+                           isRunning: Bool,
+                           workDuration: Int,
+                           breakDuration: Int,
+                           longBreakDuration: Int,
+                           autoStartNextSession: Bool,
+                           shortBreaksCompleted: Int,
+                           sourceDeviceId: String,
+                           timestamp: Double) {
+        guard let timer = timer else {
+            print("⚠️ TIMER_SYNC_ACTION: No timer configured, cannot apply incoming action")
+            return
+        }
+
+        // Ignore actions from self (prevent feedback loop)
+        if sourceDeviceId == deviceId {
+            print("⏭️ TIMER_SYNC_ACTION: Ignoring own action from device \(deviceId)")
+            return
+        }
+
+        print("📥 TIMER_SYNC_ACTION_IN: Received action '\(action)' from device \(sourceDeviceId), phase: \(phase)")
+
+        // Apply action based on type
+        switch action.lowercased() {
+        case "start":
+            // Start timer: calculate remainingSeconds from phase and duration
+            timer.applySyncedState(
+                phase: Phase(rawValue: phase) ?? .work,
+                remainingSeconds: calculateRemainingSecondsForPhase(phase, workDuration: workDuration, breakDuration: breakDuration, longBreakDuration: longBreakDuration),
+                isRunning: true,
+                workDuration: workDuration,
+                breakDuration: breakDuration,
+                longBreakDuration: longBreakDuration,
+                autoStartNextSession: autoStartNextSession,
+                shortBreaksCompleted: shortBreaksCompleted,
+                startTimestamp: Date().timeIntervalSince1970,
+                pauseTimestamp: nil,
+                lastModifiedTimestamp: timestamp
+            )
+            print("✅ TIMER_SYNC_ACTION_APPLY: Applied START action")
+
+        case "pause":
+            // Pause timer: keep current state, just stop running
+            timer.pause()
+            print("✅ TIMER_SYNC_ACTION_APPLY: Applied PAUSE action")
+
+        case "reset":
+            // Reset timer: set to initial state based on phase
+            timer.applySyncedState(
+                phase: Phase(rawValue: phase) ?? .work,
+                remainingSeconds: calculateRemainingSecondsForPhase(phase, workDuration: workDuration, breakDuration: breakDuration, longBreakDuration: longBreakDuration),
+                isRunning: false,
+                workDuration: workDuration,
+                breakDuration: breakDuration,
+                longBreakDuration: longBreakDuration,
+                autoStartNextSession: autoStartNextSession,
+                shortBreaksCompleted: 0,
+                startTimestamp: nil,
+                pauseTimestamp: nil,
+                lastModifiedTimestamp: timestamp
+            )
+            print("✅ TIMER_SYNC_ACTION_APPLY: Applied RESET action")
+
+        case "stop":
+            // Stop timer: just pause, don't reset
+            timer.pause()
+            print("✅ TIMER_SYNC_ACTION_APPLY: Applied STOP action")
+
+        case "advance":
+            // Advance to next phase
+            timer.advance()
+            print("✅ TIMER_SYNC_ACTION_APPLY: Applied ADVANCE action")
+
+        default:
+            print("⚠️ TIMER_SYNC_ACTION: Unknown action type: \(action)")
+        }
+    }
+
+    /**
+     * Calculate remainingSeconds based on phase and durations
+     * This ensures timers start with correct duration when synced
+     */
+    private func calculateRemainingSecondsForPhase(_ phase: String, workDuration: Int, breakDuration: Int, longBreakDuration: Int) -> Int {
+        switch phase.lowercased() {
+        case "work":
+            return workDuration * 60
+        case "break":
+            return breakDuration * 60
+        case "long_break", "longbreak":
+            return longBreakDuration * 60
+        default:
+            return workDuration * 60 // Default to work duration
+        }
+    }
 }
 

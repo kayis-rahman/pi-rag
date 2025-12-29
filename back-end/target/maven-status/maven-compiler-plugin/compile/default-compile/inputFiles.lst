@@ -26,7 +26,6 @@
 /Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/infrastructure/persistence/TaskRepository.java
 /Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/presentation/dto/SessionRecordDto.java
 /Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/application/service/TaskService.java
-/Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/application/dto/DeviceHeartbeatDto.java
 /Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/infrastructure/external/JwtUtils.java
 /Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/infrastructure/config/WebSocketConfig.java
 /Users/kayisrahman/Documents/workspace/ideas/time-beam/back-end/src/main/java/com/sparkage/timebeam/infrastructure/persistence/UserDeviceRepository.java

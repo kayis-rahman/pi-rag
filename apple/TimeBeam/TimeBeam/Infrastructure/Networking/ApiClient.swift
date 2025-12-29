@@ -97,6 +97,47 @@ struct TaskDto: Codable {
             self.deviceId = deviceId
         }
      }
+
+     /**
+      * Timer Action DTO - Event-based synchronization
+      * Contains only action type and static metadata (no continuously changing fields)
+      */
+     struct TimerActionDto: Codable {
+         let action: String
+         let phase: String
+         let isRunning: Bool
+         let workDuration: Int
+         let breakDuration: Int
+         let longBreakDuration: Int
+         let autoStartNextSession: Bool
+         let shortBreaksCompleted: Int
+         let deviceId: String
+         let timestamp: Double
+
+         init(
+             action: String,
+             phase: String,
+             isRunning: Bool,
+             workDuration: Int,
+             breakDuration: Int,
+             longBreakDuration: Int,
+             autoStartNextSession: Bool,
+             shortBreaksCompleted: Int,
+             deviceId: String,
+             timestamp: Double
+         ) {
+             self.action = action
+             self.phase = phase
+             self.isRunning = isRunning
+             self.workDuration = workDuration
+             self.breakDuration = breakDuration
+             self.longBreakDuration = longBreakDuration
+             self.autoStartNextSession = autoStartNextSession
+             self.shortBreaksCompleted = shortBreaksCompleted
+             self.deviceId = deviceId
+             self.timestamp = timestamp
+         }
+     }
      
      
 
@@ -354,6 +395,20 @@ func fetchSessions(accessToken: String) async throws -> [SessionRecordDto] {
         }
 
         return try JSONDecoder().decode(TimerStateDto.self, from: data)
+    }
+
+    func pushTimerAction(_ action: TimerActionDto, accessToken: String) async throws {
+        guard let request = try createBaseRequest(path: "sessions/timer/action", method: "POST", body: action, accessToken: accessToken) else {
+            throw ApiError.networkError("Failed to create request")
+        }
+        let (data, response) = try await urlSession.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw ApiError.networkError("Invalid response type")
+        }
+        guard httpResponse.statusCode == 200 || httpResponse.statusCode == 201 else {
+            throw ApiError.networkError("Push timer action failed with status: \(httpResponse.statusCode)")
+        }
     }
 
     func updateApnsToken(deviceId: String, apnsToken: String, accessToken: String) async throws {

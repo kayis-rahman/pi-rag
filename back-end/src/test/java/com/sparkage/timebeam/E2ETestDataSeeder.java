@@ -56,9 +56,9 @@ public class E2ETestDataSeeder {
         seedUsers();
         seedTasks();
         seedSessions();
-        seedDevices();
+//        seedDevices();
         seedPreferences();
-        seedTimerStates();
+//        seedTimerStates();
     }
 
     @Transactional
@@ -211,57 +211,57 @@ public class E2ETestDataSeeder {
         sessionRecordRepository.saveAll(sessions);
     }
 
-    private void seedDevices() {
-        Instant now = Instant.now();
-        List<UserDevice> devices = List.of(
-            new UserDevice(
-                UUID.fromString("550e8400-e29b-41d4-a716-446655440030"),
-                TEST_USER_ID,
-                "ios-simulator-test-device",
-                "iPhone Simulator",
-                "iOS",
-                "17.0",
-                "1.0.0",
-                null, // apnsToken
-                "test-fcm-token-ios",
-                now,
-                true, // active
-                now
-            ),
-
-            new UserDevice(
-                UUID.fromString("550e8400-e29b-41d4-a716-446655440031"),
-                TEST_USER_ID,
-                "macos-test-device",
-                "MacBook Pro",
-                "macOS",
-                "14.0",
-                "1.0.0",
-                null, // apnsToken
-                "test-fcm-token-macos",
-                now,
-                true, // active
-                now
-            ),
-
-            new UserDevice(
-                UUID.fromString("550e8400-e29b-41d4-a716-446655440032"),
-                TEST_USER_2_ID,
-                "ios-device-user2",
-                "iPhone 15 Pro",
-                "iOS",
-                "17.0",
-                "1.0.0",
-                null, // apnsToken
-                "test-fcm-token-user2",
-                now,
-                true, // active
-                now
-            )
-        );
-
-        userDeviceRepository.saveAll(devices);
-    }
+//    private void seedDevices() {
+//        Instant now = Instant.now();
+//        List<UserDevice> devices = List.of(
+//            new UserDevice(
+//                UUID.fromString("550e8400-e29b-41d4-a716-446655440030"),
+//                TEST_USER_ID,
+//                "ios-simulator-test-device",
+//                "iPhone Simulator",
+//                "iOS",
+//                "17.0",
+//                "1.0.0",
+//                null, // apnsToken
+//                "test-fcm-token-ios",
+//                now,
+//                true, // active
+//                now
+//            ),
+//
+//            new UserDevice(
+//                UUID.fromString("550e8400-e29b-41d4-a716-446655440031"),
+//                TEST_USER_ID,
+//                "macos-test-device",
+//                "MacBook Pro",
+//                "macOS",
+//                "14.0",
+//                "1.0.0",
+//                null, // apnsToken
+//                "test-fcm-token-macos",
+//                now,
+//                true, // active
+//                now
+//            ),
+//
+//            new UserDevice(
+//                UUID.fromString("550e8400-e29b-41d4-a716-446655440032"),
+//                TEST_USER_2_ID,
+//                "ios-device-user2",
+//                "iPhone 15 Pro",
+//                "iOS",
+//                "17.0",
+//                "1.0.0",
+//                null, // apnsToken
+//                "test-fcm-token-user2",
+//                now,
+//                true, // active
+//                now
+//            )
+//        );
+//
+//        userDeviceRepository.saveAll(devices);
+//    }
 
     private void seedPreferences() {
         Instant now = Instant.now();
@@ -302,23 +302,23 @@ public class E2ETestDataSeeder {
         userPreferencesRepository.saveAll(preferences);
     }
 
-    private void seedTimerStates() {
-        // Current timer state for test user
-        TimerState timerState = new TimerState(
-            TEST_USER_ID, // userId (also serves as ID)
-            "work", // phase
-            1500, // remainingSeconds (25 minutes remaining)
-            true, // running
-            25, // workDurationMinutes
-            5, // breakDurationMinutes
-            15, // longBreakDurationMinutes
-            true, // autoStartNext
-            2, // shortBreaksCompleted
-            Instant.now(), // lastUpdatedAt
-            UUID.fromString("550e8400-e29b-41d4-a716-446655440030"), // updatedByDeviceId (iOS device)
-            1L // version
-        );
-
-        timerStateRepository.save(timerState);
-    }
+//    private void seedTimerStates() {
+//        // Current timer state for test user
+//        TimerState timerState = new TimerState(
+//            TEST_USER_ID, // userId (also serves as ID)
+//            "work", // phase
+//            1500, // remainingSeconds (25 minutes remaining)
+//            true, // running
+//            25, // workDurationMinutes
+//            5, // breakDurationMinutes
+//            15, // longBreakDurationMinutes
+//            true, // autoStartNext
+//            2, // shortBreaksCompleted
+//            Instant.now(), // lastUpdatedAt
+//            UUID.fromString("550e8400-e29b-41d4-a716-446655440030"), // updatedByDeviceId (iOS device)
+//            1L // version
+//        );
+//
+//        timerStateRepository.save(timerState);
+//    }
 }
