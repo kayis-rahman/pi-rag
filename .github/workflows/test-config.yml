@@ -43,7 +43,7 @@ env:
 jobs:
   # Backend Test Configuration
   backend-config:
-    runs-on: self-hosted
+    runs-on: [self-hosted, piwrom]
     steps:
       - name: Display Backend Test Configuration
         run: |

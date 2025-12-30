@@ -10,7 +10,7 @@ on:
 jobs:
   # Backend Unit Tests
   backend-unit:
-    runs-on: self-hosted
+    runs-on: [self-hosted, piwrom]
     name: Backend Unit Tests
 
     services:

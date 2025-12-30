@@ -24,7 +24,7 @@ env:
 jobs:
   # Backend Integration Tests
   backend-integration:
-    runs-on: self-hosted
+    runs-on: [self-hosted, piwrom]
 
     services:
       postgres:
@@ -230,7 +230,7 @@ jobs:
   # Cross-Platform API Integration
   cross-platform-integration:
     name: Cross-Platform API Integration
-    runs-on: self-hosted
+    runs-on: [self-hosted, piwrom]
     needs: [backend-integration]
 
     services:

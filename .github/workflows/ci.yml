@@ -57,7 +57,7 @@ jobs:
 
   # Quality gates (all must pass)
   quality-gate:
-    runs-on: self-hosted
+    runs-on: [self-hosted, piwrom]
     needs: [lint, unit-tests, integration-tests, backend, frontend, testing, security, test-report]
     if: always()
 
