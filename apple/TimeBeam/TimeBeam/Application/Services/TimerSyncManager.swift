@@ -210,6 +210,110 @@ final class TimerSyncManager: ObservableObject {
         lastSyncTimestamp = Date()
     }
 
+    // MARK: - Incoming Action Handling (Event-Based Sync)
+
+    /**
+     * Handle incoming timer action from another device
+     * This implements event-based synchronization where actions are interpreted and applied
+     */
+    func applyIncomingAction(
+        _ action: String,
+        phase: String,
+        isRunning: Bool,
+        workDuration: Int,
+        breakDuration: Int,
+        longBreakDuration: Int,
+        autoStartNextSession: Bool,
+        shortBreaksCompleted: Int,
+        sourceDeviceId: String,
+        timestamp: Double
+    ) {
+        guard let timer = timer else {
+            print("⚠️ TIMER_SYNC_ACTION: No timer configured, cannot apply incoming action")
+            return
+        }
+
+        // Ignore actions from self (prevent feedback loop)
+        if sourceDeviceId == deviceId {
+            print("⏭️ TIMER_SYNC_ACTION: Ignoring own action from device \(deviceId)")
+            return
+        }
+
+        print("📥 TIMER_SYNC_ACTION_IN: Received action '\(action)' from device \(sourceDeviceId), phase: \(phase)")
+
+        // Apply action based on type
+        switch action.lowercased() {
+        case "start":
+            // Start timer: set running=true, calculate remainingSeconds from phase and duration
+            timer.applySyncedState(
+                phase: Phase(rawValue: phase) ?? .work,
+                remainingSeconds: calculateRemainingSecondsForPhase(phase, workDuration: workDuration, breakDuration: breakDuration, longBreakDuration: longBreakDuration),
+                isRunning: true,
+                workDuration: workDuration,
+                breakDuration: breakDuration,
+                longBreakDuration: longBreakDuration,
+                autoStartNextSession: autoStartNextSession,
+                shortBreaksCompleted: shortBreaksCompleted,
+                startTimestamp: Date().timeIntervalSince1970,
+                pauseTimestamp: nil,
+                lastModifiedTimestamp: timestamp
+            )
+            print("✅ TIMER_SYNC_ACTION_APPLY: Applied START action")
+
+        case "pause":
+            // Pause timer: keep current state, just stop running
+            timer.pause()
+            print("✅ TIMER_SYNC_ACTION_APPLY: Applied PAUSE action")
+
+        case "reset":
+            // Reset timer: set running=false, reset remainingSeconds to phase duration
+            timer.applySyncedState(
+                phase: Phase(rawValue: phase) ?? .work,
+                remainingSeconds: calculateRemainingSecondsForPhase(phase, workDuration: workDuration, breakDuration: breakDuration, longBreakDuration: longBreakDuration),
+                isRunning: false,
+                workDuration: workDuration,
+                breakDuration: breakDuration,
+                longBreakDuration: longBreakDuration,
+                autoStartNextSession: autoStartNextSession,
+                shortBreaksCompleted: 0,
+                startTimestamp: nil,
+                pauseTimestamp: nil,
+                lastModifiedTimestamp: timestamp
+            )
+            print("✅ TIMER_SYNC_ACTION_APPLY: Applied RESET action")
+
+        case "stop":
+            // Stop timer: just pause, don't reset
+            timer.pause()
+            print("✅ TIMER_SYNC_ACTION_APPLY: Applied STOP action")
+
+        case "advance":
+            // Advance to next phase
+            timer.advance()
+            print("✅ TIMER_SYNC_ACTION_APPLY: Applied ADVANCE action")
+
+        default:
+            print("⚠️ TIMER_SYNC_ACTION: Unknown action type: \(action)")
+        }
+    }
+
+    /**
+     * Calculate remainingSeconds based on phase and durations
+     * This ensures timers start with correct duration when synced
+     */
+    private func calculateRemainingSecondsForPhase(_ phase: String, workDuration: Int, breakDuration: Int, longBreakDuration: Int) -> Int {
+        switch phase.lowercased() {
+        case "work":
+            return workDuration
+        case "break", "short_break":
+            return breakDuration
+        case "long_break", "longbreak":
+            return longBreakDuration
+        default:
+            return workDuration // Default to work duration
+        }
+    }
+
     // MARK: - Watch Connectivity
     func applyIncomingState(_ stateDict: [String: Any]) {
         guard let timer = timer else { return }

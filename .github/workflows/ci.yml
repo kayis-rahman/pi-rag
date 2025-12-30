@@ -11,31 +11,54 @@ jobs:
   lint:
     uses: ./.github/workflows/lint.yml
 
-  # Parallel builds
+  # Test configuration display
+  config:
+    uses: ./.github/workflows/test-config.yml
+
+  # Unit tests (all platforms)
+  unit-tests:
+    uses: ./.github/workflows/test-unit.yml
+    needs: [config]
+
+  # Integration tests (all platforms)
+  integration-tests:
+    uses: ./.github/workflows/test-integration.yml
+    needs: [unit-tests]
+
+  # Backend comprehensive testing (keep existing)
   backend:
     uses: ./.github/workflows/backend.yml
+    needs: [unit-tests]
     secrets: inherit
 
+  # Frontend testing (keep existing)
   frontend:
     uses: ./.github/workflows/frontend.yml
+    needs: [unit-tests]
     secrets: inherit
 
-  # Comprehensive testing
+  # Comprehensive testing (keep existing)
   testing:
     uses: ./.github/workflows/testing.yml
     needs: [backend, frontend]
     secrets: inherit
 
-  # Security scanning
+  # Security scanning (keep existing)
   security:
     uses: ./.github/workflows/security.yml
     needs: [backend, frontend]
     secrets: inherit
 
+  # Test report aggregation
+  test-report:
+    uses: ./.github/workflows/test-report.yml
+    needs: [unit-tests, integration-tests]
+    secrets: inherit
+
   # Quality gates (all must pass)
   quality-gate:
     runs-on: self-hosted
-    needs: [lint, backend, frontend, testing, security]
+    needs: [lint, unit-tests, integration-tests, backend, frontend, testing, security, test-report]
     if: always()
 
     steps:
@@ -43,10 +66,13 @@ jobs:
       run: |
         # Check all dependent jobs
         if [[ "${{ needs.lint.result }}" != "success" ]] ||
+           [[ "${{ needs.unit-tests.result }}" != "success" ]] ||
+           [[ "${{ needs.integration-tests.result }}" != "success" ]] ||
            [[ "${{ needs.backend.result }}" != "success" ]] ||
            [[ "${{ needs.frontend.result }}" != "success" ]] ||
            [[ "${{ needs.testing.result }}" != "success" ]] ||
-           [[ "${{ needs.security.result }}" != "success" ]]; then
+           [[ "${{ needs.security.result }}" != "success" ]] ||
+           [[ "${{ needs.test-report.result }}" != "success" ]]; then
 
           echo "❌ Quality gates failed - blocking merge"
           echo "## 🚫 CI Pipeline Failed" >> $GITHUB_STEP_SUMMARY
