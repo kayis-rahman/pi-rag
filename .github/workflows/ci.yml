@@ -11,14 +11,9 @@ jobs:
   lint:
     uses: ./.github/workflows/lint.yml
 
-  # Test configuration display
-  config:
-    uses: ./.github/workflows/test-config.yml
-
   # Unit tests (all platforms)
   unit-tests:
     uses: ./.github/workflows/test-unit.yml
-    needs: [config]
 
   # Integration tests (all platforms)
   integration-tests:
