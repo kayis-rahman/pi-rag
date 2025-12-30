@@ -1,0 +1,105 @@
+name: 🎛️ Test Configuration
+
+on:
+  workflow_call:
+
+env:
+  # Java Configuration
+  JAVA_VERSION: "17"
+  MAVEN_OPTS: "-Xmx1024m"
+
+  # Test Execution
+  TEST_TIMEOUT_MINUTES: 15
+  TEST_RETRY_COUNT: 3
+
+  # Coverage Thresholds
+  COVERAGE_THRESHOLD_LINE: 80
+  COVERAGE_THRESHOLD_BRANCH: 75
+
+  # Backend Configuration
+  SPRING_PROFILES_ACTIVE: test
+  SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/timebeam_test
+  SPRING_DATASOURCE_USERNAME: timebeam_test
+  SPRING_DATASOURCE_PASSWORD: test_password
+
+  # APNS Configuration (disabled in tests)
+  APNS_ENABLED: false
+
+  # iOS Configuration
+  XCODE_VERSION: "15.2"
+  IOS_DESTINATIONS: |
+    iOS Simulator,name=iPhone 15,OS=17.2
+    iOS Simulator,name=iPhone 14,OS=16.5
+    iOS Simulator,name=iPhone SE (3rd generation),OS=17.2
+
+  # macOS Configuration
+  MACOS_VERSION: "14.0"
+
+  # WatchOS Configuration
+  WATCHOS_DESTINATION: |
+    watchOS Simulator,name=Apple Watch Series 9 (45mm),OS=10.0
+    watchOS Simulator,name=Apple Watch Series 8 (45mm),OS=9.0
+
+jobs:
+  # Backend Test Configuration
+  backend-config:
+    runs-on: self-hosted
+    steps:
+      - name: Display Backend Test Configuration
+        run: |
+          echo "## 🔧 Backend Test Configuration" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Java Version: ${{ env.JAVA_VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Maven Options: ${{ env.MAVEN_OPTS }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Test Timeout: ${{ env.TEST_TIMEOUT_MINUTES }} minutes" >> $GITHUB_STEP_SUMMARY
+          echo "- Coverage Threshold (Line): ${{ env.COVERAGE_THRESHOLD_LINE }}%" >> $GITHUB_STEP_SUMMARY
+          echo "- Coverage Threshold (Branch): ${{ env.COVERAGE_THRESHOLD_BRANCH }}%" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Spring Profile: ${{ env.SPRING_PROFILES_ACTIVE }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Database: PostgreSQL (test)" >> $GITHUB_STEP_SUMMARY
+
+  # iOS Test Configuration
+  ios-config:
+    runs-on: macos-latest
+    steps:
+      - name: Display iOS Test Configuration
+        run: |
+          echo "## 📱 iOS Test Configuration" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Xcode Version: ${{ env.XCODE_VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "- iOS Destinations:" >> $GITHUB_STEP_SUMMARY
+          echo "${{ env.IOS_DESTINATIONS }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: List Available Simulators
+        run: |
+          xcrun simctl list devices available | grep "iPhone"
+
+      - name: List Xcode Versions
+        run: |
+          ls -la /Applications | grep Xcode
+
+  # macOS Test Configuration
+  macos-config:
+    runs-on: macos-latest
+    steps:
+      - name: Display macOS Test Configuration
+        run: |
+          echo "## 💻 macOS Test Configuration" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- macOS Version: ${{ env.MACOS_VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Platform: macOS" >> $GITHUB_STEP_SUMMARY
+
+  # WatchOS Test Configuration
+  watchos-config:
+    runs-on: macos-latest
+    steps:
+      - name: Display WatchOS Test Configuration
+        run: |
+          echo "## ⌚ WatchOS Test Configuration" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- WatchOS Destinations:" >> $GITHUB_STEP_SUMMARY
+          echo "${{ env.WATCHOS_DESTINATION }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: List Available Watch Simulators
+        run: |
+          xcrun simctl list devices available | grep "Watch"
