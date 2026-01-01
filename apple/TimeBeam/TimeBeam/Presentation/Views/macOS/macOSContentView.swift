@@ -59,21 +59,54 @@ struct macOSContentView: View {
     private var workDurationBinding: Binding<Int> {
         Binding<Int>(
             get: { timer.workDuration / 60 },
-            set: { timer.updateDurations(workMinutes: $0, shortBreakMinutes: timer.breakDuration / 60, longBreakMinutes: timer.longBreakDuration / 60) }
+            set: { newValue in
+                updateTimerDurations(workMinutes: newValue, shortBreakMinutes: timer.breakDuration / 60, longBreakMinutes: timer.longBreakDuration / 60)
+            }
         )
     }
 
     private var shortBreakDurationBinding: Binding<Int> {
         Binding<Int>(
             get: { timer.breakDuration / 60 },
-            set: { timer.updateDurations(workMinutes: timer.workDuration / 60, shortBreakMinutes: $0, longBreakMinutes: timer.longBreakDuration / 60) }
+            set: { newValue in
+                updateTimerDurations(workMinutes: timer.workDuration / 60, shortBreakMinutes: newValue, longBreakMinutes: timer.longBreakDuration / 60)
+            }
         )
     }
 
     private var longBreakDurationBinding: Binding<Int> {
         Binding<Int>(
             get: { timer.longBreakDuration / 60 },
-            set: { timer.updateDurations(workMinutes: timer.workDuration / 60, shortBreakMinutes: timer.breakDuration / 60, longBreakMinutes: $0) }
+            set: { newValue in
+                updateTimerDurations(workMinutes: timer.workDuration / 60, shortBreakMinutes: timer.breakDuration / 60, longBreakMinutes: newValue)
+            }
+        )
+    }
+
+    private func updateTimerDurations(workMinutes: Int, shortBreakMinutes: Int, longBreakMinutes: Int) {
+        let work = workMinutes * 60
+        let short = shortBreakMinutes * 60
+        let long = longBreakMinutes * 60
+
+        // Keep the rest of the state unchanged, only swap the durations
+        timer.applySyncedState(
+            phase: timer.phase,
+            remainingSeconds: min(timer.remainingSeconds, {
+                switch timer.phase {
+                case .work: return work
+                case .break: return short
+                case .longBreak: return long
+                }
+            }()),
+            isRunning: timer.isRunning,
+            workDuration: work,
+            breakDuration: short,
+            longBreakDuration: long,
+            autoStartNextSession: timer.autoStartNextSession,
+            shortBreaksCompleted: timer.shortBreaksCompleted,
+            startTimestamp: timer.startTimestamp,
+            pauseTimestamp: timer.pauseTimestamp,
+            lastModifiedTimestamp: Date().timeIntervalSince1970
         )
     }
 
@@ -132,7 +165,10 @@ struct macOSContentView: View {
 
             Divider()
 
-            Toggle("Auto-start next session", isOn: $timer.autoStartNextSession)
+            Toggle("Auto-start next session", isOn: Binding(
+                get: { timer.autoStartNextSession },
+                set: { timer.autoStartNextSession = $0 }
+            ))
 
             Divider()
 
@@ -170,7 +206,7 @@ struct macOSContentView: View {
             Divider()
 
             Button("Reset to Defaults", role: .destructive) {
-                timer.resetDurationsToDefaults()
+                timer.reset()
             }
 
         } label: {
@@ -187,7 +223,11 @@ struct macOSContentView: View {
 
     private func playPauseButton(buttonSize: CGFloat) -> some View {
         Button {
-            timer.isRunning ? timer.pause() : startWithPermission()
+            if timer.isRunning {
+                TimerSyncManager.shared.syncTimerAction(.pause)
+            } else {
+                startWithPermission()  // Will also be updated to use TimerSyncManager
+            }
         } label: {
             Image(systemName: timer.isRunning ? "pause.fill" : "play.fill")
                 .font(.system(size: buttonSize * 0.5, weight: .bold))
@@ -202,7 +242,7 @@ struct macOSContentView: View {
 
     private func resetButton(buttonSize: CGFloat) -> some View {
         Button {
-            timer.reset()
+            TimerSyncManager.shared.syncTimerAction(.reset)
         } label: {
             Image(systemName: "arrow.counterclockwise")
                 .font(.system(size: buttonSize * 0.45))
@@ -221,7 +261,7 @@ struct macOSContentView: View {
             didRequestNotificationPermission = true
             UserDefaults.standard.set(true, forKey: "didRequestNotificationPermission")
         }
-        timer.start()
+        TimerSyncManager.shared.syncTimerAction(.start)
     }
 
     private func playChime() {

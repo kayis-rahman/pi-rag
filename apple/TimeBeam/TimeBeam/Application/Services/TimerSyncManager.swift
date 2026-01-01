@@ -48,7 +48,7 @@ final class TimerSyncManager: ObservableObject {
     // MARK: - Event-based Sync - Only sync on meaningful actions
     func syncTimerAction(_ action: TimerAction) async {
         print("🚀 TIMER_SYNC_ACTION: syncTimerAction(\(action.rawValue)) called")
-        guard let timer = timer else {
+        guard timer != nil else {
             print("⚠️ TIMER_SYNC_SKIP: No timer configured yet, queuing for later")
             // Queue the sync to run when timer is configured
             queuedSyncNeeded = true
@@ -59,7 +59,7 @@ final class TimerSyncManager: ObservableObject {
     
     func syncTimerState() async {
         print("🚀 TIMER_SYNC_STATE: syncTimerState() called for full state sync")
-        guard let timer = timer else {
+        guard timer != nil else {
             print("⚠️ TIMER_SYNC_SKIP: No timer configured yet, queuing for later")
             queuedSyncNeeded = true
             return
@@ -72,6 +72,20 @@ final class TimerSyncManager: ObservableObject {
         isSyncing = true
         print("✅ TIMER_SYNC_ACTIVE: Performing action sync for \(action.rawValue)")
         defer { isSyncing = false }
+
+        // Update local timer state FIRST before creating DTO and sending to backend
+        switch action {
+        case .start:
+            timer.start()
+        case .pause:
+            timer.pause()
+        case .reset:
+            timer.reset()
+        case .stop:
+            timer.pause()  // stop is same as pause
+        case .advance:
+            timer.advance()
+        }
 
         do {
             guard let accessToken = AuthManager.shared.getValidAccessToken() else {
@@ -127,24 +141,22 @@ final class TimerSyncManager: ObservableObject {
 
             // Push current state to backend
             let stateDto = ApiClient.TimerStateDto(
-                startTimestamp: timer.startTimestamp,
-                pauseTimestamp: timer.pauseTimestamp,
-                totalDuration: Int(timer.currentDuration),
-                remainingSeconds: Int(timer.remainingSeconds),
                 phase: timer.phase.rawValue,
+                remainingSeconds: Int(timer.remainingSeconds),
                 isRunning: timer.isRunning,
                 workDuration: timer.workDuration,
                 breakDuration: timer.breakDuration,
                 longBreakDuration: timer.longBreakDuration,
                 autoStartNextSession: timer.autoStartNextSession,
                 shortBreaksCompleted: timer.shortBreaksCompleted,
+                totalDuration: Int(timer.currentDuration),
                 lastModifiedTimestamp: timer.lastModifiedTimestamp,
-                deviceId: deviceId
+                deviceId: deviceId, startTimestamp: timer.startTimestamp ?? 0,
+                pauseTimestamp: timer.pauseTimestamp ?? 0
             )
 
             // Diagnostic logging for timer state being pushed
             print("📤 TIMER_SYNC_PUSH: Pushing state - phase: \(timer.phase.rawValue), remaining: \(timer.remainingSeconds), running: \(timer.isRunning), device: \(deviceId)")
-            print("📤 TIMER_SYNC_PUSH: StateDto - start: \(stateDto.startTimestamp ?? 0), remaining: \(stateDto.remainingSeconds), lastModified: \(stateDto.lastModifiedTimestamp)")
 
             try await ApiClient.shared.pushTimerState(stateDto, accessToken: accessToken)
 
@@ -162,34 +174,38 @@ final class TimerSyncManager: ObservableObject {
         do {
             if let pulledState = try await ApiClient.shared.pullTimerState(accessToken: accessToken) {
                 // Diagnostic logging for pulled state
-                print("📥 TIMER_SYNC_PULL: Received state - phase: \(pulledState.phase), remaining: \(pulledState.remainingSeconds), running: \(pulledState.isRunning), device: \(pulledState.deviceId)")
-                print("📥 TIMER_SYNC_PULL: Pulled timestamps - start: \(pulledState.startTimestamp ?? 0), lastModified: \(pulledState.lastModifiedTimestamp)")
+                print("📥 TIMER_SYNC_PULL: Received state - phase: \(pulledState.phase ?? "unknown"), remaining: \(pulledState.remainingSeconds ?? -1), running: \(pulledState.isRunning ?? false), device: \(pulledState.deviceId ?? "unknown")")
+                print("📥 TIMER_SYNC_PULL: Pulled timestamps - start: \(pulledState.startTimestamp ?? 0), lastModified: \(pulledState.lastModifiedTimestamp ?? 0))")
 
                 // Use Date directly for comparison (already parsed by JSONDecoder)
                 let currentModified = timer.lastModifiedTimestamp
                 let pulledModified = pulledState.lastModifiedTimestamp
 
-                print("📊 TIMER_SYNC_COMPARE: Current modified: \(currentModified), Pulled modified: \(pulledModified), Should sync: \(currentModified < pulledModified)")
+                print("📊 TIMER_SYNC_COMPARE: Current modified: \(currentModified), Pulled modified: \(pulledModified ?? 0), Should sync: \(currentModified < (pulledModified ?? 0))")
 
                 // Apply if more recent
-                if timer.lastModifiedTimestamp < pulledState.lastModifiedTimestamp {
+                if timer.lastModifiedTimestamp < (pulledState.lastModifiedTimestamp ?? 0) {
                     // For cross-device sync, use the exact remainingSeconds from the remote state
                     // instead of trying to recalculate based on timestamps
                     print("✅ TIMER_SYNC_APPLY: Applying synced state to local timer")
                     timer.applySyncedState(
-                        phase: Phase(rawValue: pulledState.phase) ?? .work,
-                        remainingSeconds: pulledState.remainingSeconds,
-                        isRunning: pulledState.isRunning,
-                        workDuration: pulledState.workDuration,
-                        breakDuration: pulledState.breakDuration,
-                        longBreakDuration: pulledState.longBreakDuration,
-                        autoStartNextSession: pulledState.autoStartNextSession,
-                        shortBreaksCompleted: pulledState.shortBreaksCompleted,
+                        phase: Phase(rawValue: pulledState.phase ?? "work") ?? .work,
+                        remainingSeconds: pulledState.remainingSeconds ?? 0,
+                        isRunning: pulledState.isRunning ?? false,
+                        workDuration: pulledState.workDuration ?? 25,
+                        breakDuration: pulledState.breakDuration ?? 5,
+                        longBreakDuration: pulledState.longBreakDuration ?? 15,
+                        autoStartNextSession: pulledState.autoStartNextSession ?? false,
+                        shortBreaksCompleted: pulledState.shortBreaksCompleted ?? 0,
                         startTimestamp: pulledState.startTimestamp ?? 0,
                         pauseTimestamp: pulledState.pauseTimestamp ?? 0,
-                        lastModifiedTimestamp: pulledState.lastModifiedTimestamp
+                        lastModifiedTimestamp: pulledState.lastModifiedTimestamp ?? 0
                     )
                     print("✅ TIMER_SYNC_APPLY: State applied successfully")
+                    
+                    self.lastSyncTimestamp = Date()
+                } else {
+                    self.lastSyncTimestamp = Date()
                 }
             }
         } catch {
@@ -202,8 +218,8 @@ final class TimerSyncManager: ObservableObject {
         // We can do this occasionally or when we detect significant differences
         let now = Date()
         let timeSinceLastSync = now.timeIntervalSince(lastSyncTimestamp)
-        // Pull state every 30 seconds or when it's been a while since last sync
-        return timeSinceLastSync > 30 || lastSyncTimestamp == Date.distantPast
+        let should = timeSinceLastSync > 30 || lastSyncTimestamp == Date.distantPast
+        return should
     }
     
     func updateLastSyncTimestamp() {
@@ -353,108 +369,6 @@ final class TimerSyncManager: ObservableObject {
                 pauseTimestamp: pauseTimestamp,
                 lastModifiedTimestamp: lastModifiedTimestamp
             )
-        }
-    }
-
-    // MARK: - Incoming Action Handling (Event-Based Sync)
-
-    /**
-     * Handle incoming timer action from another device
-     * This implements event-based synchronization where actions are interpreted and applied
-     */
-    func applyIncomingAction(_ action: String,
-                           phase: String,
-                           isRunning: Bool,
-                           workDuration: Int,
-                           breakDuration: Int,
-                           longBreakDuration: Int,
-                           autoStartNextSession: Bool,
-                           shortBreaksCompleted: Int,
-                           sourceDeviceId: String,
-                           timestamp: Double) {
-        guard let timer = timer else {
-            print("⚠️ TIMER_SYNC_ACTION: No timer configured, cannot apply incoming action")
-            return
-        }
-
-        // Ignore actions from self (prevent feedback loop)
-        if sourceDeviceId == deviceId {
-            print("⏭️ TIMER_SYNC_ACTION: Ignoring own action from device \(deviceId)")
-            return
-        }
-
-        print("📥 TIMER_SYNC_ACTION_IN: Received action '\(action)' from device \(sourceDeviceId), phase: \(phase)")
-
-        // Apply action based on type
-        switch action.lowercased() {
-        case "start":
-            // Start timer: calculate remainingSeconds from phase and duration
-            timer.applySyncedState(
-                phase: Phase(rawValue: phase) ?? .work,
-                remainingSeconds: calculateRemainingSecondsForPhase(phase, workDuration: workDuration, breakDuration: breakDuration, longBreakDuration: longBreakDuration),
-                isRunning: true,
-                workDuration: workDuration,
-                breakDuration: breakDuration,
-                longBreakDuration: longBreakDuration,
-                autoStartNextSession: autoStartNextSession,
-                shortBreaksCompleted: shortBreaksCompleted,
-                startTimestamp: Date().timeIntervalSince1970,
-                pauseTimestamp: nil,
-                lastModifiedTimestamp: timestamp
-            )
-            print("✅ TIMER_SYNC_ACTION_APPLY: Applied START action")
-
-        case "pause":
-            // Pause timer: keep current state, just stop running
-            timer.pause()
-            print("✅ TIMER_SYNC_ACTION_APPLY: Applied PAUSE action")
-
-        case "reset":
-            // Reset timer: set to initial state based on phase
-            timer.applySyncedState(
-                phase: Phase(rawValue: phase) ?? .work,
-                remainingSeconds: calculateRemainingSecondsForPhase(phase, workDuration: workDuration, breakDuration: breakDuration, longBreakDuration: longBreakDuration),
-                isRunning: false,
-                workDuration: workDuration,
-                breakDuration: breakDuration,
-                longBreakDuration: longBreakDuration,
-                autoStartNextSession: autoStartNextSession,
-                shortBreaksCompleted: 0,
-                startTimestamp: nil,
-                pauseTimestamp: nil,
-                lastModifiedTimestamp: timestamp
-            )
-            print("✅ TIMER_SYNC_ACTION_APPLY: Applied RESET action")
-
-        case "stop":
-            // Stop timer: just pause, don't reset
-            timer.pause()
-            print("✅ TIMER_SYNC_ACTION_APPLY: Applied STOP action")
-
-        case "advance":
-            // Advance to next phase
-            timer.advance()
-            print("✅ TIMER_SYNC_ACTION_APPLY: Applied ADVANCE action")
-
-        default:
-            print("⚠️ TIMER_SYNC_ACTION: Unknown action type: \(action)")
-        }
-    }
-
-    /**
-     * Calculate remainingSeconds based on phase and durations
-     * This ensures timers start with correct duration when synced
-     */
-    private func calculateRemainingSecondsForPhase(_ phase: String, workDuration: Int, breakDuration: Int, longBreakDuration: Int) -> Int {
-        switch phase.lowercased() {
-        case "work":
-            return workDuration * 60
-        case "break":
-            return breakDuration * 60
-        case "long_break", "longbreak":
-            return longBreakDuration * 60
-        default:
-            return workDuration * 60 // Default to work duration
         }
     }
 }

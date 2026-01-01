@@ -70,7 +70,7 @@ struct iOSContentView: View {
                                     .foregroundColor(.secondary)
                                 Button {
                                     // Clear selection (already no task selected)
-                                    timer.setCurrentTask(nil)
+                                    timer.currentTaskId = nil
                                 } label: {
                                     Text("Clear")
                                         .font(.caption)
@@ -111,9 +111,9 @@ struct iOSContentView: View {
                     icon: timer.isRunning ? "pause.fill" : "play.fill",
                     action: {
                         if timer.isRunning {
-                            timer.pause()
+                            TimerSyncManager.shared.syncTimerAction(.pause)
                         } else {
-                            startWithPermission()
+                            startWithPermission()  // Will also be updated to use TimerSyncManager
                         }
                     }
                 )
@@ -129,7 +129,9 @@ struct iOSContentView: View {
                     Spacer()
 
                     // Reset button (top right)
-                    Button(action: { timer.reset() }) {
+                    Button(action: { 
+                        TimerSyncManager.shared.syncTimerAction(.reset)
+                    }) {
                         Image(systemName: "arrow.counterclockwise")
                             .font(.system(size: 20, weight: .medium))
                             .foregroundColor(Color.themeTextSecondary)
@@ -153,7 +155,7 @@ struct iOSContentView: View {
         }
         .sheet(isPresented: $showingTaskPicker) {
             TaskPickerView { selectedTask in
-                timer.setCurrentTask(selectedTask?.id)
+                timer.currentTaskId = selectedTask?.id
             }
         }
     }
@@ -164,7 +166,7 @@ struct iOSContentView: View {
             didRequestNotificationPermission = true
             UserDefaults.standard.set(true, forKey: "didRequestNotificationPermission")
         }
-        timer.start()
+        TimerSyncManager.shared.syncTimerAction(.start)
     }
 
     private func playChime() {
@@ -194,7 +196,7 @@ private struct ActiveTaskSectionView: View {
                 HStack(spacing: 12) {
                     ForEach(taskService.activeTasks.prefix(3)) { task in
                         TaskCardView(task: task, style: taskCardStyle(for: task)) {
-                            timer.setCurrentTask(task.id)
+                            timer.currentTaskId = task.id
                         } completionAction: {
                             completeTask(task)
                         }
@@ -248,7 +250,7 @@ private struct TaskRecommendationsView: View {
                     HStack(spacing: 8) {
                         ForEach(recommendedTasks.prefix(2)) { task in
                             Button {
-                                timer.setCurrentTask(task.id)
+                                timer.currentTaskId = task.id
                             } label: {
                                 Text(task.title)
                                     .font(.subheadline)
