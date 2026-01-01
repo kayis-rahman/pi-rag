@@ -8,17 +8,17 @@ struct ApiClient {
     let baseURL: URL
     private let urlSession: URLSession
     private var accessToken: String?
-
+    
     /// Callback for authentication failures
     var onAuthenticationFailure: (() -> Void)?
-
+    
     /**
      * Configuration from Info.plist
      * This is defined here to allow ApiClient.Configuration.fromInfoPlist() pattern used in codebase
      */
     struct Configuration {
         let baseURL: URL
-
+        
         static func fromInfoPlist() -> Configuration? {
             guard
                 let dict = Bundle.main.infoDictionary,
@@ -28,59 +28,59 @@ struct ApiClient {
             return Configuration(baseURL: url)
         }
     }
-
-    init(baseURL: URL, urlSession: URLSession = .shared) {
+    
+    init(baseURL: URL) {
         self.baseURL = baseURL
-        self.urlSession = urlSession
+        self.urlSession = URLSession.shared
         self.accessToken = nil
     }
-
+    
     // MARK: - Singleton Instance
-
+    
     private static var _shared: ApiClient?
-
+    
     public static var shared: ApiClient {
         if let instance = _shared {
             return instance
         }
-
+        
         guard let config = ApiClient.Configuration.fromInfoPlist() else {
             fatalError("ApiClient.shared: Configuration not found - API_BASE_URL must be set in Info.plist")
         }
-
+        
         let instance = ApiClient(baseURL: config.baseURL)
         _shared = instance
         return instance
     }
-
+    
     /**
      * Device statistics for account management
- */
-struct DeviceStats: Codable {
-    let totalDevices: Int
-    let activeDevices: Int
-    let iosDevices: Int
-    let macDevices: Int
-    let watchosDevices: Int
-    let lastSyncTime: Date
-}
-
-/**
- * Device registration DTO
- */
-struct DeviceRegistrationDto: Codable {
-    let deviceId: String
-    let deviceName: String
-    let deviceType: String
-    let platformVersion: String
-    let appVersion: String
-    let fcmToken: String?
-}
-
-/**
- * Task DTO
- */
-struct TaskDto: Codable {
+     */
+    struct DeviceStats: Codable {
+        let totalDevices: Int
+        let activeDevices: Int
+        let iosDevices: Int
+        let macDevices: Int
+        let watchosDevices: Int
+        let lastSyncTime: Date
+    }
+    
+    /**
+     * Device registration DTO
+     */
+    struct DeviceRegistrationDto: Codable {
+        let deviceId: String
+        let deviceName: String
+        let deviceType: String
+        let platformVersion: String
+        let appVersion: String
+        let fcmToken: String?
+    }
+    
+    /**
+     * Task DTO
+     */
+    struct TaskDto: Codable {
         let id: UUID
         let userId: UUID
         let title: String
@@ -89,7 +89,7 @@ struct TaskDto: Codable {
         let createdAt: Date
         let updatedAt: Date
     }
-
+    
     /**
      * Timer State DTO
      */
@@ -107,7 +107,7 @@ struct TaskDto: Codable {
         let deviceId: String?
         let startTimestamp: Double?
         let pauseTimestamp: Double?
-
+        
         init(
             phase: String? = nil,
             remainingSeconds: Int? = nil,
@@ -137,95 +137,95 @@ struct TaskDto: Codable {
             self.startTimestamp = startTimestamp
             self.pauseTimestamp = pauseTimestamp
         }
-     }
-
-     /**
-      * Timer Action DTO - Event-based synchronization
-      * Contains only action type and static metadata (no continuously changing fields)
-      */
-     struct TimerActionDto: Codable {
-         let action: String
-         let phase: String
-         let isRunning: Bool
-         let workDuration: Int
-         let breakDuration: Int
-         let longBreakDuration: Int
-         let autoStartNextSession: Bool
-         let shortBreaksCompleted: Int
-         let deviceId: String
-         let timestamp: Double
-
-         init(
-             action: String,
-             phase: String,
-             isRunning: Bool,
-             workDuration: Int,
-             breakDuration: Int,
-             longBreakDuration: Int,
-             autoStartNextSession: Bool,
-             shortBreaksCompleted: Int,
-             deviceId: String,
-             timestamp: Double
-         ) {
-             self.action = action
-             self.phase = phase
-             self.isRunning = isRunning
-             self.workDuration = workDuration
-             self.breakDuration = breakDuration
-             self.longBreakDuration = longBreakDuration
-             self.autoStartNextSession = autoStartNextSession
-             self.shortBreaksCompleted = shortBreaksCompleted
-             self.deviceId = deviceId
-             self.timestamp = timestamp
-         }
+    }
+    
+    /**
+     * Timer Action DTO - Event-based synchronization
+     * Contains only action type and static metadata (no continuously changing fields)
+     */
+    struct TimerActionDto: Codable {
+        let action: String
+        let phase: String
+        let isRunning: Bool
+        let workDuration: Int
+        let breakDuration: Int
+        let longBreakDuration: Int
+        let autoStartNextSession: Bool
+        let shortBreaksCompleted: Int
+        let deviceId: String
+        let timestamp: Double
+        
+        init(
+            action: String,
+            phase: String,
+            isRunning: Bool,
+            workDuration: Int,
+            breakDuration: Int,
+            longBreakDuration: Int,
+            autoStartNextSession: Bool,
+            shortBreaksCompleted: Int,
+            deviceId: String,
+            timestamp: Double
+        ) {
+            self.action = action
+            self.phase = phase
+            self.isRunning = isRunning
+            self.workDuration = workDuration
+            self.breakDuration = breakDuration
+            self.longBreakDuration = longBreakDuration
+            self.autoStartNextSession = autoStartNextSession
+            self.shortBreaksCompleted = shortBreaksCompleted
+            self.deviceId = deviceId
+            self.timestamp = timestamp
+        }
+    }
+    
+    
+    
+    // MARK: - Private Helpers
+    
+    /* private func createRequest(path: String, method: String, body: Any?, accessToken: String?) -> URLRequest? {
+     guard let token = accessToken ?? self.accessToken else {
+     return nil
      }
      
+     guard let url = URL(string: "\(baseURL.absoluteString)/\(path)") else {
+     return nil
+     }
      
-
-     // MARK: - Private Helpers
-
-     /* private func createRequest(path: String, method: String, body: Any?, accessToken: String?) -> URLRequest? {
-        guard let token = accessToken ?? self.accessToken else {
-            return nil
-        }
-
-        guard let url = URL(string: "\(baseURL.absoluteString)/\(path)") else {
-            return nil
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = method
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-
-        if let body = body {
-            request.httpBody = try? JSONSerialization.data(withJSONObject: body)
-        }
-
-        return request
+     var request = URLRequest(url: url)
+     request.httpMethod = method
+     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+     request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+     
+     if let body = body {
+     request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+     }
+     
+     return request
      }
      */
     
-/**
-      * Create base URL request
-      */
-     private func createBaseRequest(path: String, method: String, body: Encodable, accessToken: String? = nil) -> URLRequest? {
+    /**
+     * Create base URL request
+     */
+    private func createBaseRequest(path: String, method: String, body: Encodable, accessToken: String? = nil) -> URLRequest? {
         let token = accessToken ?? self.accessToken
         guard let token = token else {
             print("❌ ApiClient: No access token available")
             return nil
         }
-
+        
         let url = baseURL.appendingPathComponent(path)
         print("✅ ApiClient: Creating request to URL: \(url.absoluteString)")
-
+        
         var request = URLRequest(url: url)
         request.httpMethod = method
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-
+        
         print("🔐 ApiClient: Authorization header set: Bearer \(token.prefix(20))...")
-
+        
         do {
             request.httpBody = try JSONEncoder().encode(body)
             print("✅ ApiClient: Request body encoded successfully")
@@ -233,13 +233,13 @@ struct TaskDto: Codable {
             print("❌ ApiClient: Failed to encode request body: \(error)")
             return nil
         }
-
+        
         print("📋 ApiClient: Final request headers: \(request.allHTTPHeaderFields ?? [:])")
-
+        
         return request
-     }
-     
-     /**
+    }
+    
+    /**
      * Get access token
      */
     func getAccessToken() -> String? {
@@ -247,48 +247,48 @@ struct TaskDto: Codable {
         // For now, return nil
         return nil
     }
-
+    
     // MARK: - Auth Methods
-
+    
     struct User: Codable {
         let id: UUID
         let email: String
         let displayName: String
     }
-
+    
     struct LoginResponse: Codable {
         let accessToken: String
         let user: User?
     }
-
+    
     func login(email: String) async throws -> LoginResponse {
         let url = baseURL.appendingPathComponent("api/auth/login")
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
+        
         let body = ["email": email]
         request.httpBody = try JSONEncoder().encode(body)
-
+        
         let (data, response) = try await urlSession.data(for: request)
-
+        
         guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
             throw ApiError.networkError("Login failed with status: \((response as? HTTPURLResponse)?.statusCode ?? 0)")
         }
-
+        
         return try JSONDecoder().decode(LoginResponse.self, from: data)
     }
-
-
-
+    
+    
+    
     // MARK: - Response Types
-
+    
     struct EmptyResponse: Codable {
         let success: Bool
     }
-
-// MARK: - Session Methods
-
+    
+    // MARK: - Session Methods
+    
     struct SessionRecordDto: Codable {
         let id: UUID
         let userId: UUID?
@@ -296,7 +296,7 @@ struct TaskDto: Codable {
         let durationSeconds: Int
         let kind: String
         let taskId: UUID?
-
+        
         init(id: UUID, startedAt: Date, duration: TimeInterval, kind: String, taskId: UUID? = nil) {
             self.id = id
             self.userId = nil // Will be set by server
@@ -306,108 +306,107 @@ struct TaskDto: Codable {
             self.taskId = taskId
         }
     }
-      }
-
-      func startSession(kind: String, taskId: UUID?, accessToken: String) async throws -> SessionRecordDto {
-          var url = baseURL.appendingPathComponent("sessions/start")
-          var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
-          components?.queryItems = [URLQueryItem(name: "kind", value: kind)]
-          if let taskId = taskId {
-              components?.queryItems?.append(URLQueryItem(name: "taskId", value: taskId.uuidString))
-          }
-          if let finalURL = components?.url {
-              url = finalURL
-          }
-
-          var request = URLRequest(url: url)
-          request.httpMethod = "POST"
-          request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-          request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-
-          let (data, response) = try await urlSession.data(for: request)
-
-          guard let httpResponse = response as? HTTPURLResponse else {
-              throw ApiError.networkError("Invalid response type")
-          }
-          guard httpResponse.statusCode == 201 || httpResponse.statusCode == 200 else {
-              throw ApiError.networkError("Start session failed with status: \(httpResponse.statusCode)")
-          }
-
-          return try JSONDecoder().decode(SessionRecordDto.self, from: data)
-      }
-
-      func stopSession(id: UUID, accessToken: String) async throws {
-          guard let request = try createBaseRequest(path: "sessions/\(id)/stop", method: "POST", body: EmptyResponse(success: true), accessToken: accessToken) else {
-              throw ApiError.networkError("Failed to create request")
-          }
-          let (data, response) = try await urlSession.data(for: request)
-
-          guard let httpResponse = response as? HTTPURLResponse else {
-              throw ApiError.networkError("Invalid response type")
-          }
-          guard httpResponse.statusCode == 200 else {
-              throw ApiError.networkError("Stop session failed with status: \(httpResponse.statusCode)")
-          }
-      }
-      
-      // MARK: - Session Management Methods (Added for iOS timer sync)
-      
-      func postSession(_ session: SessionRecordDto, accessToken: String) async throws {
-          guard let request = try createBaseRequest(path: "sessions", method: "POST", body: session, accessToken: accessToken) else {
-              throw ApiError.networkError("Failed to create request")
-          }
-          let (data, response) = try await urlSession.data(for: request)
-
-          guard let httpResponse = response as? HTTPURLResponse else {
-              throw ApiError.networkError("Invalid response type")
-          }
-          guard httpResponse.statusCode == 201 || httpResponse.statusCode == 200 else {
-              throw ApiError.networkError("Post session failed with status: \(httpResponse.statusCode)")
-          }
-      }
-      
-func fetchSessions(accessToken: String) async throws -> [SessionRecordDto] {
-           let url = baseURL.appendingPathComponent("sessions")
-           var request = URLRequest(url: url)
-           request.httpMethod = "GET"
-           request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-           request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-
-           let (data, response) = try await urlSession.data(for: request)
-
-           guard let httpResponse = response as? HTTPURLResponse else {
-               throw ApiError.networkError("Invalid response type")
-           }
-           guard httpResponse.statusCode == 200 else {
-               throw ApiError.networkError("Fetch sessions failed with status: \(httpResponse.statusCode)")
-           }
-
-           return try JSONDecoder().decode([SessionRecordDto].self, from: data)
-       }
-       
-       /**
-        * Register device with backend
-        */
-       func registerDevice(_ registration: DeviceRegistrationDto, accessToken: String) async throws {
-           guard let request = try createBaseRequest(path: "devices/register", method: "POST", body: registration, accessToken: accessToken) else {
-               throw ApiError.networkError("Failed to create request")
-           }
-           let (data, response) = try await urlSession.data(for: request)
-
-           guard let httpResponse = response as? HTTPURLResponse else {
-               throw ApiError.networkError("Invalid response type")
-           }
-           guard httpResponse.statusCode == 200 else {
-               throw ApiError.networkError("Register device failed with status: \(httpResponse.statusCode)")
-           }
-       }
-
-     func pushTimerState(_ state: TimerStateDto, accessToken: String) async throws {
-        guard let request = try createBaseRequest(path: "sessions/timer/state", method: "POST", body: state, accessToken: accessToken) else {
+    
+    func startSession(kind: String, taskId: UUID?, accessToken: String) async throws -> SessionRecordDto {
+        var url = baseURL.appendingPathComponent("sessions/start")
+        var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+        components?.queryItems = [URLQueryItem(name: "kind", value: kind)]
+        if let taskId = taskId {
+            components?.queryItems?.append(URLQueryItem(name: "taskId", value: taskId.uuidString))
+        }
+        if let finalURL = components?.url {
+            url = finalURL
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        
+        let (data, response) = try await urlSession.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw ApiError.networkError("Invalid response type")
+        }
+        guard httpResponse.statusCode == 201 || httpResponse.statusCode == 200 else {
+            throw ApiError.networkError("Start session failed with status: \(httpResponse.statusCode)")
+        }
+        
+        return try JSONDecoder().decode(SessionRecordDto.self, from: data)
+    }
+    
+    func stopSession(id: UUID, accessToken: String) async throws {
+        guard let request = createBaseRequest(path: "sessions/\(id)/stop", method: "POST", body: EmptyResponse(success: true), accessToken: accessToken) else {
             throw ApiError.networkError("Failed to create request")
         }
+        let (_, response) = try await urlSession.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw ApiError.networkError("Invalid response type")
+        }
+        guard httpResponse.statusCode == 200 else {
+            throw ApiError.networkError("Stop session failed with status: \(httpResponse.statusCode)")
+        }
+    }
+    
+    // MARK: - Session Management Methods (Added for iOS timer sync)
+    
+    func postSession(_ session: SessionRecordDto, accessToken: String) async throws {
+        guard let request =  createBaseRequest(path: "sessions", method: "POST", body: session, accessToken: accessToken) else {
+            throw ApiError.networkError("Failed to create request")
+        }
+        let (_, response) = try await urlSession.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw ApiError.networkError("Invalid response type")
+        }
+        guard httpResponse.statusCode == 201 || httpResponse.statusCode == 200 else {
+            throw ApiError.networkError("Post session failed with status: \(httpResponse.statusCode)")
+        }
+    }
+    
+    func fetchSessions(accessToken: String) async throws -> [SessionRecordDto] {
+        let url = baseURL.appendingPathComponent("sessions")
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        
         let (data, response) = try await urlSession.data(for: request)
-
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw ApiError.networkError("Invalid response type")
+        }
+        guard httpResponse.statusCode == 200 else {
+            throw ApiError.networkError("Fetch sessions failed with status: \(httpResponse.statusCode)")
+        }
+        
+        return try JSONDecoder().decode([SessionRecordDto].self, from: data)
+    }
+    
+    /**
+     * Register device with backend
+     */
+    func registerDevice(_ registration: DeviceRegistrationDto, accessToken: String) async throws {
+        guard let request =  createBaseRequest(path: "devices/register", method: "POST", body: registration, accessToken: accessToken) else {
+            throw ApiError.networkError("Failed to create request")
+        }
+        let (_, response) = try await urlSession.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw ApiError.networkError("Invalid response type")
+        }
+        guard httpResponse.statusCode == 200 else {
+            throw ApiError.networkError("Register device failed with status: \(httpResponse.statusCode)")
+        }
+    }
+    
+    func pushTimerState(_ state: TimerStateDto, accessToken: String) async throws {
+        guard let request =  createBaseRequest(path: "sessions/timer/state", method: "POST", body: state, accessToken: accessToken) else {
+            throw ApiError.networkError("Failed to create request")
+        }
+        let (_, response) = try await urlSession.data(for: request)
+        
         guard let httpResponse = response as? HTTPURLResponse else {
             throw ApiError.networkError("Invalid response type")
         }
@@ -415,36 +414,36 @@ func fetchSessions(accessToken: String) async throws -> [SessionRecordDto] {
             throw ApiError.networkError("Push timer state failed with status: \(httpResponse.statusCode)")
         }
     }
-
+    
     func pullTimerState(accessToken: String) async throws -> TimerStateDto? {
         let url = baseURL.appendingPathComponent("sessions/timer/state")
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-
+        
         let (data, response) = try await urlSession.data(for: request)
-
+        
         guard let httpResponse = response as? HTTPURLResponse else {
             throw ApiError.networkError("Invalid response type")
         }
         guard httpResponse.statusCode == 200 || httpResponse.statusCode == 204 else {
             throw ApiError.networkError("Pull timer state failed with status: \(httpResponse.statusCode)")
         }
-
+        
         if httpResponse.statusCode == 204 {
             return nil // No content
         }
-
+        
         return try JSONDecoder().decode(TimerStateDto.self, from: data)
     }
-
+    
     func pushTimerAction(_ action: TimerActionDto, accessToken: String) async throws {
-        guard let request = try createBaseRequest(path: "sessions/timer/action", method: "POST", body: action, accessToken: accessToken) else {
+        guard let request =  createBaseRequest(path: "sessions/timer/action", method: "POST", body: action, accessToken: accessToken) else {
             throw ApiError.networkError("Failed to create request")
         }
-        let (data, response) = try await urlSession.data(for: request)
-
+        let (_, response) = try await urlSession.data(for: request)
+        
         guard let httpResponse = response as? HTTPURLResponse else {
             throw ApiError.networkError("Invalid response type")
         }
@@ -452,91 +451,94 @@ func fetchSessions(accessToken: String) async throws -> [SessionRecordDto] {
             throw ApiError.networkError("Push timer action failed with status: \(httpResponse.statusCode)")
         }
     }
-
+    
     func updateApnsToken(deviceId: String, apnsToken: String, accessToken: String) async throws {
+        print("[APNs Token] Starting APNs token update for device: \(deviceId)")
         let body = ["deviceId": deviceId, "apnsToken": apnsToken]
-        guard let request = try createBaseRequest(path: "sessions/devices/apns-token", method: "POST", body: body, accessToken: accessToken) else {
+        guard let request = createBaseRequest(path: "/api/sessions/devices/apns-token", method: "POST", body: body, accessToken: accessToken) else {
             throw ApiError.networkError("Failed to create request")
         }
-        let (data, response) = try await urlSession.data(for: request)
-
+        let (_, response) =  try await urlSession.data(for: request)
+        
         guard let httpResponse = response as? HTTPURLResponse else {
             throw ApiError.networkError("Invalid response type")
         }
         guard httpResponse.statusCode == 200 else {
             throw ApiError.networkError("Update APNs token failed with status: \(httpResponse.statusCode)")
         }
+        
+        print("[APNs Token] Successfully updated APNs token for device: \(deviceId)")
     }
-
+    
     // MARK: - Device Methods
-
+    
     func getDeviceStats(accessToken: String) async throws -> DeviceStats {
         let url = baseURL.appendingPathComponent("devices/stats")
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-
-        let (data, response) = try await urlSession.data(for: request)
-
+        
+        let (data, response) =  try await urlSession.data(for: request)
+        
         guard let httpResponse = response as? HTTPURLResponse else {
             throw ApiError.networkError("Invalid response type")
         }
         guard httpResponse.statusCode == 200 else {
             throw ApiError.networkError("Get device stats failed with status: \(httpResponse.statusCode)")
         }
-
+        
         return try JSONDecoder().decode(DeviceStats.self, from: data)
     }
-
+    
     // MARK: - Task Methods
-
+    
     struct TaskCreateRequest: Codable {
         let title: String
         let description: String?
     }
-
+    
     struct TaskUpdateRequest: Codable {
         let title: String?
         let description: String?
         let status: String?
     }
-
+    
     func createTask(_ request: TaskCreateRequest, accessToken: String) async throws -> TaskDto {
-        guard let req = try createBaseRequest(path: "tasks", method: "POST", body: request, accessToken: accessToken) else {
+        guard let req = createBaseRequest(path: "tasks", method: "POST", body: request, accessToken: accessToken) else {
             throw ApiError.networkError("Failed to create request")
         }
         let (data, response) = try await urlSession.data(for: req)
-
+        
         guard let httpResponse = response as? HTTPURLResponse else {
             throw ApiError.networkError("Invalid response type")
         }
         guard httpResponse.statusCode == 201 || httpResponse.statusCode == 200 else {
             throw ApiError.networkError("Create task failed with status: \(httpResponse.statusCode)")
         }
-
+        
         return try JSONDecoder().decode(TaskDto.self, from: data)
     }
-
+    
     func fetchTasks(accessToken: String) async throws -> [TaskDto] {
         let url = baseURL.appendingPathComponent("tasks")
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-
+        
         let (data, response) = try await urlSession.data(for: request)
-
+        
         guard let httpResponse = response as? HTTPURLResponse else {
             throw ApiError.networkError("Invalid response type")
         }
         guard httpResponse.statusCode == 200 else {
             throw ApiError.networkError("Fetch tasks failed with status: \(httpResponse.statusCode)")
         }
-
+        
         return try JSONDecoder().decode([TaskDto].self, from: data)
     }
-
+    
     func fetchActiveTasks(accessToken: String) async throws -> [TaskDto] {
         // Assuming active tasks are fetched with a query parameter
         var components = URLComponents(url: baseURL.appendingPathComponent("tasks"), resolvingAgainstBaseURL: false)
@@ -548,54 +550,54 @@ func fetchSessions(accessToken: String) async throws -> [SessionRecordDto] {
         request.httpMethod = "GET"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-
+        
         let (data, response) = try await urlSession.data(for: request)
-
+        
         guard let httpResponse = response as? HTTPURLResponse else {
             throw ApiError.networkError("Invalid response type")
         }
         guard httpResponse.statusCode == 200 else {
             throw ApiError.networkError("Fetch active tasks failed with status: \(httpResponse.statusCode)")
         }
-
+        
         return try JSONDecoder().decode([TaskDto].self, from: data)
     }
-
+    
     func fetchTask(id: UUID, accessToken: String) async throws -> TaskDto {
         let url = baseURL.appendingPathComponent("tasks/\(id)")
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-
+        
         let (data, response) = try await urlSession.data(for: request)
-
+        
         guard let httpResponse = response as? HTTPURLResponse else {
             throw ApiError.networkError("Invalid response type")
         }
         guard httpResponse.statusCode == 200 else {
             throw ApiError.networkError("Fetch task failed with status: \(httpResponse.statusCode)")
         }
-
+        
         return try JSONDecoder().decode(TaskDto.self, from: data)
     }
-
+    
     func updateTask(id: UUID, _ request: TaskUpdateRequest, accessToken: String) async throws -> TaskDto {
-        guard let req = try createBaseRequest(path: "tasks/\(id)", method: "PUT", body: request, accessToken: accessToken) else {
+        guard let req = createBaseRequest(path: "tasks/\(id)", method: "PUT", body: request, accessToken: accessToken) else {
             throw ApiError.networkError("Failed to create request")
         }
         let (data, response) = try await urlSession.data(for: req)
-
+        
         guard let httpResponse = response as? HTTPURLResponse else {
             throw ApiError.networkError("Invalid response type")
         }
         guard httpResponse.statusCode == 200 else {
             throw ApiError.networkError("Update task failed with status: \(httpResponse.statusCode)")
         }
-
+        
         return try JSONDecoder().decode(TaskDto.self, from: data)
     }
-
+    
     func deleteTask(id: UUID, accessToken: String) async throws {
         let url = baseURL.appendingPathComponent("tasks/\(id)")
         var request = URLRequest(url: url)
@@ -603,8 +605,8 @@ func fetchSessions(accessToken: String) async throws -> [SessionRecordDto] {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
 
-        let (data, response) = try await urlSession.data(for: request)
-
+        let (_, response) = try await urlSession.data(for: request)
+        
         guard let httpResponse = response as? HTTPURLResponse else {
             throw ApiError.networkError("Invalid response type")
         }
@@ -612,13 +614,13 @@ func fetchSessions(accessToken: String) async throws -> [SessionRecordDto] {
             throw ApiError.networkError("Delete task failed with status: \(httpResponse.statusCode)")
         }
     }
-
+    
     func postSession(_ session: SessionRecord, accessToken: String) async throws {
-        guard let request = try createBaseRequest(path: "sessions", method: "POST", body: session, accessToken: accessToken) else {
+        guard let request = createBaseRequest(path: "sessions", method: "POST", body: session, accessToken: accessToken) else {
             throw ApiError.networkError("Failed to create request")
         }
-        let (data, response) = try await urlSession.data(for: request)
-
+        let (_, response) = try await urlSession.data(for: request)
+        
         guard let httpResponse = response as? HTTPURLResponse else {
             throw ApiError.networkError("Invalid response type")
         }
@@ -626,40 +628,23 @@ func fetchSessions(accessToken: String) async throws -> [SessionRecordDto] {
             throw ApiError.networkError("Post session failed with status: \(httpResponse.statusCode)")
         }
     }
-
-    func fetchSessions(accessToken: String) async throws -> [SessionRecordDto] {
-        let url = baseURL.appendingPathComponent("sessions")
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-
-        let (data, response) = try await urlSession.data(for: request)
-
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw ApiError.networkError("Invalid response type")
-        }
-        guard httpResponse.statusCode == 200 else {
-            throw ApiError.networkError("Fetch sessions failed with status: \(httpResponse.statusCode)")
-        }
-
-        return try JSONDecoder().decode([SessionRecordDto].self, from: data)
-    }
-
-    // MARK: - Error Handling
-enum ApiError: Error {
-    case invalidURL
-    case encodingFailed(Error)
-    case networkError(String)
     
-    var localizedDescription: String {
-        switch self {
-        case .invalidURL:
-            return "Invalid API URL"
-        case .encodingFailed(let error):
-            return "Encoding failed: \(error.localizedDescription)"
-        case .networkError(let message):
-            return "Network error: \(message)"
+    // MARK: - Error Handling
+    enum ApiError: Error {
+        case invalidURL
+        case encodingFailed(Error)
+        case networkError(String)
+        
+        var localizedDescription: String {
+            switch self {
+            case .invalidURL:
+                return "Invalid API URL"
+            case .encodingFailed(let error):
+                return "Encoding failed: \(error.localizedDescription)"
+            case .networkError(let message):
+                return "Network error: \(message)"
+            }
         }
     }
 }
+
