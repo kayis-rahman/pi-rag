@@ -111,7 +111,9 @@ struct iOSContentView: View {
                     icon: timer.isRunning ? "pause.fill" : "play.fill",
                     action: {
                         if timer.isRunning {
-                            TimerSyncManager.shared.syncTimerAction(.pause)
+                            Task {
+                                await TimerSyncManager.shared.syncTimerAction(.pause)
+                            }
                         } else {
                             startWithPermission()  // Will also be updated to use TimerSyncManager
                         }
@@ -129,8 +131,10 @@ struct iOSContentView: View {
                     Spacer()
 
                     // Reset button (top right)
-                    Button(action: { 
-                        TimerSyncManager.shared.syncTimerAction(.reset)
+                    Button(action: {
+                        Task {
+                            await TimerSyncManager.shared.syncTimerAction(.reset)
+                        }
                     }) {
                         Image(systemName: "arrow.counterclockwise")
                             .font(.system(size: 20, weight: .medium))
@@ -166,7 +170,9 @@ struct iOSContentView: View {
             didRequestNotificationPermission = true
             UserDefaults.standard.set(true, forKey: "didRequestNotificationPermission")
         }
-        TimerSyncManager.shared.syncTimerAction(.start)
+        Task {
+            await TimerSyncManager.shared.syncTimerAction(.start)
+        }
     }
 
     private func playChime() {

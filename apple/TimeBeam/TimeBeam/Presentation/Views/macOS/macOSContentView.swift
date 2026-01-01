@@ -224,7 +224,9 @@ struct macOSContentView: View {
     private func playPauseButton(buttonSize: CGFloat) -> some View {
         Button {
             if timer.isRunning {
-                TimerSyncManager.shared.syncTimerAction(.pause)
+                Task {
+                    await TimerSyncManager.shared.syncTimerAction(.pause)
+                }
             } else {
                 startWithPermission()  // Will also be updated to use TimerSyncManager
             }
@@ -242,7 +244,9 @@ struct macOSContentView: View {
 
     private func resetButton(buttonSize: CGFloat) -> some View {
         Button {
-            TimerSyncManager.shared.syncTimerAction(.reset)
+            Task {
+                await TimerSyncManager.shared.syncTimerAction(.reset)
+            }
         } label: {
             Image(systemName: "arrow.counterclockwise")
                 .font(.system(size: buttonSize * 0.45))
@@ -261,7 +265,9 @@ struct macOSContentView: View {
             didRequestNotificationPermission = true
             UserDefaults.standard.set(true, forKey: "didRequestNotificationPermission")
         }
-        TimerSyncManager.shared.syncTimerAction(.start)
+        Task {
+            await TimerSyncManager.shared.syncTimerAction(.start)
+        }
     }
 
     private func playChime() {
