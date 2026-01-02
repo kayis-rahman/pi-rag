@@ -1,7 +1,6 @@
 import Foundation
 
 public struct TaskFilter {
-
     public var status: UserTask.Status?
 
     public var searchText: String?
@@ -47,3 +46,4 @@ public struct TaskFilter {
 
 
 public struct TaskStatistics {
+

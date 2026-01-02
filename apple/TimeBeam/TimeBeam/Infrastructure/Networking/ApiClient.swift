@@ -471,21 +471,3 @@ public struct ApiClient {
     }
     
     // MARK: - Error Handling
-    enum ApiError: Error {
-        case invalidURL
-        case encodingFailed(Error)
-        case networkError(String)
-        
-        var localizedDescription: String {
-            switch self {
-            case .invalidURL:
-                return "Invalid API URL"
-            case .encodingFailed(let error):
-                return "Encoding failed: \(error.localizedDescription)"
-            case .networkError(let message):
-                return "Network error: \(message)"
-            }
-        }
-    }
-}
-
