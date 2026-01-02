@@ -220,7 +220,7 @@ struct AnalyticsView: View {
         print("🔄 AnalyticsView: Starting loadTaskData")
         _Concurrency.Task {
             do {
-                guard let baseURL = URL(string: "http://localhost:8080") else {
+                guard let baseURL = URL(string: ProcessInfo.processInfo.environment["API_BASE_URL"] ?? "http://192.168.0.173:8080") else {
                     throw NSError(domain: "AnalyticsView", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid server URL"])
                 }
 
@@ -253,7 +253,7 @@ struct AnalyticsView: View {
 
         _Concurrency.Task {
             do {
-                guard let baseURL = URL(string: "http://localhost:8080") else {
+                guard let baseURL = URL(string: ProcessInfo.processInfo.environment["API_BASE_URL"] ?? "http://192.168.0.173:8080") else {
                     throw NSError(domain: "AnalyticsView", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid server URL"])
                 }
                 print("🌐 AnalyticsView: Using baseURL: \(baseURL)")
@@ -280,7 +280,7 @@ struct AnalyticsView: View {
                     if error.domain == "AnalyticsAPI" {
                         self.errorMessage = error.localizedDescription
                     } else if error.domain == NSCocoaErrorDomain && error.code == 256 {
-                        self.errorMessage = "Cannot connect to server. Please ensure the backend is running on localhost:8080"
+                        self.errorMessage = "Cannot connect to server. Please ensure backend is running on \(ProcessInfo.processInfo.environment["API_BASE_URL"] ?? "192.168.0.173:8080")"
                     } else {
                         self.errorMessage = error.localizedDescription
                     }

@@ -133,7 +133,7 @@ struct SettingsView: View {
                     }
 
                     Toggle("Auto-start next session", isOn: $timer.autoStartNextSession)
-                        .onChange(of: timer.autoStartNextSession) { _ in
+                        .onChange(of: timer.autoStartNextSession) { _, _ in
                             syncTimerSettingsToiCloud()
                         }
                 }
@@ -314,11 +314,11 @@ struct AccountManagementView: View {
 
                             HStack(spacing: 16) {
                                 deviceTypeBadge("iOS", count: stats.iosDevices, color: .blue)
-                                deviceTypeBadge("macOS", count: stats.macosDevices, color: .orange)
+                                deviceTypeBadge("macOS", count: stats.macDevices, color: .orange)
                                 deviceTypeBadge("watchOS", count: stats.watchosDevices, color: .green)
                             }
                         }
-                    } else if let error = deviceStatsError {
+                    } else if deviceStatsError != nil {
                         HStack {
                             Image(systemName: "exclamationmark.triangle")
                                 .foregroundStyle(.orange)
@@ -394,7 +394,7 @@ struct AccountManagementView: View {
                                 userInfo: [NSLocalizedDescriptionKey: "Missing configuration"])
                 }
 
-                let apiClient = ApiClient(configuration: config)
+                let apiClient = ApiClient(baseURL: config.baseURL)
                 let stats = try await apiClient.getDeviceStats(accessToken: accessToken)
 
                 await MainActor.run {
