@@ -308,8 +308,8 @@ struct ApiClient {
     }
     
     func startSession(kind: String, taskId: UUID?, accessToken: String) async throws -> SessionRecordDto {
-        var url = baseURL.appendingPathComponent("sessions/start")
-        var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+         var url = baseURL.appendingPathComponent("api/sessions/start")
+         var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
         components?.queryItems = [URLQueryItem(name: "kind", value: kind)]
         if let taskId = taskId {
             components?.queryItems?.append(URLQueryItem(name: "taskId", value: taskId.uuidString))
@@ -336,7 +336,7 @@ struct ApiClient {
     }
     
     func stopSession(id: UUID, accessToken: String) async throws {
-        guard let request = createBaseRequest(path: "sessions/\(id)/stop", method: "POST", body: EmptyResponse(success: true), accessToken: accessToken) else {
+        guard let request = createBaseRequest(path: "api/sessions/\(id)/stop", method: "POST", body: EmptyResponse(success: true), accessToken: accessToken) else {
             throw ApiError.networkError("Failed to create request")
         }
         let (_, response) = try await urlSession.data(for: request)
@@ -351,22 +351,9 @@ struct ApiClient {
     
     // MARK: - Session Management Methods (Added for iOS timer sync)
     
-    func postSession(_ session: SessionRecordDto, accessToken: String) async throws {
-        guard let request =  createBaseRequest(path: "sessions", method: "POST", body: session, accessToken: accessToken) else {
-            throw ApiError.networkError("Failed to create request")
-        }
-        let (_, response) = try await urlSession.data(for: request)
-        
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw ApiError.networkError("Invalid response type")
-        }
-        guard httpResponse.statusCode == 201 || httpResponse.statusCode == 200 else {
-            throw ApiError.networkError("Post session failed with status: \(httpResponse.statusCode)")
-        }
-    }
     
     func fetchSessions(accessToken: String) async throws -> [SessionRecordDto] {
-        let url = baseURL.appendingPathComponent("sessions")
+        let url = baseURL.appendingPathComponent("api/sessions")
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -388,7 +375,7 @@ struct ApiClient {
      * Register device with backend
      */
     func registerDevice(_ registration: DeviceRegistrationDto, accessToken: String) async throws {
-        guard let request =  createBaseRequest(path: "devices/register", method: "POST", body: registration, accessToken: accessToken) else {
+        guard let request =  createBaseRequest(path: "api/devices/register", method: "POST", body: registration, accessToken: accessToken) else {
             throw ApiError.networkError("Failed to create request")
         }
         let (_, response) = try await urlSession.data(for: request)
@@ -402,7 +389,7 @@ struct ApiClient {
     }
     
     func pushTimerState(_ state: TimerStateDto, accessToken: String) async throws {
-        guard let request =  createBaseRequest(path: "sessions/timer/state", method: "POST", body: state, accessToken: accessToken) else {
+        guard let request = createBaseRequest(path: "api/sessions/timer/state", method: "POST", body: state, accessToken: accessToken) else {
             throw ApiError.networkError("Failed to create request")
         }
         let (_, response) = try await urlSession.data(for: request)
@@ -416,7 +403,7 @@ struct ApiClient {
     }
     
     func pullTimerState(accessToken: String) async throws -> TimerStateDto? {
-        let url = baseURL.appendingPathComponent("sessions/timer/state")
+        let url = baseURL.appendingPathComponent("api/sessions/timer/state")
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -473,7 +460,7 @@ struct ApiClient {
     // MARK: - Device Methods
     
     func getDeviceStats(accessToken: String) async throws -> DeviceStats {
-        let url = baseURL.appendingPathComponent("devices/stats")
+        let url = baseURL.appendingPathComponent("api/devices/stats")
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -505,7 +492,7 @@ struct ApiClient {
     }
     
     func createTask(_ request: TaskCreateRequest, accessToken: String) async throws -> TaskDto {
-        guard let req = createBaseRequest(path: "tasks", method: "POST", body: request, accessToken: accessToken) else {
+        guard let req = createBaseRequest(path: "api/tasks", method: "POST", body: request, accessToken: accessToken) else {
             throw ApiError.networkError("Failed to create request")
         }
         let (data, response) = try await urlSession.data(for: req)
@@ -521,7 +508,7 @@ struct ApiClient {
     }
     
     func fetchTasks(accessToken: String) async throws -> [TaskDto] {
-        let url = baseURL.appendingPathComponent("tasks")
+        let url = baseURL.appendingPathComponent("api/tasks")
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -541,7 +528,7 @@ struct ApiClient {
     
     func fetchActiveTasks(accessToken: String) async throws -> [TaskDto] {
         // Assuming active tasks are fetched with a query parameter
-        var components = URLComponents(url: baseURL.appendingPathComponent("tasks"), resolvingAgainstBaseURL: false)
+        var components = URLComponents(url: baseURL.appendingPathComponent("api/tasks"), resolvingAgainstBaseURL: false)
         components?.queryItems = [URLQueryItem(name: "status", value: "active")]
         guard let url = components?.url else {
             throw ApiError.networkError("Invalid URL")
@@ -615,8 +602,8 @@ struct ApiClient {
         }
     }
     
-    func postSession(_ session: SessionRecord, accessToken: String) async throws {
-        guard let request = createBaseRequest(path: "sessions", method: "POST", body: session, accessToken: accessToken) else {
+    func postSession(_ session: SessionRecordDto, accessToken: String) async throws {
+        guard let request = createBaseRequest(path: "api/sessions", method: "POST", body: session, accessToken: accessToken) else {
             throw ApiError.networkError("Failed to create request")
         }
         let (_, response) = try await urlSession.data(for: request)
