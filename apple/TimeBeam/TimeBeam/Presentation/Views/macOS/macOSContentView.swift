@@ -283,13 +283,6 @@ struct macOSContentView: View {
 
 // MARK: - Helper Views
 private struct CycleProgressView: View {
-    let completed: Int
-    let total: Int
-
-    var body: some View {
-        HStack(spacing: 8) {
-            ForEach(0..<total, id: \.self) { index in
-                Circle()
                     .fill(index < completed ? Color.themePrimary : Color.themeTextSecondary.opacity(0.3))
                     .frame(width: 10, height: 10)
             }
