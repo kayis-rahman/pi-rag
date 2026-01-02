@@ -4,7 +4,7 @@ import Foundation
  * API Client for TimeBeam backend communication
  * Production-ready with proper error handling and response parsing
  */
-struct ApiClient {
+public struct ApiClient {
     let baseURL: URL
     private let urlSession: URLSession
     private var accessToken: String?
@@ -56,130 +56,22 @@ struct ApiClient {
     /**
      * Device statistics for account management
      */
-    struct DeviceStats: Codable {
-        let totalDevices: Int
-        let activeDevices: Int
-        let iosDevices: Int
-        let macDevices: Int
-        let watchosDevices: Int
-        let lastSyncTime: Date
-    }
     
     /**
      * Device registration DTO
      */
-    struct DeviceRegistrationDto: Codable {
-        let deviceId: String
-        let deviceName: String
-        let deviceType: String
-        let platformVersion: String
-        let appVersion: String
-        let fcmToken: String?
-    }
     
     /**
      * Task DTO
      */
-    struct TaskDto: Codable {
-        let id: UUID
-        let userId: UUID
-        let title: String
-        let description: String?
-        let status: String
-        let createdAt: Date
-        let updatedAt: Date
-    }
     
     /**
      * Timer State DTO
      */
-    struct TimerStateDto: Codable {
-        let phase: String?
-        let remainingSeconds: Int?
-        let isRunning: Bool?
-        let workDuration: Int?
-        let breakDuration: Int?
-        let longBreakDuration: Int?
-        let autoStartNextSession: Bool?
-        let shortBreaksCompleted: Int?
-        let totalDuration: Int?
-        let lastModifiedTimestamp: Double?
-        let deviceId: String?
-        let startTimestamp: Double?
-        let pauseTimestamp: Double?
-        
-        init(
-            phase: String? = nil,
-            remainingSeconds: Int? = nil,
-            isRunning: Bool? = nil,
-            workDuration: Int? = nil,
-            breakDuration: Int? = nil,
-            longBreakDuration: Int? = nil,
-            autoStartNextSession: Bool? = nil,
-            shortBreaksCompleted: Int? = nil,
-            totalDuration: Int? = nil,
-            lastModifiedTimestamp: Double? = nil,
-            deviceId: String? = nil,
-            startTimestamp: Double? = nil,
-            pauseTimestamp: Double? = nil
-        ) {
-            self.phase = phase
-            self.remainingSeconds = remainingSeconds
-            self.isRunning = isRunning
-            self.workDuration = workDuration
-            self.breakDuration = breakDuration
-            self.longBreakDuration = longBreakDuration
-            self.autoStartNextSession = autoStartNextSession
-            self.shortBreaksCompleted = shortBreaksCompleted
-            self.totalDuration = totalDuration
-            self.lastModifiedTimestamp = lastModifiedTimestamp
-            self.deviceId = deviceId
-            self.startTimestamp = startTimestamp
-            self.pauseTimestamp = pauseTimestamp
-        }
-    }
-    
     /**
      * Timer Action DTO - Event-based synchronization
      * Contains only action type and static metadata (no continuously changing fields)
      */
-    struct TimerActionDto: Codable {
-        let action: String
-        let phase: String
-        let isRunning: Bool
-        let workDuration: Int
-        let breakDuration: Int
-        let longBreakDuration: Int
-        let autoStartNextSession: Bool
-        let shortBreaksCompleted: Int
-        let deviceId: String
-        let timestamp: Double
-        
-        init(
-            action: String,
-            phase: String,
-            isRunning: Bool,
-            workDuration: Int,
-            breakDuration: Int,
-            longBreakDuration: Int,
-            autoStartNextSession: Bool,
-            shortBreaksCompleted: Int,
-            deviceId: String,
-            timestamp: Double
-        ) {
-            self.action = action
-            self.phase = phase
-            self.isRunning = isRunning
-            self.workDuration = workDuration
-            self.breakDuration = breakDuration
-            self.longBreakDuration = longBreakDuration
-            self.autoStartNextSession = autoStartNextSession
-            self.shortBreaksCompleted = shortBreaksCompleted
-            self.deviceId = deviceId
-            self.timestamp = timestamp
-        }
-    }
-    
     
     
     // MARK: - Private Helpers
@@ -250,16 +142,7 @@ struct ApiClient {
     
     // MARK: - Auth Methods
     
-    struct User: Codable {
-        let id: UUID
-        let email: String
-        let displayName: String
-    }
     
-    struct LoginResponse: Codable {
-        let accessToken: String
-        let user: User?
-    }
     
     func login(email: String) async throws -> LoginResponse {
         let url = baseURL.appendingPathComponent("api/auth/login")
@@ -283,29 +166,8 @@ struct ApiClient {
     
     // MARK: - Response Types
     
-    struct EmptyResponse: Codable {
-        let success: Bool
-    }
     
     // MARK: - Session Methods
-    
-    struct SessionRecordDto: Codable {
-        let id: UUID
-        let userId: UUID?
-        let startedAt: Date
-        let durationSeconds: Int
-        let kind: String
-        let taskId: UUID?
-        
-        init(id: UUID, startedAt: Date, duration: TimeInterval, kind: String, taskId: UUID? = nil) {
-            self.id = id
-            self.userId = nil // Will be set by server
-            self.startedAt = startedAt
-            self.durationSeconds = Int(duration)
-            self.kind = kind.uppercased()
-            self.taskId = taskId
-        }
-    }
     
     func startSession(kind: String, taskId: UUID?, accessToken: String) async throws -> SessionRecordDto {
          var url = baseURL.appendingPathComponent("api/sessions/start")
@@ -480,15 +342,7 @@ struct ApiClient {
     
     // MARK: - Task Methods
     
-    struct TaskCreateRequest: Codable {
-        let title: String
-        let description: String?
-    }
     
-    struct TaskUpdateRequest: Codable {
-        let title: String?
-        let description: String?
-        let status: String?
     }
     
     func createTask(_ request: TaskCreateRequest, accessToken: String) async throws -> TaskDto {
