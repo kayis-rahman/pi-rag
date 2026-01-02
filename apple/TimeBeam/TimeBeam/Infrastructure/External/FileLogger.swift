@@ -79,19 +79,22 @@ final class FileLogger {
             #else
             platform = "unknown"
             #endif
-            
+
             // Format: [TIMESTAMP] [PLATFORM] [LEVEL] [CATEGORY] Message
             let logEntry = "[\(timestamp)] [\(platform)] [\(level)] [\(category.uppercased())] \(message)\n"
-            
-            // Append to file
-            let fileHandle = try? FileHandle(forWritingTo: logFileURL)
-            if fileHandle != nil {
-                fileHandle?.seekToEndOfFile()
-                fileHandle?.write(logEntry.data(using: .utf8)!)
-                fileHandle?.closeFile()
-            } else {
-                // File doesn't exist, create it
-                try? logEntry.write(to: logFileURL, atomically: false, encoding: .utf8)
+
+            // Ensure the log file exists; if not, create it with empty content first
+            let fm = FileManager.default
+            if !fm.fileExists(atPath: logFileURL.path) {
+                try "".write(to: logFileURL, atomically: true, encoding: .utf8)
+            }
+
+            // Append to file using a throwing FileHandle initializer
+            let fileHandle = try FileHandle(forWritingTo: logFileURL)
+            defer { try? fileHandle.close() }
+            try fileHandle.seekToEnd()
+            if let data = logEntry.data(using: .utf8) {
+                try fileHandle.write(contentsOf: data)
             }
         } catch {
             logger.error("Failed to write to file log: \(error.localizedDescription, privacy: .public)")

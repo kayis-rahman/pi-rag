@@ -458,18 +458,7 @@ final class AuthManager: ObservableObject {
     #endif
 
     enum SignInError: Error {
-        case noPresenter
-        case sdkUnavailable
-        case invalidRequest
-        case invalidResponse
-    }
-
-    // MARK: - PKCE Helpers
-
-    private struct PKCE: Codable {
-        let verifier: String
-        let challenge: String
-        let method: String = "S256"
+        }
     }
 
     private func makePKCE() -> PKCE {
@@ -543,21 +532,15 @@ final class AuthManager: ObservableObject {
 #if os(iOS)
 class OAuthPresentationContextProvider: NSObject, ASWebAuthenticationPresentationContextProviding {
     func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
-        // Get the key window - this is the most reliable approach
-        if let keyWindow = UIApplication.shared.keyWindow {
-            return keyWindow
+        // Use window from connected scenes (iOS 13+)
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = windowScene.windows.first(where: { $0.isKeyWindow }) {
+            return window
         }
-
-        // Fallback: Get window from connected scenes (iOS 13+)
-        if #available(iOS 13.0, *) {
-            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-               let window = windowScene.windows.first {
-                return window
-            }
-        }
-
-        // Last resort: Use deprecated windows array
-        if let window = UIApplication.shared.windows.first {
+        
+        // Fallback: get first window from first scene
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = windowScene.windows.first {
             return window
         }
 
