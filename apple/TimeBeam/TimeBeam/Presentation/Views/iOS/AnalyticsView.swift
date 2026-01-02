@@ -539,3 +539,330 @@ struct AnalyticsView: View {
 
 // MARK: - Components
 
+private struct Card<Content: View>: View {
+    @ViewBuilder var content: Content
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            content
+        }
+        .padding(16)
+        .background(backgroundStyle)
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(Color.themeTextSecondary.opacity(0.16), lineWidth: 1)
+        )
+    }
+
+    @ViewBuilder
+    private var backgroundStyle: some View {
+        let shape = RoundedRectangle(cornerRadius: 14, style: .continuous)
+        #if os(watchOS)
+        if #available(watchOS 10.0, *) {
+            shape.fill(.regularMaterial)
+        } else {
+            shape.fill(Color.themeBackground.opacity(0.6))
+        }
+        #else
+        shape.fill(.regularMaterial)
+        #endif
+    }
+}
+
+private struct LegendDot: View {
+    let color: Color
+    var body: some View {
+        Circle()
+            .fill(color)
+            .frame(width: 10, height: 10)
+    }
+}
+
+private struct ActivityRing: View {
+    let progress: Double
+    let size: CGFloat
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .stroke(Color.themeTextSecondary.opacity(0.2), lineWidth: size * 0.12)
+            Circle()
+                .trim(from: 0, to: progress)
+                .stroke(
+                    Color.themePrimary,
+                    style: StrokeStyle(lineWidth: size * 0.12, lineCap: .round)
+                )
+                .rotationEffect(.degrees(-90))
+        }
+        .frame(width: size, height: size)
+    }
+}
+
+// MARK: - Weekly Bar Chart
+
+struct WeeklyBarChartView: View {
+    let entries: [WeeklyEntry]
+    let formatTime: (Int) -> String
+
+    var body: some View {
+        #if canImport(Charts)
+        if #available(iOS 16, macOS 13, watchOS 9, *) {
+            ChartsWeeklyBars(entries: entries, formatTime: formatTime)
+        } else {
+            FallbackWeeklyBars(entries: entries, formatTime: formatTime)
+        }
+        #else
+        FallbackWeeklyBars(entries: entries, formatTime: formatTime)
+        #endif
+    }
+}
+
+#if canImport(Charts)
+@available(iOS 16, macOS 13, watchOS 9, *)
+private struct ChartsWeeklyBars: View {
+    let entries: [WeeklyEntry]
+    let formatTime: (Int) -> String
+
+    var body: some View {
+        Chart(entries) { entry in
+            BarMark(
+                x: .value("Day", entry.weekday),
+                y: .value("Minutes", entry.totalMinutes)
+            )
+            .foregroundStyle(entry.isToday ? Color.themeAccent : Color.themePrimary)
+            .cornerRadius(4)
+        }
+        .chartYAxis {
+            AxisMarks(position: .leading) { value in
+                AxisGridLine().foregroundStyle(Color.themeTextSecondary.opacity(0.1))
+                AxisTick().foregroundStyle(Color.themeTextSecondary.opacity(0.3))
+                AxisValueLabel {
+                    if let minutes = value.as(Int.self) {
+                        Text(formatTime(minutes))
+                    }
+                }
+                .foregroundStyle(Color.themeTextSecondary)
+            }
+        }
+    }
+}
+#endif
+
+private struct FallbackWeeklyBars: View {
+    let entries: [WeeklyEntry]
+    let formatTime: (Int) -> String
+
+    var body: some View {
+        GeometryReader { geo in
+            let maxVal = max(entries.map(\.totalMinutes).max() ?? 1, 1)
+            let count = max(entries.count, 1)
+            let slotWidth = geo.size.width / CGFloat(count)
+            let barWidth = max(12, slotWidth * 0.7)
+
+            HStack(alignment: .bottom, spacing: max(4, slotWidth * 0.3)) {
+                ForEach(entries) { entry in
+                    let h = CGFloat(entry.totalMinutes) / CGFloat(maxVal) * max(geo.size.height - 40, 1)
+                    VStack(spacing: 4) {
+                        RoundedRectangle(cornerRadius: 4, style: .continuous)
+                            .fill(entry.isToday ? Color.themeAccent : Color.themePrimary)
+                            .frame(width: barWidth, height: max(h, 2))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 4)
+                                    .stroke(entry.isToday ? Color.themeAccent.opacity(0.5) : Color.clear, lineWidth: 2)
+                            )
+
+                        Text(entry.weekday)
+                            .font(.caption2)
+                            .foregroundStyle(Color.themeTextSecondary)
+                            .frame(width: barWidth + 4)
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Skeleton Loading View
+
+struct ShimmerLoadingView: View {
+    @State private var isAnimating = false
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 16) {
+                // Header card skeleton
+                ShimmerCard {
+                    HStack(spacing: 16) {
+                        // Activity ring placeholder
+                        Circle()
+                            .fill(Color.themeTextSecondary.opacity(0.1))
+                            .frame(width: 60, height: 60)
+
+                        VStack(alignment: .leading, spacing: 6) {
+                            // Title placeholder
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color.themeTextSecondary.opacity(0.1))
+                                .frame(width: 120, height: 16)
+
+                            // Subtitle placeholder
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color.themeTextSecondary.opacity(0.1))
+                                .frame(width: 140, height: 12)
+                        }
+
+                        Spacer()
+
+                        VStack(alignment: .trailing, spacing: 2) {
+                            // Time placeholder
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color.themeTextSecondary.opacity(0.1))
+                                .frame(width: 80, height: 18)
+
+                            // Label placeholder
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color.themeTextSecondary.opacity(0.1))
+                                .frame(width: 60, height: 10)
+                        }
+                    }
+                }
+
+                // Chart card skeleton
+                ShimmerCard {
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            // Chart title placeholder
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color.themeTextSecondary.opacity(0.1))
+                                .frame(width: 100, height: 16)
+
+                            Spacer()
+
+                            // Legend dot
+                            Circle()
+                                .fill(Color.themeTextSecondary.opacity(0.1))
+                                .frame(width: 10, height: 10)
+
+                            // Legend text placeholder
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color.themeTextSecondary.opacity(0.1))
+                                .frame(width: 80, height: 12)
+                        }
+
+                        // Chart area placeholder
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color.themeTextSecondary.opacity(0.05))
+                                .frame(height: 220)
+
+                            // Bar chart placeholders
+                            HStack(alignment: .bottom, spacing: 8) {
+                                ForEach(0..<7) { _ in
+                                    VStack(spacing: 4) {
+                                        RoundedRectangle(cornerRadius: 4)
+                                            .fill(Color.themeTextSecondary.opacity(0.1))
+                                            .frame(width: 20, height: .random(in: 40...180))
+
+                                        RoundedRectangle(cornerRadius: 4)
+                                            .fill(Color.themeTextSecondary.opacity(0.1))
+                                            .frame(width: 24, height: 10)
+                                    }
+                                }
+                            }
+                        }
+
+                        HStack {
+                            // Footer text placeholder
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color.themeTextSecondary.opacity(0.1))
+                                .frame(width: 160, height: 12)
+
+                            Spacer()
+
+                            // Average placeholder
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color.themeTextSecondary.opacity(0.1))
+                                .frame(width: 70, height: 12)
+                        }
+                    }
+                }
+            }
+            .padding()
+        }
+        .background(Color.themeBackground.opacity(0.4))
+        .overlay(
+            ShimmerEffect(isAnimating: $isAnimating)
+        )
+        .onAppear {
+            withAnimation(Animation.linear(duration: 1.5).repeatForever(autoreverses: false)) {
+                isAnimating = true
+            }
+        }
+    }
+}
+
+// MARK: - Shimmer Components
+
+private struct ShimmerCard<Content: View>: View {
+    @ViewBuilder var content: Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            content
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(Color.themeCardBackground.opacity(0.6))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(Color.themeTextSecondary.opacity(0.1), lineWidth: 1)
+        )
+    }
+}
+
+private struct ShimmerEffect: View {
+    @Binding var isAnimating: Bool
+
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack {
+                // Shimmer overlay
+                Rectangle()
+                    .fill(
+                        LinearGradient(
+                            gradient: Gradient(colors: [
+                                .clear,
+                                Color.white.opacity(0.1),
+                                .clear
+                            ]),
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .frame(width: geometry.size.width * 0.8)
+                    .offset(x: isAnimating ? geometry.size.width : -geometry.size.width)
+                    .blendMode(.overlay)
+            }
+        }
+        .allowsHitTesting(false)
+    }
+}
+
+// MARK: - IconBadge
+
+private struct IconBadge: View {
+    let systemName: String
+    let color: Color
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(color.opacity(0.17))
+                .frame(width: 32, height: 32)
+            Image(systemName: systemName)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(color)
+        }
+        .frame(width: 32, height: 32)
+    }
+}

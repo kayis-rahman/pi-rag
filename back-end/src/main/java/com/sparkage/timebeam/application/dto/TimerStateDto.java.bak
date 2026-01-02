@@ -1,0 +1,96 @@
+package com.sparkage.timebeam.application.dto;
+
+import java.time.Instant;
+import java.util.UUID;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonFormat.Shape;
+
+/**
+ * Timer state DTO for application layer
+ */
+public class TimerStateDto {
+    private String phase;
+    private Integer remainingSeconds;
+    private Boolean isRunning;
+    private Integer workDuration;
+    private Integer breakDuration;
+    private Integer longBreakDuration;
+    private Boolean autoStartNextSession;
+    private Integer shortBreaksCompleted;
+    private Integer totalDuration;
+    @JsonFormat(shape = Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
+    private Instant lastModifiedTimestamp;
+    private String deviceId;
+    private UUID userId;
+
+    // Default constructor
+    public TimerStateDto() {}
+
+    // Constructor with all fields
+    public TimerStateDto(String phase, Integer remainingSeconds, Boolean isRunning,
+                         Integer workDuration, Integer breakDuration, Integer longBreakDuration,
+                         Boolean autoStartNextSession, Integer shortBreaksCompleted,
+                         Instant lastModifiedTimestamp, String deviceId, Integer totalDuration) {
+        this.phase = phase;
+        this.remainingSeconds = remainingSeconds;
+        this.isRunning = isRunning;
+        this.workDuration = workDuration;
+        this.breakDuration = breakDuration;
+        this.longBreakDuration = longBreakDuration;
+        this.autoStartNextSession = autoStartNextSession;
+        this.shortBreaksCompleted = shortBreaksCompleted;
+        this.totalDuration = totalDuration;
+        this.lastModifiedTimestamp = lastModifiedTimestamp;
+        this.deviceId = deviceId;
+    }
+
+    // Getters and Setters
+    public String getPhase() { return phase; }
+    public void setPhase(String phase) { this.phase = phase; }
+
+    public Integer getRemainingSeconds() { return remainingSeconds; }
+    public void setRemainingSeconds(Integer remainingSeconds) { this.remainingSeconds = remainingSeconds; }
+
+    public Boolean getIsRunning() { return isRunning; }
+    public void setIsRunning(Boolean isRunning) { this.isRunning = isRunning; }
+
+    public Integer getWorkDuration() { return workDuration; }
+    public void setWorkDuration(Integer workDuration) { this.workDuration = workDuration; }
+
+    public Integer getBreakDuration() { return breakDuration; }
+    public void setBreakDuration(Integer breakDuration) { this.breakDuration = breakDuration; }
+
+    public Integer getLongBreakDuration() { return longBreakDuration; }
+    public void setLongBreakDuration(Integer longBreakDuration) { this.longBreakDuration = longBreakDuration; }
+
+    public Boolean getAutoStartNextSession() { return autoStartNextSession; }
+    public void setAutoStartNextSession(Boolean autoStartNextSession) { this.autoStartNextSession = autoStartNextSession; }
+
+    public Integer getShortBreaksCompleted() { return shortBreaksCompleted; }
+    public void setShortBreaksCompleted(Integer shortBreaksCompleted) { this.shortBreaksCompleted = shortBreaksCompleted; }
+
+    public Integer getTotalDuration() { return totalDuration; }
+    public void setTotalDuration(Integer totalDuration) { this.totalDuration = totalDuration; }
+
+    public Instant getLastModifiedTimestamp() { return lastModifiedTimestamp; }
+    public void setLastModifiedTimestamp(Instant lastModifiedTimestamp) { this.lastModifiedTimestamp = lastModifiedTimestamp; }
+
+    public String getDeviceId() { return deviceId; }
+    public void setDeviceId(String deviceId) { this.deviceId = deviceId; }
+
+    public UUID getUserId() { return userId; }
+    public void setUserId(UUID userId) { this.userId = userId; }
+
+    @Override
+    public String toString() {
+        return "TimerStateDto{" +
+                "phase='" + phase + '\'' +
+                ", remainingSeconds=" + remainingSeconds +
+                ", isRunning=" + isRunning +
+                ", lastModifiedTimestamp=" + lastModifiedTimestamp +
+                ", deviceId='" + deviceId + '\'' +
+                ", userId=" + userId +
+                '}';
+    }
+}
