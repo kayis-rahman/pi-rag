@@ -77,7 +77,7 @@ class PomodoroTimer: ObservableObject {
         guard !isRunning else { return }
         isRunning = true
         startTimestamp = Date().timeIntervalSince1970
-        lastModifiedTimestamp = startTimestamp
+        lastModifiedTimestamp = startTimestamp!
         startTimer()
     }
 
@@ -85,7 +85,7 @@ class PomodoroTimer: ObservableObject {
         guard isRunning else { return }
         isRunning = false
         pauseTimestamp = Date().timeIntervalSince1970
-        lastModifiedTimestamp = pauseTimestamp
+        lastModifiedTimestamp = pauseTimestamp!
         stopTimer()
     }
 
@@ -174,4 +174,28 @@ class PomodoroTimer: ObservableObject {
         timerTask?.cancel()
         timerTask = nil
     }
-}
+
+    func updateDurations(workMinutes: Int, shortBreakMinutes: Int, longBreakMinutes: Int) {
+        self.workDuration = workMinutes * 60
+        self.breakDuration = shortBreakMinutes * 60
+        self.longBreakDuration = longBreakMinutes * 60
+        self.remainingSeconds = 25 * 60
+        self.phase = .work
+        self.isRunning = false
+        self.autoStartNextSession = false
+        self.shortBreaksCompleted = 0
+        self.currentTaskId = nil
+        self.startTimestamp = nil
+        self.pauseTimestamp = nil
+        self.lastModifiedTimestamp = Date().timeIntervalSince1970
+    }
+
+    func resetDurationsToDefaults() {
+        let defaults = UserDefaults.standard
+        defaults.set(workDuration / 60, forKey: "workDuration")
+        defaults.set(breakDuration / 60, forKey: "breakDuration")
+        defaults.set(longBreakDuration / 60, forKey: "longBreakDuration")
+    }
+  }
+
+

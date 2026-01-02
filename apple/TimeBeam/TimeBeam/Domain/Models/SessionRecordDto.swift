@@ -1,4 +1,14 @@
-struct SessionRecordDto: Codable {
+//
+//  SessionRecordDto.swift
+//  TimeBeam
+//
+//  Created by Kayis Rahman on 02/01/26.
+//
+
+import Foundation
+
+
+public struct SessionRecordDto: Codable {
         let id: UUID
         let userId: UUID?
         let startedAt: Date
