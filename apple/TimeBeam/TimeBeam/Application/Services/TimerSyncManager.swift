@@ -5,11 +5,11 @@ import _Concurrency
 
 // MARK: - Timer Action Enum
 enum TimerAction: String, Codable {
-    case start = "start"
-    case pause = "pause"
-    case reset = "reset"
-    case stop = "stop"
-    case advance = "advance"
+    case start = "START"
+    case pause = "PAUSE"
+    case reset = "RESET"
+    case stop = "STOP"
+    case advance = "ADVANCE"
 }
 
 @MainActor

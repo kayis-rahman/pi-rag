@@ -133,7 +133,7 @@ final class CrossPlatformTimerSyncE2ETest: TimeBeamE2ETestBase {
         let apnPayload: [String: Any] = [
             "type": "timer_sync",
             "action": [
-                "action": "start",
+                "action": "START",
                 "deviceId": "test-ios-device-id",
                 "timestamp": ISO8601DateFormatter().string(from: Date())
             ]
@@ -171,7 +171,7 @@ final class CrossPlatformTimerSyncE2ETest: TimeBeamE2ETestBase {
         let apnPayload: [String: Any] = [
             "type": "timer_sync",
             "action": [
-                "action": "pause",
+                "action": "PAUSE",
                 "deviceId": "test-ios-device-id",
                 "timestamp": ISO8601DateFormatter().string(from: Date())
             ]

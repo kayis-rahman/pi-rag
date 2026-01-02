@@ -105,13 +105,16 @@ final class E2ETimerSyncTests: TimeBeamE2ETestBase {
             waitForNetworkOperation()
 
             // Verify action was sent to backend
-            verifyTimerActionInBackend(action: "pause")
+            verifyTimerActionInBackend(action: "PAUSE")
 
             // Simulate other device receiving the action
-            simulateOtherDeviceReceivingAction()
+            simulateConcurrentActionFromOtherDevice(action: "PAUSE")
 
-            // Verify other device would update its state
-            verifyActionPropagationToOtherDevices()
+            // Simulate silent push notification to local device
+            simulateSilentPushNotification(action: "PAUSE", fromDeviceId: UUID().uuidString)
+
+            // Verify timer sync completed correctly
+            verifyTimerStateAfterSync()
         }
     }
 
@@ -338,7 +341,7 @@ final class E2ETimerSyncTests: TimeBeamE2ETestBase {
     private func simulateOtherDeviceReceivingAction() {
         // Simulate push notification delivery to another device
         // In real E2E tests, this would require actual device communication
-        verifyTimerActionInBackend(action: "pause")
+        verifyTimerActionInBackend(action: "PAUSE")
     }
 
     private func verifyActionPropagationToOtherDevices() {

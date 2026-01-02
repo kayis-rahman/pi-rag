@@ -175,7 +175,7 @@ final class MacAppDelegateUnitTests: XCTestCase {
         let userInfo: [AnyHashable: Any] = [
             "type": "timer_sync",
             "action": [
-                "action": "pause",
+                "action": "PAUSE",
                 "deviceId": "other-device-id",
                 "timestamp": "2024-01-01T12:00:00Z"
             ]
@@ -221,7 +221,7 @@ final class MacAppDelegateUnitTests: XCTestCase {
         let userInfo: [AnyHashable: Any] = [
             "type": "timer_sync",
             "action": [
-                "action": "start",
+                "action": "START",
                 "deviceId": "other-device-id",
                 "timestamp": ISO8601DateFormatter().string(from: Date())
             ]
