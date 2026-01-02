@@ -16,14 +16,6 @@ enum TimerAction: String, Codable {
 final class TimerSyncManager: ObservableObject {
     static let shared = TimerSyncManager()
 
-    @Published var isSyncing: Bool = false
-
-    var deviceId: String
-    private var timer: PomodoroTimer?
-    private var queuedSyncNeeded: Bool = false
-    private var deviceRegistered: Bool = false
-    private var lastSyncTimestamp: Date = Date.distantPast
-    
     func getTimer() -> PomodoroTimer? { timer }
 
     // MARK: - Initialization
@@ -363,13 +355,3 @@ final class TimerSyncManager: ObservableObject {
                 workDuration: workDuration,
                 breakDuration: breakDuration,
                 longBreakDuration: longBreakDuration,
-                autoStartNextSession: autoStartNextSession,
-                shortBreaksCompleted: shortBreaksCompleted,
-                startTimestamp: startTimestamp,
-                pauseTimestamp: pauseTimestamp,
-                lastModifiedTimestamp: lastModifiedTimestamp
-            )
-        }
-    }
-}
-
