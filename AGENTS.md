@@ -1,5 +1,104 @@
 # Agents Configuration
 
+## 🧠 RAG Memory System (MANDATORY - ALWAYS LOAD FIRST)
+
+**CRITICAL**: Before ANY task, ALWAYS query the RAG memory system for TimeBeam context. This reduces repetitive prompts and eliminates hallucinations.
+
+### RAG Memory Access
+
+Use the RAG MCP tools to access comprehensive project knowledge:
+
+```
+# Query authoritative facts (tech stack, architecture, code standards)
+rag_get_context project_id="timebeam" context_type="symbolic" max_results=10 query="<your query>"
+
+# Query lessons learned (development patterns, mistakes, best practices)
+rag_get_context project_id="timebeam" context_type="episodic" max_results=5 query="<your query>"
+
+# Query documentation (reference material, guides, specifications)
+rag_get_context project_id="timebeam" context_type="semantic" max_results=10 query="<your query>"
+
+# Full context retrieval (all memory types)
+rag_get_context project_id="timebeam" context_type="all" max_results=15 query="<your query>"
+```
+
+### Common RAG Queries
+
+**Before starting ANY work, query:**
+- Tech stack: `rag_get_context project_id="timebeam" query="tech stack frameworks languages"`
+- Architecture: `rag_get_context project_id="timebeam" query="DDD layers SOLID principles"`
+- Code standards: `rag_get_context project_id="timebeam" query="code style standards Java Swift"`
+- Build commands: `rag_get_context project_id="timebeam" query="build test lint commands"`
+- Project structure: `rag_get_context project_id="timebeam" query="project structure file locations"`
+- API endpoints: `rag_get_context project_id="timebeam" query="API endpoints authentication timer"`
+- Testing: `rag_get_context project_id="timebeam" query="testing requirements coverage frameworks"`
+- Logging: `rag_get_context project_id="timebeam" query="logging AppLogger SLF4J categories"`
+- Security: `rag_get_context project_id="timebeam" query="security validation authentication storage"`
+
+### Memory Types in RAG System
+
+**Symbolic Memory (Authoritative Facts - 100% Trusted)**
+- Technology stack: Spring Boot 3.2.0, Java 17, SwiftUI, PostgreSQL 15+
+- Project structure: Backend layers (domain/application/infrastructure/presentation), iOS layers
+- Code standards: NO null returns (Java), NO force unwrapping (Swift), 80% test coverage
+- Build commands: Maven for backend, Xcode for frontend
+- Architecture: DDD with 4 layers, SOLID principles, DRY/KISS/YAGNI
+- Logging: AppLogger (iOS), SLF4J (Java), privacy controls
+- Security: JWT tokens, Keychain storage, input validation, no hardcoded secrets
+- Test frameworks: JUnit 5 (Java), XCTest (Swift), 80% coverage minimum
+
+**Episodic Memory (Lessons Learned - Highly Trusted)**
+- Event-based timer sync (NOT continuous polling)
+- Xcode build cache issues requiring manual refresh
+- Null-safety patterns in Java
+- No force unwrapping in Swift
+- Task management NOT implemented in MVP
+- Web support NOT implemented in MVP
+- JWT tokens stored in Keychain
+- AppLogger for iOS logging
+- 80% test coverage requirement
+- Git push mandatory for completion
+
+**Semantic Memory (Documentation - Reference Material)**
+- AGENTS.md - Development workflows and tool configuration
+- docs/codestyle/ - Comprehensive code style standards
+- docs/architecture/ - System architecture and design decisions
+- docs/features/mvp-checklist.md - Feature implementation status
+- docs/event-based-sync/ - Timer synchronization system
+- docs/testing/ - Testing strategies and frameworks
+- docs/getting-started/ - Setup and onboarding guides
+- Source code - Java services (TimerSyncService, AuthService, etc.)
+- Source code - Swift models and networking (PomodoroTimer, ApiClient, AuthManager)
+
+### Hallucination Prevention
+
+The RAG system eliminates common LLM hallucinations:
+- ❌ Wrong tech stack (e.g., React, Python)
+- ❌ Wrong project structure (e.g., non-DDD folders)
+- ❌ Wrong API endpoints
+- ❌ Wrong method signatures
+- ❌ Incorrect code standards
+- ❌ Missing features (task management, web support exist)
+- ❌ Wrong sync mechanism (continuous polling vs event-based)
+- ❌ Wrong logging frameworks
+- ❌ Wrong test frameworks
+- ❌ Incorrect build commands
+
+### Usage Pattern
+
+**ALWAYS** start by querying RAG:
+```
+# Example: Starting backend feature development
+rag_get_context project_id="timebeam" context_type="all" query="backend feature development workflow Spring Boot Java JUnit"
+# Then proceed with the task using retrieved context
+```
+
+**ALWAYS** verify information against RAG facts before implementing.
+
+**NEVER** rely on training data - use RAG for TimeBeam-specific context.
+
+---
+
 ## Issue Tracking
 
 Use **bd (beads)** for persistent issue tracking. Run `bd prime` for workflow context.
