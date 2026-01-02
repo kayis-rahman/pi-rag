@@ -20,20 +20,6 @@ final class WatchConnectivityManager: ObservableObject {
     static var shared: WatchConnectivityManager? = WatchConnectivityManager()
 
     private enum Keys {
-        static let requestSignIn = "requestSignIn"
-        static let authState = "authState"
-        static let isSignedIn = "isSignedIn"
-        static let displayName = "displayName"
-        static let email = "email"
-
-        // Timer sync keys
-        static let timerState = "timerState"
-        static let timerEvent = "timerEvent"
-        static let timerSync = "timerSync"
-    }
-
-    #if os(iOS)
-    private var session: WCSession?
     #endif
 
     init() {
@@ -152,40 +138,3 @@ final class WatchConnectivityManager: ObservableObject {
 #if os(iOS)
 // MARK: - WatchConnectivity Delegate
 final class WatchConnectivityDelegate: NSObject, WCSessionDelegate {
-    static let shared = WatchConnectivityDelegate()
-
-    func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
-        if let error = error {
-            print("WCSession activation failed: \(error.localizedDescription)")
-        } else {
-            print("WCSession activated with state: \(activationState.rawValue)")
-        }
-    }
-
-    func sessionDidBecomeInactive(_ session: WCSession) {
-        print("WCSession became inactive")
-    }
-
-    func sessionDidDeactivate(_ session: WCSession) {
-        print("WCSession deactivated")
-        // Reactivate session
-        session.activate()
-    }
-
-    func session(_ session: WCSession, didReceiveMessage message: [String: Any]) {
-        print("Received message from counterpart")
-
-        _Concurrency.Task { @MainActor in
-            // Handle timer sync messages
-            WatchConnectivityManager.shared?.handleIncomingTimerSync(message)
-
-            // Handle auth messages (existing functionality)
-            // This would need access to AuthManager - for now, timer sync is prioritized
-        }
-    }
-
-    func sessionReachabilityDidChange(_ session: WCSession) {
-        print("Watch reachability changed: \(session.isReachable)")
-    }
-}
-#endif
