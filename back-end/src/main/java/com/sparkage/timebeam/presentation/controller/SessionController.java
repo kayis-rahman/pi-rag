@@ -24,6 +24,7 @@ import com.sparkage.timebeam.application.service.SessionService;
 import com.sparkage.timebeam.application.service.TimerSyncService;
 import com.sparkage.timebeam.infrastructure.external.PushNotificationService;
 import com.sparkage.timebeam.infrastructure.external.UserNotAuthenticatedException;
+import com.sparkage.timebeam.presentation.dto.ApnsTokenUpdateRequestDto;
 import com.sparkage.timebeam.presentation.dto.SessionRecordDto;
 import com.sparkage.timebeam.presentation.dto.TimerActionDto;
 import com.sparkage.timebeam.presentation.dto.TimerStateDto;
@@ -199,17 +200,17 @@ public class SessionController {
     }
 
     @PostMapping("/devices/apns-token")
-    public ResponseEntity<Void> updateApnsToken(@RequestParam String deviceId, @RequestParam String apnsToken, Principal principal) {
-        log.debug("update APNs token called: device={}", deviceId);
+    public ResponseEntity<Void> updateApnsToken(@Valid @RequestBody ApnsTokenUpdateRequestDto request, Principal principal) {
+        log.debug("update APNs token called: device={}", request.getDeviceId());
         UUID uid = resolveUserId(principal);
         if (uid == null) return ResponseEntity.status(401).build();
 
         try {
-            pushService.storeApnsToken(uid.toString(), deviceId, apnsToken);
-            log.info("APNs token updated for user={}, device={}", uid, deviceId);
+            pushService.storeApnsToken(uid.toString(), request.getDeviceId(), request.getApnsToken());
+            log.info("APNs token updated for user={}, device={}", uid, request.getDeviceId());
             return ResponseEntity.ok().build();
         } catch (Exception e) {
-            log.error("Failed to update APNs token for user={}, device={}", uid, deviceId, e);
+            log.error("Failed to update APNs token for user={}, device={}", uid, request.getDeviceId(), e);
             return ResponseEntity.status(500).build();
         }
     }

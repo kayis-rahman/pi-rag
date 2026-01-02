@@ -44,7 +44,7 @@ struct TimeBeamApp: App {
     @StateObject var authManager = AuthManager.shared
     @StateObject var taskService = TaskService()
     @StateObject var analyticsManager = AnalyticsManager(
-        apiClient: AnalyticsApiClient(baseURL: Configuration.fromInfoPlist()?.baseURL ?? URL(string: "http://localhost:8080")!),
+        apiClient: AnalyticsApiClient(baseURL: Configuration.fromInfoPlist()?.baseURL ?? URL(string: ProcessInfo.processInfo.environment["API_BASE_URL"] ?? "http://192.168.0.173:8080")!),
         authManager: AuthManager.shared
     )
 
@@ -120,7 +120,7 @@ struct TimeBeamApp: App {
                             case .longBreak: kind = .longBreak
                         }
                         let start = Date().addingTimeInterval(-TimeInterval(duration))
-                        let record = SessionRecord(startedAt: start, duration: TimeInterval(duration), kind: kind)
+                        _ = SessionRecord(startedAt: start, duration: TimeInterval(duration), kind: kind)
                         // logger.add(record: record)
                     }
 
@@ -1123,7 +1123,7 @@ struct TaskQuickActionsSheet: View {
                     title: "Start Timer",
                     color: .themePrimary
                 ) {
-                    timer.setCurrentTask(task.id)
+                    timer.currentTaskId = task.id
                     dismiss()
                 }
 
@@ -1133,7 +1133,7 @@ struct TaskQuickActionsSheet: View {
                     color: .green
                 ) {
                     _Concurrency.Task {
-                        try? await taskService.updateTask(task, status: .completed)
+                        try? await _ = taskService.updateTask(task, status: .completed)
                         dismiss()
                     }
                 }
@@ -1470,7 +1470,7 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationC
 
     private func registerURLScheme() {
         // This helps ensure the URL scheme is properly registered
-        let bundleId = Bundle.main.bundleIdentifier ?? "com.sparkage.time-beam"
+        let _ = Bundle.main.bundleIdentifier ?? "com.sparkage.time-beam"
 
     }
 
@@ -1647,35 +1647,7 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationC
 
                 // Apply the incoming action (event-based sync)
                 _Concurrency.Task {
-                    // Get current timer state for metadata
-                    let currentPhase = timer.phase.rawValue
-                    let workDuration = timer.workDuration
-                    let breakDuration = timer.breakDuration
-                    let longBreakDuration = timer.longBreakDuration
-                    let autoStartNext = timer.autoStartNextSession
-                    let shortBreaksCompleted = timer.shortBreaksCompleted
-
-                    TimerSyncManager.shared.applyIncomingAction(
-                        actionType,
-                        phase: currentPhase,
-                        isRunning: timer.isRunning,
-                        workDuration: workDuration,
-                        breakDuration: breakDuration,
-                        longBreakDuration: longBreakDuration,
-                        autoStartNextSession: autoStartNext,
-                        shortBreaksCompleted: shortBreaksCompleted,
-                        sourceDeviceId: sourceDeviceId,
-                        timestamp: timestamp
-                    )
-                }
-            } else {
-                // Fallback to full state sync if parsing fails
-                AppLogger.warning("Could not parse action from timer sync notification, falling back to full sync", category: .sync)
-                _Concurrency.Task {
                     await TimerSyncManager.shared.syncTimerState()
-                }
-            }
-
             // Don't show notification for silent sync messages
             completionHandler([])
             return
@@ -1683,6 +1655,7 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationC
 
         // Show regular notifications
         completionHandler([.banner, .sound])
+    }
     }
 
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
@@ -1698,6 +1671,7 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationC
         }
 
         completionHandler()
+    }
     }
 
     static func updateStatusItem(title: String?) {
@@ -1781,9 +1755,15 @@ final class iOSAppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationC
 
     private func updateApnsTokenWithBackend(_ apnsToken: String) async {
         AppLogger.info("Attempting to update APN token with backend on iOS", category: .general)
-        guard let accessToken = try? KeychainStore.loadString(.accessToken),
-              let config = Configuration.fromInfoPlist() else {
-            AppLogger.warning("No access token or API config available for APNs token update on iOS", category: .general)
+
+        // Debug: Check access token availability
+        guard let accessToken = try? KeychainStore.loadString(.accessToken) else {
+            AppLogger.warning("No access token available for APNs token update on iOS", category: .general)
+            return
+        }
+
+        guard let config = Configuration.fromInfoPlist() else {
+            AppLogger.warning("No API config available for APNs token update on iOS", category: .general)
             return
         }
 
@@ -1829,34 +1809,8 @@ final class iOSAppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationC
 
                 // Apply the incoming action (event-based sync)
                 _Concurrency.Task {
-                    // Get current timer state for metadata
-                    let currentPhase = timer.phase.rawValue
-                    let workDuration = timer.workDuration
-                    let breakDuration = timer.breakDuration
-                    let longBreakDuration = timer.longBreakDuration
-                    let autoStartNext = timer.autoStartNextSession
-                    let shortBreaksCompleted = timer.shortBreaksCompleted
-
-                    TimerSyncManager.shared.applyIncomingAction(
-                        actionType,
-                        phase: currentPhase,
-                        isRunning: timer.isRunning,
-                        workDuration: workDuration,
-                        breakDuration: breakDuration,
-                        longBreakDuration: longBreakDuration,
-                        autoStartNextSession: autoStartNext,
-                        shortBreaksCompleted: shortBreaksCompleted,
-                        sourceDeviceId: sourceDeviceId,
-                        timestamp: timestamp
-                    )
-                }
-            } else {
-                // Fallback to full state sync if parsing fails
-                AppLogger.warning("Could not parse action from timer sync notification on iOS, falling back to full sync", category: .sync)
-                _Concurrency.Task {
                     await TimerSyncManager.shared.syncTimerState()
                 }
-            }
 
             // Don't show notification for silent sync messages
             completionHandler([])
@@ -1880,29 +1834,9 @@ final class iOSAppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationC
         }
 
         completionHandler()
-    }
-
-    static func updateStatusItem(title: String?) {
-        DispatchQueue.main.async {
-            if let title, !title.isEmpty {
-                MacAppDelegate.statusItem?.button?.title = title
-            } else {
-                MacAppDelegate.statusItem?.button?.title = ""
-            }
-        }
-    }
-
-    static func showTemporaryStatus(_ message: String, duration: TimeInterval = 3.0) {
-        DispatchQueue.main.async {
-            let originalTitle = MacAppDelegate.statusItem?.button?.title ?? ""
-            MacAppDelegate.statusItem?.button?.title = message
-
-            // Restore original title after duration
-            DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
-                MacAppDelegate.statusItem?.button?.title = originalTitle
-            }
-        }
-    }
 }
+}
+    }
+
 #endif
 
