@@ -16,7 +16,7 @@ init(apiClient: ApiClientProtocol? = nil,
             self.apiClient = ApiClient(baseURL: config.baseURL)
         } else {
             // Fallback for tests or when Info.plist is not available
-            let fallbackURL = URL(string: "http://localhost:8080")!
+            let fallbackURL = URL(string: ProcessInfo.processInfo.environment["API_BASE_URL"] ?? "http://192.168.0.173:8080")!
             self.apiClient = ApiClient(baseURL: fallbackURL)
         }
         self.keychainStore = keychainStore
@@ -522,7 +522,7 @@ extension ApiClient: ApiClientProtocol {
             return try await createTask(taskRequest, accessToken: getAccessToken()) as! T
 
         case .fetchTasks(let status):
-            let apiStatus = status.map { ApiTaskStatus(rawValue: $0.rawValue)! }
+            _ = status.map { ApiTaskStatus(rawValue: $0.rawValue)! }
             return try await fetchTasks(accessToken: getAccessToken()) as! T
 
         case .fetchActiveTasks:
@@ -546,7 +546,7 @@ extension ApiClient: ApiClientProtocol {
                 throw TaskServiceError.validationError("Invalid task ID")
             }
             try await deleteTask(id: uuid, accessToken: getAccessToken())
-            return ApiClient.EmptyResponse() as! T
+            return ApiClient.EmptyResponse.self as! T
         }
     }
 

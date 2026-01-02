@@ -7,6 +7,7 @@
 
 import Foundation
 
+
 // Domain models and infrastructure
 // (Types should be available in the same module)
 
@@ -24,9 +25,8 @@ final class SessionLogger: ObservableObject {
         // Convert domain model to API DTO for API layer
         let dto = SessionRecordDto(
             id: record.id,
-            userId: nil, // Will be set by server
             startedAt: record.startedAt,
-            durationSeconds: Int(record.duration),
+            duration: record.duration,
             kind: record.kind.rawValue
         )
         records.append(dto)
