@@ -35,6 +35,9 @@ go.work.sum
 target/
 *.class
 *.jar
+*.bak
+*.backup
+*.old
 
 # Backend logs and temporary files
 back-end/logs/
