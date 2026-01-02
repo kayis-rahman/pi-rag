@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/timebeam
-    username: timebeam_user
-    password: timebeam_password
+    url: jdbc:postgresql://piworm.local:5432/timebeam
+    username: timebeam
+    password: timebeam
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 5
@@ -13,7 +13,7 @@ spring:
       leak-detection-threshold: 60000
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     show-sql: true
     properties:
       hibernate:
@@ -23,7 +23,7 @@ spring:
 logging:
   level:
     org.springframework: DEBUG
-    com.zaxxer.hikari: DEBUG
+    com.zaxxer.hikari: INFO
     org.hibernate: DEBUG
     com.sparkage.timebeam: TRACE
     org.springframework.web.socket: DEBUG

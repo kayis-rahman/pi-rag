@@ -1,7 +1,7 @@
 # E2E Test Configuration
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/timebeam_e2e
+    url: jdbc:postgresql://piworm.local:5432/timebeam_e2e
     username: timebeam
     password: timebeam
     driver-class-name: org.postgresql.Driver

@@ -1,3 +1,4 @@
+com/sparkage/timebeam/presentation/dto/ApnsTokenUpdateRequestDto.class
 com/sparkage/timebeam/application/dto/TimerStateDto.class
 com/sparkage/timebeam/infrastructure/external/AccessDeniedException.class
 com/sparkage/timebeam/application/service/AuthService.class

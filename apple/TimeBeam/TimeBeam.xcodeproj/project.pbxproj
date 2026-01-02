@@ -52,8 +52,11 @@
 		6D73011A2EAAAC2300D75371 /* Exceptions for "TimeBeam" folder in "TimeBeam" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Application/Services/TimerSyncManager.swift.bak1,
+				Application/Services/TimerSyncManager.swift.bak2,
 				Info.plist,
 				"Keys/ios/GoogleService-Info.plist",
+				TimeBeamApp.swift.backup,
 			);
 			target = 6D5999922E780AE300D65722 /* TimeBeam */;
 		};
@@ -656,6 +659,7 @@
 		6D5999B92E780AE303 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				API_BASE_URL = "http://192.168.0.173:8080";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "TimeBeam iOS.entitlements";
@@ -698,6 +702,7 @@
 		6D5999B92E780AE600D65722 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				API_BASE_URL = "http://192.168.0.173:8080";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = TimeBeam/TimeBeam.entitlements;
@@ -750,6 +755,7 @@
 		6D5999BA2E780AE304 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				API_BASE_URL = "http://192.168.0.173:8080";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "TimeBeam iOS.entitlements";
@@ -792,6 +798,7 @@
 		6D5999BA2E780AE600D65722 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				API_BASE_URL = "http://192.168.0.173:8080";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = TimeBeam/TimeBeam.entitlements;
