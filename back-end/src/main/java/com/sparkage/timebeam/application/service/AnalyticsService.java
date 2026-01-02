@@ -683,7 +683,7 @@ public class AnalyticsService {
                 SELECT
                     DATE(t.created_at AT TIME ZONE ?) as work_date,
                     'created' as event_type,
-                    NULL as duration_minutes
+                    NULL::NUMERIC as duration_minutes
                 FROM tasks t
                 WHERE t.user_id = ?::uuid
                   AND t.created_at >= ?::timestamptz
@@ -694,7 +694,7 @@ public class AnalyticsService {
                 SELECT
                     DATE(t.updated_at AT TIME ZONE ?) as work_date,
                     'completed' as event_type,
-                    NULL as duration_minutes
+                    NULL::NUMERIC as duration_minutes
                 FROM tasks t
                 WHERE t.user_id = ?::uuid
                   AND t.status = 'completed'
@@ -706,7 +706,7 @@ public class AnalyticsService {
                 SELECT
                     DATE(sr.started_at AT TIME ZONE ?) as work_date,
                     'session' as event_type,
-                    (sr.duration_seconds / 60) as duration_minutes
+                    (sr.duration_seconds / 60)::NUMERIC as duration_minutes
                 FROM session_records sr
                 WHERE sr.user_id = ?::uuid
                   AND sr.task_id IS NOT NULL

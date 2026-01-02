@@ -439,7 +439,7 @@ struct ApiClient {
     }
     
     func pushTimerAction(_ action: TimerActionDto, accessToken: String) async throws {
-        guard let request =  createBaseRequest(path: "sessions/timer/action", method: "POST", body: action, accessToken: accessToken) else {
+        guard let request =  createBaseRequest(path: "/api/sessions/timer/action", method: "POST", body: action, accessToken: accessToken) else {
             throw ApiError.networkError("Failed to create request")
         }
         let (_, response) = try await urlSession.data(for: request)
