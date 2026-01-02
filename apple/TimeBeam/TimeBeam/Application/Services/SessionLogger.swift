@@ -1,10 +1,8 @@
-import Foundation
-
 //
-//  SessionLogger.swift
-//  TimeBeam
+// SessionLogger.swift
+// TimeBeam
 //
-//  Created by Kayis Rahman on 03/11/25.
+// Created by Kayis Rahman on 03/11/25.
 //
 
 import Foundation
@@ -14,7 +12,7 @@ import Foundation
 
 @MainActor
 final class SessionLogger: ObservableObject {
-    @Published private(set) var records: [SessionRecord] = []
+    @Published private(set) var records: [SessionRecordDto] = []
 
     private let storageKey = "SessionLogger.records.v1"
 
@@ -23,11 +21,16 @@ final class SessionLogger: ObservableObject {
     }
 
     func add(record: SessionRecord) {
-        records.append(record)
+        // Convert domain model to API DTO for API layer
+        let dto = SessionRecordDto(
+            id: record.id,
+            userId: nil, // Will be set by server
+            startedAt: record.startedAt,
+            durationSeconds: Int(record.duration),
+            kind: record.kind.rawValue
+        )
+        records.append(dto)
         save()
-        // _Concurrency.Task {
-        //     await uploadRecord(record)
-        // }
     }
 
     func clear() {
@@ -46,21 +49,21 @@ final class SessionLogger: ObservableObject {
 
     private func load() {
         guard let data = UserDefaults.standard.data(forKey: storageKey) else { return }
-        if let decoded = try? JSONDecoder().decode([SessionRecord].self, from: data) {
+        if let decoded = try? JSONDecoder().decode([SessionRecordDto].self, from: data) {
             records = decoded
         }
     }
 
     // MARK: - Sync logic
 
-    private func uploadRecord(_ record: SessionRecord) async {
+    private func uploadRecord(_ dto: SessionRecordDto) async {
         guard let tokenString = try? KeychainStore.loadString(.accessToken), !tokenString.isEmpty else {
             return
         }
-        guard let cfg = ApiClient.Configuration.fromInfoPlist() else { return }
+        guard ApiClient.Configuration.fromInfoPlist() != nil else { return }
         let api = ApiClient.shared
         do {
-            try await api.postSession(record, accessToken: tokenString)
+            try await api.postSession(dto, accessToken: tokenString)
         } catch {
             // Optionally: Queue for retry or handle upload failure here
         }
@@ -70,25 +73,17 @@ final class SessionLogger: ObservableObject {
         guard let tokenString = try? KeychainStore.loadString(.accessToken), !tokenString.isEmpty else {
             return
         }
-        guard let cfg = ApiClient.Configuration.fromInfoPlist() else { return }
+        guard ApiClient.Configuration.fromInfoPlist() != nil else { return }
         let api = ApiClient.shared
         do {
              let remoteSessions = try await api.fetchSessions(accessToken: tokenString)
-             let mapped = remoteSessions.map { payload in
-                  SessionRecord(
-                     id: payload.id,
-                     startedAt: payload.startedAt,
-                     duration: TimeInterval(payload.durationSeconds),
-                     kind: SessionRecord.Kind(rawValue: payload.kind) ?? .work
-                 )
+             // No conversion needed - API returns DTOs directly
+             await MainActor.run {
+                 records = remoteSessions
+                 save()
              }
-            await MainActor.run {
-                self.records = mapped
-                self.save()
-            }
         } catch {
             // Handle error (network, decode, etc)
         }
     }
 }
-

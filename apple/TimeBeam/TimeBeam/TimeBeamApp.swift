@@ -31,7 +31,6 @@ final class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
     }
 }
 
-@main
 struct TimeBeamApp: App {
     #if os(macOS)
     @NSApplicationDelegateAdaptor(MacAppDelegate.self) var appDelegate
@@ -1497,16 +1496,6 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationC
             }
         }
         return false
-    }
-
-    // Handle OAuth callback URLs (legacy Apple Events method)
-    @objc func handleURLEvent(_ event: NSAppleEventDescriptor, replyEvent: NSAppleEventDescriptor) {
-        if let urlString = event.paramDescriptor(forKeyword: AEKeyword(keyDirectObject))?.stringValue,
-           let url = URL(string: urlString) {
-            if isSupportedOAuthURL(url) {
-                handleOAuthCallback(url)
-            }
-        }
     }
 
     // Ensure app becomes active when handling URL
