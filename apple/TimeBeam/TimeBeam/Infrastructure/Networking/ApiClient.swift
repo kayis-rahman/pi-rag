@@ -1,5 +1,7 @@
 import Foundation
 
+import SwiftUI
+
 /**
  * API Client for TimeBeam backend communication
  * Production-ready with proper error handling and response parsing
@@ -44,7 +46,7 @@ public struct ApiClient {
             return instance
         }
         
-        guard let config = ApiClient.Configuration.fromInfoPlist() else {
+        guard let config = APIConfiguration.fromInfoPlist() else {
             fatalError("ApiClient.shared: Configuration not found - API_BASE_URL must be set in Info.plist")
         }
         
