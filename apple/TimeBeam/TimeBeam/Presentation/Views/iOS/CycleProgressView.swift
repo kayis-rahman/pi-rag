@@ -1,7 +1,11 @@
 import SwiftUI
 
 struct CycleProgressView: View {
-    @ObservedObject var timer: PomodoroTimer
+    let timer: PomodoroTimer
+
+    init(timer: PomodoroTimer) {
+        self.timer = timer
+    }
 
     var body: some View {
         HStack(spacing: 8) {

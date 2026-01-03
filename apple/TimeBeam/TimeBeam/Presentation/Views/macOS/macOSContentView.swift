@@ -131,10 +131,17 @@ struct macOSContentView: View {
                     .foregroundStyle(Color.themeTextSecondary)
                     .padding(.bottom, 10)
 
-                CycleProgressView()
-                    .environmentObject(timer)
+                // Inline cycle progress (macOS-specific implementation)
+                HStack(spacing: 8) {
+                    ForEach(0..<timer.cycleSize, id: \.self) { index in
+                        Circle()
+                            .fill(index < timer.shortBreaksCompleted ? Color.themePrimary : Color.themeTextSecondary.opacity(0.3))
+                            .frame(width: 10, height: 10)
+                    }
+                }
                 .frame(width: ringSize * 0.5)
                 .padding(.bottom, 15)
+
                 playPauseButton(buttonSize: buttonSize)
             }
         }
