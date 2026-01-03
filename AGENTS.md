@@ -1,76 +1,290 @@
 # Agents Configuration
 
-## 🧠 RAG Memory System (MANDATORY - ALWAYS LOAD FIRST)
+# 🧠 RAG Memory System (MANDATORY - ALWAYS USE FIRST)
 
-**CRITICAL**: Before ANY task, ALWAYS query the RAG memory system for TimeBeam context. This reduces repetitive prompts and eliminates hallucinations.
+**CRITICAL ENFORCEMENT**: OpenCode MUST query RAG MCP server for TimeBeam context **BEFORE EVERY SINGLE OPERATION**.
+This is non-negotiable and applies to **ALL OPERATIONS** without exception.
 
-### RAG Memory Access
+---
 
-Use the RAG MCP tools to access comprehensive project knowledge:
+## 🚨 ENFORCEMENT POLICY (HYBRID)
+
+### Mandatory Before Every Operation
+
+**APPLIES TO: ALL OPERATIONS** (file reads, edits, searches, bash commands, decisions, analyses)
+
+1. **ALWAYS query RAG first** before any operation
+2. **Use broad context queries** (architecture + standards + topic)
+3. **Verify against RAG knowledge** before proceeding
+4. **Warn if RAG unavailable** - proceed with caution
+5. **Document RAG citations** in reasoning
+
+### Failure Handling
+
+If RAG query fails or returns no results:
+- **WARN user explicitly** about missing RAG context
+- **CONTINUE with operation** (don't block)
+- **NOTE discrepancies** in reasoning for future reference
+
+### Exceptions (Document When Used)
+
+RAG queries may be skipped ONLY when:
+1. Creating completely new files (no prior context exists)
+2. Working outside timebeam project (document explicitly)
+3. RAG system is unavailable (log error and proceed with warning)
+4. User explicitly requests to skip (document in reasoning)
+
+ALL exceptions MUST be explicitly documented in the response.
+
+---
+
+## 📋 MANDATORY RAG QUERY PATTERNS
+
+### Pattern 1: Broad Context Query (ALL OPERATIONS)
+
+**Use BEFORE EVERY OPERATION**
 
 ```
-# Query authoritative facts (tech stack, architecture, code standards)
-rag_get_context project_id="timebeam" context_type="symbolic" max_results=10 query="<your query>"
-
-# Query lessons learned (development patterns, mistakes, best practices)
-rag_get_context project_id="timebeam" context_type="episodic" max_results=5 query="<your query>"
-
-# Query documentation (reference material, guides, specifications)
-rag_get_context project_id="timebeam" context_type="semantic" max_results=10 query="<your query>"
-
-# Full context retrieval (all memory types)
-rag_get_context project_id="timebeam" context_type="all" max_results=15 query="<your query>"
+rag_get_context(
+  project_id="timebeam",
+  context_type="all",
+  query="<operation-specific topic>",
+  max_results=15
+)
 ```
 
-### Common RAG Queries
+**What this retrieves:**
+- Symbolic memory: Tech stack, architecture, code standards
+- Episodic memory: Development patterns, lessons learned
+- Semantic memory: Documentation, code examples, implementations
 
-**Before starting ANY work, query:**
-- Tech stack: `rag_get_context project_id="timebeam" query="tech stack frameworks languages"`
-- Architecture: `rag_get_context project_id="timebeam" query="DDD layers SOLID principles"`
-- Code standards: `rag_get_context project_id="timebeam" query="code style standards Java Swift"`
-- Build commands: `rag_get_context project_id="timebeam" query="build test lint commands"`
-- Project structure: `rag_get_context project_id="timebeam" query="project structure file locations"`
-- API endpoints: `rag_get_context project_id="timebeam" query="API endpoints authentication timer"`
-- Testing: `rag_get_context project_id="timebeam" query="testing requirements coverage frameworks"`
-- Logging: `rag_get_context project_id="timebeam" query="logging AppLogger SLF4J categories"`
-- Security: `rag_get_context project_id="timebeam" query="security validation authentication storage"`
+**Required topics to query:**
+- For ANY operation: "architecture code standards"
+- For file operations: "architecture code standards <filename>"
+- For decisions: "architecture code standards <decision topic>"
+- For searches: "architecture code standards <search terms>"
 
-### Memory Types in RAG System
+### Pattern 2: File-Specific Search (FILE OPERATIONS)
 
-**Symbolic Memory (Authoritative Facts - 100% Trusted)**
-- Technology stack: Spring Boot 3.2.0, Java 17, SwiftUI, PostgreSQL 15+
-- Project structure: Backend layers (domain/application/infrastructure/presentation), iOS layers
-- Code standards: NO null returns (Java), NO force unwrapping (Swift), 80% test coverage
-- Build commands: Maven for backend, Xcode for frontend
-- Architecture: DDD with 4 layers, SOLID principles, DRY/KISS/YAGNI
-- Logging: AppLogger (iOS), SLF4J (Java), privacy controls
-- Security: JWT tokens, Keychain storage, input validation, no hardcoded secrets
-- Test frameworks: JUnit 5 (Java), XCTest (Swift), 80% coverage minimum
+**Use BEFORE READING OR EDITING FILES**
 
-**Episodic Memory (Lessons Learned - Highly Trusted)**
-- Event-based timer sync (NOT continuous polling)
-- Xcode build cache issues requiring manual refresh
-- Null-safety patterns in Java
-- No force unwrapping in Swift
-- Task management NOT implemented in MVP
-- Web support NOT implemented in MVP
-- JWT tokens stored in Keychain
-- AppLogger for iOS logging
-- 80% test coverage requirement
-- Git push mandatory for completion
+```
+rag_search(
+  project_id="timebeam",
+  query="<filename or component name>",
+  memory_type="semantic",
+  top_k=10
+)
+```
 
-**Semantic Memory (Documentation - Reference Material)**
-- AGENTS.md - Development workflows and tool configuration
-- docs/codestyle/ - Comprehensive code style standards
-- docs/architecture/ - System architecture and design decisions
-- docs/features/mvp-checklist.md - Feature implementation status
-- docs/event-based-sync/ - Timer synchronization system
-- docs/testing/ - Testing strategies and frameworks
-- docs/getting-started/ - Setup and onboarding guides
-- Source code - Java services (TimerSyncService, AuthService, etc.)
-- Source code - Swift models and networking (PomodoroTimer, ApiClient, AuthManager)
+**What this retrieves:**
+- Files matching query
+- Related code implementations
+- Documentation about file/component
 
-### Hallucination Prevention
+### Pattern 3: Code Style Verification (CODE EDITS)
+
+**Use BEFORE MAKING CODE CHANGES**
+
+```
+rag_get_context(
+  project_id="timebeam",
+  query="code style standards Java Swift",
+  context_type="symbolic",
+  max_results=10
+)
+```
+
+**What this retrieves:**
+- Code style standards from symbolic memory
+- Java and Swift formatting rules
+- Import patterns and naming conventions
+
+### Pattern 4: API Endpoint Search (API USAGE)
+
+**Use BEFORE USING BACKEND APIs**
+
+```
+rag_search(
+  project_id="timebeam",
+  query="API endpoints authentication timer <specific endpoint>",
+  memory_type="semantic",
+  top_k=15
+)
+```
+
+**What this retrieves:**
+- API endpoint definitions
+- Authentication requirements
+- Request/response formats
+
+---
+
+## 🧠 RAG MEMORY TYPES AND USAGE
+
+### Symbolic Memory (100% Trusted - Authoritative Facts)
+
+**When to Use:**
+- Verifying tech stack information
+- Understanding architecture patterns
+- Checking code standards and requirements
+- Learning build/test commands
+- Understanding security requirements
+
+**Contains:**
+- Technology stack (Spring Boot 3.2.0, Java 17, SwiftUI, etc.)
+- Architecture (DDD layers, SOLID principles)
+- Code standards (no null returns, no force unwrapping, 80% coverage)
+- Build commands (Maven, Xcode, SwiftLint)
+- Security requirements (JWT tokens, Keychain storage)
+
+**Query Template:**
+```
+rag_get_context(
+  project_id="timebeam",
+  context_type="symbolic",
+  query="<authoritative fact needed>",
+  max_results=10
+)
+```
+
+### Episodic Memory (Highly Trusted - Lessons Learned)
+
+**When to Use:**
+- Understanding development patterns
+- Learning from previous issues/solutions
+- Applying migration/refactoring experiences
+- Avoiding common mistakes
+
+**Contains:**
+- Development patterns and best practices
+- Common issues and their solutions
+- Migration and refactoring experiences
+- Bug fixes and their root causes
+
+**Query Template:**
+```
+rag_get_context(
+  project_id="timebeam",
+  context_type="episodic",
+  query="<problem or pattern>",
+  max_results=10
+)
+```
+
+### Semantic Memory (Reference Material - Documentation)
+
+**When to Use:**
+- Finding specific files or components
+- Searching for code examples
+- Locating documentation
+- Understanding existing implementations
+
+**Contains:**
+- Documentation (AGENTS.md, docs/codestyle/, etc.)
+- Source code (Swift, Java)
+- API definitions and examples
+- Configuration files
+
+**Query Template:**
+```
+rag_search(
+  project_id="timebeam",
+  context_type="semantic",
+  query="<file, topic, or component>",
+  top_k=15
+)
+```
+
+---
+
+## ✅ ENFORCEMENT CHECKLIST (.opencode/rag-checklist.md)
+
+**CHECKLIST LOCATION**: `.opencode/rag-checklist.md`
+
+**MANDATORY**: Complete checklist for EVERY operation.
+
+**Pre-Operation Checklist** (ALL OPERATIONS):
+- [ ] Query RAG for broad context (architecture + standards + topic)
+- [ ] Review code standards from RAG results
+- [ ] Identify applicable patterns from RAG
+- [ ] Document RAG sources used in reasoning
+
+**Pre-Read Checklist** (FILE OPERATIONS):
+- [ ] Query RAG for file-specific context
+- [ ] Review existing implementations from RAG
+- [ ] Understand file purpose from documentation
+- [ ] Identify related files/components
+
+**Pre-Edit Checklist** (FILE EDITS):
+- [ ] Query RAG for file-specific context
+- [ ] Review existing implementations in RAG
+- [ ] Match coding style from RAG standards
+- [ ] Verify patterns align with project standards
+
+**Pre-Decision Checklist** (DECISIONS):
+- [ ] Query RAG for decision-related context
+- [ ] Verify against authoritative facts (symbolic memory)
+- [ ] Check episodic memory for relevant lessons
+- [ ] Document reasoning with RAG citations
+
+**Post-Operation Checklist** (ALL OPERATIONS):
+- [ ] Validate results against RAG code standards
+- [ ] Verify alignment with RAG knowledge
+- [ ] Note any discrepancies
+- [ ] Add lessons learned to episodic memory (if applicable)
+
+---
+
+## 🧠 RAG MEMORY TYPES IN RAG SYSTEM
+
+### Symbolic Memory (100% Trusted - Authoritative Facts)
+
+**When to Use:**
+- Verifying tech stack information
+- Understanding architecture patterns
+- Checking code standards and requirements
+- Learning build/test commands
+- Understanding security requirements
+
+**Contains:**
+- Technology stack (Spring Boot 3.2.0, Java 17, SwiftUI, PostgreSQL 15+)
+- Architecture (DDD layers, SOLID principles)
+- Code standards (no null returns, no force unwrapping, 80% test coverage)
+- Build commands (Maven for backend, Xcode for frontend)
+- Security requirements (JWT tokens, Keychain storage)
+
+### Episodic Memory (Highly Trusted - Lessons Learned)
+
+**When to Use:**
+- Understanding development patterns
+- Learning from previous issues/solutions
+- Applying migration/refactoring experiences
+- Avoiding common mistakes
+
+**Contains:**
+- Development patterns and best practices
+- Common issues and their solutions
+- Migration and refactoring experiences
+- Bug fixes and their root causes
+
+### Semantic Memory (Reference Material - Documentation)
+
+**When to Use:**
+- Finding specific files or components
+- Searching for code examples
+- Locating documentation
+- Understanding existing implementations
+
+**Contains:**
+- Documentation (AGENTS.md, docs/codestyle/, etc.)
+- Source code (Swift, Java)
+- API definitions and examples
+- Configuration files
+
+---
+
+## ❌ HALLUCINATION PREVENTION
 
 The RAG system eliminates common LLM hallucinations:
 - ❌ Wrong tech stack (e.g., React, Python)
@@ -84,18 +298,217 @@ The RAG system eliminates common LLM hallucinations:
 - ❌ Wrong test frameworks
 - ❌ Incorrect build commands
 
-### Usage Pattern
+---
+
+## 📝 USAGE PATTERN
 
 **ALWAYS** start by querying RAG:
 ```
 # Example: Starting backend feature development
-rag_get_context project_id="timebeam" context_type="all" query="backend feature development workflow Spring Boot Java JUnit"
+rag_get_context(
+  project_id="timebeam",
+  context_type="all",
+  query="backend feature development workflow Spring Boot Java JUnit"
+  max_results=15
+)
+
 # Then proceed with the task using retrieved context
 ```
 
 **ALWAYS** verify information against RAG facts before implementing.
 
 **NEVER** rely on training data - use RAG for TimeBeam-specific context.
+
+---
+
+## 🔍 COMMON RAG QUERIES
+
+**Before starting ANY work, query:**
+
+**For architecture decisions:**
+```
+rag_get_context(
+  project_id="timebeam",
+  query="DDD layers SOLID principles architecture",
+  context_type="symbolic",
+  max_results=10
+)
+```
+
+**For Java code:**
+```
+rag_get_context(
+  project_id="timebeam",
+  query="Java code style no null returns SLF4J",
+  context_type="symbolic",
+  max_results=10
+)
+```
+
+**For Swift code:**
+```
+rag_get_context(
+  project_id="timebeam",
+  query="Swift code style no force unwrap AppLogger",
+  context_type="symbolic",
+  max_results=10
+)
+```
+
+**For testing:**
+```
+rag_get_context(
+  project_id="timebeam",
+  query="testing requirements JUnit5 XCTest 80% coverage",
+  context_type="symbolic",
+  max_results=10
+)
+```
+
+**For API usage:**
+```
+rag_search(
+  project_id="timebeam",
+  query="API endpoints authentication <service name>",
+  memory_type="semantic",
+  top_k=15
+)
+```
+
+**For file searches:**
+```
+rag_search(
+  project_id="timebeam",
+  query="<filename>",
+  memory_type="semantic",
+  top_k=10
+)
+```
+
+---
+
+## 🔧 RAG TOOLS REFERENCE
+
+### Core Tools
+
+**rag_get_context**
+- Purpose: Retrieve comprehensive project context
+- Usage: Get authoritative facts, episodic lessons, semantic docs
+- Parameters: project_id, context_type (all/symbolic/episodic/semantic), query, max_results
+
+**rag_search**
+- Purpose: Search across all memory types
+- Usage: Find specific code patterns, files, or topics
+- Parameters: project_id, query, memory_type (all/symbolic/episodic/semantic), top_k
+
+**rag_add_fact**
+- Purpose: Add authoritative fact to symbolic memory
+- Usage: Record tech stack, architecture decisions, constraints
+- Parameters: project_id, fact_key, fact_value, confidence, category
+
+**rag_add_episode**
+- Purpose: Add lesson learned to episodic memory
+- Usage: Record development patterns, mistakes, best practices
+- Parameters: project_id, title, content, lesson_type, quality
+
+**rag_list_sources**
+- Purpose: List all ingested sources
+- Usage: Verify what's available in knowledge base
+- Parameters: project_id, source_type
+
+**rag_ingest_file**
+- Purpose: Add new file to semantic memory
+- Usage: Ingest documentation, code changes after completion
+- Parameters: project_id, file_path, filename, source_type, metadata
+
+### When to Use Each Tool
+
+**rag_get_context** - When:
+- Starting any new task
+- Making architectural decisions
+- Understanding project structure
+- Learning tech stack or standards
+
+**rag_search** - When:
+- Finding specific files or components
+- Searching for code patterns
+- Looking for API implementations
+
+**rag_add_fact** - When:
+- Recording new tech stack decisions
+- Documenting architecture patterns
+- Adding project constraints
+
+**rag_add_episode** - When:
+- Completing a feature or fix
+- Learning a new pattern
+- Encountering a bug or issue
+- Discovering a best practice
+
+**rag_list_sources** - When:
+- Verifying RAG ingestion status
+- Checking what's available
+- Debugging missing information
+
+**rag_ingest_file** - When:
+- Adding new documentation
+- Ingesting completed code changes
+- Updating project context after major changes
+
+---
+
+## 🔍 QUICK RAG QUERY TEMPLATES
+
+### For All Operations (MANDATORY)
+```
+# Always start with broad context query
+rag_get_context(
+  project_id="timebeam",
+  context_type="all",
+  query="architecture code standards <operation-specific topic>",
+  max_results=15
+)
+```
+
+### For File Operations
+```
+rag_search(
+  project_id="timebeam",
+  query="<filename or component name>",
+  memory_type="semantic",
+  top_k=10
+)
+```
+
+### For Code Style Verification
+```
+rag_get_context(
+  project_id="timebeam",
+  query="code style standards Java Swift",
+  context_type="symbolic",
+  max_results=10
+)
+```
+
+### For API Usage
+```
+rag_search(
+  project_id="timebeam",
+  query="API endpoints authentication timer <specific endpoint>",
+  memory_type="semantic",
+  top_k=15
+)
+```
+
+### For Architecture Decisions
+```
+rag_get_context(
+  project_id="timebeam",
+  query="DDD layers SOLID principles architecture",
+  context_type="symbolic",
+  max_results=10
+)
+```
 
 ---
 
@@ -353,18 +766,114 @@ use all mcp servers "sequential-thinking", "context7", "pg-aiguide"
 
 ### Backend Feature
 **File:** workflows/backend-feature.md (72 lines)
-- 5 phases: Planning → Implementation → Testing → Review → Deployment
+
+### Phase 0: RAG Context Query (MANDATORY)
+
+**Before ANY work:**
+1. Query RAG for broad context:
+   ```
+   rag_get_context(
+     project_id="timebeam",
+     context_type="all",
+     query="architecture code standards backend feature",
+     max_results=15
+   )
+   ```
+
+2. Query RAG for specific topic:
+   ```
+   rag_search(
+     project_id="timebeam",
+     query="<feature name> API endpoints services",
+     memory_type="semantic",
+     top_k=10
+   )
+   ```
+
+3. **Document RAG citations** in reasoning
+
+**After RAG queries:**
+- Review tech stack from symbolic memory
+- Understand architecture patterns
+- Review code standards (no null returns, 80% coverage)
+- Check for existing similar implementations
+
+- 5 phases: Phase 0 (RAG) → Phase 1 (Planning) → Phase 2 (Implementation) → Phase 3 (Testing) → Phase 4 (Review) → Phase 5 (Deployment)
 - DDD layers, 80% coverage, security review
 - MCP usage: postgres, pg-aiguide, sonarlint, curl
 
 ### Frontend Feature
 **File:** workflows/frontend-feature.md (72 lines)
+
+### Phase 0: RAG Context Query (MANDATORY)
+
+**Before ANY work:**
+1. Query RAG for broad context:
+   ```markdown
+   rag_get_context(
+     project_id="timebeam",
+     context_type="all",
+     query="architecture code standards SwiftUI frontend feature",
+     max_results=15
+   )
+   ```
+
+2. Query RAG for specific topic:
+   ```markdown
+   rag_search(
+     project_id="timebeam",
+     query="<feature name> SwiftUI view component",
+     memory_type="semantic",
+     top_k=10
+   )
+   ```
+
+3. **Document RAG citations** in reasoning
+
+**After RAG queries:**
+- Review Swift code standards (no force unwrapping, 80% coverage)
+- Understand SwiftUI patterns from RAG
+- Review DDD presentation layer structure
+- Check for existing similar UI components
+
 - 5 phases: Planning → Implementation → Testing → Review → Deployment
 - DDD layers, accessibility support, platform compatibility
 - MCP usage: playwright, filesystem, memory
 
 ### Code Refactoring
 **File:** workflows/refactoring.md (70 lines)
+
+### Phase 0: RAG Context Query (MANDATORY)
+
+**Before ANY refactoring:**
+1. Query RAG for broad context:
+   ```markdown
+   rag_get_context(
+     project_id="timebeam",
+     context_type="all",
+     query="architecture code standards SOLID refactoring",
+     max_results=15
+   )
+   ```
+
+2. Query RAG for specific code:
+   ```markdown
+   rag_search(
+     project_id="timebeam",
+     query="<file or component>",
+     memory_type="semantic",
+     top_k=10
+   )
+   ```
+
+3. **Document RAG citations** in reasoning
+
+**After RAG queries:**
+- Review SOLID principles from RAG symbolic memory
+- Understand code architecture patterns
+- Review code standards from RAG
+- Check for existing similar code patterns
+
 - 5 phases: Analysis → Planning → Implementation → Testing → Review
 - SOLID principles, incremental approach
 - MCP usage: sonarlint, filesystem
@@ -375,15 +884,109 @@ use all mcp servers "sequential-thinking", "context7", "pg-aiguide"
 - Vulnerability analysis (vuldb.com), emergency procedures
 - MCP usage: sonarlint, context7 (vulnerability research)
 
+### Phase 0: RAG Context Query (MANDATORY)
+
+**Before ANY security work:**
+1. Query RAG for broad context:
+   ```markdown
+   rag_get_context(
+     project_id="timebeam",
+     context_type="all",
+     query="security validation authentication storage",
+     max_results=15
+   )
+   ```
+
+2. Query RAG for specific topic:
+   ```markdown
+   rag_search(
+     project_id="timebeam",
+     query="<security issue or vulnerability>",
+     memory_type="semantic",
+     top_k=10
+   )
+   ```
+
+3. **Document RAG citations** in reasoning
+
+**After RAG queries:**
+- Review security requirements from RAG symbolic memory
+- Check for known vulnerabilities (from episodic memory)
+- Review security best practices (from RAG)
+
 ### General Task
 **File:** workflows/task.md (74 lines)
-- Universal workflow for any development task
+
+### Phase 0: RAG Context Query (MANDATORY)
+
+**Before ANY work:**
+1. Query RAG for broad context:
+   ```markdown
+   rag_get_context(
+     project_id="timebeam",
+     context_type="all",
+     query="architecture code standards <task type>",
+     max_results=15
+   )
+   ```
+
+2. **Document RAG citations** in reasoning
+
+**After RAG queries:**
+- Review tech stack from RAG
+- Understand architecture patterns
+- Review code standards from RAG
+- Check for existing similar implementations
+
 - 5 phases: Analysis → Planning → Execution → Validation → Completion
 - Appropriate MCP servers per task type
 
 ## Error Fixing Workflow
 
 **For runtime/logic errors (not compilation):**
+
+### Step 0: RAG Context Query (MANDATORY)
+
+**Before ANY error fixing:**
+1. Query RAG for broad context:
+   ```
+   rag_get_context(
+     project_id="timebeam",
+     context_type="all",
+     query="logging debugging error handling <file>",
+     max_results=15
+   )
+   ```
+
+2. Query RAG for specific file/component:
+   ```
+   rag_search(
+     project_id="timebeam",
+     query="<file or component>",
+     memory_type="semantic",
+     top_k=10
+   )
+   ```
+
+3. Query RAG for error type:
+   ```
+   rag_search(
+     project_id="timebeam",
+     query="<error type or exception>",
+     memory_type="episodic",
+     top_k=10
+   )
+   ```
+
+4. **Document RAG citations** in reasoning
+
+**After RAG queries:**
+- Review logging patterns from RAG (AppLogger, SLF4J)
+- Check for similar error fixes in episodic memory
+- Understand error context from RAG
+- Identify relevant code patterns
+
+**RAG Enforcement Check:** [ ] Completed
 
 1. **Check logs first:**
    - See [Device Log Access Guide](#device-log-access-guide) below for detailed instructions
