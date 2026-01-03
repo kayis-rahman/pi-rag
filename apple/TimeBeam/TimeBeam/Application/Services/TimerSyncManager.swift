@@ -3,18 +3,16 @@ import SwiftUI
 import Foundation
 import _Concurrency
 
-// MARK: - Timer Action Enum
-enum TimerAction: String, Codable {
-    case start = "START"
-    case pause = "PAUSE"
-    case reset = "RESET"
-    case stop = "STOP"
-    case advance = "ADVANCE"
-}
-
 @MainActor
 final class TimerSyncManager: ObservableObject {
     static let shared = TimerSyncManager()
+
+    // MARK: - Properties
+    @Published private(set) var timer: PomodoroTimer?
+    private let deviceId: String
+    @Published private(set) var isSyncing: Bool = false
+    private var queuedSyncNeeded: Bool = false
+    private var lastSyncTimestamp: Date = Date.distantPast
 
     func getTimer() -> PomodoroTimer? { timer }
 
@@ -87,7 +85,7 @@ final class TimerSyncManager: ObservableObject {
             }
 
             // Push action to backend - only send action + static metadata (no continuously changing fields)
-            let actionDto = ApiClient.TimerActionDto(
+            let actionDto = TimerActionDto(
                 action: action.rawValue,
                 phase: timer.phase.rawValue,
                 isRunning: timer.isRunning,
@@ -132,7 +130,7 @@ final class TimerSyncManager: ObservableObject {
             print("✅ TIMER_SYNC: Token prefix: \(accessToken.prefix(20))...")
 
             // Push current state to backend
-            let stateDto = ApiClient.TimerStateDto(
+            let stateDto = TimerStateDto(
                 phase: timer.phase.rawValue,
                 remainingSeconds: Int(timer.remainingSeconds),
                 isRunning: timer.isRunning,
@@ -142,9 +140,10 @@ final class TimerSyncManager: ObservableObject {
                 autoStartNextSession: timer.autoStartNextSession,
                 shortBreaksCompleted: timer.shortBreaksCompleted,
                 totalDuration: Int(timer.currentDuration),
-                lastModifiedTimestamp: timer.lastModifiedTimestamp,
-                deviceId: deviceId, startTimestamp: timer.startTimestamp ?? 0,
-                pauseTimestamp: timer.pauseTimestamp ?? 0
+                lastModifiedTimestamp: Date(timeIntervalSince1970: timer.lastModifiedTimestamp),
+                deviceId: deviceId,
+                startTimestamp: Date(timeIntervalSince1970: timer.startTimestamp ?? 0),
+                pauseTimestamp: Date(timeIntervalSince1970: timer.pauseTimestamp ?? 0)
             )
 
             // Diagnostic logging for timer state being pushed
@@ -167,16 +166,16 @@ final class TimerSyncManager: ObservableObject {
             if let pulledState = try await ApiClient.shared.pullTimerState(accessToken: accessToken) {
                 // Diagnostic logging for pulled state
                 print("📥 TIMER_SYNC_PULL: Received state - phase: \(pulledState.phase ?? "unknown"), remaining: \(pulledState.remainingSeconds ?? -1), running: \(pulledState.isRunning ?? false), device: \(pulledState.deviceId ?? "unknown")")
-                print("📥 TIMER_SYNC_PULL: Pulled timestamps - start: \(pulledState.startTimestamp ?? 0), lastModified: \(pulledState.lastModifiedTimestamp ?? 0))")
+                print("📥 TIMER_SYNC_PULL: Pulled timestamps - start: \(pulledState.startTimestamp?.timeIntervalSince1970 ?? 0), lastModified: \(pulledState.lastModifiedTimestamp?.timeIntervalSince1970 ?? 0)")
 
                 // Use Date directly for comparison (already parsed by JSONDecoder)
                 let currentModified = timer.lastModifiedTimestamp
-                let pulledModified = pulledState.lastModifiedTimestamp
+                let pulledModified = pulledState.lastModifiedTimestamp?.timeIntervalSince1970 ?? 0
 
-                print("📊 TIMER_SYNC_COMPARE: Current modified: \(currentModified), Pulled modified: \(pulledModified ?? 0), Should sync: \(currentModified < (pulledModified ?? 0))")
+                print("📊 TIMER_SYNC_COMPARE: Current modified: \(currentModified), Pulled modified: \(pulledModified), Should sync: \(currentModified < pulledModified)")
 
                 // Apply if more recent
-                if timer.lastModifiedTimestamp < (pulledState.lastModifiedTimestamp ?? 0) {
+                if timer.lastModifiedTimestamp < pulledModified {
                     // For cross-device sync, use the exact remainingSeconds from the remote state
                     // instead of trying to recalculate based on timestamps
                     print("✅ TIMER_SYNC_APPLY: Applying synced state to local timer")
@@ -189,9 +188,9 @@ final class TimerSyncManager: ObservableObject {
                         longBreakDuration: pulledState.longBreakDuration ?? 15,
                         autoStartNextSession: pulledState.autoStartNextSession ?? false,
                         shortBreaksCompleted: pulledState.shortBreaksCompleted ?? 0,
-                        startTimestamp: pulledState.startTimestamp ?? 0,
-                        pauseTimestamp: pulledState.pauseTimestamp ?? 0,
-                        lastModifiedTimestamp: pulledState.lastModifiedTimestamp ?? 0
+                        startTimestamp: pulledState.startTimestamp?.timeIntervalSince1970 ?? 0,
+                        pauseTimestamp: pulledState.pauseTimestamp?.timeIntervalSince1970 ?? 0,
+                        lastModifiedTimestamp: pulledModified
                     )
                     print("✅ TIMER_SYNC_APPLY: State applied successfully")
                     
@@ -355,3 +354,16 @@ final class TimerSyncManager: ObservableObject {
                 workDuration: workDuration,
                 breakDuration: breakDuration,
                 longBreakDuration: longBreakDuration,
+                autoStartNextSession: autoStartNextSession,
+                shortBreaksCompleted: shortBreaksCompleted,
+                startTimestamp: startTimestamp,
+                pauseTimestamp: pauseTimestamp,
+                lastModifiedTimestamp: lastModifiedTimestamp
+            )
+            print("✅ TIMER_SYNC_APPLY: Applied incoming synced state")
+        } else {
+            print("⏭️ TIMER_SYNC_SKIP: Local state is more recent")
+        }
+    }
+
+}

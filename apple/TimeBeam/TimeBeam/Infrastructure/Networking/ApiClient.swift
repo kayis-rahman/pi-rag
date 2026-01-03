@@ -343,7 +343,6 @@ public struct ApiClient {
     // MARK: - Task Methods
     
     
-    }
     
     func createTask(_ request: TaskCreateRequest, accessToken: String) async throws -> TaskDto {
         guard let req = createBaseRequest(path: "api/tasks", method: "POST", body: request, accessToken: accessToken) else {

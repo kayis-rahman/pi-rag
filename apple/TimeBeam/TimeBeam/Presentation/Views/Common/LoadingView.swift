@@ -1,3 +1,6 @@
+import SwiftUI
+
+struct LoadingView: View {
     var body: some View {
         ZStack {
             Color.themeBackground.ignoresSafeArea()
@@ -30,6 +33,3 @@
         }
     }
 }
-
-#if os(macOS)
-final class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {

@@ -4,10 +4,6 @@ import UserNotifications
 
 #if os(macOS)
 import AppKit
-#endif
-
-#if os(macOS)
-#endif
 
 struct macOSContentView: View {
     @EnvironmentObject var timer: PomodoroTimer
@@ -281,28 +277,16 @@ struct macOSContentView: View {
     }
 }
 
-// MARK: - Helper Views
-private struct CycleProgressView: View {
-    let completed: Int
-    let total: Int
+#endif
 
-    var body: some View {
-        HStack(spacing: 8) {
-            ForEach(0..<total, id: \.self) { index in
-                Circle()
-                    .fill(index < completed ? Color.themePrimary : Color.themeTextSecondary.opacity(0.3))
-                    .frame(width: 10, height: 10)
-            }
-        }
-    }
-}
-
+#if os(macOS)
 #Preview {
     macOSContentView()
         .environmentObject(PomodoroTimer())
         .environmentObject(SessionLogger())
         .environmentObject(AuthManager())
 }
+#endif
 
 // All PomodoroTimer methods are now properly implemented - no shims needed
 

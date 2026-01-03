@@ -1,3 +1,7 @@
+#if os(iOS)
+import SwiftUI
+
+struct QuickActionButton: View {
     let icon: String
     let title: String
     let color: Color
@@ -34,8 +38,4 @@
         .buttonStyle(.plain)
     }
 }
-
-// MARK: - Deleted Tasks View
-
-#if os(iOS)
-struct DeletedTasksView: View {
+#endif

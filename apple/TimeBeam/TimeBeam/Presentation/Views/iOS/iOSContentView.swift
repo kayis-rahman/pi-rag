@@ -186,6 +186,4 @@ struct iOSContentView: View {
     }
 }
 
-// MARK: - Helper Views
-
-private struct ActiveTaskSectionView: View {
+#endif

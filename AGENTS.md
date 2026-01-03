@@ -496,3 +496,205 @@ Standard Spring Boot log file in project directory. Access directly via file sys
 - **PR Template**: `.github/pull_request_template.md` - Code review checklist
 - **Project README**: `README.md` - Project overview and MVP checklist
 - **Device Log Access Guide**: [Device Log Access Guide](#device-log-access-guide) - How to access logs on all platforms
+
+---
+
+## 🛡️ SRP Prevention Commands
+
+### OpenCLI Integration for SRP Enforcement
+
+The codebase now includes CLI commands for quick SRP validation, integrated with the OpenCLI workflow.
+
+### 🔔 Pre-commit Hook (Automatic)
+
+**Location**: `.git/hooks/pre-commit`
+
+Automatically checks all staged Swift files before each commit. No manual intervention needed.
+
+**When it triggers**: On every `git commit`
+**What it does**: Blocks commits containing SRP violations
+**Output**: Clear error messages with line numbers and type definitions
+
+### 🔍 Manual Validation Commands
+
+Use these commands for manual checks, CI/CD integration, or pre-commit verification.
+
+#### Command: `/check-srp [path]`
+
+Check Swift files for SRP compliance.
+
+**Usage**:
+```bash
+# Check all Swift files
+/check-srp
+
+# Check specific directory
+/check-srp apple/TimeBeam/TimeBeam/Presentation/Views
+
+# Check only staged files (pre-commit simulation)
+/check-srp --staged
+```
+
+**Exit codes**:
+- `0` = All files comply ✓
+- `1` = Violations found ✗
+
+**Example output**:
+```
+🔍 Validating Single Responsibility Principle in Swift files...
+
+❌ SRP VIOLATION: AnalyticsService.swift contains 2 type definitions
+     - class AnalyticsManager: ObservableObject
+     - enum AnalyticsService
+
+⚠️  Found 1 SRP violation(s)
+
+💡 To fix:
+   1. Split files with multiple types into separate files
+   2. Each file should contain only ONE class, struct, enum, or protocol
+
+❌ FAILED
+```
+
+#### Command: `/split-file <file.swift>`
+
+**Interactive tool to split multi-type files automatically**
+
+Use when pre-commit hook blocks a commit due to SRP violations.
+
+**What it does**:
+- Analyzes the file for multiple type definitions
+- Creates separate files for each type
+- Preserves original file as backup
+- Updates imports if needed
+
+**Usage**:
+```bash
+# Interactive mode - guides you through the split
+/split-file apple/TimeBeam/TimeBeam/Application/Services/AnalyticsService.swift
+
+# Auto-split mode - uses default naming
+/split-file --auto apple/TimeBeam/TimeBeam/Presentation/Views/Task/TaskViews.swift
+```
+
+**Example interaction**:
+```
+Found 3 types in TaskViews.swift:
+  1. struct TaskQuickActionsSheet (lines 1-72)
+  2. struct QuickActionButton (lines 74-110)
+  3. struct DeletedTasksView (lines 112-150)
+
+Suggested file names:
+  - TaskQuickActionsSheet.swift
+  - QuickActionButton.swift
+  - DeletedTasksView.swift
+
+Proceed with split? (y/n): y
+
+✓ Created: TaskQuickActionsSheet.swift
+✓ Created: QuickActionButton.swift
+✓ Created: DeletedTasksView.swift
+✓ Moved original to: TaskViews.swift.bak
+```
+
+### 🔧 CI/CD Integration Commands
+
+#### Command: `/validate-srp-ci`
+
+**For CI/CD pipeline integration**
+
+Run SRP validation with CI-friendly output (no colors, machine-readable).
+
+**Usage in CI/CD**:
+```yaml
+# .github/workflows/srp-validation.yml
+- name: Validate SRP compliance
+  run: /validate-srp-ci
+```
+
+**Output format**:
+```
+CHECKED: 157 files
+VIOLATIONS: 0
+RESULT: PASSED
+```
+
+### 📚 Documentation Commands
+
+#### Command: `/srp-docs`
+
+**Open SRP prevention documentation**
+
+Quick access to detailed SRP guidelines and troubleshooting.
+
+**Usage**:
+```bash
+/srp-docs
+# Opens: docs/codestyle/srp-prevention.md
+```
+
+### 🎯 Quick Reference
+
+| Command | Purpose | When to Use |
+|---------|---------|-------------|
+| `/check-srp` | Manual validation | Before committing, CI/CD pre-check |
+| `/split-file` | Auto-split multi-type files | When pre-commit hook blocks commit |
+| `/validate-srp-ci` | CI/CD validation | In automated pipelines |
+| `/srp-docs` | Open documentation | When you need detailed guidance |
+
+### 🚨 When Prevention Blocks You
+
+If you get blocked by SRP enforcement:
+
+1. **Don't use `--no-verify`** unless absolutely necessary
+2. **Use `/split-file`** to automatically fix the issue
+3. **Review `/srp-docs`** for guidelines and examples
+4. **Ask for help** if you're unsure how to split properly
+
+### ✅ Best Practices
+
+1. **Before starting work**: Run `/check-srp` to ensure clean state
+2. **When creating new files**: Always start with ONE type per file
+3. **When tempted to add second type**: Create new file instead
+4. **Before committing**: Let pre-commit hook validate automatically
+5. **If blocked**: Use `/split-file` to fix, don't bypass
+
+### 🔍 Under the Hood
+
+All commands use the same validation logic:
+- Regex pattern: `^\s*(public\s+|internal\s+|private\s+)?(class|struct|enum|protocol)\s+`
+- Counts type definitions at file scope
+- Excludes test files and generated files
+- Returns exit code 1 for violations, 0 for compliance
+
+### 📊 Effectiveness
+
+**Multiple layers of protection**:
+1. **IDE**: SwiftLint real-time warnings
+2. **Pre-commit**: Automatic blocking on commit
+3. **Manual**: `/check-srp` for self-validation
+4. **Auto-fix**: `/split-file` to resolve violations
+5. **CI/CD**: Pipeline validation
+6. **Documentation**: `/srp-docs` for guidance
+
+**Result**: SRP violations caught at multiple stages before reaching main branch
+
+### 🔧 Customization
+
+**Adding custom exclusions**:
+Add patterns to `.git/hooks/pre-commit` and `validate-srp.sh`:
+```bash
+# Skip these patterns
+if [[ $file == *"Generated/"* ]] || \
+   [[ $file == *"Legacy/"* ]]; then
+    continue
+fi
+```
+
+### 📞 Support
+
+For issues with SRP prevention commands:
+- Check: `docs/codestyle/srp-prevention.md`
+- Create issue: Tag with `srp-enforcement`
+- CLI help: `/srp-help`
+

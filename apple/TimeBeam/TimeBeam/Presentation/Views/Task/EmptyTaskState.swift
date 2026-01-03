@@ -1,3 +1,7 @@
+#if os(iOS)
+import SwiftUI
+
+struct EmptyTaskState: View {
     @Binding var showingCreateTask: Bool
 
     var body: some View {
@@ -45,5 +49,4 @@
         .padding(.horizontal, 20)
     }
 }
-
-struct EnhancedTaskListView: View {
+#endif

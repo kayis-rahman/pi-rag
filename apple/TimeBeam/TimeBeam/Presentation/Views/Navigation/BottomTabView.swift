@@ -1,3 +1,6 @@
+import SwiftUI
+
+struct BottomTabView: View {
     @Binding var selectedTab: Int
     @EnvironmentObject var taskService: TaskService
     @EnvironmentObject var timer: PomodoroTimer
@@ -67,5 +70,3 @@
         }
     }
 }
-
-struct BottomTabButton: View {

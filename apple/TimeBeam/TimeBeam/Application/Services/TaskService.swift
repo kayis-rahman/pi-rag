@@ -8,7 +8,7 @@ final class TaskService: ObservableObject {
     private let apiClient: ApiClientProtocol
     private let keychainStore: KeychainStoreProtocol
 
-init(apiClient: ApiClientProtocol? = nil,
+    init(apiClient: ApiClientProtocol? = nil,
           keychainStore: KeychainStoreProtocol = KeychainStore()) {
         if let apiClient = apiClient {
             self.apiClient = apiClient
@@ -30,7 +30,7 @@ init(apiClient: ApiClientProtocol? = nil,
         try validateTaskInput(title: title, description: description)
 
         let request = APIRequest.createTask(title: title, description: description)
-        let response: ApiClient.TaskDto = try await apiClient.performRequest(request)
+        let response: TaskDto = try await apiClient.performRequest(request)
 
         let task = UserTask(
             id: response.id,
@@ -54,7 +54,7 @@ init(apiClient: ApiClientProtocol? = nil,
 
     func fetchTasks(status: ApiTaskStatus? = nil) async throws -> [UserTask] {
         let request = APIRequest.fetchTasks(status: status)
-        let response: [ApiClient.TaskDto] = try await apiClient.performRequest(request)
+        let response: [TaskDto] = try await apiClient.performRequest(request)
 
         let fetchedTasks = response.map { dto in
             UserTask(
@@ -78,7 +78,7 @@ init(apiClient: ApiClientProtocol? = nil,
 
     func fetchActiveTasks() async throws -> [UserTask] {
         let request = APIRequest.fetchActiveTasks
-        let response: [ApiClient.TaskDto] = try await apiClient.performRequest(request)
+        let response: [TaskDto] = try await apiClient.performRequest(request)
 
         let activeTasks = response.map { dto in
             UserTask(
@@ -98,7 +98,7 @@ init(apiClient: ApiClientProtocol? = nil,
 
     func fetchTask(byId id: String) async throws -> UserTask {
         let request = APIRequest.fetchTask(id: id)
-        let response: ApiClient.TaskDto = try await apiClient.performRequest(request)
+        let response: TaskDto = try await apiClient.performRequest(request)
 
         let task = UserTask(
             id: response.id,
@@ -125,7 +125,7 @@ init(apiClient: ApiClientProtocol? = nil,
         }
 
         let request = APIRequest.updateTask(id: id, title: title, description: description, status: status)
-        let response: ApiClient.TaskDto = try await apiClient.performRequest(request)
+        let response: TaskDto = try await apiClient.performRequest(request)
 
         let updatedTask = UserTask(
             id: response.id,
@@ -155,7 +155,7 @@ init(apiClient: ApiClientProtocol? = nil,
 
     func deleteTask(id: String) async throws {
         let request = APIRequest.deleteTask(id: id)
-        _ = try await apiClient.performRequest(request) as ApiClient.EmptyResponse
+        _ = try await apiClient.performRequest(request) as EmptyResponse
 
         // Update local cache
         tasks.removeAll { $0.id.uuidString == id }
@@ -381,18 +381,6 @@ enum ApiTaskStatus: String, Codable {
     case todo, inProgress = "in_progress", completed
 }
 
-
-struct TaskCreateRequest: Codable {
-    let title: String
-    let description: String?
-}
-
-struct TaskUpdateRequest: Codable {
-    let title: String?
-    let description: String?
-    let status: String?
-}
-
 enum TaskServiceError: LocalizedError {
     case validationError(String)
     case networkError(Error)
@@ -546,7 +534,7 @@ extension ApiClient: ApiClientProtocol {
                 throw TaskServiceError.validationError("Invalid task ID")
             }
             try await deleteTask(id: uuid, accessToken: getAccessToken())
-            return ApiClient.EmptyResponse.self as! T
+            return EmptyResponse.self as! T
         }
     }
 

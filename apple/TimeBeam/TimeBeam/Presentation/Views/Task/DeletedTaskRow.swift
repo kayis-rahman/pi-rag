@@ -1,76 +1,49 @@
+#if os(iOS)
+import SwiftUI
+
+struct DeletedTaskRow: View {
     let item: RecycleBinItem
     let onRestore: () -> Void
     let onDelete: () -> Void
 
-    var body: some View {
-        HStack(spacing: 16) {
-            // Task icon
-            ZStack {
-                Circle()
-                    .fill(Color.gray.opacity(0.2))
-                    .frame(width: 32, height: 32)
+    @State private var isPressed = false
 
-                Image(systemName: "trash")
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundColor(.gray)
-            }
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "trash.circle.fill")
+                .font(.system(size: 32))
+                .foregroundColor(.themePrimary.opacity(0.6))
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(item.task.title)
                     .font(.headline)
                     .foregroundColor(.primary)
-                    .strikethrough()
 
-                if let description = item.task.description, !description.isEmpty {
-                    Text(description)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                        .lineLimit(2)
-                        .strikethrough()
-                }
-
-                HStack(spacing: 8) {
-                    Text("Deleted \(item.deletedAt.formatted(date: .abbreviated, time: .omitted))")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-
-                    Text("\(item.daysUntilExpiration) days left")
-                        .font(.caption)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(Color.red.opacity(0.1))
-                        .foregroundColor(.red)
-                        .clipShape(Capsule())
-                }
+                Text("Deleted \(relativeDateString(from: item.deletedAt))")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
 
             Spacer()
 
-            // Action buttons
             HStack(spacing: 8) {
-                Button {
-                    onRestore()
-                } label: {
-                    Image(systemName: "arrow.uturn.backward.circle.fill")
-                        .font(.system(size: 20))
+                Button(action: onRestore) {
+                    Image(systemName: "arrow.counterclockwise")
+                        .font(.system(size: 16))
                         .foregroundColor(.blue)
-                        .frame(width: 32, height: 32)
                 }
 
-                Button {
-                    onDelete()
-                } label: {
-                    Image(systemName: "trash.circle.fill")
-                        .font(.system(size: 20))
+                Button(action: onDelete) {
+                    Image(systemName: "trash.fill")
+                        .font(.system(size: 16))
                         .foregroundColor(.red)
-                        .frame(width: 32, height: 32)
                 }
             }
         }
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color.themeCardBackground.opacity(0.9))
+                .fill(Color.themeCardBackground.opacity(0.8))
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
                         .stroke(Color.themePrimary.opacity(0.05), lineWidth: 1)
@@ -78,8 +51,18 @@
                 .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
         )
     }
+
+    private func relativeDateString(from date: Date) -> String {
+        let calendar = Calendar.current
+        let now = Date()
+        let components = calendar.dateComponents([.day], from: date, to: now)
+
+        if let days = components.day, days == 1 {
+            return "1 day ago"
+        } else if let days = components.day {
+            return "\(days) days ago"
+        }
+        return "recently"
+    }
 }
-
-// MARK: - Loading View
-
-struct LoadingView: View {
+#endif

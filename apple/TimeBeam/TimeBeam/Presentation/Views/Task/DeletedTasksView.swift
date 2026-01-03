@@ -1,3 +1,7 @@
+#if os(iOS)
+import SwiftUI
+
+struct DeletedTasksView: View {
     @EnvironmentObject var taskService: TaskService
     @Environment(\.dismiss) private var dismiss
     @State private var showingPermanentDeleteAlert = false
@@ -90,7 +94,7 @@
     }
 
     private func restoreTask(_ item: RecycleBinItem) {
-                    _Concurrency.Task {
+        _Concurrency.Task {
             do {
                 try await taskService.restoreTask(from: item)
             } catch {
@@ -105,5 +109,3 @@
     }
 }
 #endif
-
-struct DeletedTaskRow: View {

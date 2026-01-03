@@ -12,26 +12,20 @@ import WatchConnectivity
 //  Created by Kayis Rahman on 03/11/25.
 //
 
-#if os(iOS)
-#endif
+#if os(iOS) || os(watchOS)
 
 @MainActor
 final class WatchConnectivityManager: ObservableObject {
     static var shared: WatchConnectivityManager? = WatchConnectivityManager()
 
     private enum Keys {
-    #endif
-
-    init() {
-        #if os(iOS)
-        if WCSession.isSupported() {
-            session = WCSession.default
-            session?.delegate = WatchConnectivityDelegate.shared
-            session?.activate()
-        }
-        #endif
+        static let timerState = "timerState"
+        static let authTokens = "authTokens"
+        static let signInRequest = "signInRequest"
     }
 
+    private var session: WCSession?
+    
     // MARK: - Timer Sync Methods
     func broadcastTimerState() {
         guard let timer = TimerSyncManager.shared.getTimer() else { return }
@@ -48,60 +42,50 @@ final class WatchConnectivityManager: ObservableObject {
             "autoStartNextSession": timer.autoStartNextSession,
             "shortBreaksCompleted": timer.shortBreaksCompleted,
             "lastModifiedTimestamp": timer.lastModifiedTimestamp
-        ] as [String: Any]
-
-        let payload: [String: Any] = [
-            Keys.timerSync: true,
-            Keys.timerState: state
-        ]
-
-        sendMessage(payload)
+        ] as [String : Any]
+        
+        sendMessage([Keys.timerState: state])
     }
-
-    func handleIncomingTimerSync(_ message: [String: Any]) {
-        guard message[Keys.timerSync] as? Bool == true else { return }
-
-        if let stateDict = message[Keys.timerState] as? [String: Any] {
-            // Apply the state directly
-            TimerSyncManager.shared.applyIncomingState(stateDict)
+    
+    func requestSignIn() {
+        sendMessage([Keys.signInRequest: true])
+    }
+    
+    func sendAuthTokens() {
+        // TODO: Implement secure token transfer
+    }
+    
+    // MARK: - Incoming Messages
+    func handleIncomingMessage(_ message: [String: Any]) {
+        if let timerState = message[Keys.timerState] as? [String: Any] {
+            TimerSyncManager.shared.applyIncomingState(timerState)
+        }
+        
+        if let signInRequest = message[Keys.signInRequest] as? Bool, signInRequest {
+            handleSignInRequest()
+        }
+        
+        if let authTokens = message[Keys.authTokens] as? [String: String] {
+            handleAuthTokens(authTokens)
         }
     }
-
-    func requestSignInOnPhone() {
-        sendMessage([Keys.requestSignIn: true])
+    
+    private func handleSignInRequest() {
+        // iOS should trigger Google Sign-In flow
+        #if os(iOS)
+        // TODO: Present sign-in flow
+        print("Sign-in requested from watch")
+        #endif
     }
-
-    func pushAuthStateToCounterpart(isSignedIn: Bool, displayName: String?, email: String?) {
-        let payload: [String: Any] = [
-            Keys.authState: true,
-            Keys.isSignedIn: isSignedIn,
-            Keys.displayName: displayName ?? NSNull(),
-            Keys.email: email ?? NSNull()
-        ]
-        sendMessage(payload)
-    }
-
-    func handleIncomingMessage(_ message: [String: Any], authManager: AuthManager) {
-        if message[Keys.requestSignIn] as? Bool == true {
-            #if os(iOS)
-            presentSignInFlowFromConnectivity()
-            #endif
-        } else if message[Keys.authState] as? Bool == true {
-            let signedIn = message[Keys.isSignedIn] as? Bool ?? false
-            let name = message[Keys.displayName] as? String
-            let mail = message[Keys.email] as? String
-
-            authManager.isSignedIn = signedIn
-            authManager.displayName = name
-            authManager.email = mail
-
-            try? KeychainStore.saveString(name ?? "", for: .userDisplayName)
-            try? KeychainStore.saveString(mail ?? "", for: .userEmail)
-            if !signedIn {
-                try? KeychainStore.clear(.idToken)
-                try? KeychainStore.clear(.accessToken)
-            }
+    
+    private func handleAuthTokens(_ tokens: [String: String]) {
+        // watchOS should store tokens in Keychain
+        #if os(watchOS)
+        if let idToken = tokens["idToken"], let accessToken = tokens["accessToken"] {
+            try? KeychainStore.save(.idToken, value: idToken)
+            try? KeychainStore.save(.accessToken, value: accessToken)
         }
+        #endif
     }
 
     private func sendMessage(_ message: [String: Any]) {
@@ -138,3 +122,28 @@ final class WatchConnectivityManager: ObservableObject {
 #if os(iOS)
 // MARK: - WatchConnectivity Delegate
 final class WatchConnectivityDelegate: NSObject, WCSessionDelegate {
+    static let shared = WatchConnectivityDelegate()
+    
+    func sessionDidBecomeInactive(_ session: WCSession) {
+        print("WC Session did become inactive")
+    }
+    
+    func sessionDidDeactivate(_ session: WCSession) {
+        print("WC Session did deactivate")
+    }
+    
+    func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
+        if let error = error {
+            print("WC Session activation failed: \(error.localizedDescription)")
+        }
+    }
+    
+    func session(_ session: WCSession, didReceiveMessage message: [String : Any]) {
+        Task { @MainActor in
+            WatchConnectivityManager.shared?.handleIncomingMessage(message)
+        }
+    }
+}
+#endif
+
+#endif

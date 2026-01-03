@@ -1,3 +1,6 @@
+import SwiftUI
+
+struct BottomTabButton: View {
     let icon: String
     let label: String
     let isSelected: Bool
@@ -86,22 +89,3 @@
         }
     }
 }
-
-// Extension for press action support
-extension View {
-    func pressAction(onPress: @escaping (Bool) -> Void, perform action: @escaping () -> Void) -> some View {
-        self.simultaneousGesture(
-            DragGesture(minimumDistance: 0)
-                .onChanged { _ in onPress(true) }
-                .onEnded { _ in
-                    onPress(false)
-                    action()
-                }
-        )
-    }
-}
-
-// MARK: - Liquid Glass Task Management View
-
-#if os(iOS)
-struct TaskManagementView: View {

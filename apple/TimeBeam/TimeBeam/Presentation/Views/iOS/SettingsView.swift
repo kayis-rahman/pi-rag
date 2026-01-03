@@ -268,7 +268,7 @@ struct AccountManagementView: View {
     @EnvironmentObject var authManager: AuthManager
 
     // Device stats state
-    @State private var deviceStats: ApiClient.DeviceStats?
+    @State private var deviceStats: DeviceStats?
     @State private var isLoadingDeviceStats = false
     @State private var deviceStatsError: String?
 

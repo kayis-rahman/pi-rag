@@ -516,16 +516,30 @@ final class AuthManager: ObservableObject {
             print("[Auth] Restored PKCE from persistence")
             #endif
         }
-    }
+}
 
-    private func googleRedirectUri() -> String {
-        if let dict = Bundle.main.infoDictionary,
-           let uri = dict["GOOGLE_REDIRECT_URI"] as? String,
-           !uri.isEmpty {
-            return uri
+// MARK: - OAuth Errors
+
+public enum SignInError: Error, LocalizedError {
+    case notConfigured
+    case cancelled
+    case failed(Error)
+    case invalidRequest
+    case invalidResponse
+
+    public var errorDescription: String? {
+        switch self {
+        case .notConfigured:
+            return "Google Sign-In is not configured"
+        case .cancelled:
+            return "Sign-in was cancelled"
+        case .failed(let error):
+            return "Sign-in failed: \(error.localizedDescription)"
+        case .invalidRequest:
+            return "Invalid request to authentication server"
+        case .invalidResponse:
+            return "Invalid response from authentication server"
         }
-        // Fallback to existing custom scheme for development
-        return "com.sparkage.time-beam:/oauth2redirect"
     }
 }
 

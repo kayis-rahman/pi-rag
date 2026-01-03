@@ -1,3 +1,7 @@
+#if os(iOS)
+import SwiftUI
+
+struct SidebarTabButton: View {
     let icon: String
     let label: String
     let isSelected: Bool
@@ -16,11 +20,11 @@
                         Image(systemName: icon)
                             .font(.system(size: 18, weight: isSelected ? .semibold : .medium))
                             .foregroundColor(iconColor)
-                            .frame(width: 32, height: 32)
+                            .frame(width: 24, height: 24)
                             .background(
-                                Circle()
+                                RoundedRectangle(cornerRadius: 6)
                                     .fill(isSelected ? Color.themePrimary.opacity(0.15) : Color.clear)
-                                    .frame(width: 40, height: 40)
+                                    .frame(width: 32, height: 32)
                             )
                             .scaleEffect(isPressed ? 0.9 : 1.0)
 
@@ -29,34 +33,22 @@
                             Circle()
                                 .fill(Color.themePrimary)
                                 .frame(width: 6, height: 6)
-                                .offset(x: 14, y: -14)
+                                .offset(x: 8, y: -8)
                                 .transition(.scale.combined(with: .opacity))
                         }
                     }
 
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(label)
-                            .font(.system(size: 14, weight: isSelected ? .semibold : .regular))
-                            .foregroundColor(labelColor)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.8)
-                    }
-
-                    Spacer()
+                    Text(label)
+                        .font(.system(size: 14, weight: isSelected ? .semibold : .regular))
+                        .foregroundColor(labelColor)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                        .opacity(isSelected ? 1.0 : 0.8)
                 }
-                .frame(height: 50)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.vertical, 8)
                 .padding(.horizontal, 12)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(isSelected ? Color.themePrimary.opacity(0.08) : Color.clear)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(isSelected ? Color.themePrimary.opacity(0.3) : Color.clear, lineWidth: 1)
-                        )
-                        .shadow(color: isSelected ? Color.themePrimary.opacity(0.2) : Color.clear,
-                               radius: isSelected ? 4 : 0, x: 0, y: 2)
-                )
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .contentShape(Rectangle())
 
                 // Badge
                 if let badge = badge {
@@ -67,7 +59,7 @@
                         .padding(.vertical, 2)
                         .background(Color.themePrimary)
                         .clipShape(Capsule())
-                        .offset(x: 8, y: -8)
+                        .offset(x: 6, y: -6)
                         .transition(.scale.combined(with: .opacity))
                 }
             }
@@ -100,7 +92,4 @@
         }
     }
 }
-
-// MARK: - Bottom Tab View
-
-struct BottomTabView: View {
+#endif
