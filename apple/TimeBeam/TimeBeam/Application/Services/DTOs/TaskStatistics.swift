@@ -151,9 +151,9 @@ extension Array where Element == UserTask {
 
 
 
-    // Filter method
+    // Filter method using custom predicate to avoid shadowing Array.filter
 
-    private func filter(_ isIncluded: (Element) throws -> Bool) rethrows -> [UserTask] {
+    private func filterByPredicate(_ isIncluded: (Element) throws -> Bool) rethrows -> [UserTask] {
 
         return try self.filter(isIncluded)
 
