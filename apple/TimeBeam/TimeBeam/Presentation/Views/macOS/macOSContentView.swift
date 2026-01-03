@@ -132,6 +132,7 @@ struct macOSContentView: View {
                     .padding(.bottom, 10)
 
                 CycleProgressView()
+                    .environmentObject(timer)
                 .frame(width: ringSize * 0.5)
                 .padding(.bottom, 15)
                 playPauseButton(buttonSize: buttonSize)
