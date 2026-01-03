@@ -4,6 +4,8 @@ public enum SignInError: Error, LocalizedError {
     case notConfigured
     case cancelled
     case failed(Error)
+    case invalidRequest
+    case invalidResponse
 
     public var errorDescription: String? {
         switch self {
@@ -13,6 +15,10 @@ public enum SignInError: Error, LocalizedError {
             return "Sign-in was cancelled"
         case .failed(let error):
             return "Sign-in failed: \(error.localizedDescription)"
+        case .invalidRequest:
+            return "Invalid request to authentication server"
+        case .invalidResponse:
+            return "Invalid response from authentication server"
         }
     }
 }

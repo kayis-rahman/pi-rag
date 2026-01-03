@@ -311,6 +311,20 @@ final class AuthManager: ObservableObject {
         return nil
     }
 
+    private func googleRedirectUri() -> String? {
+        if let dict = Bundle.main.infoDictionary,
+            let redirectUri = dict["GOOGLE_REDIRECT_URI"] as? String,
+            !redirectUri.isEmpty {
+            return redirectUri
+        }
+        // Fallback to platform-specific default
+        #if os(iOS)
+        return "com.sparkage.time-beam.ios://"
+        #elseif os(macOS)
+        return "com.sparkage.time-beam://"
+        #endif
+    }
+
     @objc private func handleOAuthCompleted() {
         // This method is called when OAuth completes, but we need the authorization code
         // The code should be passed through a different mechanism
@@ -457,10 +471,6 @@ final class AuthManager: ObservableObject {
     }
     #endif
 
-    enum SignInError: Error {
-        }
-    }
-
     private func makePKCE() -> PKCE {
         let verifier = randomCodeVerifier()
         let challenge = codeChallenge(for: verifier)
@@ -515,30 +525,6 @@ final class AuthManager: ObservableObject {
             #if DEBUG
             print("[Auth] Restored PKCE from persistence")
             #endif
-        }
-}
-
-// MARK: - OAuth Errors
-
-public enum SignInError: Error, LocalizedError {
-    case notConfigured
-    case cancelled
-    case failed(Error)
-    case invalidRequest
-    case invalidResponse
-
-    public var errorDescription: String? {
-        switch self {
-        case .notConfigured:
-            return "Google Sign-In is not configured"
-        case .cancelled:
-            return "Sign-in was cancelled"
-        case .failed(let error):
-            return "Sign-in failed: \(error.localizedDescription)"
-        case .invalidRequest:
-            return "Invalid request to authentication server"
-        case .invalidResponse:
-            return "Invalid response from authentication server"
         }
     }
 }
