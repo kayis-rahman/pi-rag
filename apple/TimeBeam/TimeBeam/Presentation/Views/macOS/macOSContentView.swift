@@ -131,10 +131,7 @@ struct macOSContentView: View {
                     .foregroundStyle(Color.themeTextSecondary)
                     .padding(.bottom, 10)
 
-                CycleProgressView(
-                    completed: timer.shortBreaksCompleted,
-                    total: timer.cycleSize
-                )
+                CycleProgressView()
                 .frame(width: ringSize * 0.5)
                 .padding(.bottom, 15)
                 playPauseButton(buttonSize: buttonSize)
