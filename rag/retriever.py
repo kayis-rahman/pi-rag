@@ -9,6 +9,8 @@ from typing import List, Dict, Any, Optional, Tuple, Callable
 from .vectorstore import VectorStore
 from .embedding import EmbeddingService, get_embedding_service
 from .query_expander import get_query_expander
+from .logger import get_logger
+logger = get_logger(__name__)
 
 
 class Retriever:
@@ -51,7 +53,7 @@ class Retriever:
                 self.query_expansion_enabled = config.get("query_expansion_enabled", False)
                 self.num_expansions = config.get("num_expansions", 3)
         except Exception as e:
-            print(f"Warning: Failed to load retriever config: {e}")
+            logger.warning(f"Failed to load retriever config: {e}")
     
     def search(
         self,
@@ -128,7 +130,7 @@ class Retriever:
         else:
             results = self.search(query, top_k, metadata_filters)
 
-        print(results)
+        logger.debug(f"Retrieval results: {results}")
         if not results:
             return "", []
         

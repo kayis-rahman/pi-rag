@@ -65,6 +65,8 @@ class PromptBuilder:
         ...     user_query="Help me build a REST API",
         ...     memory_context=get_memory_context("user")
         ... )
+        >>> # In production, use: logger.info(prompt)
+        >>> # Here we show raw output for clarity
         >>> print(prompt)
     """
 

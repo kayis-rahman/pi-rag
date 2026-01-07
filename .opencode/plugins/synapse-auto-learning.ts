@@ -40,158 +40,90 @@ const SynapseAutoLearningPlugin = async (ctx: PluginInput): Promise<Hooks> => {
     extraction_mode: "heuristic"
   };
 
-   console.log(
-     `[Synapse] Plugin initialized`, {
-       mode: config.extraction_mode,
-       enabled: config.enabled,
-       project_id: config.rag_project_id,
-       priority: config.priority,
-       analyze_after_tools: config.analyze_after_tools,
-       analyze_after_tools_count: config.analyze_after_tools.length,
-       min_message_length: config.min_message_length,
-       skip_patterns: config.skip_patterns,
-       skip_patterns_count: config.skip_patterns.length,
-       async_processing: config.async_processing
-     }
-   );
-
   // Return hooks object
   return {
     /**
      * Hook called before tool execution
      * Analyzes conversation after configured tools execute
      */
-     "tool.execute.before": async (input, output) => {
-       const startTime = Date.now();
+    "tool.execute.before": async (input, output) => {
+      const startTime = Date.now();
 
-       try {
-         // Check if plugin is enabled
-         if (!config.enabled) {
-           return;
-         }
+      try {
+        // Check if plugin is enabled
+        if (!config.enabled) {
+          return;
+        }
 
-         // Check if this tool should trigger analysis
-         if (!config.analyze_after_tools.includes(input.tool)) {
-           return;
-         }
+        // Check if this tool should trigger analysis
+        if (!config.analyze_after_tools.includes(input.tool)) {
+          return;
+        }
 
-         // Get user message if available from SDK
-         const userMessage = (input as any).userMessage || (input as any).message || "";
-         const lastAgentResponse = (input as any).lastAgentResponse || (input as any).agentResponse || "";
+        // Get user message if available from SDK
+        const userMessage = (input as any).userMessage || (input as any).message || "";
+        const lastAgentResponse = (input as any).lastAgentResponse || (input as any).agentResponse || "";
 
-         // Apply min_message_length filter
-         if (userMessage.length > 0 && userMessage.length < config.min_message_length) {
-           console.debug(
-             `[Synapse] Skipping message (too short: ${userMessage.length} < ${config.min_message_length})`
-           );
-           return;
-         }
+        // Apply min_message_length filter
+        if (userMessage.length > 0 && userMessage.length < config.min_message_length) {
+          return;
+        }
 
-         console.debug(`[Synapse] Processing message (${userMessage.length} chars)`);
+        // Apply skip_patterns filter
+        for (const pattern of config.skip_patterns) {
+          try {
+            const regex = new RegExp(pattern, 'i');
+            if (regex.test(userMessage)) {
+              return;
+            }
+          } catch (error) {
+            // Invalid pattern - skip silently
+          }
+        }
 
-         // Apply skip_patterns filter
-         for (const pattern of config.skip_patterns) {
-           try {
-             const regex = new RegExp(pattern, 'i');
-             if (regex.test(userMessage)) {
-               console.log(
-                 `[Synapse] Skipping message (matched skip pattern: "${pattern}")`
-               );
-               return;
-             }
-           } catch (error) {
-             console.error(
-               `[Synapse] Invalid skip pattern: "${pattern}" - ${error}`
-             );
-             // Continue with next pattern instead of failing
-           }
-         }
+        // Try to call RAG tool if we have context
+        try {
+          if (userMessage.length > 0 || lastAgentResponse.length > 0) {
+            await ctx.tools.call("rag.analyze_conversation", {
+              project_id: config.rag_project_id,
+              user_message: userMessage,
+              agent_response: lastAgentResponse,
+              context: {
+                tool_name: input.tool,
+                tool_arguments: input.arguments,
+                timestamp: new Date().toISOString()
+              },
+              auto_store: true,
+              extraction_mode: config.extraction_mode,
+              return_only: false
+            });
+          }
+        } catch (ragError) {
+          // RAG tool call failed silently
+        }
 
-         console.debug(`[Synapse] tool.execute.before: tool=${input.tool}, session=${input.sessionID}`);
-
-         // Try to call RAG tool if we have context
-         try {
-           if (userMessage.length > 0 || lastAgentResponse.length > 0) {
-             const result = await ctx.tools.call("rag.analyze_conversation", {
-               project_id: config.rag_project_id,
-               user_message: userMessage,
-               agent_response: lastAgentResponse,
-               context: {
-                 tool_name: input.tool,
-                 tool_arguments: input.arguments,
-                 timestamp: new Date().toISOString()
-               },
-               auto_store: true,
-               extraction_mode: config.extraction_mode,
-               return_only: false
-             });
-
-             console.log(
-               `[Synapse] Analyzed conversation: ` +
-               `${result.facts_stored} facts, ${result.episodes_stored} episodes`
-             );
-           } else {
-             console.log(`[Synapse] No conversation context available for analysis`);
-           }
-         } catch (ragError: any) {
-           const ragDuration = Date.now() - startTime;
-           console.error(
-             `[Synapse] RAG tool call failed: ${ragError.message || ragError} (${ragDuration}ms)`
-           );
-           console.log("[Synapse] Continuing without analysis (graceful degradation)");
-           // Don't rethrow - allow tool to proceed
-         }
-
-         const duration = Date.now() - startTime;
-         if (duration > 50) {
-           console.warn(
-             `[Synapse] Slow hook execution: ${duration}ms (threshold: 50ms)`
-           );
-         } else {
-           console.debug(`[Synapse] Hook execution time: ${duration}ms`);
-         }
-
-         return;
-
-       } catch (error) {
-         const duration = Date.now() - startTime;
-         console.error(`[Synapse] Error in tool.execute.before: ${error} (${duration}ms)`);
-         // Never throw - allow tool to proceed
-         return;
-       }
-     },
+        return;
+      } catch (error) {
+        // Hook error - continue silently
+        return;
+      }
+    },
 
     /**
      * Hook called after tool execution
-     * Tracks tool execution for debugging
+     * Tracks tool execution
      */
     "tool.execute.after": async (input, output) => {
-       const startTime = Date.now();
-
-       try {
-         if (!config.enabled) {
-           return;
-         }
-
-         console.debug(
-           `[Synapse] tool.execute.after:`, {
-             tool: input.tool,
-             session_id: input.sessionID,
-             result_title: output.title,
-             result_status: output.status
-           }
-         );
-
-         const duration = Date.now() - startTime;
-         console.debug(`[Synapse] tool.execute.after execution time: ${duration}ms`);
-
-         return;
-
-        } catch (error) {
-          const duration = Date.now() - startTime;
-          console.error(`[Synapse] Error in tool.execute.after: ${error} (${duration}ms)`);
-          // Never throw - allow agent to continue
+      try {
+        if (!config.enabled) {
           return;
+        }
+
+        // Hook completed silently
+        return;
+      } catch (error) {
+        // Hook error - continue silently
+        return;
       }
     }
   };
@@ -206,22 +138,9 @@ async function callRAGTool(client: any, toolName: string, args: any): Promise<an
     const result = await client.tools.call(toolName, args);
     return result;
   } catch (error) {
-    console.error(`[Synapse] Failed to call RAG tool ${toolName}: ${error}`);
+    // RAG tool call failed - throw to allow error handling
     throw error;
   }
-}
-
-/**
- * Helper function to check if message matches skip patterns
- */
-function shouldSkipMessage(message: string, skipPatterns: string[]): boolean {
-  for (const pattern of skipPatterns) {
-    const regex = new RegExp(pattern, 'i');
-    if (regex.test(message)) {
-      return true;
-    }
-  }
-  return false;
 }
 
 export default SynapseAutoLearningPlugin;

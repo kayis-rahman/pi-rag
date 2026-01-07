@@ -8,6 +8,8 @@ from typing import List, Dict, Any, Optional
 from pathlib import Path
 
 from .retriever import get_retriever
+from .logger import get_logger
+logger = get_logger(__name__)
 
 
 def chunk_text(
@@ -128,7 +130,7 @@ def ingest_file(
     content = read_file(str(path))
     
     if not content.strip():
-        print(f"Warning: Empty file: {file_path}")
+        logger.warning(f"Empty file: {file_path}")
         return 0
     
     # Chunk the content
@@ -158,7 +160,7 @@ def ingest_file(
     retriever = get_retriever(config_path)
     count = retriever.add_documents(chunks, chunk_metadata)
     
-    print(f"Ingested {count} chunks from {path.name}")
+    logger.info(f"Ingested {count} chunks from {path.name}")
     return count
 
 
@@ -210,7 +212,7 @@ def ingest_text(
     retriever = get_retriever(config_path)
     count = retriever.add_documents(chunks, chunk_metadata)
     
-    print(f"Ingested {count} chunks from {source_name}")
+    logger.info(f"Ingested {count} chunks from {source_name}")
     return count
 
 
@@ -218,6 +220,7 @@ if __name__ == "__main__":
     import sys
     
     if len(sys.argv) < 2:
+        # Keep usage as print (CLI help)
         print("Usage: python -m rag.ingest <file_path> [chunk_size] [chunk_overlap]")
         sys.exit(1)
     
@@ -227,7 +230,7 @@ if __name__ == "__main__":
     
     try:
         count = ingest_file(file_path, chunk_size, chunk_overlap)
-        print(f"Successfully ingested {count} chunks")
+        logger.info(f"Successfully ingested {count} chunks")
     except Exception as e:
-        print(f"Error: {e}")
+        logger.error(f"Error: {e}")
         sys.exit(1)

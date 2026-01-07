@@ -16,6 +16,8 @@ from typing import List, Dict, Any, Optional
 from collections import OrderedDict
 
 from .model_manager import get_model_manager, ModelConfig
+from .logger import get_logger
+logger = get_logger(__name__)
 
 
 class EmbeddingService:
@@ -44,7 +46,7 @@ class EmbeddingService:
         import os
         self._test_mode = os.environ.get("RAG_TEST_MODE", "false").lower() == "true"
         if self._test_mode:
-            print("⚠️  RAG_TEST_MODE enabled: Using mock embeddings")
+            logger.warning("RAG_TEST_MODE enabled: Using mock embeddings")
 
         # Register embedding model if path is set (not in test mode)
         if self.model_path and not self._test_mode:
@@ -70,7 +72,7 @@ class EmbeddingService:
                 self.n_ctx = config.get("embedding_n_ctx", 2048)
                 self.n_gpu_layers = config.get("embedding_n_gpu_layers", -1)
         except Exception as e:
-            print(f"Warning: Failed to load config: {e}")
+            logger.warning(f"Failed to load config: {e}")
     
     def _register_embedding_model(self) -> None:
         """Register the embedding model with the model manager."""
@@ -98,7 +100,7 @@ class EmbeddingService:
         self.model_path = model_path
         self.model_name = model_name
 
-        print(model_path)
+        logger.debug(f"Model path: {model_path}")
         if os.path.exists(model_path):
             self._register_embedding_model()
         else:
@@ -144,8 +146,8 @@ class EmbeddingService:
         # Check if model file exists before attempting to load
         expanded_path = os.path.expanduser(self.model_path)
         if not os.path.exists(expanded_path):
-            print(f"⚠️  Embedding model file not found: {expanded_path}")
-            print(f"⚠️  Falling back to test mode with mock embeddings")
+            logger.warning(f"Embedding model file not found: {expanded_path}")
+            logger.warning("Falling back to test mode with mock embeddings")
             self._test_mode = True
         
         # Check cache first
@@ -194,13 +196,13 @@ class EmbeddingService:
                             uncached_texts
                         )
                 except FileNotFoundError as e:
-                    print(f"⚠️  Embedding model not found: {e}")
-                    print(f"🔄 Falling back to test mode with mock embeddings")
+                    logger.warning(f"Embedding model not found: {e}")
+                    logger.warning("Falling back to test mode with mock embeddings")
                     self._test_mode = True
                     new_embeddings = self._generate_mock_embeddings(uncached_texts)
                 except Exception as e:
-                    print(f"⚠️  Embedding generation error: {type(e).__name__}: {e}")
-                    print(f"🔄 Falling back to test mode with mock embeddings")
+                    logger.warning(f"Embedding generation error: {type(e).__name__}: {e}")
+                    logger.warning("Falling back to test mode with mock embeddings")
                     self._test_mode = True
                     new_embeddings = self._generate_mock_embeddings(uncached_texts)
 

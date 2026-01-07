@@ -23,11 +23,15 @@ Memory MUST NOT be written for:
 """
 
 import json
+import logging
 import re
 from typing import List, Dict, Any, Optional, TYPE_CHECKING
 
 # Import at runtime to avoid circular imports
 from .memory_store import MemoryFact, get_memory_store
+from .logger import get_logger
+
+logger = get_logger(__name__)
 
 if TYPE_CHECKING:
     from .memory_store import MemoryStore
@@ -229,7 +233,7 @@ Return ONLY valid JSON."""
             return facts
 
         except Exception as e:
-            print(f"Error in memory extraction: {e}")
+            logger.error(f"Error in memory extraction: {e}")
             return []
 
     def _contains_explicit_memory_keyword(self, text: str) -> bool:
@@ -351,7 +355,7 @@ Return ONLY valid JSON."""
             # Extract JSON from response (handle potential markdown code blocks)
             json_match = re.search(r'\{[\s\S]*\}', response_text)
             if not json_match:
-                print("No valid JSON found in response")
+                logger.warning("No valid JSON found in response")
                 return []
 
             json_str = json_match.group(0)
@@ -359,12 +363,12 @@ Return ONLY valid JSON."""
 
             # Validate structure
             if not isinstance(data, dict) or "facts" not in data:
-                print("Invalid response structure: missing 'facts' key")
+                logger.warning("Invalid response structure: missing 'facts' key")
                 return []
 
             facts_array = data["facts"]
             if not isinstance(facts_array, list):
-                print("Invalid 'facts' type: expected list")
+                logger.warning("Invalid 'facts' type: expected list")
                 return []
 
             # Convert to MemoryFact objects
@@ -373,13 +377,13 @@ Return ONLY valid JSON."""
                     fact = self._dict_to_memory_fact(fact_data, scope)
                     facts.append(fact)
                 except (ValueError, KeyError) as e:
-                    print(f"Invalid fact data: {e}")
+                    logger.warning(f"Invalid fact data: {e}")
                     continue
 
         except json.JSONDecodeError as e:
-            print(f"JSON decode error: {e}")
+            logger.error(f"JSON decode error: {e}")
         except Exception as e:
-            print(f"Error parsing response: {e}")
+            logger.error(f"Error parsing response: {e}")
 
         return facts
 
@@ -467,6 +471,6 @@ def extract_and_store(
             if stored_fact:
                 stored.append(stored_fact)
         except Exception as e:
-            print(f"Error storing memory fact: {e}")
+            logger.error(f"Error storing memory fact: {e}")
 
     return stored
