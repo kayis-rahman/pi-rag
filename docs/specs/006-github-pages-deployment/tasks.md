@@ -297,8 +297,8 @@ This document contains granular task breakdown for implementation of GitHub Page
 
 ## Task Summary
 
-### Total Tasks: 56
-### Pending: 33
+### Total Tasks: 57
+### Pending: 34
 ### Completed: 23
 ### In Progress: 0
 ### Blocked: 0
@@ -306,7 +306,7 @@ This document contains granular task breakdown for implementation of GitHub Page
 ### By Phase:
 - **Phase 1: Prerequisites & Verification** - 6 tasks (6/6 complete ✅)
 - **Phase 2: Workflow Updates** - 9 tasks (9/9 complete ✅)
-- **Phase 3: Testing & Deployment** - 11 tasks (8/11 complete - 73%)
+- **Phase 3: Testing & Deployment** - 12 tasks (8/12 complete - 67%)
 - **Phase 4: Validation & Completion** - 6 tasks (0/6 complete)
 
 ### By Priority:
@@ -383,22 +383,34 @@ This document contains granular task breakdown for implementation of GitHub Page
 - ✅ Deployment documentation updated with self-hosted runner details
 - ✅ enablement: automatic parameter added (commit: afc36df)
 - ⚠️ Changed approach: Feature branch instead of direct main push
-- ⚠️ TEMPORARY: Runners reverted to ubuntu-latest for testing (commit: 7abeb05)
-  - Reason: GitHub Pages not enabled yet, easier to test on ubuntu-latest
-  - Plan: Switch back to piworm after GitHub Pages is enabled and working
-  - Keep enablement: automatic parameter (will help enable GitHub Pages)
-- ⚠️ Tasks 3.3-3.6 require manual verification after GitHub Pages is enabled and workflow runs
+- ⚠️ Tasks 3.3-3.6 require manual verification after PR merge
+   - 3.3: Monitor build job logs
+   - 3.4: Monitor deploy job logs
+   - 3.5: Verify documentation deployment at https://kayis-rahman.github.io/synapse/
+   - 3.6: Test manual workflow dispatch from Actions tab
+
+### 3.2.5 Remove Test Workflow
+- [ ] Delete `.github/workflows/test.yml` file (Linked to Risk 6)
+- [ ] Commit removal with clear message (Linked to Risk 6)
+- [ ] Push removal to feature branch (Linked to Risk 6)
+
+**Why This Task Was Added:**
+- Test workflow (test.yml) runs on every push to main/develop
+- Creates unnecessary GitHub Actions usage and noise
+- Tests should be run manually via `pytest` command
+- Removing workflow allows manual control over when tests run
+
+**Expected Result:**
+- No automatic test runs on push/PR
+- Reduced GitHub Actions usage
+- Manual testing via: `pytest -m unit`, `pytest -m integration`, etc.
+
+**Related**: Task 3.2.4 (Revert to ubuntu-latest) - test.yml uses ubuntu-latest, which is currently what workflow uses
 
 **Monitoring Links:**
 - PR: https://github.com/kayis-rahman/synapse/pull/1 ✅ CREATED
 - GitHub Actions: https://github.com/kayis-rahman/synapse/actions (workflow will run after PR merge)
 - Deployed docs: https://kayis-rahman.github.io/synapse/ (will update after PR merge)
-
-⚠️ **CURRENT STATE**: Using ubuntu-latest runners (temporarily)
-- Reverted from [self-hosted, piworm] to ubuntu-latest
-- Reason: GitHub Pages not enabled yet, easier to test on ubuntu-latest
-- Plan: Switch back to piworm after GitHub Pages is enabled and working
-- Current workflow uses: ubuntu-latest (both build and deploy jobs)
 
 ---
 
