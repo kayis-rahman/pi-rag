@@ -15,8 +15,9 @@ This is the "Source of Truth" for all SYNAPSE features. Each feature follows the
    | 003-rag-quality-metrics | RAG Quality Metrics Dashboard | [Deferred] | ⏳ Pending |
    | 004-universal-hook-auto-learning | Universal Multi-Agent Hook Auto-Learning | [Production Ready] | 2026-01-07 | 298046e |
    | 005-cli-priority-testing | CLI Command Priority Testing | [In Progress] | ⏳ Pending | a048c51 |
-   | 006-standardize-logging | Standardize Logging System | [Completed] | 2025-01-07 | 4c3c494 |
-  | 005-cli-priority-testing | CLI Command Priority Testing | [In Progress] | ⏳ Pending | a048c51 |
+| 006-standardize-logging | Standardize Logging System | [Completed] | 2025-01-07 | 4c3c494 |
+   | 007-cli-manual-testing-and-docs | CLI Manual Testing & VitePress Docs | [In Progress] | ⏳ Pending |
+   | 005-cli-priority-testing | CLI Command Priority Testing | [In Progress] | ⏳ Pending | a048c51 |
       | **Phase 1 (Foundation)**: ✅ Complete (43/43 tasks, 100%)
       | **Phase 2 (Server Operations)**: ⏳ Testing In Progress (62/62 tasks, 100%)
       | **Phase 2.1: Start Tests** | ✅ Complete (14/14 tasks, test_p1_start.py)
@@ -27,6 +28,13 @@ This is the "Source of Truth" for all SYNAPSE features. Each feature follows the
       | **Phase 2.6: Documentation** | ⏳ IN PROGRESS (0/3 tasks)
       | **Test Results**: P1-1 (3/7), P1-2 (5/6), P1-3 (3/7), P1-4 (1/4)
       | **Bugs Discovered**: 5 bugs (BUG-1 to BUG-5, see PHASE_2_TEST_RESULTS_2.5.md)
+   | 007-cli-manual-testing-and-docs | CLI Manual Testing & VitePress Docs | [In Progress] | ⏳ Pending |
+      | **Phase 1**: Manual CLI Testing - ⏳ IN PROGRESS (0/52 tasks)
+      | **Phase 2**: Bug Fixes - ⏳ PENDING (0/11 tasks)
+      | **Phase 3**: Test Coverage - ⏳ PENDING (0/43 tasks)
+      | **Phase 4**: VitePress Documentation - ⏳ PENDING (0/29 tasks)
+      | **Phase 5**: Deployment - ⏳ PENDING (0/7 tasks)
+      | **Phase 6**: Completion - ⏳ PENDING (0/5 tasks)
      | **Claude Code Adapter**: ⏸ Future Work (Phase 3.2: 0/20 tasks)
      | **Other Adapters**: ⏸ Future Work (Phase 3.3: 0/40 tasks)
 
