@@ -7,6 +7,9 @@ export default defineConfig({
   // md folder is now in app/ directory
   srcDir: "./md",
 
+  // GitHub Pages base path - site is served from /synapse/ subdirectory
+  base: "/synapse/",
+
   title: "SYNAPSE",
   description: "Your Data Meets Intelligence - Local-first RAG system",
 
