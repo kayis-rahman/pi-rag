@@ -74,7 +74,7 @@ def check_server_running(port: int = 8002) -> bool:
 def stop_server_docker():
     """Stop Docker container if running."""
     try:
-        subprocess.run(["docker", "compose", "down"], timeout=30, capture_output=True, text=True)
+        subprocess.run(["docker", "compose", "-f", "docker-compose.mcp.yml", "down"], timeout=30, capture_output=True, text=True)
         time.sleep(2)  # Wait for graceful shutdown
     except Exception:
         pass
@@ -132,8 +132,8 @@ def test_start_1_docker_compose():
         print(f"Testing: {test_name}")
         print(f"{'='*60}")
 
-        # Run docker compose up
-        cmd = ["docker", "compose", "up", "-d", "rag-mcp"]
+        # Run docker compose up with correct file
+        cmd = ["docker", "compose", "-f", "docker-compose.mcp.yml", "up", "-d", "rag-mcp"]
         exit_code, stdout, stderr, duration = run_command(cmd, 10)
 
         # Assertions

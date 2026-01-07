@@ -1,0 +1,58 @@
+---
+title: MCP Protocol
+description: Model Context Protocol integration
+---
+
+# MCP Protocol
+
+SYNAPSE implements the Model Context Protocol (MCP) for seamless AI integration.
+
+## MCP Tools
+
+SYNAPSE provides 7 MCP tools for memory interaction:
+
+1. **`synapse.list_projects`** - List all registered projects
+2. **`synapse.list_sources`** - List document sources in a project
+3. **`synapse.get_context`** - Get comprehensive context from all memory types
+4. **`synapse.search`** - Search semantic memory
+5. **`synapse.ingest_file`** - Ingest files into semantic memory
+6. **`synapse.add_fact`** - Add authoritative facts
+7. **`synapse.add_episode`** - Add episodic lessons
+
+## HTTP Transport
+
+SYNAPSE provides an HTTP wrapper for MCP:
+
+### Endpoint
+
+```
+http://localhost:8002/mcp
+```
+
+### Example Usage
+
+```bash
+# List projects
+curl http://localhost:8002/mcp -X POST -d '{
+  "jsonrpc": "2.0",
+  "method": "tools/list",
+  "id": 1
+}'
+```
+
+### Integration with AI Clients
+
+Configure your AI client (Claude, Cursor, etc.) to use SYNAPSE MCP server:
+
+```json
+{
+  "mcpServers": {
+    "synapse": {
+      "command": "python",
+      "args": ["/path/to/synapse/mcp_server/rag_server.py"]
+    }
+  }
+}
+```
+
+Next: [Overview](../overview)

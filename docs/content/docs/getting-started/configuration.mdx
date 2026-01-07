@@ -1,0 +1,50 @@
+---
+title: Configuration
+description: Configure SYNAPSE for your environment
+---
+
+# Configuration
+
+## Environment Variables
+
+Set these in your `.env` file:
+
+```bash
+# Server configuration
+HOST=0.0.0.0
+PORT=8002
+
+# RAG configuration
+PROJECT_ROOT=/opt/synapse/data
+CHUNK_SIZE=500
+CHUNK_OVERLAP=50
+```
+
+## Configuration Files
+
+### `configs/rag_config.json`
+
+Main RAG configuration file with:
+- Chunking settings (size, overlap)
+- Retrieval settings (top_k, min_score)
+- Model paths
+- Server settings
+
+### `configs/models_config.json`
+
+Model registry with:
+- Available models
+- Model configurations
+- Loading preferences
+
+## Data Directory
+
+```bash
+/opt/synapse/data/
+├── semantic_index/          # Document embeddings
+├── memory.db               # Symbolic memory (facts)
+├── episodic.db             # Episodic memory (lessons)
+└── registry.db              # Project registry
+```
+
+Back to: [Getting Started](../getting-started)

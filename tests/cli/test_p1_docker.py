@@ -93,12 +93,12 @@ def main():
 
     try:
         # Stop container first
-        subprocess.run(["docker", "compose", "down"], timeout=10, capture_output=True, text=True)
+        subprocess.run(["docker", "compose", "-f", "docker-compose.mcp.yml", "down"], timeout=10, capture_output=True, text=True)
         time.sleep(2)
 
-        cmd = ["docker", "compose", "up", "-d", "rag-mcp"]
+        cmd = ["docker", "compose", "-f", "docker-compose.mcp.yml", "up", "-d", "rag-mcp"]
         exit_code_1, stdout_1, stderr_1, duration_1 = run_command(cmd, 10)
-        assert_success(test_name_1, exit_code_1, stdout_1, stderr_1, duration_1)
+        assert_success(test_name_1, exit_code_1, stdout_1, stderr_1, duration_1, TIMEOUTS["compose"])
 
         # Verify container is running
         check_cmd = ["docker", "ps", "--filter", "name=rag-mcp", "--format", "{{.Status}}"]
@@ -141,7 +141,7 @@ def main():
             assertions=[]
         )
     finally:
-        subprocess.run(["docker", "compose", "down"], timeout=10, capture_output=True, text=True)
+        subprocess.run(["docker", "compose", "-f", "docker-compose.mcp.yml", "down"], timeout=10, capture_output=True, text=True)
 
     # Test Docker-2: Docker Compose Stop
     test_name_2 = "Docker-2: Docker Compose Stop"
@@ -151,14 +151,15 @@ def main():
 
     try:
         # Start container first
-        subprocess.run(["docker", "compose", "up", "-d", "rag-mcp"], timeout=10, capture_output=True, text=True)
+        subprocess.run(["docker", "compose", "-f", "docker-compose.mcp.yml", "up", "-d", "rag-mcp"], timeout=10, capture_output=True, text=True)
         time.sleep(2)
 
-        cmd = ["docker", "compose", "down"]
+        cmd = ["docker", "compose", "-f", "docker-compose.mcp.yml", "down"]
         exit_code_2, stdout_2, stderr_2, duration_2 = run_command(cmd, 5)
-        assert_success(test_name_2, exit_code_2, stdout_2, stderr_2, duration_2)
+        assert_success(test_name_2, exit_code_2, stdout_2, stderr_2, duration_2, TIMEOUTS["compose"])
 
         # Verify container stopped
+        check_cmd = ["docker", "ps", "--filter", "name=rag-mcp", "--format", "{{.Status}}"]
         check_result = subprocess.run(check_cmd, capture_output=True, text=True, timeout=5)
         if "running" in check_result.stdout.lower():
             raise AssertionError(f"Container still running: {check_result.stdout}")
@@ -204,12 +205,12 @@ def main():
 
     try:
         # Start container
-        subprocess.run(["docker", "compose", "up", "-d", "rag-mcp"], timeout=10, capture_output=True, text=True)
+        subprocess.run(["docker", "compose", "-f", "docker-compose.mcp.yml", "up", "-d", "rag-mcp"], timeout=10, capture_output=True, text=True)
         time.sleep(2)
 
-        cmd = ["docker", "compose", "ps"]
+        cmd = ["docker", "compose", "-f", "docker-compose.mcp.yml", "ps"]
         exit_code_3, stdout_3, stderr_3, duration_3 = run_command(cmd, 2)
-        assert_success(test_name_3, exit_code_3, stdout_3, stderr_3, duration_3)
+        assert_success(test_name_3, exit_code_3, stdout_3, stderr_3, duration_3, TIMEOUTS["compose"])
 
         # Check output contains service status
         if "rag-mcp" not in stdout_3.lower():
@@ -250,7 +251,7 @@ def main():
             assertions=[]
         )
     finally:
-        subprocess.run(["docker", "compose", "down"], timeout=10, capture_output=True, text=True)
+        subprocess.run(["docker", "compose", "-f", "docker-compose.mcp.yml", "down"], timeout=10, capture_output=True, text=True)
 
     # Test Docker-4: Docker Compose Logs
     test_name_4 = "Docker-4: Docker Compose Logs"
@@ -260,12 +261,12 @@ def main():
 
     try:
         # Start container and let it generate logs
-        subprocess.run(["docker", "compose", "up", "-d", "rag-mcp"], timeout=10, capture_output=True, text=True)
+        subprocess.run(["docker", "compose", "-f", "docker-compose.mcp.yml", "up", "-d", "rag-mcp"], timeout=10, capture_output=True, text=True)
         time.sleep(2)
 
-        cmd = ["docker", "compose", "logs", "rag-mcp"]
+        cmd = ["docker", "compose", "-f", "docker-compose.mcp.yml", "logs", "rag-mcp"]
         exit_code_4, stdout_4, stderr_4, duration_4 = run_command(cmd, 5)
-        assert_success(test_name_4, exit_code_4, stdout_4, stderr_4, duration_4)
+        assert_success(test_name_4, exit_code_4, stdout_4, stderr_4, duration_4, TIMEOUTS["compose"])
 
         # Check if logs show startup messages
         if "SYNAPSE" not in stdout_4:
@@ -310,7 +311,7 @@ def main():
             assertions=[]
         )
     finally:
-        subprocess.run(["docker", "compose", "down"], timeout=10, capture_output=True, text=True)
+        subprocess.run(["docker", "compose", "-f", "docker-compose.mcp.yml", "down"], timeout=10, capture_output=True, text=True)
 
     # Print summary
     print_test_summary()

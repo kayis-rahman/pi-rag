@@ -1,0 +1,235 @@
+---
+title: MCP Tools
+description: Complete reference of SYNAPSE MCP tools
+---
+
+# MCP Tools
+
+SYNAPSE provides 7 MCP tools for interacting with the memory system.
+
+## Tool 1: `synapse.list_projects`
+
+List all registered projects.
+
+### Parameters
+
+```json
+{}
+```
+
+### Example
+
+```json
+{
+  "method": "tools/call",
+  "params": {
+    "name": "synapse.list_projects",
+    "arguments": {}
+  }
+}
+```
+
+---
+
+## Tool 2: `synapse.list_sources`
+
+List all document sources in a project.
+
+### Parameters
+
+```json
+{
+  "project_id": "synapse"
+}
+```
+
+### Example
+
+```json
+{
+  "method": "tools/call",
+  "params": {
+    "name": "synapse.list_sources",
+    "arguments": {
+      "project_id": "synapse"
+    }
+  }
+}
+```
+
+---
+
+## Tool 3: `synapse.get_context`
+
+Get comprehensive context from all memory types (dendrites, synapses, cell bodies).
+
+### Parameters
+
+```json
+{
+  "project_id": "synapse",
+  "context_type": "all",
+  "query": "your question here",
+  "max_results": 10
+}
+```
+
+### Example
+
+```json
+{
+  "method": "tools/call",
+  "params": {
+    "name": "synapse.get_context",
+    "arguments": {
+      "project_id": "synapse",
+      "context_type": "all",
+      "query": "How does SYNAPSE work?",
+      "max_results": 10
+    }
+  }
+}
+```
+
+---
+
+## Tool 4: `synapse.search`
+
+Search dendrites (semantic memory) for relevant documents.
+
+### Parameters
+
+```json
+{
+  "project_id": "synapse",
+  "query": "search term",
+  "memory_type": "semantic",
+  "top_k": 3
+}
+```
+
+### Example
+
+```json
+{
+  "method": "tools/call",
+  "params": {
+    "name": "synapse.search",
+    "arguments": {
+      "project_id": "synapse",
+      "query": "memory system",
+      "memory_type": "semantic",
+      "top_k": 3
+    }
+  }
+}
+```
+
+---
+
+## Tool 5: `synapse.ingest_file`
+
+Ingest a file into dendrites (semantic memory).
+
+### Parameters
+
+```json
+{
+  "file_path": "/path/to/file.py",
+  "metadata": {
+    "project_id": "synapse",
+    "type": "code"
+  }
+}
+```
+
+### Example
+
+```json
+{
+  "method": "tools/call",
+  "params": {
+    "name": "synapse.ingest_file",
+    "arguments": {
+      "file_path": "/home/user/project/main.py",
+      "metadata": {
+        "project_id": "synapse",
+        "type": "code"
+      }
+    }
+  }
+}
+```
+
+---
+
+## Tool 6: `synapse.add_fact`
+
+Add symbolic fact to cell bodies (100% accuracy).
+
+### Parameters
+
+```json
+{
+  "project_id": "synapse",
+  "fact_key": "api_endpoint",
+  "fact_value": "http://localhost:8002/mcp",
+  "confidence": 1.0,
+  "category": "system"
+}
+```
+
+### Example
+
+```json
+{
+  "method": "tools/call",
+  "params": {
+    "name": "synapse.add_fact",
+    "arguments": {
+      "project_id": "synapse",
+      "fact_key": "version",
+      "fact_value": "1.2.0",
+      "confidence": 1.0,
+      "category": "project"
+    }
+  }
+}
+```
+
+---
+
+## Tool 7: `synapse.add_episode`
+
+Add episodic lesson to synapses (85% confidence).
+
+### Parameters
+
+```json
+{
+  "project_id": "synapse",
+  "title": "Successful deployment",
+  "content": "Deployed SYNAPSE to GitHub Pages successfully",
+  "lesson_type": "success",
+  "quality": 0.9
+}
+```
+
+### Example
+
+```json
+{
+  "method": "tools/call",
+  "params": {
+    "name": "synapse.add_episode",
+    "arguments": {
+      "project_id": "synapse",
+      "title": "Fixed ingestion bug",
+      "content": "Resolved issue with file path handling",
+      "lesson_type": "success"
+    }
+  }
+}
+```
+
+Back to: [Usage](../usage)

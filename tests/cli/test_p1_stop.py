@@ -143,7 +143,7 @@ def test_stop_1_docker_compose():
         exit_code, stdout, stderr, duration = run_command(cmd, 5)
 
         # Assertions
-        assert_success(test_name, exit_code, stdout, stderr, duration)
+        assert_success(test_name, exit_code, stdout, stderr, duration, TIMEOUTS["stop"])
         assertions.append({"name": "exit_code", "expected": 0, "actual": exit_code, "passed": True})
         assertions.append({"name": "timeout", "expected": "<5s", "actual": f"{duration:.2f}s", "passed": True})
 
@@ -224,7 +224,7 @@ def test_stop_2_native():
         exit_code, stdout, stderr, duration = run_command(cmd, 5)
 
         # Assertions
-        assert_success(test_name, exit_code, stdout, stderr, duration)
+        assert_success(test_name, exit_code, stdout, stderr, duration, TIMEOUTS["stop"])
         assertions.append({"name": "exit_code", "expected": 0, "actual": exit_code, "passed": True})
         assertions.append({"name": "timeout", "expected": "<5s", "actual": f"{duration:.2f}s", "passed": True})
 
@@ -468,7 +468,7 @@ def test_stop_5_volume_persistence():
         exit_code, stdout, stderr, duration = run_command(cmd, 10)
 
         # Assertions
-        assert_success(test_name, exit_code, stdout, stderr, duration)
+        assert_success(test_name, exit_code, stdout, stderr, duration, TIMEOUTS["stop"])
         assertions.append({"name": "exit_code", "expected": 0, "actual": exit_code, "passed": True})
         assertions.append({"name": "timeout", "expected": "<5s", "actual": f"{duration:.2f}s", "passed": True})
 
@@ -565,7 +565,7 @@ def test_stop_6_connection_cleanup():
         exit_code, stdout, stderr, duration = run_command(cmd, 5)
 
         # Assertions
-        assert_success(test_name, exit_code, stdout, stderr, duration)
+        assert_success(test_name, exit_code, stdout, stderr, duration, TIMEOUTS["stop"])
         assertions.append({"name": "exit_code", "expected": 0, "actual": exit_code, "passed": True})
         assertions.append({"name": "timeout", "expected": "<5s", "actual": f"{duration:.2f}s", "passed": True})
 

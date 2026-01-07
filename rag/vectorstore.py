@@ -3,6 +3,9 @@ import os
 import numpy as np
 from typing import List, Dict, Optional, Tuple, Any
 
+from .logger import get_logger
+logger = get_logger(__name__)
+
 
 class VectorStore:
     """
@@ -132,7 +135,7 @@ class VectorStore:
             vectors = np.load(vectors_file)
             self.vectors = vectors.tolist()
         except Exception as e:
-            print(f"Warning: Failed to load vectors: {e}")
+            logger.warning(f"Failed to load vectors: {e}")
             self.vectors = []
 
         # Load documents
@@ -140,7 +143,7 @@ class VectorStore:
             with open(docs_file, 'r', encoding='utf-8') as f:
                 self.docs = json.load(f)
         except Exception as e:
-            print(f"Warning: Failed to load docs: {e}")
+            logger.warning(f"Failed to load docs: {e}")
             self.docs = []
 
         # Load metadata
@@ -148,7 +151,7 @@ class VectorStore:
             with open(meta_file, 'r', encoding='utf-8') as f:
                 self.metadata = json.load(f)
         except Exception as e:
-            print(f"Warning: Failed to load metadata: {e}")
+            logger.warning(f"Failed to load metadata: {e}")
             self.metadata = []
 
         # Validate lengths

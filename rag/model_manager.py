@@ -21,6 +21,9 @@ import threading
 import time
 import requests
 
+from .logger import get_logger
+logger = get_logger(__name__)
+
 try:
     from llama_cpp import Llama
     LLAMA_CPP_AVAILABLE = True
@@ -120,7 +123,7 @@ class ModelManager:
                     model_name=model_config.get("model_name", "")
                 )
         except Exception as e:
-            print("Warning: Failed to load model config: " + str(e))
+            logger.warning(f"Failed to load model config: {e}")
     
     def register_model(self, name, config):
         """
@@ -162,7 +165,7 @@ class ModelManager:
             
             # Handle external models
             if config.is_external:
-                print("Using external model '" + name + "' at " + config.api_url)
+                logger.info(f"Using external model '{name}' at {config.api_url}")
                 # For external models, we don't actually "load" anything but return a client
                 # This is a placeholder - in practice you'd create an API client here
                 return self._create_external_client(config)
@@ -176,7 +179,7 @@ class ModelManager:
             self._evict_lru()
 
             # Load the model
-            print("Loading model '" + name + "' from " + config.path + "...")
+            logger.info(f"Loading model '{name}' from {config.path}...")
             start_time = time.time()
 
             if LLAMA_CPP_AVAILABLE and Llama is not None:
@@ -190,7 +193,7 @@ class ModelManager:
                 )
 
                 load_time = time.time() - start_time
-                print("Model '" + name + "' loaded in " + str(load_time) + "s")
+                logger.info(f"Model '{name}' loaded in {load_time}s")
 
                 # Store loaded model
                 self._loaded[name] = LoadedModel(
@@ -314,7 +317,7 @@ class ModelManager:
             if name not in self._loaded:
                 return False
             
-            print("Unloading model '" + name + "'...")
+            logger.info(f"Unloading model '{name}'...")
             
             # Delete model reference
             del self._loaded[name].model
@@ -324,7 +327,7 @@ class ModelManager:
             import gc
             gc.collect()
             
-            print("Model '" + name + "' unloaded")
+            logger.info(f"Model '{name}' unloaded")
             return True
     
     def unload_all(self):

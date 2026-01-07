@@ -1,0 +1,130 @@
+---
+title: Deployment
+description: Deploy SYNAPSE to production
+---
+
+# Deployment
+
+SYNAPSE can be deployed in various ways.
+
+## Local Deployment
+
+### Using MCP Server
+
+```bash
+# Start MCP server
+synapse-mcp-server
+
+# Server runs on http://localhost:8002/mcp
+```
+
+### Using systemd (Linux)
+
+```bash
+# Create service file
+sudo nano /etc/systemd/system/synapse.service
+```
+
+```ini
+[Unit]
+Description=SYNAPSE MCP Server
+After=network.target
+
+[Service]
+Type=simple
+User=your-user
+WorkingDirectory=/opt/synapse
+ExecStart=/usr/bin/python3 /path/to/synapse/mcp_server/rag_server.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+# Enable and start service
+sudo systemctl enable synapse
+sudo systemctl start synapse
+
+# Check status
+sudo systemctl status synapse
+```
+
+## Docker Deployment
+
+### Using docker-compose
+
+```bash
+# Start SYNAPSE MCP server
+docker-compose -f docker-compose.mcp.yml up -d
+
+# View logs
+docker-compose -f docker-compose.mcp.yml logs -f
+```
+
+### Using Dockerfile
+
+```bash
+# Build image
+docker build -t synapse:latest .
+
+# Run container
+docker run -d \
+  -p 8002:8002 \
+  -v /opt/synapse/data:/app/data \
+  synapse:latest
+```
+
+## GitHub Pages Deployment (Documentation)
+
+Documentation is automatically deployed to GitHub Pages on push to main branch.
+
+### Manual Deployment
+
+```bash
+# Build docs
+cd docs
+npm run build
+
+# Deploy to GitHub Pages
+npm run export
+cd out
+git init
+git add .
+git commit -m "Deploy docs"
+git push -f git@github.com:kayis-rahman/synapse.git gh-pages
+```
+
+### Automatic Deployment
+
+Docs are automatically deployed via GitHub Actions on push to `main` branch.
+
+View docs: https://kayis-rahman.github.io/synapse/
+
+## Monitoring
+
+### Check Server Status
+
+```bash
+# System status
+synapse-system-status
+
+# MCP health check
+curl http://localhost:8002/mcp -X POST -d '{
+  "jsonrpc": "2.0",
+  "method": "tools/list",
+  "id": 1
+}'
+```
+
+### Logs
+
+```bash
+# Server logs
+tail -f /var/log/synapse/error.log
+
+# Application logs
+tail -f /opt/synapse/logs/mcp-server.log
+```
+
+Back to: [Contributing](./contributing)

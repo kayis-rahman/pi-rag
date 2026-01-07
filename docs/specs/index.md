@@ -14,15 +14,19 @@ This is the "Source of Truth" for all SYNAPSE features. Each feature follows the
   | 002-auto-learning | Automatic Learning System | [Completed] | 2026-01-04 |
    | 003-rag-quality-metrics | RAG Quality Metrics Dashboard | [Deferred] | ⏳ Pending |
    | 004-universal-hook-auto-learning | Universal Multi-Agent Hook Auto-Learning | [Production Ready] | 2026-01-07 | 298046e |
-| 005-cli-priority-testing | CLI Command Priority Testing | [In Progress] | ⏳ Pending | daada52 |
-     | **Phase 1 (Foundation)**: ✅ Complete (43/43 tasks, 100%)
-     | **Phase 2 (Server Operations)**: ⏳ Implementation Complete (58/58 tasks, 100%)
-     | **Phase 2.1: Start Tests** | ✅ Complete (14/14 tasks, test_p1_start.py)
-     | **Phase 2.2: Stop Tests** | ✅ Complete (12/12 tasks, test_p1_stop.py)
-     | **Phase 2.3: Status Tests** | ✅ Complete (14/14 tasks, test_p1_status.py)
-     | **Phase 2.4: Docker Integration** | ✅ Complete (8/8 tasks, test_p1_docker.py)
-     | **Phase 2.5: Test Execution** | ⏳ PENDING (0/5 tasks)
-     | **Phase 2.6: Documentation** | ⏳ PENDING (0/3 tasks)
+   | 005-cli-priority-testing | CLI Command Priority Testing | [In Progress] | ⏳ Pending | a048c51 |
+   | 006-standardize-logging | Standardize Logging System | [Completed] | 2025-01-07 | 4c3c494 |
+  | 005-cli-priority-testing | CLI Command Priority Testing | [In Progress] | ⏳ Pending | a048c51 |
+      | **Phase 1 (Foundation)**: ✅ Complete (43/43 tasks, 100%)
+      | **Phase 2 (Server Operations)**: ⏳ Testing In Progress (62/62 tasks, 100%)
+      | **Phase 2.1: Start Tests** | ✅ Complete (14/14 tasks, test_p1_start.py)
+      | **Phase 2.2: Stop Tests** | ✅ Complete (12/12 tasks, test_p1_stop.py)
+      | **Phase 2.3: Status Tests** | ✅ Complete (14/14 tasks, test_p1_status.py)
+      | **Phase 2.4: Docker Integration** | ✅ Complete (8/8 tasks, test_p1_docker.py)
+      | **Phase 2.5: Test Execution** | ✅ COMPLETE (5/5 tasks, 16/24 passed, 66.7%)
+      | **Phase 2.6: Documentation** | ⏳ IN PROGRESS (0/3 tasks)
+      | **Test Results**: P1-1 (3/7), P1-2 (5/6), P1-3 (3/7), P1-4 (1/4)
+      | **Bugs Discovered**: 5 bugs (BUG-1 to BUG-5, see PHASE_2_TEST_RESULTS_2.5.md)
      | **Claude Code Adapter**: ⏸ Future Work (Phase 3.2: 0/20 tasks)
      | **Other Adapters**: ⏸ Future Work (Phase 3.3: 0/40 tasks)
 
@@ -213,6 +217,47 @@ This is the "Source of Truth" for all SYNAPSE features. Each feature follows the
 - Phase 4: Model Management (1-2 hours) - PENDING
 - Phase 5: Advanced Features (2-3 hours) - PENDING
 - Phase 6: Testing & Utilities (2-3 hours) - PENDING
+
+---
+
+### 006-standardize-logging
+
+**Objective**: Replace all print statements with Python's standard logging module across the codebase.
+
+**Status**: [In Progress]
+
+**Progress**:
+- ✅ Requirements.md created
+- ✅ Plan.md created
+- ✅ Tasks.md created (45 tasks across 8 phases)
+- ✅ Phase 0: Setup & Infrastructure (0/8 tasks)
+- ⏳ Phase 1: Core Modules (0/5 tasks)
+- ⏳ Phase 2: Tool Scripts (0/3 tasks)
+- ⏳ Phase 3: Memory Modules (0/3 tasks)
+- ⏳ Phase 4: Docstrings (0/6 tasks)
+- ⏳ Phase 5: Testing (0/6 tasks)
+- ⏳ Phase 6: Documentation (0/3 tasks)
+- ⏳ Phase 7: Cleanup (0/5 tasks)
+
+**Key Metrics**:
+- Target: Replace 75+ print statements across 23 files
+- Current: 0/75+ prints replaced
+- Progress: 0%
+- Timeline: 3 weeks (45 tasks)
+
+**Documents**:
+- `docs/specs/006-standardize-logging/requirements.md`
+- `docs/specs/006-standardize-logging/plan.md`
+- `docs/specs/006-standardize-logging/tasks.md`
+
+**Key Features**:
+- Environment variable configuration (LOG_LEVEL)
+- Dev: DEBUG level, Prod: INFO level
+- --debug flag override for all CLI scripts
+- Rich output maintained for CLI scripts (user experience unchanged)
+- File logging with rotation (10MB max, 5 backups)
+- All emojis removed from log messages
+- No backward compatibility mode (strict replacement)
 
 ---
 

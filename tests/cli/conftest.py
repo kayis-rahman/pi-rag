@@ -17,7 +17,11 @@ test_results: List[Dict[str, any]] = []
 TIMEOUTS = {
     "setup": 60,      # seconds
     "config": 2,       # seconds
-    "models_list": 2    # seconds
+    "models_list": 2,    # seconds
+    "start": 10,       # seconds
+    "stop": 5,         # seconds
+    "status": 2,        # seconds
+    "compose": 10,      # seconds (docker compose operations)
 }
 
 # Environments to test
@@ -287,7 +291,10 @@ def print_test_summary() -> None:
     print(f"\nTotal tests: {len(test_results)}")
     print(f"Passed: {sum(1 for r in test_results if r['passed'])}")
     print(f"Failed: {sum(1 for r in test_results if not r['passed'])}")
-    print(f"Success rate: {sum(1 for r in test_results if r['passed']) / len(test_results) * 100:.1f}%")
+    if len(test_results) > 0:
+        print(f"Success rate: {sum(1 for r in test_results if r['passed']) / len(test_results) * 100:.1f}%")
+    else:
+        print(f"Success rate: 0.0%")
 
     # Print individual results
     print(f"\nTest Results:")

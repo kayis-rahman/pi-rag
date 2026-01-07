@@ -2,12 +2,13 @@
 SYNAPSE CLI: Main entry point with configuration integration
 """
 
+import subprocess
 import typer
 from pathlib import Path
 from typing import Optional
 
-# Import CLI commands
-from synapse.cli.commands import start, stop, status, ingest, query, models, onboard
+# Import CLI commands (use _cmd suffix to avoid function name conflicts)
+from synapse.cli.commands import start as start_cmd, stop as stop_cmd, status as status_cmd, ingest as ingest_cmd, query as query_cmd, models, onboard
 from synapse.cli.commands import setup as setup_cmd
 
 # Import configuration
@@ -52,12 +53,18 @@ def start(
     print(f"🚀 Starting SYNAPSE server...")
     print(f"  Port: {config['mcp_port']}")
     print(f"  Environment: {config['environment']}")
-    
+
     # Call start command
-    start.start_server(
-        docker=docker,
-        port=config["mcp_port"]
-    )
+    if docker:
+        # Docker mode
+        success = start_cmd.start_docker(port=config["mcp_port"])
+    else:
+        # Native mode
+        success = start_cmd.start_native(port=config["mcp_port"])
+
+    if not success:
+        import sys
+        sys.exit(1)
 
 
 @app.command()
@@ -68,7 +75,7 @@ def stop():
     Stops running MCP server (either Docker or native mode).
     """
     print("🛑 Stopping SYNAPSE server...")
-    stop.stop_server()
+    stop_cmd.stop_server()
 
 
 @app.command()
@@ -103,8 +110,34 @@ def status(
         print(f"Data Directory: {config['data_dir']}")
         print(f"Models Directory: {config['models_dir']}")
         
+        # Check actual server status via health endpoint
+        port = config['mcp_port']
+        health_url = f"http://localhost:{port}/health"
+        
         print(f"\n📡 MCP Server Status:")
-        print(f"  ℹ️  Health check endpoint: http://localhost:{config['mcp_port']}/health")
+        print(f"  Port: {port}")
+        print(f"  Health Check: {health_url}")
+        
+        try:
+            result = subprocess.run(
+                ["curl", "-s", "-o", "/dev/null", "-w", "%{http_code}", health_url],
+                capture_output=True,
+                timeout=2
+            )
+            http_code = result.stdout.strip()
+            
+            if http_code == "200":
+                server_status = "running"
+                status_emoji = "✅"
+            else:
+                server_status = "stopped"
+                status_emoji = "❌"
+            
+            print(f"  Status: {status_emoji} {server_status}")
+        except subprocess.TimeoutExpired:
+            print(f"  Status: ❌ stopped (health check timeout)")
+        except Exception as e:
+            print(f"  Status: ❌ stopped (health check failed: {e})")
         
         print(f"\n🧠 Model Status:")
         print(f"  ℹ️  Check with: synapse models list")

@@ -112,7 +112,7 @@ def test_status_1_docker_running():
         exit_code, stdout, stderr, duration = run_command(cmd, 2)
 
         # Assertions
-        assert_success(test_name, exit_code, stdout, stderr, duration)
+        assert_success(test_name, exit_code, stdout, stderr, duration, TIMEOUTS["status"])
         assertions.append({"name": "exit_code", "expected": 0, "actual": exit_code, "passed": True})
         assertions.append({"name": "timeout", "expected": "<2s", "actual": f"{duration:.2f}s", "passed": True})
 
@@ -200,7 +200,7 @@ def test_status_2_docker_stopped():
         exit_code, stdout, stderr, duration = run_command(cmd, 2)
 
         # Assertions
-        assert_success(test_name, exit_code, stdout, stderr, duration)
+        assert_success(test_name, exit_code, stdout, stderr, duration, TIMEOUTS["status"])
         assertions.append({"name": "exit_code", "expected": 0, "actual": exit_code, "passed": True})
         assertions.append({"name": "timeout", "expected": "<2s", "actual": f"{duration:.2f}s", "passed": True})
 
@@ -279,7 +279,7 @@ def test_status_3_native_running():
         exit_code, stdout, stderr, duration = run_command(cmd, 2)
 
         # Assertions
-        assert_success(test_name, exit_code, stdout, stderr, duration)
+        assert_success(test_name, exit_code, stdout, stderr, duration, TIMEOUTS["status"])
         assertions.append({"name": "exit_code", "expected": 0, "actual": exit_code, "passed": True})
         assertions.append({"name": "timeout", "expected": "<2s", "actual": f"{duration:.2f}s", "passed": True})
 
@@ -370,7 +370,7 @@ def test_status_4_native_stopped():
         exit_code, stdout, stderr, duration = run_command(cmd, 2)
 
         # Assertions
-        assert_success(test_name, exit_code, stdout, stderr, duration)
+        assert_success(test_name, exit_code, stdout, stderr, duration, TIMEOUTS["status"])
         assertions.append({"name": "exit_code", "expected": 0, "actual": exit_code, "passed": True})
         assertions.append({"name": "timeout", "expected": "<2s", "actual": f"{duration:.2f}s", "passed": True})
 
@@ -449,7 +449,7 @@ def test_status_5_docker_verbose():
         exit_code, stdout, stderr, duration = run_command(cmd, 2)
 
         # Assertions
-        assert_success(test_name, exit_code, stdout, stderr, duration)
+        assert_success(test_name, exit_code, stdout, stderr, duration, TIMEOUTS["status"])
         assertions.append({"name": "exit_code", "expected": 0, "actual": exit_code, "passed": True})
         assertions.append({"name": "timeout", "expected": "<2s", "actual": f"{duration:.2f}s", "passed": True})
 
@@ -527,7 +527,7 @@ def test_status_6_native_verbose():
         exit_code, stdout, stderr, duration = run_command(cmd, 2)
 
         # Assertions
-        assert_success(test_name, exit_code, stdout, stderr, duration)
+        assert_success(test_name, exit_code, stdout, stderr, duration, TIMEOUTS["status"])
         assertions.append({"name": "exit_code", "expected": 0, "actual": exit_code, "passed": True})
         assertions.append({"name": "timeout", "expected": "<2s", "actual": f"{duration:.2f}s", "passed": True})
 
@@ -606,7 +606,7 @@ def test_status_7_health_check():
         exit_code, stdout, stderr, duration = run_command(cmd, 2)
 
         # Assertions
-        assert_success(test_name, exit_code, stdout, stderr, duration)
+        assert_success(test_name, exit_code, stdout, stderr, duration, TIMEOUTS["status"])
         assertions.append({"name": "exit_code", "expected": 0, "actual": exit_code, "passed": True})
         assertions.append({"name": "timeout", "expected": "<2s", "actual": f"{duration:.2f}s", "passed": True})
 

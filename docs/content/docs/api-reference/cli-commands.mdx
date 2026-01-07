@@ -1,0 +1,119 @@
+---
+title: CLI Commands
+description: Command-line interface for SYNAPSE
+---
+
+# CLI Commands
+
+SYNAPSE provides several command-line utilities.
+
+## synapse-mcp-server
+
+Start SYNAPSE MCP server:
+
+```bash
+synapse-mcp-server
+
+# With custom host/port
+synapse-mcp-server --host 0.0.0.0 --port 9000
+```
+
+### Options
+
+- `--host`: Server host (default: 0.0.0.0)
+- `--port`: Server port (default: 8002)
+- `--workers`: Number of workers (default: 1)
+- `--log-level`: Log level (debug, info, warning, error)
+
+## synapse-bulk-ingest
+
+Bulk ingest project files:
+
+```bash
+# Preview ingestion
+synapse-bulk-ingest --dry-run
+
+# Ingest current directory
+synapse-bulk-ingest
+
+# Custom project
+synapse-bulk-ingest --project-id myapp --root-dir /path/to/project
+
+# Filter by type
+synapse-bulk-ingest --file-type code --file-type doc
+```
+
+### Options
+
+- `--project-id`: Project ID (default: synapse)
+- `--root-dir`: Root directory (default: current)
+- `--dry-run`: Preview without ingesting
+- `--no-gitignore`: Ignore .gitignore patterns
+- `--file-type`: Filter by file type (code, config, doc, web, data, devops)
+- `--exclude`: Custom exclusion patterns
+- `--no-incremental`: Disable checksum-based filtering
+
+## synapse-system-status
+
+Check system status:
+
+```bash
+synapse-system-status
+
+# With verbose output
+synapse-system-status --verbose
+```
+
+### Output
+
+Shows:
+- Memory database status
+- Document counts
+- Recent episodes
+- System health
+- Configuration summary
+
+## synapse-query
+
+Query SYNAPSE (if implemented):
+
+```bash
+# Query all memory
+synapse-query "How does SYNAPSE work?"
+
+# Query specific memory type
+synapse-query "architecture" --memory-type semantic
+```
+
+### Options
+
+- `--memory-type`: Specify memory type (semantic, episodic, symbolic, all)
+- `--top-k`: Number of results (default: 3)
+- `--format`: Output format (text, json)
+
+## Examples
+
+### Bulk Ingest with Filters
+
+```bash
+# Ingest only Python files
+synapse-bulk-ingest --file-type code
+
+# Ingest documentation only
+synapse-bulk-ingest --file-type doc
+
+# Ingest with custom exclusions
+synapse-bulk-ingest --exclude "*.tmp" --exclude "test/"
+```
+
+### System Status Check
+
+```bash
+# Quick status check
+synapse-system-status
+
+# Detailed health check
+synapse-system-status --verbose --all
+```
+
+Back to: [API Reference](../api-reference)

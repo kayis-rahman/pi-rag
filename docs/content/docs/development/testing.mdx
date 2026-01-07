@@ -1,0 +1,76 @@
+---
+title: Testing
+description: Testing SYNAPSE components
+---
+
+# Testing
+
+SYNAPSE includes comprehensive tests for all components.
+
+## Test Structure
+
+```
+tests/
+├── test_memory.py         # Memory system tests
+├── test_ingestion.py       # Ingestion tests
+├── test_retrieval.py      # Retrieval tests
+└── test_integration.py     # Integration tests
+```
+
+## Running Tests
+
+```bash
+# Run all tests
+pytest
+
+# Run with verbose output
+pytest -v
+
+# Run specific test
+pytest tests/test_memory.py
+
+# Run with coverage
+pytest --cov=rag --cov-report=html
+
+# Watch mode (re-run on file changes)
+pytest-watch
+```
+
+## Memory System Tests
+
+Test symbolic, episodic, and semantic memory:
+
+```bash
+pytest tests/test_memory.py -v
+```
+
+### Test Coverage
+
+- ✅ Symbolic memory CRUD operations
+- ✅ Episodic memory storage and retrieval
+- ✅ Semantic memory ingestion and search
+- ✅ Memory selector authority hierarchy
+- ✅ Cross-memory type queries
+
+## Integration Tests
+
+Test end-to-end workflows:
+
+```bash
+pytest tests/test_integration.py -v
+```
+
+### Test Coverage
+
+- ✅ Complete RAG pipeline
+- ✅ MCP tool execution
+- ✅ Bulk ingestion workflow
+- ✅ Memory type interactions
+
+## CI/CD
+
+Tests run automatically on:
+- Pull requests
+- Pushes to main branch
+
+View test results: https://github.com/kayis-rahman/synapse/actions

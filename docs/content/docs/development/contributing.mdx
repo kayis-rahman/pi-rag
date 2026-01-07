@@ -1,0 +1,74 @@
+---
+title: Contributing
+description: How to contribute to SYNAPSE
+---
+
+# Contributing
+
+Contributions are welcome! Here's how to get started.
+
+## Development Setup
+
+```bash
+# Clone repository
+git clone https://github.com/kayis-rahman/synapse.git
+cd synapse
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate
+
+# Install dependencies
+pip install -e ".[dev]"
+
+# Install pre-commit hooks
+pip install pre-commit
+pre-commit install
+```
+
+## Running Tests
+
+```bash
+# Run all tests
+pytest
+
+# Run specific test file
+pytest tests/test_memory.py
+
+# Run with coverage
+pytest --cov=rag tests/
+```
+
+## Code Style
+
+```bash
+# Format code
+black rag/ mcp_server/ scripts/
+
+# Type check
+mypy rag/
+```
+
+## Submitting Changes
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'feat: Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## Commit Messages
+
+Follow conventional commits:
+
+- `feat:` - New feature
+- `fix:` - Bug fix
+- `docs:` - Documentation changes
+- `style:` - Code style changes
+- `refactor:` - Code refactoring
+- `test:` - Adding or updating tests
+- `chore:` - Maintenance tasks
+
+## License
+
+By contributing, you agree that your contributions will be licensed under the MIT License.

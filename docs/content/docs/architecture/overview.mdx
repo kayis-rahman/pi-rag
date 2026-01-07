@@ -1,0 +1,52 @@
+---
+title: Overview
+description: High-level SYNAPSE architecture
+---
+
+# Architecture Overview
+
+SYNAPSE provides a comprehensive RAG system with three memory types and MCP protocol support.
+
+## System Components
+
+```
+┌─────────────────────────────────────────────────────────┐
+│           Your Knowledge (Neurons)                │
+└────────────────────┬────────────────────────────┘
+                     │
+┌────────────────────┴──────────────────────────┐
+│    MCP Server (HTTP Wrapper)                  │
+└────────────────────┬───────────────────────────┘
+                     │
+┌────────────────────┴──────────────────────────┐
+│      RAG Orchestrator                        │
+└────────────────────┬───────────────────────────┘
+                     │
+         ┌─────────────┼─────────────┐
+         │             │             │
+┌────────▼────┐ ┌────▼────┐ ┌───────▼──────┐
+│  Semantic    │ │Episodic │ │   Symbolic     │
+│  Memory      │ │Memory   │ │   Memory       │
+└────────┬─────┘ └────┬─────┘ └───────┬───────┘
+         │              │              │
+┌────────▼──────┐ ┌─────────▼────┐ ┌────────▼──────┐
+│  Embedding     │ │  Pattern    │ │   Facts        │
+│  Service       │ │  Recognition │ │   Storage      │
+└─────────────────┘ └───────────────┘ └─────────────────┘
+```
+
+## Data Flow
+
+1. **Ingestion**: Files → Chunks → Embeddings → Semantic Memory
+2. **Query Processing**: User Query → Query Expansion → Retrieval → Context Injection
+3. **Memory Access**: Symbolic (100%) → Episodic (85%) → Semantic (60%)
+
+## Technology Stack
+
+- **LLM**: llama-cpp-python
+- **Embeddings**: BGE-M3 (local)
+- **Vector Store**: JSON-based with cosine similarity
+- **Protocol**: MCP (Model Context Protocol)
+- **Storage**: SQLite (symbolic, episodic) + JSON (semantic)
+
+Next: [Memory System](./memory-system)

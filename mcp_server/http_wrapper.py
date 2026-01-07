@@ -47,6 +47,9 @@ with open(_config_path, 'r') as f:
     _rag_config = json.load(f)
 _context_injection_enabled = _rag_config.get("context_injection_enabled", False)
 
+# Load MCP port from environment (set by start command with --port flag)
+_mcp_port = int(os.environ.get("MCP_PORT", "8002"))
+
 # Configuration
 logging.basicConfig(
     level=logging.INFO,
@@ -189,7 +192,7 @@ Upload file via HTTP multipart form, then ingest with file_path.
 Use case: Standard web uploads from any HTTP client
 Workflow:
   1. Upload file via HTTP POST:
-     curl -X POST http://localhost:8002/v1/upload \
+     curl -X POST http://localhost:8002/v1/upload \\
                 -F "file=@document.txt"
 
   2. Get file_path from response:
@@ -227,7 +230,7 @@ Only HTTP upload flow is available.
             "error": "content_mode_disabled",
             "message": "Content mode is disabled. Use HTTP upload flow instead: POST /v1/upload to upload file, then use returned file_path"
         }
-    
+
     # Mode 2: File path provided (original behavior, backward compatible)
     elif file_path is not None:
         # Use existing backend method - backend validates file_path is in upload directory
@@ -237,7 +240,7 @@ Only HTTP upload flow is available.
             source_type=source_type,
             metadata=metadata
         )
-    
+
     # Neither provided
     else:
         return {
@@ -322,7 +325,7 @@ async def root_endpoint(request) -> Response:
         "transport": "http",
         "tools_available": 8,  # 7 MCP tools + 1 HTTP upload endpoint
         "message": "Server is running and ready for connections from Mac or other MCP clients",
-        "opencode_config_url": "http://piworm.local:8002/mcp",
+        "opencode_config_url": f"http://piworm.local:{_mcp_port}/mcp",
         "upload_endpoint": "/v1/upload",
         "upload_directory": backend._upload_config["directory"]
     })
@@ -400,7 +403,7 @@ async def upload_file(request) -> Response:
         else:
             # Try to get from form fields differently
             try:
-                # Get raw upload from the request
+                # Get raw upload from request
                 upload_file = request._form.get("file")
                 if hasattr(upload_file, 'file'):
                     file_obj = upload_file.file
@@ -496,12 +499,12 @@ app = mcp.streamable_http_app()
 
 if __name__ == "__main__":
     import uvicorn
-    
+
     logger.info("=" * 60)
     logger.info("Starting RAG MCP HTTP Server (FastMCP Implementation)")
     logger.info("=" * 60)
-    logger.info(f"MCP Protocol Endpoint: http://0.0.0.0.8002/mcp")
-    logger.info(f"Health Check: http://0.0.0.0.8002/health")
+    logger.info(f"MCP Protocol Endpoint: http://0.0.0.0:{_mcp_port}/mcp")
+    logger.info(f"Health Check: http://0.0.0.0:{_mcp_port}/health")
     logger.info(f"Available Tools: 7")
     logger.info(f"Transport: Streamable HTTP")
     logger.info(f"Data Directory: {backend._get_data_dir()}")
@@ -535,10 +538,10 @@ if __name__ == "__main__":
     logger.info("- Use 'file_path' parameter instead")
     logger.info("- Works only when files are accessible to server filesystem")
     logger.info("=" * 60)
-    
+
     uvicorn.run(
         app,
         host="0.0.0.0",
-        port=8002,
+        port=_mcp_port,
         log_level="info"
     )

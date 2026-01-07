@@ -1,0 +1,103 @@
+---
+title: Memory Tools
+description: Programmatic access to SYNAPSE memory tools
+---
+
+# Memory Tools
+
+SYNAPSE provides Python APIs for programmatic memory access.
+
+## MemoryStore
+
+Main interface for all memory types:
+
+```python
+from rag import MemoryStore
+
+# Initialize
+store = MemoryStore()
+
+# Add fact (symbolic memory)
+store.add_fact("version", "1.2.0", category="project", confidence=1.0)
+
+# Add episode (episodic memory)
+store.add_episode("Success", "Deployed successfully", lesson_type="success")
+
+# Semantic retrieval
+results = store.retrieve("your query", top_k=3)
+```
+
+## SymbolicMemory
+
+Direct access to symbolic (cell bodies) memory:
+
+```python
+from rag import SymbolicMemory
+
+memory = SymbolicMemory()
+
+# Get fact
+fact = memory.get_fact("version")
+
+# List all facts
+facts = memory.list_facts(category="project")
+
+# Update fact
+memory.update_fact("version", "1.2.1")
+```
+
+## EpisodicMemory
+
+Direct access to episodic (synapses) memory:
+
+```python
+from rag import EpisodicMemory
+
+memory = EpisodicMemory()
+
+# Add episode
+memory.add_episode("Title", "Content", "success")
+
+# Get episodes
+episodes = memory.get_episodes(project_id="synapse")
+
+# Get recent lessons
+lessons = memory.get_recent_lessons(limit=5)
+```
+
+## SemanticStore
+
+Direct access to semantic (dendrites) memory:
+
+```python
+from rag import SemanticStore
+
+store = SemanticStore()
+
+# Search documents
+results = store.search("your query", top_k=3)
+
+# Get document
+doc = store.get_document(doc_id)
+
+# List sources
+sources = store.list_sources(project_id="synapse")
+```
+
+## Memory Selector
+
+Automatic memory selection based on authority:
+
+```python
+from rag import MemorySelector
+
+selector = MemorySelector()
+
+# Get context from all memory types
+context = selector.get_context("your query", max_results=10)
+
+# Get from specific memory type
+context = selector.get_context("your query", memory_type="semantic")
+```
+
+Back to: [API Reference](../api-reference)

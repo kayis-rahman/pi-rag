@@ -56,6 +56,7 @@ class MemorySelector:
         ...     request_type=request_type,
         ...     min_confidence=0.8
         ... )
+        >>> # In production, use: logger.info(f"Selected {len(facts)} facts for injection")
         >>> print(f"Selected {len(facts)} facts for injection")
     """
 

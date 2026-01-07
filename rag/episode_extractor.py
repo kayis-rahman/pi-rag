@@ -33,6 +33,9 @@ Output Format:
 import json
 import re
 from typing import Dict, Any, Optional, List
+from .logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class EpisodeExtractor:
@@ -186,7 +189,7 @@ Output JSON only:"""
 
         except Exception as e:
             # Log error but don't crash - episodes are optional
-            print(f"Episode extraction failed: {e}")
+            logger.error(f"Episode extraction failed: {e}")
             return None
 
     def _parse_json_response(self, response: str) -> Optional[Dict[str, Any]]:
@@ -227,7 +230,7 @@ Output JSON only:"""
             return data
 
         except (json.JSONDecodeError, AttributeError) as e:
-            print(f"Failed to parse JSON response: {e}")
+            logger.error(f"Failed to parse JSON response: {e}")
             return None
 
     def _validate_episode_data(self, data: Dict[str, Any]) -> bool:
@@ -388,7 +391,7 @@ def create_simple_llm_func(model_manager, model_name: str = "chat"):
             return ""
 
         except Exception as e:
-            print(f"LLM completion error: {e}")
+            logger.error(f"LLM completion error: {e}")
             return ""
 
     return llm_completion_func

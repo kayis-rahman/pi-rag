@@ -1,0 +1,140 @@
+{
+  "docs": {
+    "title": "Documentation",
+    "type": "folder",
+    "icon": "📚",
+    "items": [
+      {
+        "title": "Getting Started",
+        "type": "folder",
+        "icon": "🚀",
+        "items": [
+          {
+            "title": "Introduction",
+            "type": "page",
+            "url": "/synapse/docs/getting-started/introduction",
+            "icon": "👋"
+          },
+          {
+            "title": "Installation",
+            "type": "page",
+            "url": "/synapse/docs/getting-started/installation",
+            "icon": "⚙️"
+          },
+          {
+            "title": "Quick Start",
+            "type": "page",
+            "url": "/synapse/docs/getting-started/quick-start",
+            "icon": "⚡"
+          },
+          {
+            "title": "Configuration",
+            "type": "page",
+            "url": "/synapse/docs/getting-started/configuration",
+            "icon": "🔧"
+          }
+        ]
+      },
+      {
+        "title": "Architecture",
+        "type": "folder",
+        "icon": "🏗️",
+        "items": [
+          {
+            "title": "Overview",
+            "type": "page",
+            "url": "/synapse/docs/architecture/overview",
+            "icon": "🗺️"
+          },
+          {
+            "title": "Memory System",
+            "type": "page",
+            "url": "/synapse/docs/architecture/memory-system",
+            "icon": "🧠"
+          },
+          {
+            "title": "MCP Protocol",
+            "type": "page",
+            "url": "/synapse/docs/architecture/mcp-protocol",
+            "icon": "🔌"
+          }
+        ]
+      },
+      {
+        "title": "Usage",
+        "type": "folder",
+        "icon": "📖",
+        "items": [
+          {
+            "title": "MCP Tools",
+            "type": "page",
+            "url": "/synapse/docs/usage/mcp-tools",
+            "icon": "🛠️"
+          },
+          {
+            "title": "Ingestion",
+            "type": "page",
+            "url": "/synapse/docs/usage/ingestion",
+            "icon": "📥"
+          },
+          {
+            "title": "Querying",
+            "type": "page",
+            "url": "/synapse/docs/usage/querying",
+            "icon": "🔍"
+          }
+        ]
+      },
+      {
+        "title": "API Reference",
+        "type": "folder",
+        "icon": "📋",
+        "items": [
+          {
+            "title": "Memory Tools",
+            "type": "page",
+            "url": "/synapse/docs/api-reference/memory-tools",
+            "icon": "🧩"
+          },
+          {
+            "title": "Server API",
+            "type": "page",
+            "url": "/synapse/docs/api-reference/server-api",
+            "icon": "🌐"
+          },
+          {
+            "title": "CLI Commands",
+            "type": "page",
+            "url": "/synapse/docs/api-reference/cli-commands",
+            "icon": "💻"
+          }
+        ]
+      },
+      {
+        "title": "Development",
+        "type": "folder",
+        "icon": "👷",
+        "items": [
+          {
+            "title": "Contributing",
+            "type": "page",
+            "url": "/synapse/docs/development/contributing",
+            "icon": "🤝"
+          },
+          {
+            "title": "Testing",
+            "type": "page",
+            "url": "/synapse/docs/development/testing",
+            "icon": "🧪"
+          },
+          {
+            "title": "Deployment",
+            "type": "page",
+            "url": "/synapse/docs/development/deployment",
+            "icon": "🚀"
+          }
+        ]
+      }
+    ]
+  }
+}

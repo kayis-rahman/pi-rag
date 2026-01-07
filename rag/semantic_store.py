@@ -552,7 +552,7 @@ class SemanticStore:
                     chunks_data = json.load(f)
                     self.chunks = [DocumentChunk(**data) for data in chunks_data]
             except Exception as e:
-                print(f"Warning: Failed to load chunks: {e}")
+                logger.warning(f"Failed to load chunks: {e}")
 
         # Load document IDs
         if os.path.exists(metadata_file):
@@ -561,7 +561,7 @@ class SemanticStore:
                     doc_metadata = json.load(f)
                     self.document_ids = set(doc_metadata.keys())
             except Exception as e:
-                print(f"Warning: Failed to load metadata: {e}")
+                logger.warning(f"Failed to load metadata: {e}")
 
 
 # Singleton instance
