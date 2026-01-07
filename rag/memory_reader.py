@@ -34,6 +34,8 @@ class MemoryReader:
         >>> reader = MemoryReader()
         >>> facts = reader.query_memory(scope="user", category="preference")
         >>> prompt = reader.inject_into_prompt(facts, "Help me build a web app")
+        >>> # In production, use: logger.info(prompt)
+        >>> # Here we show raw output for clarity
         >>> print(prompt)
     """
 
@@ -213,6 +215,8 @@ class MemoryReader:
 
         Example:
             >>> prompt = reader.inject_into_prompt(facts, "Help me build an API")
+            >>> # In production, use: logger.info(prompt)
+            >>> # Here we show raw output for clarity
             >>> print(prompt)
         """
         if not facts:

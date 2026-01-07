@@ -13,6 +13,9 @@ import json
 import os
 from typing import List, Dict, Any, Optional, Generator
 
+from .logger import get_logger
+logger = get_logger(__name__)
+
 class RAGOrchestrator:
     """
     Orchestrates RAG pipeline: retrieval + LLM generation.
@@ -44,7 +47,7 @@ class RAGOrchestrator:
                     self._register_chat_model()
 
         except Exception as e:
-            print(f"Warning: Failed to initialize orchestrator dependencies: {e}")
+            logger.warning(f"Failed to initialize orchestrator dependencies: {e}")
     
     def _load_config(self) -> None:
         """Load configuration."""
@@ -92,7 +95,7 @@ class RAGOrchestrator:
                 self.file_path_mode_enabled = config.get("file_path_mode_enabled", True)
                 self.context_injection_enabled = config.get("context_injection_enabled", True)
         except Exception as e:
-            print(f"Warning: Failed to load orchestrator config: {e}")
+            logger.warning(f"Failed to load orchestrator config: {e}")
     
     def _register_chat_model(self) -> None:
         """Register chat model with model manager."""
@@ -213,7 +216,7 @@ class RAGOrchestrator:
             )
             return memory_context
         except Exception as e:
-            print(f"Warning: Failed to get memory context: {e}")
+            logger.warning(f"Failed to get memory context: {e}")
             return ""
 
     def chat(
@@ -308,7 +311,7 @@ class RAGOrchestrator:
                 "raw_response": response
             }
         except Exception as e:
-            print(f"Error generating response: {e}")
+            logger.error(f"Error generating response: {e}")
             return {
                 "content": f"Error: {str(e)}",
                 "rag_used": False,
@@ -388,7 +391,7 @@ class RAGOrchestrator:
                         yield content
                         
         except Exception as e:
-            print(f"Stream error: {e}")
+            logger.error(f"Stream error: {e}")
 
     def preload_models(self) -> None:
         """Preload both chat and embedding models."""
@@ -419,7 +422,7 @@ class RAGOrchestrator:
                 }
                 stats["memory"].update(memory_stats)
             except Exception as e:
-                print(f"Warning: Failed to get memory stats: {e}")
+                logger.warning(f"Failed to get memory stats: {e}")
                 stats["memory"] = {"enabled": True, "error": str(e)}
         else:
             stats["memory"] = {"enabled": False}

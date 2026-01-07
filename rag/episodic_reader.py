@@ -50,6 +50,8 @@ class EpisodicReader:
         >>> advisory_context = reader.get_advisory_context(
         ...     current_task="Find relevant code in large repository"
         ... )
+        >>> # In production, use: logger.info(advisory_context)
+        >>> # Here we show raw output for clarity
         >>> print(advisory_context)
     """
 

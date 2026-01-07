@@ -28,6 +28,9 @@ Content Policy:
 import os
 import json
 from typing import List, Dict, Any, Optional, Tuple
+
+from .logger import get_logger
+logger = get_logger(__name__)
 from pathlib import Path
 
 from .semantic_store import DocumentChunk, SemanticStore, get_semantic_store
@@ -111,7 +114,7 @@ class SemanticIngestor:
             chunk_overlap=chunk_overlap
         )
 
-        print(f"Ingested {file_path}: {len(chunk_ids)} chunks created")
+        logger.info(f"Ingested {file_path}: {len(chunk_ids)} chunks created")
         return chunk_ids
 
     def ingest_text(
@@ -149,7 +152,7 @@ class SemanticIngestor:
             chunk_overlap=chunk_overlap
         )
 
-        print(f"Ingested text: {len(chunk_ids)} chunks created")
+        logger.info(f"Ingested text: {len(chunk_ids)} chunks created")
         return chunk_ids
 
     def ingest_directory(
@@ -205,10 +208,10 @@ class SemanticIngestor:
                     )
                     results[file_path] = chunk_ids
                 except Exception as e:
-                    print(f"Warning: Failed to ingest {file_path}: {e}")
+                    logger.warning(f"Failed to ingest {file_path}: {e}")
 
         total_chunks = sum(len(ids) for ids in results.values())
-        print(f"Directory ingestion complete: {len(results)} files, {total_chunks} chunks")
+        logger.info(f"Directory ingestion complete: {len(results)} files, {total_chunks} chunks")
 
         return results
 
@@ -259,7 +262,7 @@ class SemanticIngestor:
             chunk_overlap=chunk_overlap
         )
 
-        print(f"Ingested code file {file_path}: {len(chunk_ids)} chunks created")
+        logger.info(f"Ingested code file {file_path}: {len(chunk_ids)} chunks created")
         return chunk_ids
 
     def _read_file(self, file_path: str) -> str:
