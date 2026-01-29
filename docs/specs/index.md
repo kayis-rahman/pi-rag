@@ -37,13 +37,14 @@ This is the "Source of Truth" for all SYNAPSE features. Each feature follows the
        | **Phase 6**: Completion - ⏳ PENDING (0/5 tasks)
       | **Claude Code Adapter**: ⏸ Future Work (Phase 3.2: 0/20 tasks)
       | **Other Adapters**: ⏸ Future Work (Phase 3.3: 0/40 tasks)
-   | 008-mac-local-rag-setup | Mac Local RAG Setup with BGE-M3 Q8_0 | [In Progress] | ⏳ Pending |
-      | **Phase 1**: Environment Check - ⏳ PENDING (7 tasks, 5 min)
-      | **Phase 2**: Install Dependencies - ⏳ PENDING (10 tasks, 15 min)
-      | **Phase 3**: Run Setup - ⏳ PENDING (8 tasks, 10 min)
-      | **Phase 4**: Start & Test - ⏳ PENDING (10 tasks, 10 min)
-      | **Model**: BGE-M3 Q8_0 (~730MB)
-      | **Data Directory**: ~/.synapse/data/
+   | 008-mac-local-rag-setup | Mac Local RAG Setup with BGE-M3 Q8_0 | [Completed] | 2026-01-29 | 8adf583 |
+      | **Phase 1**: Environment Check - ✅ Complete (7/7 tasks)
+      | **Phase 2**: Install Dependencies - ✅ Complete (10/10 tasks)
+      | **Phase 3**: Run Setup - ✅ Complete (12/12 tasks)
+      | **Phase 4**: Start & Test - ✅ Complete (10/10 tasks)
+      | **Total**: 39/39 tasks (100%)
+      | **Model**: BGE-M3 Q8_0 (605MB from KimChen/bge-m3-GGUF)
+      | **Server**: Port 8002, all health checks passing
 
 ## Feature Status Legend
 
