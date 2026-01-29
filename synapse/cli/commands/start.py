@@ -102,7 +102,29 @@ def start_native(port: int = 8002) -> bool:
     # Set environment for native mode
     env = os.environ.copy()
     env["RAG_ENV"] = "native"
-    env["RAG_CONFIG_PATH"] = str(Path.cwd() / "configs" / "rag_config.json")
+
+    # Find the config file - search in multiple locations
+    config_path = None
+    possible_paths = [
+        Path(__file__).parent.parent.parent / "configs" / "rag_config.json",  # From synapse/cli/commands/ -> synapse/configs
+        Path.cwd() / "configs" / "rag_config.json",  # Current working directory
+        Path("/opt/synapse/configs/rag_config.json"),  # Installation path
+    ]
+
+    for path in possible_paths:
+        if path.exists():
+            config_path = str(path)
+            break
+
+    if config_path is None:
+        print(f"❌ Error: Cannot find rag_config.json")
+        print(f"   Searched in:")
+        for p in possible_paths:
+            print(f"   - {p}")
+        return False
+
+    env["RAG_CONFIG_PATH"] = config_path
+
     # Pass port to HTTP server via environment variable
     env["MCP_PORT"] = str(port)
 
@@ -131,14 +153,24 @@ def start_native(port: int = 8002) -> bool:
             # Process exited immediately
             proc_exit_code = process.returncode
             if proc_exit_code != 0:
+                # Get stderr for more details
+                stderr_output = process.stderr.read().decode('utf-8') if process.stderr else ""
+                stdout_output = process.stdout.read().decode('utf-8') if process.stdout else ""
                 raise subprocess.CalledProcessError(
-                    f"Server exited with code {proc_exit_code}",
-                    returncode=proc_exit_code
+                    returncode=proc_exit_code,
+                    cmd="python3 -m mcp_server.http_wrapper",
+                    stderr=stderr_output,
+                    output=stdout_output
                 )
             print(f"❌ Server process exited immediately")
             return False
     except subprocess.CalledProcessError as e:
         print(f"❌ Failed to start native server: {e}")
+        # Print stderr if available for debugging
+        if hasattr(e, 'stderr') and e.stderr:
+            print(f"   stderr: {e.stderr}")
+        if hasattr(e, 'output') and e.output:
+            print(f"   stdout: {e.output}")
         return False
     except subprocess.TimeoutExpired:
         print("❌ Server start timed out")

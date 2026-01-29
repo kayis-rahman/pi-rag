@@ -1,4 +1,11 @@
 {
+  "logging": {
+    "enabled": true,
+    "level": "INFO",
+    "format": "standard",
+    "load_from_file": true,
+    "config_file": "./configs/logging_config.json"
+  },
   "rag_enabled": true,
   "chunk_size": 500,
   "chunk_overlap": 50,

@@ -26,6 +26,8 @@ class MemoryFormatter:
     Example:
         >>> formatter = MemoryFormatter()
         >>> prompt = formatter.format_as_read_only_context(facts, "Help me")
+        >>> # In production, use: logger.info(prompt)
+        >>> # Here we show raw output for clarity
         >>> print(prompt)
     """
 
