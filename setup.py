@@ -61,6 +61,7 @@ setup(
             "synapse-system-status=synapse.scripts.rag_status:main",
             "synapse-start=synapse.scripts.start_server:main",
         ],
+    },
     python_requires=">=3.8",
     classifiers=[
         "Development Status :: 4 - Beta",

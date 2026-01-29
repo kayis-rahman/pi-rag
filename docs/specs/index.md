@@ -34,9 +34,16 @@ This is the "Source of Truth" for all SYNAPSE features. Each feature follows the
       | **Phase 3**: Test Coverage - ⏳ PENDING (0/43 tasks)
       | **Phase 4**: VitePress Documentation - ⏳ PENDING (0/29 tasks)
       | **Phase 5**: Deployment - ⏳ PENDING (0/7 tasks)
-      | **Phase 6**: Completion - ⏳ PENDING (0/5 tasks)
-     | **Claude Code Adapter**: ⏸ Future Work (Phase 3.2: 0/20 tasks)
-     | **Other Adapters**: ⏸ Future Work (Phase 3.3: 0/40 tasks)
+       | **Phase 6**: Completion - ⏳ PENDING (0/5 tasks)
+      | **Claude Code Adapter**: ⏸ Future Work (Phase 3.2: 0/20 tasks)
+      | **Other Adapters**: ⏸ Future Work (Phase 3.3: 0/40 tasks)
+   | 008-mac-local-rag-setup | Mac Local RAG Setup with BGE-M3 Q8_0 | [In Progress] | ⏳ Pending |
+      | **Phase 1**: Environment Check - ⏳ PENDING (7 tasks, 5 min)
+      | **Phase 2**: Install Dependencies - ⏳ PENDING (10 tasks, 15 min)
+      | **Phase 3**: Run Setup - ⏳ PENDING (8 tasks, 10 min)
+      | **Phase 4**: Start & Test - ⏳ PENDING (10 tasks, 10 min)
+      | **Model**: BGE-M3 Q8_0 (~730MB)
+      | **Data Directory**: ~/.synapse/data/
 
 ## Feature Status Legend
 
