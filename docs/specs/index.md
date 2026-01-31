@@ -68,6 +68,17 @@ This is the "Source of Truth" for all SYNAPSE features. Each feature follows the
         | **MCP Endpoint**: http://localhost:8002/mcp (already running)
         | **Project ID**: synapse
         | **Timeline**: ~2.5 hours (72 tasks across 8 phases)
+        | **Progress**: Phases 1-5 complete (28/72 tasks, 39%), 10 bugs found
+    | 011-fix-validation-blockers | Fix Validation Blockers | [In Progress] | ⏳ Pending |
+        | **Objective**: Fix 4 critical bugs blocking full validation (BUG-010, 003, 001, 002)
+        | **Key Fixes**:
+        | - BUG-010: OS-aware data directory (use ~/.synapse/data on Mac)
+        | - BUG-003: Fix stop command to actually stop server
+        | - BUG-001: Fix start command to handle permissions
+        | - BUG-002: Fix status to show accurate state
+        | **Testing**: Dual strategy (OpenCode + Pytest)
+        | **Files**: 6 files (4 modified, 2 new test files)
+        | **Timeline**: 8-12 hours (52 tasks across 5 phases)
 
 - **[In Progress]** - Feature is currently being worked on
 - **[Completed]** - Feature is fully implemented and tested
