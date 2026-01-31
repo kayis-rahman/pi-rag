@@ -9,6 +9,19 @@ import subprocess
 import time
 from pathlib import Path
 from typing import Optional
+import requests
+
+
+def check_server_already_running(port: int = 8002) -> bool:
+    """Check if server is already running via health endpoint."""
+    try:
+        response = requests.get(f"http://localhost:{port}/health", timeout=2)
+        if response.status_code == 200:
+            print(f"✓ Server already running on port {port}")
+            return True
+        return False
+    except requests.exceptions.RequestException:
+        return False
 
 
 def check_docker_running(container_name: str = "synapse-mcp") -> bool:
@@ -99,9 +112,30 @@ def start_native(port: int = 8002) -> bool:
     """Start SYNAPSE server in native (Python) mode."""
     print(f"🚀 Starting SYNAPSE server in native mode on port {port}...")
 
+    # Check if already running
+    if check_server_already_running(port):
+        print("  Use 'synapse status' to verify health")
+        return True
+
     # Set environment for native mode
     env = os.environ.copy()
     env["RAG_ENV"] = "native"
+
+    # Set OS-aware data directory
+    import platform
+    if platform.system() == "Darwin":  # macOS
+        data_dir = os.path.expanduser("~/.synapse/data")
+    elif platform.system() == "Linux":
+        # Check if /opt/synapse is writable
+        if os.access("/opt/synapse", os.W_OK):
+            data_dir = "/opt/synapse/data"
+        else:
+            data_dir = os.path.expanduser("~/.synapse/data")
+    else:  # Windows and others
+        data_dir = os.path.expanduser("~/.synapse/data")
+
+    env["RAG_DATA_DIR"] = data_dir
+    print(f"  Data directory: {data_dir}")
 
     # Find the config file - search in multiple locations
     config_path = None

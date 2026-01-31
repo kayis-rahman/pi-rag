@@ -29,17 +29,17 @@
 - [ ] 1.1.4 Read `mcp_server/project_manager.py` registry logic (Linked to FR-1)
 
 ### 1.2: Implement OS-Aware Data Directory
-- [ ] 1.2.1 Modify `_get_data_dir()` in `rag_server.py` (Linked to FR-1.1)
+- [x] 1.2.1 Modify `_get_data_dir()` in `rag_server.py` (Linked to FR-1.1)
   - Add environment variable check (RAG_DATA_DIR)
-- [ ] 1.2.2 Add config file parsing (Linked to FR-1.2)
-- [ ] 1.2.3 Add OS detection (Darwin/Linux/Windows) (Linked to FR-1.3-1.5)
-- [ ] 1.2.4 Implement Mac logic: `~/.synapse/data` (Linked to FR-1.3)
-- [ ] 1.2.5 Implement Linux logic: writable check + fallback (Linked to FR-1.4)
-- [ ] 1.2.6 Implement Windows logic: user home (Linked to FR-1.5)
-- [ ] 1.2.7 Add logging for data directory selection (Linked to FR-1.6)
+- [x] 1.2.2 Add config file parsing (Linked to FR-1.2)
+- [x] 1.2.3 Add OS detection (Darwin/Linux/Windows) (Linked to FR-1.3-1.5)
+- [x] 1.2.4 Implement Mac logic: `~/.synapse/data` (Linked to FR-1.3)
+- [x] 1.2.5 Implement Linux logic: writable check + fallback (Linked to FR-1.4)
+- [x] 1.2.6 Implement Windows logic: user home (Linked to FR-1.5)
+- [x] 1.2.7 Add logging for data directory selection (Linked to FR-1.6)
 
 ### 1.3: Update Related Files
-- [ ] 1.3.1 Update `project_manager.py` to use `_get_data_dir()` (Linked to FR-1)
+- [x] 1.3.1 Update `project_manager.py` to use `_get_data_dir()` (Linked to FR-1)
 - [ ] 1.3.2 Update `scripts/bulk_ingest.py` if needed (Linked to FR-1)
 
 **Phase 1 Exit Criteria:** MCP data directory OS-aware, code compiles
@@ -49,25 +49,26 @@
 ## Phase 2: Fix Server Management (12 tasks)
 
 ### 2.1: Fix Start Command
-- [ ] 2.1.1 Read `synapse/cli/commands/start.py` (Linked to FR-2)
-- [ ] 2.1.2 Add health endpoint check before start (Linked to FR-2.1)
-- [ ] 2.1.3 Add process detection (look for mcp_server) (Linked to FR-2.2)
-- [ ] 2.1.4 Handle "already running" case gracefully (Linked to FR-2.1)
-- [ ] 2.1.5 Add psutil import (Linked to FR-2)
+- [x] 2.1.1 Read `synapse/cli/commands/start.py` (Linked to FR-2)
+- [x] 2.1.2 Add health endpoint check before start (Linked to FR-2.1)
+- [x] 2.1.3 Add process detection (look for mcp_server) (Linked to FR-2.2)
+- [x] 2.1.4 Handle "already running" case gracefully (Linked to FR-2.1)
+- [x] 2.1.5 Add requests import (Linked to FR-2)
 
 ### 2.2: Fix Stop Command
-- [ ] 2.2.1 Read `synapse/cli/commands/stop.py` (Linked to FR-2)
-- [ ] 2.2.2 Improve process detection (by cmdline, not port) (Linked to FR-2.2)
-- [ ] 2.2.3 Implement SIGTERM → wait → SIGKILL logic (Linked to FR-2.3)
-- [ ] 2.2.4 Add health endpoint verification (Linked to FR-2.4)
-- [ ] 2.2.5 Improve error messages (Linked to FR-2)
+- [x] 2.2.1 Read `synapse/cli/commands/stop.py` (Linked to FR-2)
+- [x] 2.2.2 Improve process detection (by cmdline, not port) (Linked to FR-2.2)
+- [x] 2.2.3 Implement SIGTERM → wait → SIGKILL logic (Linked to FR-2.3)
+- [x] 2.2.4 Add health endpoint verification (Linked to FR-2.4)
+- [x] 2.2.5 Improve error messages (Linked to FR-2)
 
 ### 2.3: Fix Status Command
-- [ ] 2.3.1 Read `synapse/cli/commands/status.py` (Linked to FR-2)
-- [ ] 2.3.2 Primary check: health endpoint (Linked to FR-2.5)
-- [ ] 2.3.3 Fallback: process list (Linked to FR-2.5)
-- [ ] 2.3.4 Show accurate state (running/stopped) (Linked to FR-2.6)
-- [ ] 2.3.5 Add verbose mode for detailed info (Linked to FR-2)
+- [x] 2.3.1 Read `synapse/cli/commands/status.py` (Linked to FR-2)
+- [x] 2.3.2 Primary check: health endpoint (Linked to FR-2.5)
+- [x] 2.3.3 Fallback: process list (Linked to FR-2.5)
+- [x] 2.3.4 Show accurate state (running/stopped) (Linked to FR-2.6)
+- [x] 2.3.5 Add verbose mode for detailed info (Linked to FR-2)
+- [x] 2.3.6 Fix main.py status implementation (Linked to FR-2)
 
 **Phase 2 Exit Criteria:** All 3 server commands work correctly
 
@@ -76,8 +77,8 @@
 ## Phase 3: Write Pytest Tests (16 tasks)
 
 ### 3.1: Create Test Files
-- [ ] 3.1.1 Create `tests/unit/test_mcp_data_directory.py` (Linked to FR-3)
-- [ ] 3.1.2 Create `tests/unit/test_server_management.py` (Linked to FR-3)
+- [x] 3.1.1 Create `tests/unit/test_mcp_data_directory.py` (Linked to FR-3)
+- [x] 3.1.2 Create `tests/unit/test_server_management.py` (Linked to FR-3)
 - [ ] 3.1.3 Add test fixtures directory `tests/fixtures/` (Linked to FR-3)
 
 ### 3.2: Data Directory Tests
@@ -111,22 +112,22 @@
 ## Phase 4: OpenCode Testing (8 tasks)
 
 ### 4.1: Test MCP Data Directory Fix
-- [ ] 4.1.1 Restart MCP server (Linked to US-1)
-- [ ] 4.1.2 Test `/rag list_projects` (Linked to US-1)
-- [ ] 4.1.3 Test `/rag list_sources` (Linked to US-1)
-- [ ] 4.1.4 Test `/rag search` (Linked to US-1)
+- [x] 4.1.1 Restart MCP server (Linked to US-1)
+- [x] 4.1.2 Test `/rag list_projects` (Linked to US-1)
+- [x] 4.1.3 Test `/rag list_sources` (Linked to US-1)
+- [x] 4.1.4 Test `/rag search` (Linked to US-1)
 
 ### 4.2: Test Server Management Fix
-- [ ] 4.2.1 Test `synapse start` (Linked to US-2)
-- [ ] 4.2.2 Test `synapse status` (Linked to US-2)
-- [ ] 4.2.3 Test `synapse stop` (Linked to US-2)
-- [ ] 4.2.4 Verify no zombie processes (Linked to US-2)
+- [x] 4.2.1 Test `synapse start` (Linked to US-2)
+- [x] 4.2.2 Test `synapse status` (Linked to US-2)
+- [x] 4.2.3 Test `synapse stop` (Linked to US-2)
+- [x] 4.2.4 Verify no zombie processes (Linked to US-2)
 
 ### 4.3: Test MCP Memory Operations
-- [ ] 4.3.1 Test `/rag add_fact` (Linked to US-1)
-- [ ] 4.3.2 Test `/rag add_episode` (Linked to US-1)
+- [x] 4.3.1 Test `/rag add_fact` (Linked to US-1)
+- [x] 4.3.2 Test `/rag add_episode` (Linked to US-1)
 - [ ] 4.3.3 Test `/rag analyze_conversation` (Linked to US-1)
-- [ ] 4.3.4 Test `/rag get_context` (Linked to US-1)
+- [x] 4.3.4 Test `/rag get_context` (Linked to US-1)
 
 **Phase 4 Exit Criteria:** All 8 OpenCode tests pass
 
