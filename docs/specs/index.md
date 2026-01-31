@@ -49,14 +49,25 @@ This is the "Source of Truth" for all SYNAPSE features. Each feature follows the
         | **Phase 6**: Completion - ⏳ PENDING (0/5 tasks)
       | **Claude Code Adapter**: ⏸ Future Work (Phase 3.2: 0/20 tasks)
       | **Other Adapters**: ⏸ Future Work (Phase 3.3: 0/40 tasks)
-   | 008-mac-local-rag-setup | Mac Local RAG Setup with BGE-M3 Q8_0 | [Completed] | 2026-01-29 | aaaf161 |
-       | **Phase 1**: Environment Check - ✅ Complete (7/7 tasks)
-       | **Phase 2**: Install Dependencies - ✅ Complete (10/10 tasks)
-       | **Phase 3**: Run Setup - ✅ Complete (12/12 tasks)
-       | **Phase 4**: Start & Test - ✅ Complete (10/10 tasks)
-       | **Total**: 39/39 tasks (100%)
-       | **Model**: BGE-M3 Q8_0 (605MB from KimChen/bge-m3-GGUF)
-       | **Server**: Port 8002, all health checks passing
+    | 008-mac-local-rag-setup | Mac Local RAG Setup with BGE-M3 Q8_0 | [Completed] | 2026-01-29 | aaaf161 |
+        | **Phase 1**: Environment Check - ✅ Complete (7/7 tasks)
+        | **Phase 2**: Install Dependencies - ✅ Complete (10/10 tasks)
+        | **Phase 3**: Run Setup - ✅ Complete (12/12 tasks)
+        | **Phase 4**: Start & Test - ✅ Complete (10/10 tasks)
+        | **Total**: 39/39 tasks (100%)
+        | **Model**: BGE-M3 Q8_0 (605MB from KimChen/bge-m3-GGUF)
+        | **Server**: Port 8002, all health checks passing
+    | 010-fresh-install-validation | Fresh Installation Validation | [In Progress] | ⏳ Pending |
+        | **Objective**: Validate all CLI commands and MCP tools on fresh Mac
+        | **Key Features**:
+        | - CLI command validation (setup, config, models, start/stop/status, ingest, query, onboard)
+        | - MCP tool validation (8 tools via HTTP API)
+        | - Full project ingestion (~80 files)
+        | - Knowledge verification (self-awareness test)
+        | **Constraints**: No file modifications, log all bugs/failures
+        | **MCP Endpoint**: http://localhost:8002/mcp (already running)
+        | **Project ID**: synapse
+        | **Timeline**: ~2.5 hours (72 tasks across 8 phases)
 
 - **[In Progress]** - Feature is currently being worked on
 - **[Completed]** - Feature is fully implemented and tested
