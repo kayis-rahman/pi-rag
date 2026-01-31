@@ -36,6 +36,14 @@ AVAILABLE_MODELS = {
         "description": "BGE-M3 embedding model for semantic search",
         "huggingface": "BAAI/bge-m3/gguf/bge-m3-q8_0.gguf",
         "checksum": None
+    },
+    "chat": {
+        "name": "gemma-3-1b",
+        "file": "gemma-3-1b-it-UD-Q4_K_XL.gguf",
+        "size_mb": 400,
+        "description": "Gemma 3 1B chat model for local chat",
+        "huggingface": "google/gemma-3-1b-it/gguf/gemma-3-1b-it-UD-Q4_K_XL.gguf",
+        "checksum": None
     }
 }
 
@@ -75,25 +83,6 @@ def save_models_registry(registry: dict) -> bool:
 MODELS_REGISTRY = load_models_registry()
 
 
-# Model registry (will be in synapse/config/models.json in Phase 3)
-AVAILABLE_MODELS = {
-    "embedding": {
-        "name": "bge-m3",
-        "file": "bge-m3-q8_0.gguf",
-        "size_mb": 730,
-        "description": "BGE-M3 embedding model for semantic search",
-        "huggingface": "BAAI/bge-m3/gguf/bge-m3-q8_0.gguf"
-    },
-    "chat": {
-        "name": "gemma-3-1b",
-        "file": "gemma-3-1b-it-UD-Q4_K_XL.gguf",
-        "size_mb": 400,
-        "description": "Gemma 3 1B chat model for local chat",
-        "huggingface": "google/gemma-3-1b-it/gguf/gemma-3-1b-it-UD-Q4_K_XL.gguf"
-    }
-}
-
-
 def get_models_directory() -> Path:
     """Get models directory path."""
     import os
@@ -104,15 +93,37 @@ def get_models_directory() -> Path:
         Path.home() / ".synapse" / "models",  # User home
         Path("~/.synapse/models").expanduser()
     ]
-    
+
     for loc in locations:
         if loc.exists():
             return loc
-    
+
     # Create in user home as fallback
     user_models = Path.home() / ".synapse" / "models"
     user_models.mkdir(parents=True, exist_ok=True)
     return user_models
+
+
+def find_model_by_name_or_type(model_identifier: str) -> Optional[tuple[str, dict]]:
+    """
+    Find model in registry by type or by name.
+
+    Args:
+        model_identifier: Model type (e.g., "embedding") or model name (e.g., "bge-m3")
+
+    Returns:
+        Tuple of (model_type, model_info) if found, None otherwise
+    """
+    # First check if it's a type (direct key lookup)
+    if model_identifier in MODELS_REGISTRY:
+        return model_identifier, MODELS_REGISTRY[model_identifier]
+
+    # Then check if it's a name (iterate through all models)
+    for model_type, model_info in MODELS_REGISTRY.items():
+        if model_info.get("name") == model_identifier:
+            return model_type, model_info
+
+    return None
 
 
 def list_models():
@@ -183,19 +194,23 @@ def download_model(
     Download model from HuggingFace with progress, retry, and checksum verification.
 
     Args:
-        model_name: Model type to download (embedding or chat)
+        model_name: Model type (e.g., "embedding") or model name (e.g., "bge-m3")
         force: Force re-download even if already exists
 
     Returns:
         True if download successful, False otherwise
     """
-    # Check model exists in registry
-    if model_name not in MODELS_REGISTRY:
+    # Check model exists in registry (by type or name)
+    model_result = find_model_by_name_or_type(model_name)
+    if model_result is None:
+        # Build list of available model names
+        available_names = [info.get("name", model_type) for model_type, info in MODELS_REGISTRY.items()]
         console.print(f"[red]❌ Unknown model: {model_name}[/red]")
         console.print(f"   Available models: {', '.join(MODELS_REGISTRY.keys())}")
+        console.print(f"   Available by name: {', '.join(available_names)}")
         return False
 
-    model_info = MODELS_REGISTRY[model_name]
+    model_type, model_info = model_result
     models_dir = get_models_directory()
     model_path = models_dir / model_info["file"]
     temp_path = model_path.with_suffix('.tmp')
@@ -381,14 +396,19 @@ def remove_model(model_name: str):
     Remove installed model.
 
     Args:
-        model_name: Model type to remove (embedding or chat)
+        model_name: Model type (e.g., "embedding") or model name (e.g., "bge-m3")
     """
-    if model_name not in MODELS_REGISTRY:
+    # Check model exists in registry (by type or name)
+    model_result = find_model_by_name_or_type(model_name)
+    if model_result is None:
+        # Build list of available model names
+        available_names = [info.get("name", model_type) for model_type, info in MODELS_REGISTRY.items()]
         console.print(f"[red]❌ Unknown model: {model_name}[/red]")
         console.print(f"   Available models: {', '.join(MODELS_REGISTRY.keys())}")
+        console.print(f"   Available by name: {', '.join(available_names)}")
         return False
 
-    model_info = MODELS_REGISTRY[model_name]
+    model_type, model_info = model_result
     models_dir = get_models_directory()
     model_path = models_dir / model_info["file"]
 

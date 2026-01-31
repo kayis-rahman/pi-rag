@@ -119,22 +119,17 @@ def status(
         print(f"  Health Check: {health_url}")
         
         try:
-            result = subprocess.run(
-                ["curl", "-s", "-o", "/dev/null", "-w", "%{http_code}", health_url],
-                capture_output=True,
-                timeout=2
-            )
-            http_code = result.stdout.strip()
-            
-            if http_code == "200":
+            # Use httpx for better error handling
+            import httpx
+            response = httpx.get(health_url, timeout=2.0)
+            if response.status_code == 200:
                 server_status = "running"
                 status_emoji = "✅"
             else:
-                server_status = "stopped"
-                status_emoji = "❌"
-            
+                server_status = f"error (HTTP {response.status_code})"
+                status_emoji = "⚠️"
             print(f"  Status: {status_emoji} {server_status}")
-        except subprocess.TimeoutExpired:
+        except httpx.TimeoutException:
             print(f"  Status: ❌ stopped (health check timeout)")
         except Exception as e:
             print(f"  Status: ❌ stopped (health check failed: {e})")

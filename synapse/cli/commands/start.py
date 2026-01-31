@@ -9,6 +9,19 @@ import subprocess
 import time
 from pathlib import Path
 from typing import Optional
+import requests
+
+
+def check_server_already_running(port: int = 8002) -> bool:
+    """Check if server is already running via health endpoint."""
+    try:
+        response = requests.get(f"http://localhost:{port}/health", timeout=2)
+        if response.status_code == 200:
+            print(f"✓ Server already running on port {port}")
+            return True
+        return False
+    except requests.exceptions.RequestException:
+        return False
 
 
 def check_docker_running(container_name: str = "synapse-mcp") -> bool:
@@ -99,10 +112,53 @@ def start_native(port: int = 8002) -> bool:
     """Start SYNAPSE server in native (Python) mode."""
     print(f"🚀 Starting SYNAPSE server in native mode on port {port}...")
 
+    # Check if already running
+    if check_server_already_running(port):
+        print("  Use 'synapse status' to verify health")
+        return True
+
     # Set environment for native mode
     env = os.environ.copy()
     env["RAG_ENV"] = "native"
-    env["RAG_CONFIG_PATH"] = str(Path.cwd() / "configs" / "rag_config.json")
+
+    # Set OS-aware data directory
+    import platform
+    if platform.system() == "Darwin":  # macOS
+        data_dir = os.path.expanduser("~/.synapse/data")
+    elif platform.system() == "Linux":
+        # Check if /opt/synapse is writable
+        if os.access("/opt/synapse", os.W_OK):
+            data_dir = "/opt/synapse/data"
+        else:
+            data_dir = os.path.expanduser("~/.synapse/data")
+    else:  # Windows and others
+        data_dir = os.path.expanduser("~/.synapse/data")
+
+    env["RAG_DATA_DIR"] = data_dir
+    print(f"  Data directory: {data_dir}")
+
+    # Find the config file - search in multiple locations
+    config_path = None
+    possible_paths = [
+        Path(__file__).parent.parent.parent / "configs" / "rag_config.json",  # From synapse/cli/commands/ -> synapse/configs
+        Path.cwd() / "configs" / "rag_config.json",  # Current working directory
+        Path("/opt/synapse/configs/rag_config.json"),  # Installation path
+    ]
+
+    for path in possible_paths:
+        if path.exists():
+            config_path = str(path)
+            break
+
+    if config_path is None:
+        print(f"❌ Error: Cannot find rag_config.json")
+        print(f"   Searched in:")
+        for p in possible_paths:
+            print(f"   - {p}")
+        return False
+
+    env["RAG_CONFIG_PATH"] = config_path
+
     # Pass port to HTTP server via environment variable
     env["MCP_PORT"] = str(port)
 
@@ -131,14 +187,24 @@ def start_native(port: int = 8002) -> bool:
             # Process exited immediately
             proc_exit_code = process.returncode
             if proc_exit_code != 0:
+                # Get stderr for more details
+                stderr_output = process.stderr.read().decode('utf-8') if process.stderr else ""
+                stdout_output = process.stdout.read().decode('utf-8') if process.stdout else ""
                 raise subprocess.CalledProcessError(
-                    f"Server exited with code {proc_exit_code}",
-                    returncode=proc_exit_code
+                    returncode=proc_exit_code,
+                    cmd="python3 -m mcp_server.http_wrapper",
+                    stderr=stderr_output,
+                    output=stdout_output
                 )
             print(f"❌ Server process exited immediately")
             return False
     except subprocess.CalledProcessError as e:
         print(f"❌ Failed to start native server: {e}")
+        # Print stderr if available for debugging
+        if hasattr(e, 'stderr') and e.stderr:
+            print(f"   stderr: {e.stderr}")
+        if hasattr(e, 'output') and e.output:
+            print(f"   stdout: {e.output}")
         return False
     except subprocess.TimeoutExpired:
         print("❌ Server start timed out")

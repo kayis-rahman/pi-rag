@@ -4,10 +4,22 @@ SYNAPSE CLI: Stop Command
 Stop SYNAPSE MCP server running in either Docker or native mode.
 """
 
+import os
+import signal
 import subprocess
 import time
 from pathlib import Path
+import requests
 import typer
+
+
+def check_server_healthy(port: int = 8002) -> bool:
+    """Check if server is healthy via health endpoint."""
+    try:
+        response = requests.get(f"http://localhost:{port}/health", timeout=2)
+        return response.status_code == 200
+    except requests.exceptions.RequestException:
+        return False
 
 
 def stop_docker(container_name: str = "synapse-mcp") -> bool:
@@ -50,10 +62,14 @@ def stop_native() -> bool:
     """Stop SYNAPSE native server."""
     print("🚀 Stopping SYNAPSE native server...")
     
+    # First check if server is even running
+    if not check_server_healthy():
+        print("✓ SYNAPSE server is not running")
+        return True
+    
     # Find and kill Python processes running the server
     try:
-        # Use lsof to find process using port 8002, then kill it
-        # This is more precise than pkill
+        # Method 1: Use lsof to find process using port 8002
         result = subprocess.run(
             ["lsof", "-t", "-i", ":8002"],
             capture_output=True,
@@ -61,54 +77,102 @@ def stop_native() -> bool:
             timeout=5
         )
         
+        pids = []
         if result.returncode == 0 and result.stdout:
-            # Parse output to get PID
-            # Format: COMMAND  PID USER   FD  TYPE DEVICE SIZE/OFF NODE NAME
+            # lsof -t -i :8002 returns just PIDs, one per line
             lines = result.stdout.strip().split('\n')
-            for line in lines[1:]:  # Skip header
-                parts = line.split()
-                if len(parts) >= 2:
-                    pid = parts[1]
+            for line in lines:
+                line = line.strip()
+                if line:
                     try:
-                        subprocess.run(
-                            ["kill", pid],
-                            timeout=5,
-                            check=True
-                        )
-                        print(f"✓ Killed server process (PID: {pid})")
-                    except Exception:
-                        pass
-            
-            # Wait for port to be released
-            max_wait = 10
-            for i in range(max_wait):
-                time.sleep(1)
-                # Check if port is still in use
-                check_result = subprocess.run(
-                    ["lsof", "-t", "-i", ":8002"],
+                        pid = int(line)
+                        pids.append(pid)
+                    except ValueError:
+                        # Try parsing as regular lsof output with columns
+                        parts = line.split()
+                        if len(parts) >= 2:
+                            try:
+                                pid = int(parts[1])
+                                if pid not in pids:
+                                    pids.append(pid)
+                            except ValueError:
+                                pass
+        
+        # Method 2: If lsof didn't find it, search by cmdline
+        if not pids:
+            try:
+                result = subprocess.run(
+                    ["ps", "aux"],
                     capture_output=True,
+                    text=True,
+                    timeout=5
+                )
+                for line in result.stdout.split('\n'):
+                    if 'mcp_server.http_wrapper' in line and 'python' in line:
+                        parts = line.split()
+                        if len(parts) >= 2:
+                            try:
+                                pid = int(parts[1])
+                                if pid not in pids:
+                                    pids.append(pid)
+                            except ValueError:
+                                pass
+            except Exception:
+                pass
+        
+        # Kill processes with proper signal handling
+        for pid in pids:
+            try:
+                # First try SIGTERM for graceful shutdown
+                subprocess.run(
+                    ["kill", "-TERM", str(pid)],
+                    timeout=5,
+                    check=False
+                )
+                print(f"  Sent SIGTERM to PID {pid}")
+            except Exception:
+                pass
+        
+        # Wait for graceful shutdown
+        time.sleep(3)
+        
+        # Check if still running, send SIGKILL if needed
+        for pid in pids:
+            try:
+                # Check if process still exists
+                result = subprocess.run(
+                    ["ps", "-p", str(pid)],
+                    capture_output=True,
+                    text=True,
                     timeout=2
                 )
-                if check_result.returncode != 0:
-                    # Port is free
-                    print(f"✓ Port 8002 released after {i+1} seconds")
-                    break
-            
-            # Check one more time
-            check_result = subprocess.run(
-                ["lsof", "-t", "-i", ":8002"],
-                capture_output=True,
-                timeout=2
-            )
-            if check_result.returncode == 0:
-                print("⚠️  Warning: Port may still be in use")
-                return False
-            
+                if result.returncode == 0:  # Process still exists
+                    subprocess.run(
+                        ["kill", "-KILL", str(pid)],
+                        timeout=5,
+                        check=False
+                    )
+                    print(f"  Sent SIGKILL to PID {pid}")
+            except Exception:
+                pass
+        
+        # Wait for port to be released
+        max_wait = 10
+        for i in range(max_wait):
+            time.sleep(1)
+            if not check_server_healthy():
+                print(f"✓ Server stopped after {i+1} seconds")
+                break
+        else:
+            print("⚠️  Warning: Server may still be running")
+        
+        # Final verification
+        if not check_server_healthy():
             print("✓ SYNAPSE native server stopped")
             return True
         else:
-            print("✓ SYNAPSE server not running")
-            return True
+            print("❌ Failed to stop server - still responding to health check")
+            return False
             
     except subprocess.CalledProcessError as e:
         print(f"❌ Failed to stop native server: {e}")
@@ -126,8 +190,19 @@ def stop_native() -> bool:
                 timeout=10
             )
             time.sleep(3)  # Wait for graceful shutdown
-            print("✓ SYNAPSE native server stopped (fallback)")
-            return True
+            if not check_server_healthy():
+                print("✓ SYNAPSE native server stopped (fallback)")
+                return True
+            else:
+                # Try harder
+                subprocess.run(
+                    ["pkill", "-9", "-f", "mcp_server.http_wrapper"],
+                    check=False,
+                    timeout=10
+                )
+                time.sleep(2)
+                print("✓ SYNAPSE native server stopped (forced)")
+                return True
         except Exception as e:
             print(f"❌ Failed to stop native server: {e}")
             return False

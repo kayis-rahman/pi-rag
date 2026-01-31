@@ -108,24 +108,72 @@ class RAGMemoryBackend:
         self.universal_hooks_config = self._load_universal_hooks_config()
 
     def _get_data_dir(self) -> str:
-        """Get data directory from config file."""
+        """
+        Get data directory with OS-aware detection.
+        
+        Priority:
+        1. Environment variable (RAG_DATA_DIR)
+        2. Config file (data_dir or index_path)
+        3. OS-specific defaults:
+           - macOS: ~/.synapse/data
+           - Linux: /opt/synapse/data (if writable), else ~/.synapse/data
+           - Windows: ~/.synapse/data
+        """
+        import platform
+        
+        # Priority 1: Environment variable
+        if "RAG_DATA_DIR" in os.environ:
+            data_dir = os.environ["RAG_DATA_DIR"]
+            logger.info(f"Using data directory from environment: {data_dir}")
+            return data_dir
+        
+        # Priority 2: Config file
         try:
             config_path = os.environ.get("RAG_CONFIG_PATH", "./configs/rag_config.json")
             if os.path.exists(config_path):
                 with open(config_path, 'r') as f:
                     config = json.load(f)
-                    # Derive data directory from index_path or memory_db_path
+                    # Look for explicit data_dir first
+                    if "data_dir" in config:
+                        data_dir = config["data_dir"]
+                        logger.info(f"Using data directory from config: {data_dir}")
+                        return data_dir
+                    # Derive from index_path
                     if "index_path" in config:
-                        index_path = config["index_path"]
-                        return os.path.dirname(index_path)
+                        data_dir = os.path.dirname(config["index_path"])
+                        logger.info(f"Using data directory from index_path: {data_dir}")
+                        return data_dir
+                    # Derive from memory_db_path
                     if "memory_db_path" in config:
-                        db_path = config["memory_db_path"]
-                        return os.path.dirname(db_path)
+                        data_dir = os.path.dirname(config["memory_db_path"])
+                        logger.info(f"Using data directory from memory_db_path: {data_dir}")
+                        return data_dir
         except Exception as e:
             logger.warning(f"Failed to read data dir from config: {e}")
-
-        # Fallback to environment variable
-        return os.environ.get("RAG_DATA_DIR", "/opt/synapse/data")
+        
+        # Priority 3: OS-specific defaults
+        system = platform.system()
+        
+        if system == "Darwin":  # macOS
+            data_dir = os.path.expanduser("~/.synapse/data")
+            logger.info(f"Using macOS default data directory: {data_dir}")
+            return data_dir
+        
+        elif system == "Linux":
+            # Try system path first (for backward compatibility with Linux users)
+            system_path = "/opt/synapse/data"
+            if os.access(system_path, os.W_OK):
+                logger.info(f"Using Linux system data directory: {system_path}")
+                return system_path
+            # Fall back to user home if system path not writable
+            data_dir = os.path.expanduser("~/.synapse/data")
+            logger.info(f"Linux system path not writable, using user home: {data_dir}")
+            return data_dir
+        
+        else:  # Windows and others
+            data_dir = os.path.expanduser("~/.synapse/data")
+            logger.info(f"Using default data directory: {data_dir}")
+            return data_dir
 
     def _get_symbolic_store(self) -> MemoryStore:
         """Get or create symbolic memory store (Phase 1)."""
