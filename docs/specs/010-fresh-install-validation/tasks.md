@@ -233,11 +233,11 @@ This task list provides a granular checklist for validating Synapse on a fresh M
 
 ### 4.2: Additional Config Options
 
-#### 4.2.1: JSON Config Output
-- [ ] 4.2.1.1 Run `python3 -m synapse.cli.main config --json > /tmp/config.json` (Linked to FR-2)
+### 4.2.1: JSON Config Output
+- [ ] 4.2.1.1 Run `python3 -m synapse.cli.main config --json` (Linked to FR-2)
 - [ ] 4.2.1.2 Verify exit code: 0 (Linked to FR-2)
-- [ ] 4.2.1.3 Run `cat /tmp/config.json | python3 -m json.tool > /dev/null` (Linked to FR-2)
-- [ ] 4.2.1.4 Verify valid JSON (no parse errors) (Linked to FR-2)
+- [ ] 4.2.1.3 Save to `docs/specs/010-fresh-install-validation/CONFIG_OUTPUT.json` (Linked to FR-2)
+- [ ] 4.2.1.4 Validate JSON: `python3 -c "import json; json.load(open('docs/specs/010-fresh-install-validation/CONFIG_OUTPUT.json'))"` (Linked to FR-2)
 - [ ] 4.2.1.5 Verify JSON contains required fields (Linked to FR-2)
 - [ ] 4.2.1.6 Mark result: PASS/FAIL (Linked to FR-2)
 
@@ -376,25 +376,25 @@ This task list provides a granular checklist for validating Synapse on a fresh M
 
 **Constraint:** NO code creation/modification. Use existing bulk_ingest script only, document gaps.
 
-### 6.1: File Discovery (find command only)
-- [ ] 6.1.1 List Python files: `find synapse/ -name "*.py" -type f | wc -l` (Linked to FR-16)
-- [ ] 6.1.2 List markdown files: `find . -maxdepth 3 -name "*.md" -type f | wc -l` (Linked to FR-16)
-- [ ] 6.1.3 List config files: `find . -maxdepth 2 \( -name "*.json" -o -name "*.yaml" -o -name "*.toml" \) | wc -l` (Linked to FR-16)
-- [ ] 6.1.4 Calculate total files to ingest (Linked to FR-16)
-- [ ] 6.1.5 Log file counts (Linked to FR-16)
+### 6.1: File Discovery (real project directories only)
+- [ ] 6.1.1 Count Python files: `find synapse/ -name "*.py" -type f | wc -l` (Linked to FR-16)
+- [ ] 6.1.2 Count markdown files: `find . -maxdepth 3 -name "*.md" -type f | grep -v ".git" | wc -l` (Linked to FR-16)
+- [ ] 6.1.3 Count config files: `find . -maxdepth 2 \( -name "*.json" -o -name "*.yaml" -o -name "*.toml" \) | grep -v ".git" | wc -l` (Linked to FR-16)
+- [ ] 6.1.4 Save file counts to `docs/specs/010-fresh-install-validation/FILE_COUNTS.md` (Linked to FR-16)
 
 ### 6.2: Execute Ingestion (existing script only)
 - [ ] 6.2.1 Run bulk_ingest for code files (Linked to FR-16)
   ```bash
-  python3 -m scripts.bulk_ingest --root-dir . --file-type code --no-gitignore 2>&1 | tail -20
+  cd /Users/kayisrahman/Documents/workspace/ideas/synapse
+  python3 -m scripts.bulk_ingest --root-dir . --file-type code --no-gitignore 2>&1 | tee docs/specs/010-fresh-install-validation/INGESTION_CODE.log | tail -20
   ```
 - [ ] 6.2.2 Run bulk_ingest for docs (Linked to FR-16)
   ```bash
-  python3 -m scripts.bulk_ingest --root-dir . --file-type doc --no-gitignore 2>&1 | tail -20
+  python3 -m scripts.bulk_ingest --root-dir . --file-type doc --no-gitignore 2>&1 | tee docs/specs/010-fresh-install-validation/INGESTION_DOCS.log | tail -20
   ```
 - [ ] 6.2.3 Run bulk_ingest for config files (Linked to FR-16)
   ```bash
-  python3 -m scripts.bulk_ingest --root-dir . --file-type config --no-gitignore 2>&1 | tail -20
+  python3 -m scripts.bulk_ingest --root-dir . --file-type config --no-gitignore 2>&1 | tee docs/specs/010-fresh-install-validation/INGESTION_CONFIG.log | tail -20
   ```
 - [ ] 6.2.4 Track success/failure for each batch (Linked to FR-16)
 - [ ] 6.2.5 Log completion time (Linked to FR-16)
@@ -405,7 +405,8 @@ This task list provides a granular checklist for validating Synapse on a fresh M
   curl -X POST http://localhost:8002/mcp \
     -H "Accept: application/json, text/event-stream" \
     -H "Content-Type: application/json" \
-    -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"list_sources","arguments":{"project_id":"synapse"}}}'
+    -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"list_sources","arguments":{"project_id":"synapse"}}}' \
+    > docs/specs/010-fresh-install-validation/LIST_SOURCES_RESPONSE.json 2>&1
   ```
 - [ ] 6.3.2 Verify source count > 50 (Linked to FR-16)
 - [ ] 6.3.3 Log final ingestion summary (Linked to FR-16)
