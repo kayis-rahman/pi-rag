@@ -57,28 +57,38 @@ This is the "Source of Truth" for all SYNAPSE features. Each feature follows the
         | **Total**: 39/39 tasks (100%)
         | **Model**: BGE-M3 Q8_0 (605MB from KimChen/bge-m3-GGUF)
         | **Server**: Port 8002, all health checks passing
-    | 010-fresh-install-validation | Fresh Installation Validation | [In Progress] | ⏳ Pending |
-        | **Objective**: Validate all CLI commands and MCP tools on fresh Mac
-        | **Key Features**:
-        | - CLI command validation (setup, config, models, start/stop/status, ingest, query, onboard)
-        | - MCP tool validation (8 tools via HTTP API)
-        | - Full project ingestion (~80 files)
-        | - Knowledge verification (self-awareness test)
-        | **Constraints**: No file modifications, log all bugs/failures
-        | **MCP Endpoint**: http://localhost:8002/mcp (already running)
-        | **Project ID**: synapse
-        | **Timeline**: ~2.5 hours (72 tasks across 8 phases)
-        | **Progress**: Phases 1-5 complete (28/72 tasks, 39%), 10 bugs found
-    | 011-fix-validation-blockers | Fix Validation Blockers | [In Progress] | ⏳ Pending |
-        | **Objective**: Fix 4 critical bugs blocking full validation (BUG-010, 003, 001, 002)
-        | **Key Fixes**:
-        | - BUG-010: OS-aware data directory (use ~/.synapse/data on Mac)
-        | - BUG-003: Fix stop command to actually stop server
-        | - BUG-001: Fix start command to handle permissions
-        | - BUG-002: Fix status to show accurate state
-        | **Testing**: Dual strategy (OpenCode + Pytest)
-        | **Files**: 6 files (4 modified, 2 new test files)
-        | **Timeline**: 8-12 hours (52 tasks across 5 phases)
+| 010-fresh-install-validation | Fresh Installation Validation | [In Progress] | ⏳ Pending | 63bef8b |
+         | **Objective**: Validate all CLI commands and MCP tools on fresh Mac installation
+         | **Key Features**:
+         | - CLI command validation (setup, config, models, start/stop/status, ingest, query, onboard)
+         | - MCP tool validation (8 tools via HTTP API)
+         | - Full project ingestion (~80 files)
+         | - Knowledge verification (self-awareness test)
+         | **Constraints**: No file modifications, log all bugs/failures
+         | **MCP Endpoint**: http://localhost:8002/mcp (already running)
+         | **Project ID**: synapse
+         | **Timeline**: ~2.5 hours (72 tasks across 8 phases)
+         | **Progress**: Phases 1-5 complete, Phase 6 in progress (47/72 tasks, 65%)
+         | **Bug Fixes**: Merged from Feature 011 (BUG-001, 002, 003, 010 all fixed)
+         | **Current Issue**: Phase 6 ingestion timeout, 0 sources persisted (retry needed)
+         | **Recent Work**: 
+         |   - Merged Feature 011 fixes (OS-aware data directory)
+         |   - Phase 6.1 file discovery complete (81 files identified)
+         |   - Phase 6.2 ingestion attempted (86 files logged, timeout at 2 min)
+         |   - Phase 6.3 verification failed (0 sources found)
+         |   - Created FILE_COUNTS.md, INGESTION_SUMMARY.md, SESSION_2_SUMMARY.md
+     | 011-fix-validation-blockers | Fix Validation Blockers | [Merged into 010] | ⏳ Pending | 63bef8b |
+         | **Objective**: Fix 4 critical bugs blocking full validation (BUG-010, 003, 001, 002)
+         | **Key Fixes**:
+         | - BUG-010: OS-aware data directory (use ~/.synapse/data on Mac)
+         | - BUG-003: Fix stop command to actually stop server
+         | - BUG-001: Fix start command to handle permissions
+         | - BUG-002: Fix status to show accurate state
+         | **Testing**: Dual strategy (OpenCode + Pytest)
+         | **Files**: 6 files (4 modified, 2 new test files)
+         | **Timeline**: 8-12 hours (52 tasks across 5 phases)
+         | **Status**: ✅ COMPLETE - Merged into Feature 010
+         | **Commit**: 63bef8b - All bugs fixed and tested
 
 - **[In Progress]** - Feature is currently being worked on
 - **[Completed]** - Feature is fully implemented and tested

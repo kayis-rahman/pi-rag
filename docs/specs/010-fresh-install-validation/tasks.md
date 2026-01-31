@@ -40,10 +40,10 @@ This task list provides a granular checklist for validating Synapse on a fresh M
 | Phase 3: P1 CLI Commands | 10 | ✅ Complete | Jan 31 |
 | Phase 4: P2/P3 CLI Commands | 8 | ✅ Complete | Jan 31 |
 | Phase 5: MCP Tool Validation | 9 | ✅ Complete | Jan 31 |
-| Phase 6: Full Project Ingestion | 10 | ⏸ BLOCKED | Pending |
+| Phase 6: Full Project Ingestion | 10 | ⚠️ 50% Complete | In Progress |
 | Phase 7: Knowledge Verification | 9 | ⏸ BLOCKED | Pending |
 | Phase 8: Documentation | 8 | ⏸ Pending | Pending |
-| **Total** | **72** | **39%** | **In Progress** |
+| **Total** | **72** | **56%** | **In Progress** |
 
 ---
 
@@ -391,51 +391,36 @@ This task list provides a granular checklist for validating Synapse on a fresh M
 
 ## Phase 6: Full Project Ingestion (10 tasks) ⏸ BLOCKED
 
+**Status:** ✅ IN PROGRESS - BUG-010 fixed, now executing ingestion
+
 **Constraint:** NO code creation/modification. Use existing bulk_ingest script only, document gaps.
 
-**Status:** BLOCKED by BUG-010 (MCP permission error)
-- Cannot use MCP ingest_file tool
-- Cannot verify ingestion via list_sources
-- Wait for BUG-010 fix before proceeding
+**Changes:**
+- 2026-01-31: BUG-010 fixed (OS-aware data directory), Phase 6 unblocked
+- Merged fixes from feature/011-fix-validation-blockers
 
-**Phase 6 Exit Criteria:** ⏸ BLOCKED - pending BUG-010 fix
+**Phase 6 Exit Criteria:** ✅ IN PROGRESS - executing ingestion
 
 ### 6.1: File Discovery (real project directories only)
-- [ ] 6.1.1 Count Python files: `find synapse/ -name "*.py" -type f | wc -l` (Linked to FR-16)
-- [ ] 6.1.2 Count markdown files: `find . -maxdepth 3 -name "*.md" -type f | grep -v ".git" | wc -l` (Linked to FR-16)
-- [ ] 6.1.3 Count config files: `find . -maxdepth 2 \( -name "*.json" -o -name "*.yaml" -o -name "*.toml" \) | grep -v ".git" | wc -l` (Linked to FR-16)
-- [ ] 6.1.4 Save file counts to `docs/specs/010-fresh-install-validation/FILE_COUNTS.md` (Linked to FR-16)
+- [x] 6.1.1 Count Python files: `find synapse/ -name "*.py" -type f | wc -l` (Linked to FR-16) ✅ DONE (14 files)
+- [x] 6.1.2 Count markdown files: `find . -maxdepth 3 -name "*.md" -type f | grep -v ".git" | wc -l` (Linked to FR-16) ✅ DONE (55 files)
+- [x] 6.1.3 Count config files: `find . -maxdepth 2 \( -name "*.json" -o -name "*.yaml" -o -name "*.toml" \) | grep -v ".git" | wc -l` (Linked to FR-16) ✅ DONE (12 files)
+- [x] 6.1.4 Save file counts to `docs/specs/010-fresh-install-validation/FILE_COUNTS.md` (Linked to FR-16) ✅ DONE
 
 ### 6.2: Execute Ingestion (existing script only)
-- [ ] 6.2.1 Run bulk_ingest for code files (Linked to FR-16)
-  ```bash
-  cd /Users/kayisrahman/Documents/workspace/ideas/synapse
-  python3 -m scripts.bulk_ingest --root-dir . --file-type code --no-gitignore 2>&1 | tee docs/specs/010-fresh-install-validation/INGESTION_CODE.log | tail -20
-  ```
-- [ ] 6.2.2 Run bulk_ingest for docs (Linked to FR-16)
-  ```bash
-  python3 -m scripts.bulk_ingest --root-dir . --file-type doc --no-gitignore 2>&1 | tee docs/specs/010-fresh-install-validation/INGESTION_DOCS.log | tail -20
-  ```
-- [ ] 6.2.3 Run bulk_ingest for config files (Linked to FR-16)
-  ```bash
-  python3 -m scripts.bulk_ingest --root-dir . --file-type config --no-gitignore 2>&1 | tee docs/specs/010-fresh-install-validation/INGESTION_CONFIG.log | tail -20
-  ```
-- [ ] 6.2.4 Track success/failure for each batch (Linked to FR-16)
-- [ ] 6.2.5 Log completion time (Linked to FR-16)
+- [x] 6.2.0 Ensure MCP server is running (Linked to FR-16) ✅ Server running on ~/.synapse/data
+- [x] 6.2.1 Run bulk_ingest for code files (Linked to FR-16) ⚠️ PARTIAL - 86 files logged, timeout at 2 min
+- [ ] 6.2.2 Run bulk_ingest for docs (Linked to FR-16) ❌ NOT EXEC - timeout on previous
+- [ ] 6.2.3 Run bulk_ingest for config files (Linked to FR-16) ❌ NOT EXEC - timeout on previous
+- [x] 6.2.4 Track success/failure for each batch (Linked to FR-16) ⚠️ PARTIAL - logged but not persisted
+- [ ] 6.2.5 Log completion time (Linked to FR-16) ❌ INCOMPLETE - interrupted
 
 ### 6.3: Verify Ingestion Complete
-- [ ] 6.3.1 Check sources count using curl MCP list_sources (Linked to FR-16)
-  ```bash
-  curl -X POST http://localhost:8002/mcp \
-    -H "Accept: application/json, text/event-stream" \
-    -H "Content-Type: application/json" \
-    -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"list_sources","arguments":{"project_id":"synapse"}}}' \
-    > docs/specs/010-fresh-install-validation/LIST_SOURCES_RESPONSE.json 2>&1
-  ```
-- [ ] 6.3.2 Verify source count > 50 (Linked to FR-16)
-- [ ] 6.3.3 Log final ingestion summary (Linked to FR-16)
+- [x] 6.3.1 Check sources count using curl MCP list_sources (Linked to FR-16) ⚠️ Shows 0 sources (expected > 50)
+- [ ] 6.3.2 Verify source count > 50 (Linked to FR-16) ❌ FAIL - 0 < 50
+- [x] 6.3.3 Log final ingestion summary (Linked to FR-16) ✅ Created INGESTION_SUMMARY.md
 
-**Phase 6 Exit Criteria:** All 10 tasks complete, files ingested using existing scripts only
+**Phase 6 Exit Criteria:** ❌ INCOMPLETE - Timeout and persistence issues
 
 ---
 
@@ -443,12 +428,11 @@ This task list provides a granular checklist for validating Synapse on a fresh M
 
 **Constraint:** NO code creation/modification. Use CLI query command only, document gaps.
 
-**Status:** BLOCKED by BUG-008 (query CLI not implemented) and BUG-010 (MCP search fails)
-- Cannot test query functionality
-- Cannot verify knowledge base
-- Wait for bug fixes before proceeding
+**Status:** ⏸ BLOCKED - No documents ingested (Phase 6 incomplete)
+- Cannot test query functionality (no knowledge base)
+- Wait for successful Phase 6 completion before proceeding
 
-**Phase 7 Exit Criteria:** ⏸ BLOCKED - pending BUG-008 and BUG-010 fixes
+**Phase 7 Exit Criteria:** ⏸ BLOCKED - pending Phase 6 completion
 - [ ] 7.1.1.2 Verify output contains "RAG" or "local" or "AI" (Linked to US-18)
 - [ ] 7.1.1.3 Verify output relevant to project purpose (Linked to US-18)
 - [ ] 7.1.1.4 Mark result: PASS/FAIL (Linked to US-18)
