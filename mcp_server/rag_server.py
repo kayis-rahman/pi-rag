@@ -45,6 +45,7 @@ from rag.conversation_analyzer import ConversationAnalyzer
 # Local imports
 from .metrics import Metrics, get_metrics
 from .project_manager import ProjectManager
+from synapse.config import get_shortname
 
 
 # Configure logging
@@ -109,76 +110,44 @@ class RAGMemoryBackend:
 
     def _get_data_dir(self) -> str:
         """
-        Get data directory with OS-aware detection.
-        
-        Priority:
-        1. Environment variable (RAG_DATA_DIR)
-        2. Config file (data_dir or index_path)
-        3. OS-specific defaults:
-           - macOS: ~/.synapse/data
-           - Linux: /opt/synapse/data (if writable), else ~/.synapse/data
-           - Windows: ~/.synapse/data
+        Get data directory using OS-aware config.
+
+        Uses the new synapse.config module for consistent path resolution
+        across all platforms.
+
+        Returns:
+            Path to data directory (always exists and is writable)
         """
-        import platform
-        
-        # Priority 1: Environment variable
-        if "RAG_DATA_DIR" in os.environ:
-            data_dir = os.environ["RAG_DATA_DIR"]
-            logger.info(f"Using data directory from environment: {data_dir}")
-            return data_dir
-        
-        # Priority 2: Config file
+        from synapse.config import get_data_dir
+        data_dir = get_data_dir()
+        logger.info(f"Using data directory from config: {data_dir}")
+        return data_dir
+
+    def _ensure_data_dir(self) -> None:
+        """
+        Ensure data directory exists and is writable.
+
+        Creates the directory if missing and validates write access.
+        Logs the data directory path for debugging.
+        """
+        data_dir = self._get_data_dir()
+        Path(data_dir).mkdir(parents=True, exist_ok=True)
+
+        # Verify it's writable
+        test_file = Path(data_dir) / ".write_test"
         try:
-            config_path = os.environ.get("RAG_CONFIG_PATH", "./configs/rag_config.json")
-            if os.path.exists(config_path):
-                with open(config_path, 'r') as f:
-                    config = json.load(f)
-                    # Look for explicit data_dir first
-                    if "data_dir" in config:
-                        data_dir = config["data_dir"]
-                        logger.info(f"Using data directory from config: {data_dir}")
-                        return data_dir
-                    # Derive from index_path
-                    if "index_path" in config:
-                        data_dir = os.path.dirname(config["index_path"])
-                        logger.info(f"Using data directory from index_path: {data_dir}")
-                        return data_dir
-                    # Derive from memory_db_path
-                    if "memory_db_path" in config:
-                        data_dir = os.path.dirname(config["memory_db_path"])
-                        logger.info(f"Using data directory from memory_db_path: {data_dir}")
-                        return data_dir
+            test_file.write_text("test")
+            test_file.unlink()
+            logger.debug(f"Data directory verified writable: {data_dir}")
         except Exception as e:
-            logger.warning(f"Failed to read data dir from config: {e}")
-        
-        # Priority 3: OS-specific defaults
-        system = platform.system()
-        
-        if system == "Darwin":  # macOS
-            data_dir = os.path.expanduser("~/.synapse/data")
-            logger.info(f"Using macOS default data directory: {data_dir}")
-            return data_dir
-        
-        elif system == "Linux":
-            # Try system path first (for backward compatibility with Linux users)
-            system_path = "/opt/synapse/data"
-            if os.access(system_path, os.W_OK):
-                logger.info(f"Using Linux system data directory: {system_path}")
-                return system_path
-            # Fall back to user home if system path not writable
-            data_dir = os.path.expanduser("~/.synapse/data")
-            logger.info(f"Linux system path not writable, using user home: {data_dir}")
-            return data_dir
-        
-        else:  # Windows and others
-            data_dir = os.path.expanduser("~/.synapse/data")
-            logger.info(f"Using default data directory: {data_dir}")
-            return data_dir
+            logger.error(f"Data directory not writable: {data_dir}: {e}")
+            raise
 
     def _get_symbolic_store(self) -> MemoryStore:
         """Get or create symbolic memory store (Phase 1)."""
         if self._symbolic_store is None:
             db_path = os.path.join(self._get_data_dir(), "memory.db")
+            logger.info(f"Initializing symbolic memory store at: {db_path}")
             self._symbolic_store = get_memory_store(db_path)
         return self._symbolic_store
 
@@ -186,6 +155,7 @@ class RAGMemoryBackend:
         """Get or create episodic memory store (Phase 3)."""
         if self._episodic_store is None:
             db_path = os.path.join(self._get_data_dir(), "episodic.db")
+            logger.info(f"Initializing episodic memory store at: {db_path}")
             self._episodic_store = get_episodic_store(db_path)
         return self._episodic_store
 
@@ -193,6 +163,7 @@ class RAGMemoryBackend:
         """Get or create semantic memory store (Phase 4)."""
         if self._semantic_store is None:
             index_path = os.path.join(self._get_data_dir(), "semantic_index")
+            logger.info(f"Initializing semantic memory store at: {index_path}")
             self._semantic_store = get_semantic_store(index_path)
         return self._semantic_store
 
@@ -491,7 +462,7 @@ class RAGMemoryBackend:
 
         # Build operation record
         operation = {
-            "tool_name": "rag.list_projects",
+            "tool_name": "sy.list_projects",
             "project_id": project_id,
             "arguments": {"scope_type": scope_type},
             "start_time": start_time
@@ -562,7 +533,7 @@ class RAGMemoryBackend:
         """
         start_time = datetime.now()
         operation = {
-            "tool_name": "rag.list_sources",
+            "tool_name": "sy.list_sources",
             "project_id": project_id,
             "arguments": {"source_type": source_type},
             "start_time": start_time
@@ -655,7 +626,7 @@ class RAGMemoryBackend:
         """
         start_time = datetime.now()
         operation = {
-            "tool_name": "rag.get_context",
+            "tool_name": "sy.get_context",
             "project_id": project_id,
             "arguments": {
                 "context_type": context_type,
@@ -811,7 +782,7 @@ class RAGMemoryBackend:
         """
         start_time = datetime.now()
         operation = {
-            "tool_name": "rag.search",
+            "tool_name": "sy.search",
             "project_id": project_id,
             "arguments": {
                 "query": query,
@@ -969,7 +940,7 @@ class RAGMemoryBackend:
         """
         start_time = datetime.now()
         operation = {
-            "tool_name": "rag.ingest_file",
+            "tool_name": "sy.ingest_file",
             "project_id": project_id,
             "arguments": {
                 "file_path": file_path,
@@ -1227,7 +1198,7 @@ class RAGMemoryBackend:
         """
         start_time = datetime.now()
         operation = {
-            "tool_name": "rag.add_fact",
+            "tool_name": "sy.add_fact",
             "project_id": project_id,
             "arguments": {
                 "fact_key": fact_key,
@@ -1316,7 +1287,7 @@ class RAGMemoryBackend:
         """
         start_time = datetime.now()
         operation = {
-            "tool_name": "rag.add_episode",
+            "tool_name": "sy.add_episode",
             "project_id": project_id,
             "arguments": {
                 "title": title,
@@ -1613,7 +1584,7 @@ backend = RAGMemoryBackend()
 # Define tools
 tools = [
     Tool(
-        name="rag.add_episode",
+        name="sy.add_episode",
         description="Add an advisory episode to episodic memory",
         inputSchema={
             "type": "object",
@@ -1647,7 +1618,7 @@ tools = [
         }
     ),
     Tool(
-        name="rag.analyze_conversation",
+        name="sy.analyze_conversation",
         description="Analyze conversation for automatic learning of facts and episodes. Works with ANY agent that supports MCP tools. Universal compatibility: Claude Code, OpenCode, Aider, Goose, etc.",
         inputSchema={
             "type": "object",
@@ -1687,7 +1658,7 @@ tools = [
         }
     ),
     Tool(
-        name="rag.list_sources",
+        name="sy.list_sources",
         description="List document sources for a project in semantic memory",
         inputSchema={
             "type": "object",
@@ -1706,7 +1677,7 @@ tools = [
         }
     ),
     Tool(
-        name="rag.get_context",
+        name="sy.get_context",
         description="Get comprehensive project context with authority hierarchy",
         inputSchema={
             "type": "object",
@@ -1735,7 +1706,7 @@ tools = [
         }
     ),
     Tool(
-        name="rag.search",
+        name="sy.search",
         description="Semantic search across all memory types",
         inputSchema={
             "type": "object",
@@ -1768,7 +1739,7 @@ tools = [
         }
     ),
     Tool(
-        name="rag.ingest_file",
+        name="sy.ingest_file",
         description="Ingest a file into semantic memory with automatic validation and chunking",
         inputSchema={
             "type": "object",
@@ -1796,7 +1767,7 @@ tools = [
         }
     ),
     Tool(
-        name="rag.add_fact",
+        name="sy.add_fact",
         description="Add a symbolic memory fact (authoritative)",
         inputSchema={
             "type": "object",
@@ -1830,7 +1801,7 @@ tools = [
         }
     ),
     Tool(
-        name="rag.add_episode",
+        name="sy.add_episode",
         description="Add an episodic memory episode (advisory)",
         inputSchema={
             "type": "object",
@@ -1865,7 +1836,7 @@ tools = [
         }
     ),
     Tool(
-        name="rag.analyze_conversation",
+        name="sy.analyze_conversation",
         description="Analyze conversation and extract facts/episodes using heuristics (no LLM)",
         inputSchema={
             "type": "object",
@@ -1916,11 +1887,11 @@ async def handle_tool_call(name: str, arguments: Dict[str, Any]) -> List[TextCon
     """Handle tool calls and delegate to backend."""
 
     try:
-        if name == "rag.list_projects":
+        if name == "sy.list_projects":
             scope_type = arguments.get("scope_type")
             result = await backend.list_projects(scope_type=scope_type)
 
-        elif name == "rag.list_sources":
+        elif name == "sy.list_sources":
             project_id = arguments.get("project_id")
             source_type = arguments.get("source_type")
             result = await backend.list_sources(
@@ -1928,7 +1899,7 @@ async def handle_tool_call(name: str, arguments: Dict[str, Any]) -> List[TextCon
                 source_type=source_type
             )
 
-        elif name == "rag.get_context":
+        elif name == "sy.get_context":
             project_id = arguments.get("project_id")
             context_type = arguments.get("context_type", "all")
             query = arguments.get("query")
@@ -1940,7 +1911,7 @@ async def handle_tool_call(name: str, arguments: Dict[str, Any]) -> List[TextCon
                 max_results=max_results
             )
 
-        elif name == "rag.search":
+        elif name == "sy.search":
             project_id = arguments.get("project_id")
             query = arguments.get("query")
             memory_type = arguments.get("memory_type", "all")
@@ -1954,7 +1925,7 @@ async def handle_tool_call(name: str, arguments: Dict[str, Any]) -> List[TextCon
                 situation_contains=situation_contains
             )
 
-        elif name == "rag.ingest_file":
+        elif name == "sy.ingest_file":
             project_id = arguments.get("project_id")
             file_path = arguments.get("file_path")
             source_type = arguments.get("source_type", "file")
@@ -1966,7 +1937,7 @@ async def handle_tool_call(name: str, arguments: Dict[str, Any]) -> List[TextCon
                 metadata=metadata
             )
 
-        elif name == "rag.add_fact":
+        elif name == "sy.add_fact":
             project_id = arguments.get("project_id")
             fact_key = arguments.get("fact_key")
             fact_value = arguments.get("fact_value")
@@ -1980,7 +1951,7 @@ async def handle_tool_call(name: str, arguments: Dict[str, Any]) -> List[TextCon
                 category=category
             )
 
-        elif name == "rag.add_episode":
+        elif name == "sy.add_episode":
             project_id = arguments.get("project_id")
             title = arguments.get("title")
             content = arguments.get("content")
@@ -1994,7 +1965,7 @@ async def handle_tool_call(name: str, arguments: Dict[str, Any]) -> List[TextCon
                 quality=quality
             )
 
-        elif name == "rag.analyze_conversation":
+        elif name == "sy.analyze_conversation":
             project_id = arguments.get("project_id")
             user_message = arguments.get("user_message")
             agent_response = arguments.get("agent_response", "")

@@ -43,6 +43,7 @@ dev = [
 
 [project.scripts]
 # NEW: Unified CLI entry point (Phase 1)
+sy = "synapse.cli.main:main"
 synapse = "synapse.cli.main:main"
 
 # LEGACY: Old entry points (keep for backward compatibility with deprecation warnings)

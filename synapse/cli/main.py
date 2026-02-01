@@ -13,11 +13,11 @@ from synapse.cli.commands import start as start_cmd, stop as stop_cmd, status as
 from synapse.cli.commands import setup as setup_cmd
 
 # Import configuration
-from synapse.config import get_config, print_config_summary, DEFAULT_CONFIG
+from synapse.config import get_config, print_config_summary, DEFAULT_CONFIG, get_shortname
 
 # CLI app with rich styling
 app = typer.Typer(
-    name="synapse",
+    name=get_shortname(),  # "sy" - shortname for CLI commands
     help="SYNAPSE: Your Data Meets Intelligence - Local RAG System for AI Agents",
     add_completion=False,
     no_args_is_help=True,
