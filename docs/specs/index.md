@@ -78,17 +78,19 @@ This is the "Source of Truth" for all SYNAPSE features. Each feature follows the
           |   - Phase 6: File discovery (81 files), ingestion (158 files, 1079 chunks)
           |   - Phase 7: Workaround testing (MCP tools verified functional)
           |   - Phase 8: Complete documentation (FINAL_COMPLETION_REPORT.md)
-     | 012-memory-fix | OS-Aware Config + MCP/CLI Rename + Memory Fix | [In Progress] | ⏳ Pending |
-         | **Objective**: Fix memory ingestion bug with unified OS-aware config, rename MCP tools (rag.* → sy.*), rename CLI (rag → sy)
-         | **Scope**:
-         | - Create `synapse/config/config.py` with OS detection and `shortname = "sy"`
-         | - Rename all 8 MCP tools: `rag.list_projects` → `sy.list_projects`, etc.
-         | - Rename CLI from `rag` to `sy`
-         | - Fix database path mismatch (MCP server uses /opt/synapse/data, local uses ./data)
-         | - Fix semantic store API compatibility
-         | **Key Files**: `synapse/config/config.py`, `mcp_server/rag_server.py`, `synapse/main.py`
-         | **Timeline**: 7-10 hours (48 tasks across 6 phases)
-         | **Status**: 📋 Planning Complete - Ready for Implementation
+      | 012-memory-fix | OS-Aware Config + MCP/CLI Rename + Memory Fix | [Completed] | 2026-02-01 | 7941a10 |
+          | **Objective**: Fix memory ingestion bug with unified OS-aware config, rename MCP tools (rag.* → sy.*), rename CLI (rag → sy)
+          | **Key Changes**:
+          | - Created `synapse/config/config.py` with OS detection and `shortname = "sy"`
+          | - Renamed all 8 MCP tools: `rag.list_projects` → `sy.list_projects`, etc.
+          | - Updated CLI to use `get_shortname()` for command name
+          | - Fixed MCP server to use new config for data directories
+          | - Added path validation and logging for write operations
+          | - Added 'sy' entry point to pyproject.toml (backward compatible)
+          | **Files Created**: synapse/config/config.py, tests/unit/test_memory_paths.py, tests/unit/test_semantic_api.py
+          | **Files Modified**: mcp_server/rag_server.py, synapse/cli/main.py, synapse/config/__init__.py, pyproject.toml
+          | **Tests**: 22 passed, 3 skipped
+          | **Status**: ✅ COMPLETE - All CLI commands working, MCP tools renamed, config OS-aware
      | 013-folder-cleanup | Organize Root Folder Files | [Completed] | 2026-02-01 | d074139 |
          | **Objective**: Move scattered files from root to proper directories
          | **Files Moved** (13 files, git mv for history preservation):
