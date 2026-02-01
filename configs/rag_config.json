@@ -16,7 +16,7 @@
   "index_path": "/opt/synapse/data/rag_index",
   "docs_path": "/opt/synapse/data/docs",
   "rag_disable_keyword": "disable-rag",
-  "embedding_model_path": "~/synapse/models/bge-m3-q8_0.gguf",
+  "embedding_model_path": "~/.synapse/models/bge-m3-q8_0.gguf",
   "embedding_model_name": "embedding",
   "embedding_n_ctx": 8194,
   "embedding_n_gpu_layers": 0,
