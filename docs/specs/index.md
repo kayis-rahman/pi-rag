@@ -89,16 +89,16 @@ This is the "Source of Truth" for all SYNAPSE features. Each feature follows the
          | **Key Files**: `synapse/config/config.py`, `mcp_server/rag_server.py`, `synapse/main.py`
          | **Timeline**: 7-10 hours (48 tasks across 6 phases)
          | **Status**: 📋 Planning Complete - Ready for Implementation
-     | 013-folder-cleanup | Organize Root Folder Files | [Planning] | ⏳ Pending |
+     | 013-folder-cleanup | Organize Root Folder Files | [Completed] | 2026-02-01 | d074139 |
          | **Objective**: Move scattered files from root to proper directories
-         | **Files to Move**:
+         | **Files Moved** (13 files, git mv for history preservation):
          | - Test files (6): test_*.py, rewrite_cli_tests.py → tests/manual/
          | - Decision docs (3): chromadb_*.md → docs/decisions/
          | - Planning docs (2): BEADS_*.md, FEATURE_007_*.md → docs/specs/007-remove-beads/
          | - Archive docs (2): SESSION_SUMMARY.md → docs/archive/, GEMINI.md → docs/reference/
-         | **Result**: Root folder reduced from 46 to ~34 items
-         | **Timeline**: ~50 minutes (20 tasks across 6 phases)
-         | **Status**: 📋 Planning Complete - Ready for Implementation
+         | **Result**: Root folder reduced from 46 to 25 files (45% reduction)
+         | **Timeline**: ~45 minutes (20/20 tasks, 100%)
+         | **Status**: ✅ COMPLETE - All files moved with git history preserved
          |   - Identified BUG-INGEST-01 (persistence failure) - documented, awaiting fix
      | 011-fix-validation-blockers | Fix Validation Blockers | [Merged into 010] | ⏳ Pending | 63bef8b |
          | **Objective**: Fix 4 critical bugs blocking full validation (BUG-010, 003, 001, 002)
