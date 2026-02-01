@@ -127,8 +127,20 @@ This is the "Source of Truth" for all SYNAPSE features. Each feature follows the
           | - `synapse ingest` ✅ Now functional
           | - `synapse query` ✅ Now functional
           | - All other commands ✅ Working
-          | **Files**: synapse/cli/main.py, configs/rag_config.json
-          | **Status**: ✅ COMPLETE - All CLI commands now working
+           | **Files**: synapse/cli/main.py, configs/rag_config.json
+           | **Status**: ✅ COMPLETE - All CLI commands now working
+      | 015-ingestion-persistence | Fix BUG-INGEST-01: Ingestion Persistence | [In Progress] | ⏳ Pending |
+          | **Objective**: Fix critical bug where ingestion completes but data is not persisted to semantic memory
+          | **Problem**: BUG-INGEST-01: After `synapse ingest`, `sy.list_sources` returns 0 (data not persisted)
+          | **Root Cause**: Storage backend not committing data to disk
+          | **Scope**:
+          | - Diagnose why bulk_ingest.py doesn't persist data
+          | - Fix rag/semantic_store.py commit logic
+          | - Add post-ingestion verification
+          | - Create persistence tests
+          | **Key Files**: scripts/bulk_ingest.py, rag/semantic_store.py, rag/vectorstore.py
+          | **Timeline**: 5-8 hours (22 tasks across 4 phases)
+          | **Status**: 📋 Planning Complete - Ready for Implementation
 
 - **[In Progress]** - Feature is currently being worked on
 - **[Completed]** - Feature is fully implemented and tested
