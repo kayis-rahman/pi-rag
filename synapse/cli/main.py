@@ -3,9 +3,10 @@ SYNAPSE CLI: Main entry point with configuration integration
 """
 
 import subprocess
+import sys
 import typer
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List
 
 # Import CLI commands (use _cmd suffix to avoid function name conflicts)
 from synapse.cli.commands import start as start_cmd, stop as stop_cmd, status as status_cmd, ingest as ingest_cmd, query as query_cmd, models, onboard
@@ -160,15 +161,30 @@ def ingest(
         "--project-id", "-p",
         help="Project ID for ingestion"
     ),
-    code_mode: bool = typer.Option(
-        False,
-        "--code-mode", "-c",
-        help="Enable code indexing mode (AST parsing)"
+    file_type: List[str] = typer.Option(
+        None,
+        "--file-type", "-t",
+        help="Filter by file type (code, config, doc, web, data, devops)"
+    ),
+    exclude: List[str] = typer.Option(
+        None,
+        "--exclude", "-e",
+        help="Exclude patterns (e.g., *.log)"
     ),
     chunk_size: Optional[int] = typer.Option(
         None,
         "--chunk-size",
-        help="Chunk size in characters (default: from config or 500)"
+        help="Chunk size in characters (default: 500)"
+    ),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="Preview what would be ingested without actually ingesting"
+    ),
+    no_gitignore: bool = typer.Option(
+        False,
+        "--no-gitignore",
+        help="Ignore .gitignore patterns"
     )
 ):
     """
@@ -186,26 +202,48 @@ def ingest(
     
     print(f"📄 Ingesting: {path}")
     print(f"  Project ID: {project_id}")
-    print(f"  Chunk size: {config['chunk_size']}")
-    print(f"  Code mode: {code_mode}")
+    print(f"  Chunk size: {config.get('chunk_size', 500)}")
     
-    if code_mode:
-        print("\n⚠️  Code indexing mode not yet implemented")
-        print("  This feature will extract function signatures, classes, and imports")
-        print("  For now, using standard text ingestion")
+    # Build command for bulk_ingest.py
+    cmd = ["python3", "-m", "scripts.bulk_ingest", "--root-dir", str(path)]
+    cmd.extend(["--project-id", project_id])
+    
+    if chunk_size:
+        cmd.extend(["--chunk-size", str(chunk_size)])
+    
+    if file_type:
+        for ft in file_type:
+            cmd.extend(["--file-type", ft])
+    
+    if exclude:
+        for ex in exclude:
+            cmd.extend(["--exclude", ex])
+    
+    if dry_run:
+        cmd.append("--dry-run")
+    
+    if no_gitignore:
+        cmd.append("--no-gitignore")
+    
+    print("\n🔄 Starting ingestion...")
+    
+    # Run bulk_ingest as subprocess
+    result = subprocess.run(cmd)
+    
+    if result.returncode == 0:
+        print("\n✅ Ingestion complete!")
     else:
-        print("\n🔄 Starting ingestion...")
-        print("ℹ️  Note: Full implementation coming in Phase 1")
-        print("  Use: python -m scripts.bulk_ingest <path>")
+        print(f"\n❌ Ingestion failed with exit code {result.returncode}")
+        sys.exit(1)
 
 
 @app.command()
 def query(
     text: str = typer.Argument(..., help="Query text to search knowledge base"),
     top_k: Optional[int] = typer.Option(
-        None,
+        3,
         "--top-k", "-k",
-        help="Number of results to return (default: from config or 3)"
+        help="Number of results to return (default: 3)"
     ),
     format: str = typer.Option(
         "json",
@@ -227,22 +265,109 @@ def query(
     # Load configuration
     config = get_config()
     
-    # Override top_k if specified
-    if top_k is not None:
-        config["top_k"] = top_k
+    # Get MCP server port
+    port = config.get("mcp_port", 8002)
+    mcp_url = f"http://localhost:{port}/mcp"
     
     print(f"🔍 Query: {text}")
-    print(f"  Top K: {config['top_k']}")
+    print(f"  Top K: {top_k}")
     print(f"  Format: {format}")
     print(f"  Mode: {mode}")
     
-    if format == "json":
-        print("\n⚠️  Full query implementation coming in Phase 1")
-        print("  This will integrate with MCP server for retrieval")
-        print("  For now, use MCP tools directly")
-    else:
-        print("\nℹ️  Text output format selected")
-        print("  Full implementation coming in Phase 1")
+    # Check if MCP server is running
+    try:
+        import httpx
+        health_response = httpx.get(f"http://localhost:{port}/health", timeout=2.0)
+        if health_response.status_code != 200:
+            print(f"\n❌ MCP server is not running properly (HTTP {health_response.status_code})")
+            print(f"   Start it with: synapse start")
+            sys.exit(1)
+    except httpx.TimeoutException:
+        print(f"\n❌ MCP server is not responding at port {port}")
+        print(f"   Start it with: synapse start")
+        sys.exit(1)
+    except Exception as e:
+        print(f"\n❌ Cannot connect to MCP server: {e}")
+        print(f"   Start it with: synapse start")
+        sys.exit(1)
+    
+    print(f"\n📡 Connecting to MCP server at {mcp_url}...")
+    
+    # Call MCP search tool
+    try:
+        # Use regular POST (not stream) and accept both formats
+        response = httpx.post(
+            mcp_url,
+            json={
+                "jsonrpc": "2.0",
+                "method": "tools/call",
+                "params": {
+                    "name": "search",
+                    "arguments": {
+                        "project_id": "synapse",
+                        "query": text,
+                        "top_k": top_k
+                    }
+                },
+                "id": 1
+            },
+            headers={
+                "Accept": "application/json, text/event-stream"
+            },
+            timeout=30.0
+        )
+        
+        # Parse response
+        content_type = response.headers.get("content-type", "")
+        
+        if "text/event-stream" in content_type:
+            # Parse SSE format
+            result_text = ""
+            for line in response.text.split("\n"):
+                if line.startswith("data: "):
+                    result_text = line[6:]  # Remove "data: " prefix
+                    break
+            
+            if result_text:
+                import json
+                try:
+                    result = json.loads(result_text)
+                except json.JSONDecodeError:
+                    print(f"\n❌ Failed to parse response: {result_text[:200]}")
+                    sys.exit(1)
+            else:
+                print("\n  No results found")
+                sys.exit(0)
+        elif "application/json" in content_type:
+            result = response.json()
+        else:
+            print(f"\n❌ Unexpected content type: {content_type}")
+            sys.exit(1)
+        
+        # Display results
+        if format == "json":
+            import json
+            print("\n📊 Results:")
+            print(json.dumps(result, indent=2))
+        else:
+            # Text format
+            print("\n📊 Results:")
+            if "result" in result and "content" in result.get("result", {}):
+                content = result["result"]["content"]
+                if isinstance(content, list):
+                    for i, item in enumerate(content, 1):
+                        text = item.get("text", "Unknown")[:200]
+                        print(f"\n{i}. {text}...")
+                else:
+                    print(f"  {content[:200]}...")
+            elif "content" in result:
+                print(f"  {result['content'][:200]}...")
+            else:
+                print("  No results found")
+                
+    except Exception as e:
+        print(f"\n❌ Query failed: {e}")
+        sys.exit(1)
 
 
 @app.command()

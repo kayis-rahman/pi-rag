@@ -89,8 +89,23 @@ This is the "Source of Truth" for all SYNAPSE features. Each feature follows the
          | **Testing**: Dual strategy (OpenCode + Pytest)
          | **Files**: 6 files (4 modified, 2 new test files)
          | **Timeline**: 8-12 hours (52 tasks across 5 phases)
-         | **Status**: ✅ COMPLETE - Merged into Feature 010
-         | **Commit**: 63bef8b - All bugs fixed and tested
+          | **Status**: ✅ COMPLETE - Merged into Feature 010
+          | **Commit**: 63bef8b - All bugs fixed and tested
+      | 014-cli-gap-analysis | CLI Gap Analysis & Missing Features | [Completed] | 2026-02-01 | |
+          | **Objective**: Implement missing CLI commands (ingest, query) and fix model path
+          | **Key Changes**:
+          | - Implement `synapse ingest` command (subprocess to bulk_ingest.py)
+          | - Implement `synapse query` command (MCP API call with SSE parsing)
+          | - Fix model path (changed from /home/dietpi to ~/synapse/models)
+          | **Results**:
+          | - `synapse start` ✅ Working
+          | - `synapse stop` ✅ Working
+          | - `synapse status` ✅ Working
+          | - `synapse ingest` ✅ Now functional
+          | - `synapse query` ✅ Now functional
+          | - All other commands ✅ Working
+          | **Files**: synapse/cli/main.py, configs/rag_config.json
+          | **Status**: ✅ COMPLETE - All CLI commands now working
 
 - **[In Progress]** - Feature is currently being worked on
 - **[Completed]** - Feature is fully implemented and tested
