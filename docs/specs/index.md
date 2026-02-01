@@ -91,7 +91,7 @@ This is the "Source of Truth" for all SYNAPSE features. Each feature follows the
          | **Timeline**: 8-12 hours (52 tasks across 5 phases)
           | **Status**: ✅ COMPLETE - Merged into Feature 010
           | **Commit**: 63bef8b - All bugs fixed and tested
-      | 014-cli-gap-analysis | CLI Gap Analysis & Missing Features | [Completed] | 2026-02-01 | |
+      | 014-cli-gap-analysis | CLI Gap Analysis & Missing Features | [Completed] | 2026-02-01 | 7fceac8 |
           | **Objective**: Implement missing CLI commands (ingest, query) and fix model path
           | **Key Changes**:
           | - Implement `synapse ingest` command (subprocess to bulk_ingest.py)
