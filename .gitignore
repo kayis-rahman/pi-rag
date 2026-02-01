@@ -92,3 +92,10 @@ yarn-error.log*
 docs/app/.vitepress/dist/
 docs/app/.vitepress/cache/
 docs/app/.vitepress/cache_deps/
+
+# OpenCode (Development dependencies - not tracked)
+.opencode/
+.opencode/**
+.opencode/node_modules/
+.opencode/bun.lock
+.opencode/*.lock
