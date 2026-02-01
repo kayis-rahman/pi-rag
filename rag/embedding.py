@@ -146,9 +146,12 @@ class EmbeddingService:
         # Check if model file exists before attempting to load
         expanded_path = os.path.expanduser(self.model_path)
         if not os.path.exists(expanded_path):
-            logger.warning(f"Embedding model file not found: {expanded_path}")
-            logger.warning("Falling back to test mode with mock embeddings")
-            self._test_mode = True
+            raise FileNotFoundError(
+                f"Embedding model file not found: {expanded_path}\n"
+                f"Please ensure the model exists at the correct path.\n"
+                f"Expected location: {expanded_path}\n"
+                f"Model path from config: {self.model_path}"
+            )
         
         # Check cache first
         results: List[Optional[List[float]]] = [None] * len(texts)
@@ -196,15 +199,15 @@ class EmbeddingService:
                             uncached_texts
                         )
                 except FileNotFoundError as e:
-                    logger.warning(f"Embedding model not found: {e}")
-                    logger.warning("Falling back to test mode with mock embeddings")
-                    self._test_mode = True
-                    new_embeddings = self._generate_mock_embeddings(uncached_texts)
+                    raise FileNotFoundError(
+                        f"Embedding model not found during generation: {e}\n"
+                        f"Please verify the model path in config and ensure the model file exists."
+                    ) from e
                 except Exception as e:
-                    logger.warning(f"Embedding generation error: {type(e).__name__}: {e}")
-                    logger.warning("Falling back to test mode with mock embeddings")
-                    self._test_mode = True
-                    new_embeddings = self._generate_mock_embeddings(uncached_texts)
+                    raise RuntimeError(
+                        f"Embedding generation failed: {type(e).__name__}: {e}\n"
+                        f"This may indicate a problem with the embedding model or its configuration."
+                    ) from e
 
             # Fill in results and update cache
             for idx, emb in zip(uncached_indices, new_embeddings):

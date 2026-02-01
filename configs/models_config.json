@@ -1,7 +1,7 @@
 {
   "models": {
     "embedding": {
-      "path": "~/models/bge-m3-q8_0.gguf",
+      "path": "~/.synapse/models/bge-m3-q8_0.gguf",
       "type": "embedding",
       "n_ctx": 8194,
       "n_gpu_layers": 0,
