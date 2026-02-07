@@ -618,8 +618,57 @@ def _generate_embedding(content: str) -> List[float]:
         List of embedding values (empty list if service unavailable)
     """
     try:
+        # BUG-EMBED-CRASH FIX: Aggressive sanitization to prevent C++ tokenizer crashes
+        # The llama-cpp-python tokenizer crashes on certain byte sequences with std::out_of_range
+        # We must sanitize thoroughly before passing to the embedding service
+        
+        if not content or not isinstance(content, str):
+            return []
+        
+        # Step 1: Normalize unicode and remove invalid sequences
+        # This handles surrogate pairs and other problematic unicode
+        try:
+            # Encode to bytes with 'ignore' to drop invalid chars, then decode back
+            sanitized = content.encode('utf-8', errors='ignore').decode('utf-8', errors='ignore')
+        except Exception:
+            # If encoding fails, try to extract only ASCII printable
+            sanitized = ''.join(c for c in content if 32 <= ord(c) <= 126)
+        
+        # Step 2: Remove all control characters (0x00-0x1F and 0x7F-0x9F)
+        # Keep only tab (\t), newline (\n), and carriage return (\r) as they're text-safe
+        import re
+        # Remove C0 controls (0x00-0x1F) except \t(0x09), \n(0x0A), \r(0x0D)
+        sanitized = re.sub(r'[\x00-\x08\x0B\x0C\x0E-\x1F]', '', sanitized)
+        # Remove C1 controls (0x80-0x9F) - these are also problematic
+        sanitized = re.sub(r'[\x80-\x9F]', '', sanitized)
+        # Remove DEL character (0x7F)
+        sanitized = sanitized.replace('\x7f', '')
+        
+        # Step 3: Remove high-byte characters that confuse the BGE-M3 tokenizer
+        # Keep only Basic Multilingual Plane (BMP) characters and common CJK
+        # This removes emojis, special symbols, and extended unicode that may cause issues
+        sanitized = ''.join(c for c in sanitized if ord(c) < 0x10000 or (0x4E00 <= ord(c) <= 0x9FFF))
+        
+        # Step 4: Limit length to prevent edge cases
+        # Very long sequences can also cause tokenizer issues
+        if len(sanitized) > 8192:  # BGE-M3 max context is typically 8192 tokens
+            sanitized = sanitized[:8192]
+        
+        # Step 5: Skip empty or whitespace-only content
+        if not sanitized or not sanitized.strip():
+            return []
+        
+        # Step 6: Generate embedding with the sanitized content
         embedding_service = get_embedding_service()
-        return embedding_service.embed_single(content)
+        result = embedding_service.embed_single(sanitized)
+        
+        # Validate result
+        if result and len(result) > 0:
+            return result
+        else:
+            return []
+            
     except Exception as e:
-        logger.warning(f"Failed to generate embedding: {e}")
+        # Log the error but don't crash - return empty embedding
+        logger.warning(f"Failed to generate embedding: {type(e).__name__}: {str(e)[:100]}")
         return []
