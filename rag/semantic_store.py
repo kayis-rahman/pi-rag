@@ -564,24 +564,47 @@ class SemanticStore:
                 logger.warning(f"Failed to load metadata: {e}")
 
 
-# Singleton instance
-_semantic_store: Optional[SemanticStore] = None
+# Cache of semantic store instances keyed by index_path
+# This allows multiple stores with different paths while maintaining efficiency
+_semantic_store_cache: Dict[str, SemanticStore] = {}
 
 
 def get_semantic_store(index_path: str = "./data/semantic_index") -> SemanticStore:
     """
-    Get or create the semantic store singleton.
+    Get or create a semantic store instance for the given index path.
+
+    This function maintains a cache of SemanticStore instances keyed by their
+    index_path. This fixes BUG-INGEST-01 where different components using
+    different paths would all get the same (wrong) instance.
 
     Args:
-        index_path: Path to vector index
+        index_path: Path to vector index (default: "./data/semantic_index")
 
     Returns:
-        SemanticStore instance
+        SemanticStore instance for the given path
+
+    Example:
+        >>> store1 = get_semantic_store("./data/store1")
+        >>> store2 = get_semantic_store("./data/store2")
+        >>> store1 is store2  # False - different paths get different instances
+        False
+        >>> store3 = get_semantic_store("./data/store1")
+        >>> store1 is store3  # True - same path gets cached instance
+        True
     """
-    global _semantic_store
-    if _semantic_store is None:
-        _semantic_store = SemanticStore(index_path)
-    return _semantic_store
+    global _semantic_store_cache
+
+    # Normalize the path to handle relative paths consistently
+    normalized_path = os.path.abspath(os.path.expanduser(index_path))
+
+    # Check if we already have an instance for this path
+    if normalized_path not in _semantic_store_cache:
+        logger.info(f"Creating new SemanticStore for path: {normalized_path}")
+        _semantic_store_cache[normalized_path] = SemanticStore(normalized_path)
+    else:
+        logger.debug(f"Reusing cached SemanticStore for path: {normalized_path}")
+
+    return _semantic_store_cache[normalized_path]
 
 
 def _generate_embedding(content: str) -> List[float]:

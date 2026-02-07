@@ -1,9 +1,9 @@
 # Ingestion Persistence Fix - Technical Plan
 
 **Feature ID**: 015-ingestion-persistence
-**Status**: [In Progress]
+**Status**: [In Progress] - Phase 1 Complete
 **Created**: February 1, 2026
-**Last Updated**: February 1, 2026
+**Last Updated**: February 7, 2026
 
 ---
 
@@ -39,6 +39,46 @@ ls -la ~/.synapse/semantic_index/     # Should have files, currently empty
 - Check if files are written to directory
 - Check if vectorstore commit() is called
 - Check for exceptions during write
+
+---
+
+## DIAGNOSIS RESULTS (Completed Feb 7, 2026)
+
+### Findings
+
+**Data IS Persisted**: Found 12MB of data at `/home/dietpi/synapse/data/semantic_index/`:
+- `chunks.json` (12MB) - Contains 1000+ document chunks with embeddings
+- `metadata/documents.json` (8KB) - Contains 20+ document records
+- `checksums.json` (50KB) - Incremental ingestion checksums
+
+**Actual Bug**: Singleton pattern in `get_semantic_store()`
+
+```python
+# rag/semantic_store.py lines 571-584
+_global_semantic_store = None
+
+def get_semantic_store(index_path: str = "./data/semantic_index") -> SemanticStore:
+    global _global_semantic_store
+    if _global_semantic_store is None:
+        _global_semantic_store = SemanticStore(index_path)  # Uses path only on first call
+    return _global_semantic_store  # Returns same instance regardless of path parameter
+```
+
+**Impact**: 
+- First call to `get_semantic_store()` creates instance with its path
+- Subsequent calls with different paths return the first instance
+- MCP server and CLI tools use different paths but get same store
+- Data appears "lost" because it's stored in one location but queried from another
+
+### Root Cause Confirmed
+The issue is NOT that data isn't persisted - it's that the **singleton ignores the index_path parameter** after first initialization.
+
+### Fix Options
+1. **Remove singleton pattern** - Create new instance each time (simplest)
+2. **Cache by path** - Store instances in dict keyed by path
+3. **Use consistent config** - Ensure all code uses same path from config
+
+**Recommended**: Option 1 (remove singleton) for immediate fix, then Option 3 for long-term.
 
 ---
 
