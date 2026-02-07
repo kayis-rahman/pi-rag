@@ -85,7 +85,7 @@ Before answering ANY question, you MUST call at least ONE RAG tool:
 
 **Choose ONE of these MANDATORY RAG tool calls:**
 
-#### MANDATORY TOOL 1: `rag.get_context`
+#### MANDATORY TOOL 1: `sy.get_context`
 **When to USE:**
 - **ALWAYS** for general questions about the synapse project
 - **ALWAYS** for system architecture questions
@@ -109,7 +109,7 @@ Before answering ANY question, you MUST call at least ONE RAG tool:
 - "What's the architecture?"
 - Any general project question
 
-#### MANDATORY TOOL 2: `rag.search`
+#### MANDATORY TOOL 2: `sy.search`
 **When to USE:**
 - **ALWAYS** for specific code questions
 - **ALWAYS** when asking about implementation details
@@ -132,7 +132,7 @@ Before answering ANY question, you MUST call at least ONE RAG tool:
 - "How do I [specific action]?"
 - Any specific code question
 
-#### MANDATORY TOOL 3: `rag.list_projects`
+#### MANDATORY TOOL 3: `sy.list_projects`
 **When to USE:**
 - **ALWAYS** as first tool when you need to know what projects exist
 - **ALWAYS** before any project-specific operation
@@ -143,7 +143,7 @@ Before answering ANY question, you MUST call at least ONE RAG tool:
 }
 ```
 
-#### MANDATORY TOOL 4: `rag.list_sources`
+#### MANDATORY TOOL 4: `sy.list_sources`
 **When to USE:**
 - **ALWAYS** to check what files are ingested for a project
 - **ALWAYS** before ingestion operations
@@ -185,22 +185,22 @@ USER PROMPT → READ IT CAREFULLY
          ↓
     Is it a general project question?
     ↓ YES
-    CALL: rag.get_context(context_type="all")
+    CALL: sy.get_context(context_type="all")
     ↓
     Is it a specific code question?
     ↓ YES
-    CALL: rag.search(memory_type="semantic")
+    CALL: sy.search(memory_type="semantic")
     ↓
     Is it about what's ingested?
     ↓ YES
-    CALL: rag.list_sources(project_id="synapse")
+    CALL: sy.list_sources(project_id="synapse")
     ↓
     Is it about projects available?
     ↓ YES
-    CALL: rag.list_projects()
+    CALL: sy.list_projects()
     ↓
     ELSE (if unsure):
-    CALL: rag.get_context(context_type="all")
+    CALL: sy.get_context(context_type="all")
 ```
 
 **STRICT: You MUST follow this decision tree. NO DEVIATION ALLOWED.**
@@ -281,7 +281,7 @@ Confidence: [Level based on sources]
 
 1. **NEVER answer without calling RAG tools first**
    - FORBIDDEN: "Based on my knowledge of RAG systems..."
-   - MANDATORY: "I'm calling rag.get_context to retrieve..."
+   - MANDATORY: "I'm calling sy.get_context to retrieve..."
 
 2. **NEVER assume or guess**
    - FORBIDDEN: "I think the vector store uses..."
@@ -311,7 +311,7 @@ Confidence: [Level based on sources]
 **User**: "How does the orchestrator work?"
 
 **MANDATORY STEPS:**
-1. Call `rag.search` with query="orchestrator", memory_type="semantic", top_k=3
+1. Call `sy.search` with query="orchestrator", memory_type="semantic", top_k=3
 2. Analyze returned code chunks
 3. Answer using code from rag/orchestrator.py
 4. Cite specific files and line numbers
@@ -320,7 +320,7 @@ Confidence: [Level based on sources]
 **User**: "What embedding model is used?"
 
 **MANDATORY STEPS:**
-1. Call `rag.search` with query="embedding model", memory_type="all", top_k=5
+1. Call `sy.search` with query="embedding model", memory_type="all", top_k=5
 2. Check symbolic memory facts first (highest priority)
 3. Answer using fact: "BGE-M3"
 4. Cite symbolic memory as 100% confident
@@ -329,7 +329,7 @@ Confidence: [Level based on sources]
 **User**: "What is the memory system architecture?"
 
 **MANDATORY STEPS:**
-1. Call `rag.get_context` with context_type="all", query="memory architecture"
+1. Call `sy.get_context` with context_type="all", query="memory architecture"
 2. Receive hierarchical context from all 3 memory types
 3. Synthesize answer respecting authority:
    - Symbolic: Memory types and their purposes (absolute truth)
@@ -341,7 +341,7 @@ Confidence: [Level based on sources]
 **User**: "How do I add a new document?"
 
 **MANDATORY STEPS:**
-1. Call `rag.search` with query="ingest document", memory_type="semantic", top_k=3
+1. Call `sy.search` with query="ingest document", memory_type="semantic", top_k=3
 2. Retrieve code from ingest.py or related files
 3. Provide step-by-step instructions using code
 4. Cite source files
@@ -350,8 +350,8 @@ Confidence: [Level based on sources]
 **User**: "Why is the server not starting?"
 
 **MANDATORY STEPS:**
-1. Call `rag.search` with query="server start", memory_type="semantic", top_k=5
-2. Call `rag.get_context` with context_type="episodic", query="startup issues"
+1. Call `sy.search` with query="server start", memory_type="semantic", top_k=5
+2. Call `sy.get_context` with context_type="episodic", query="startup issues"
 3. Check for similar problems in episodic memory
 4. Provide debugging steps based on RAG results
 5. Cite both code and episodic lessons
@@ -363,7 +363,7 @@ Confidence: [Level based on sources]
 ### MANDATE: Add Facts When Learning
 
 **When you learn FACTUAL information from user:**
-- MUST call `rag.add_fact`
+- MUST call `sy.add_fact`
 - Set confidence to 1.0
 - Category: "user" or "system" or "project"
 - DO NOT proceed without adding fact
@@ -390,7 +390,7 @@ Confidence: [Level based on sources]
 ### MANDATE: Add Episodes When Learning from Experience
 
 **When you learn LESSONS/PATTERNS from user or actions:**
-- MUST call `rag.add_episode`
+- MUST call `sy.add_episode`
 - Set appropriate lesson_type: "success", "pattern", "mistake", "failure"
 - Quality score: 0.8-1.0 based on reliability
 - DO NOT proceed without adding episode
@@ -573,42 +573,42 @@ You MUST still manually add facts/episodes when:
 
 ### RAG Tools Available:
 
-1. **`rag.list_projects`**
+1. **`sy.list_projects`**
    - Use: List all registered projects
    - Priority: First tool for project-related questions
    - Parameters: None
 
-2. **`rag.list_sources`**
+2. **`sy.list_sources`**
    - Use: List documents in a project
    - Priority: Before ingestion or when asking what's ingested
    - Parameters: project_id="synapse"
 
-3. **`rag.get_context`**
+3. **`sy.get_context`**
    - Use: Get comprehensive context from all memory types
    - Priority: Default tool for most questions
    - Parameters: project_id="synapse", context_type="all", query="<topic>", max_results=10
 
-4. **`rag.search`**
+4. **`sy.search`**
    - Use: Search specific memory type
    - Priority: Default for code questions
    - Parameters: project_id="synapse", query="<term>", memory_type="<type>", top_k=3
 
-5. **`rag.ingest_file`**
+5. **`sy.ingest_file`**
    - Use: Add new code/docs to memory
    - Priority: When user provides new file
    - Parameters: project_id="synapse", file_path="<path>", source_type="<type>"
 
-6. **`rag.add_fact`**
+6. **`sy.add_fact`**
    - Use: Add authoritative fact
    - Priority: MANDATORY when learning factual information
    - Parameters: project_id="synapse", fact_key="<key>", fact_value="<value>", confidence=1.0, category="<type>"
 
- 7. **`rag.add_episode`**
+ 7. **`sy.add_episode`**
     - Use: Add advisory lesson
     - Priority: MANDATORY when learning from experience
     - Parameters: project_id="synapse", title="<title>", content="<content>", lesson_type="<type>", quality=0.9
 
-8. **`rag.analyze_conversation`** (NEW - Universal Hook Auto-Learning)
+8. **`sy.analyze_conversation`** (NEW - Universal Hook Auto-Learning)
     - Use: Extract facts and episodes from agent conversations automatically
     - Priority: Called by agent hooks (OpenCode, Claude Code, etc.)
     - Parameters: project_id="synapse", user_message="<msg>", agent_response="<resp>", context={}, auto_store=true, extraction_mode="heuristic"
