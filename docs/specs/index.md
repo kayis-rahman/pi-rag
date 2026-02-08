@@ -26,16 +26,14 @@ This is the "Source of Truth" for all SYNAPSE features. Each feature follows the
    | 002-auto-learning | Automatic Learning System | [In Progress] | ⏳ Pending |
     | 003-rag-quality-metrics | RAG Quality Metrics Dashboard | [Deferred] | ⏳ Pending |
     | 004-universal-hook-auto-learning | Universal Multi-Agent Hook Auto-Learning | [Production Ready] | 2026-01-07 | 298046e |
-    | 005-cli-priority-testing | CLI Command Priority Testing | [In Progress] | ⏳ Pending | a048c51 |
-       | **Phase 1 (Foundation)**: ✅ Complete (43/43 tasks, 100%)
-       | **Phase 2 (Server Operations)**: ✅ Complete (62/62 tasks, bug fixes complete)
-       | **Phase 2 Bug Fixes**: ✅ 4/5 fixed (BUG-2, BUG-3, BUG-4, BUG-5), BUG-1 deferred
-       | **Phase 3 (Data Operations)**: 🚀 STARTING (72 tasks, P2: ingest/query/bulk)
-       | **Phase 3.1**: Infrastructure Setup - ⏳ PENDING (3 tasks)
-       | **Phase 3.2**: Ingest Tests - ⏳ PENDING (24 tasks)
-       | **Phase 3.3**: Query Tests - ⏳ PENDING (24 tasks)
-       | **Phase 3.4**: Bulk Tests - ⏳ PENDING (18 tasks)
-       | **Phase 3.5**: Documentation - ⏳ PENDING (3 tasks)
+    | 005-cli-priority-testing | CLI Command Priority Testing | [Completed] | 2026-02-08 | d2acea9 |
+        | **Phase 1 (Foundation)**: ✅ Complete (43/43 tasks, 100%)
+        | **Phase 2 (Server Operations)**: ✅ Complete (62/62 tasks, bug fixes complete)
+        | **Phase 3 (Data Operations)**: ✅ COMPLETED (21/22 tests, 95.5%)
+        |   - P2-1 Ingest: 8/8 (100%)
+        |   - P2-2 Query: 7/8 (87.5%, 1 skipped)
+        |   - P2-3 Bulk: 6/6 (100%)
+        | **Final Commit**: d2acea9
        | **Phase 2.1: Start Tests** | ✅ Complete (14/14 tasks, test_p1_start.py)
        | **Phase 2.2: Stop Tests** | ✅ Complete (12/12 tasks, test_p1_stop.py)
        | **Phase 2.3: Status Tests** | ✅ Complete (14/14 tasks, test_p1_status.py)
