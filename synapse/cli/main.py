@@ -302,7 +302,7 @@ def query(
                 "jsonrpc": "2.0",
                 "method": "tools/call",
                 "params": {
-                    "name": "search",
+                    "name": "sy.mem.search",
                     "arguments": {
                         "project_id": "synapse",
                         "query": text,

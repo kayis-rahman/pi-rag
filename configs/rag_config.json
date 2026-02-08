@@ -58,7 +58,7 @@
       "opencode": {
         "enabled": true,
         "priority": 1,
-        "analyze_after_tools": ["rag.add_fact", "rag.add_episode", "rag.search", "rag.get_context"],
+        "analyze_after_tools": ["sy.mem.fact.add", "sy.mem.ep.add", "sy.mem.search", "sy.ctx.get"],
         "min_message_length": 10,
         "skip_patterns": ["^test$", "^hello$"],
         "async_processing": true,
@@ -67,14 +67,14 @@
       "claude_code": {
         "enabled": true,
         "priority": 2,
-        "analyze_after_tools": ["rag.add_fact", "rag.add_episode"],
+        "analyze_after_tools": ["sy.mem.fact.add", "sy.mem.ep.add"],
         "session_end_analyze": true,
         "async_processing": true
       },
       "generic_bash": {
         "enabled": true,
         "priority": 3,
-        "analyze_after_tools": ["rag.add_fact", "rag.add_episode", "rag.search"],
+        "analyze_after_tools": ["sy.mem.fact.add", "sy.mem.ep.add", "sy.mem.search"],
         "buffer_file": "/tmp/synapse-conversations.json",
         "analyze_at_session_end": false,
         "async_processing": true

@@ -1,7 +1,16 @@
 """
-RAG MCP Server - Model Context Protocol server for RAG memory system.
+DEPRECATED: RAG MCP Server - Model Context Protocol server for RAG memory system.
 
-This is a thin, stateless wrapper that exposes RAG memory functionality
+This module is DEPRECATED and will be removed in a future version.
+
+Use mcp_server.http_wrapper instead - it provides the active MCP server
+implementation with FastMCP and HTTP transport.
+
+Last Updated: 2026-02-08
+
+---
+
+This was a thin, stateless wrapper that exposes RAG memory functionality
 via the MCP protocol with stdio transport.
 
 Memory Authority Hierarchy (ENFORCED):
@@ -54,6 +63,16 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+# Deprecation warning
+import warnings
+warnings.warn(
+    "rag_server.py is deprecated. Use mcp_server.http_wrapper instead. "
+    "This module will be removed in a future version.",
+    DeprecationWarning,
+    stacklevel=2
+)
+logger.warning("DEPRECATED: rag_server.py is deprecated. Use mcp_server.http_wrapper instead.")
 
 
 class RAGMemoryBackend:
