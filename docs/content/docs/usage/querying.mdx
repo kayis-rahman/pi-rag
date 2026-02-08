@@ -15,7 +15,7 @@ Query via MCP tools:
 {
   "method": "tools/call",
   "params": {
-    "name": "synapse.get_context",
+    "name": "sy.ctx.get",
     "arguments": {
       "project_id": "synapse",
       "context_type": "all",

@@ -7,7 +7,7 @@ description: Complete reference of SYNAPSE MCP tools
 
 SYNAPSE provides 7 MCP tools for interacting with the memory system.
 
-## Tool 1: `synapse.list_projects`
+## Tool 1: `sy.proj.list`
 
 List all registered projects.
 
@@ -23,7 +23,7 @@ List all registered projects.
 {
   "method": "tools/call",
   "params": {
-    "name": "synapse.list_projects",
+    "name": "sy.proj.list",
     "arguments": {}
   }
 }
@@ -31,7 +31,7 @@ List all registered projects.
 
 ---
 
-## Tool 2: `synapse.list_sources`
+## Tool 2: `sy.src.list`
 
 List all document sources in a project.
 
@@ -49,7 +49,7 @@ List all document sources in a project.
 {
   "method": "tools/call",
   "params": {
-    "name": "synapse.list_sources",
+    "name": "sy.src.list",
     "arguments": {
       "project_id": "synapse"
     }
@@ -59,7 +59,7 @@ List all document sources in a project.
 
 ---
 
-## Tool 3: `synapse.get_context`
+## Tool 3: `sy.ctx.get`
 
 Get comprehensive context from all memory types (dendrites, synapses, cell bodies).
 
@@ -80,7 +80,7 @@ Get comprehensive context from all memory types (dendrites, synapses, cell bodie
 {
   "method": "tools/call",
   "params": {
-    "name": "synapse.get_context",
+    "name": "sy.ctx.get",
     "arguments": {
       "project_id": "synapse",
       "context_type": "all",
@@ -93,7 +93,7 @@ Get comprehensive context from all memory types (dendrites, synapses, cell bodie
 
 ---
 
-## Tool 4: `synapse.search`
+## Tool 4: `sy.mem.search`
 
 Search dendrites (semantic memory) for relevant documents.
 
@@ -114,7 +114,7 @@ Search dendrites (semantic memory) for relevant documents.
 {
   "method": "tools/call",
   "params": {
-    "name": "synapse.search",
+    "name": "sy.mem.search",
     "arguments": {
       "project_id": "synapse",
       "query": "memory system",
@@ -127,7 +127,7 @@ Search dendrites (semantic memory) for relevant documents.
 
 ---
 
-## Tool 5: `synapse.ingest_file`
+## Tool 5: `sy.mem.ingest`
 
 Ingest a file into dendrites (semantic memory).
 
@@ -149,7 +149,7 @@ Ingest a file into dendrites (semantic memory).
 {
   "method": "tools/call",
   "params": {
-    "name": "synapse.ingest_file",
+    "name": "sy.mem.ingest",
     "arguments": {
       "file_path": "/home/user/project/main.py",
       "metadata": {
@@ -163,7 +163,7 @@ Ingest a file into dendrites (semantic memory).
 
 ---
 
-## Tool 6: `synapse.add_fact`
+## Tool 6: `sy.mem.fact.add`
 
 Add symbolic fact to cell bodies (100% accuracy).
 
@@ -185,7 +185,7 @@ Add symbolic fact to cell bodies (100% accuracy).
 {
   "method": "tools/call",
   "params": {
-    "name": "synapse.add_fact",
+    "name": "sy.mem.fact.add",
     "arguments": {
       "project_id": "synapse",
       "fact_key": "version",
@@ -199,7 +199,7 @@ Add symbolic fact to cell bodies (100% accuracy).
 
 ---
 
-## Tool 7: `synapse.add_episode`
+## Tool 7: `sy.mem.ep.add`
 
 Add episodic lesson to synapses (85% confidence).
 
@@ -221,7 +221,7 @@ Add episodic lesson to synapses (85% confidence).
 {
   "method": "tools/call",
   "params": {
-    "name": "synapse.add_episode",
+    "name": "sy.mem.ep.add",
     "arguments": {
       "project_id": "synapse",
       "title": "Fixed ingestion bug",
