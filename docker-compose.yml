@@ -1,0 +1,180 @@
+# Multi-Environment Docker Compose Configuration for Synapse
+# 
+# This configuration provides two environments:
+# - synapse-dev: Development environment (port 8003)
+# - synapse-prod: Production environment (port 8002)
+#
+# Usage:
+#   docker-compose up -d synapse-dev     # Start development only
+#   docker-compose up -d synapse-prod    # Start production only
+#   docker-compose up -d                 # Start both environments
+#
+# Environment Switching:
+#   ./scripts/switch_env.sh dev          # Switch to development
+#   ./scripts/switch_env.sh prod         # Switch to production
+
+version: '3.8'
+
+services:
+  # Development Environment
+  synapse-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      cache_from:
+        - synapse:buildcache
+      args:
+        - BUILDKIT_INLINE_CACHE=1
+
+    image: synapse:latest
+    container_name: synapse-dev
+
+    # Development settings
+    restart: "no"  # Manual restart for development
+
+    # Port mapping - external 8003 to internal 8002
+    ports:
+      - "8003:8002"
+
+    # Environment configuration
+    environment:
+      - SYNAPSE_ENV=dev
+      - SYNAPSE_CONFIG_PATH=/app/configs/synapse_dev.json
+      - LOG_LEVEL=DEBUG
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app
+
+    # Volume mounts
+    volumes:
+      # Shared data directory (Mac + Pi access)
+      - type: bind
+        source: /opt/synapse/data
+        target: /app/data
+
+      # Models directory
+      - type: volume
+        source: synapse-models
+        target: /app/models
+
+      # Configs - development overrides
+      - type: bind
+        source: ./configs/synapse_dev.json
+        target: /app/configs/synapse_dev.json
+        read_only: true
+
+    # Resource limits for Raspberry Pi 5 compatibility
+    deploy:
+      resources:
+        limits:
+          cpus: '3.0'
+          memory: 3G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+    # Network configuration
+    networks:
+      - synapse-net
+
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 5s
+      retries: 3
+
+  # Production Environment
+  synapse-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      cache_from:
+        - synapse:buildcache
+      args:
+        - BUILDKIT_INLINE_CACHE=1
+
+    image: synapse:v1.0.0
+    container_name: synapse-prod
+
+    # Production settings
+    restart: always  # Auto-restart on failure
+
+    # Port mapping - external 8002 to internal 8002
+    ports:
+      - "8002:8002"
+
+    # Environment configuration
+    environment:
+      - SYNAPSE_ENV=prod
+      - SYNAPSE_CONFIG_PATH=/app/configs/synapse_prod.json
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app
+
+    # Volume mounts
+    volumes:
+      # Shared data directory (Mac + Pi access)
+      - type: bind
+        source: /opt/synapse/data
+        target: /app/data
+
+      # Models directory
+      - type: volume
+        source: synapse-models
+        target: /app/models
+
+      # Configs - production overrides
+      - type: bind
+        source: ./configs/synapse_prod.json
+        target: /app/configs/synapse_prod.json
+        read_only: true
+
+    # Resource limits for Raspberry Pi 5 compatibility
+    deploy:
+      resources:
+        limits:
+          cpus: '3.0'
+          memory: 3G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+    # Network configuration
+    networks:
+      - synapse-net
+
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 5s
+      retries: 3
+
+# Named volumes for persistence
+volumes:
+  synapse-models:
+    driver: local
+
+# Custom network
+networks:
+  synapse-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.22.0.0/16
