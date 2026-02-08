@@ -71,8 +71,8 @@ show_status() {
     print_info "Docker Services Status:"
     
     cd "$PROJECT_ROOT"
-    if docker-compose ps &>/dev/null; then
-        docker-compose ps
+    if docker compose ps &>/dev/null; then
+        docker compose ps
     else
         print_warning "No services running"
     fi
@@ -83,7 +83,7 @@ stop_all_services() {
     print_info "Stopping all services..."
     
     cd "$PROJECT_ROOT"
-    docker-compose down &>/dev/null || true
+    docker compose down &>/dev/null || true
     
     print_success "All services stopped"
 }
@@ -92,7 +92,7 @@ start_dev() {
     print_info "Starting development environment..."
     
     cd "$PROJECT_ROOT"
-    docker-compose up -d synapse-dev
+    docker compose up -d synapse-dev
     
     print_success "Development environment started"
     print_info "Port: 8003"
@@ -104,7 +104,7 @@ start_prod() {
     print_info "Starting production environment..."
     
     cd "$PROJECT_ROOT"
-    docker-compose up -d synapse-prod
+    docker compose up -d synapse-prod
     
     print_success "Production environment started"
     print_info "Port: 8002"
@@ -116,7 +116,7 @@ start_both() {
     print_info "Starting both environments..."
     
     cd "$PROJECT_ROOT"
-    docker-compose up -d
+    docker compose up -d
     
     print_success "Both environments started"
     print_info "Development:  port 8003 (synapse:latest)"
@@ -212,15 +212,15 @@ interactive_mode() {
 main() {
     local target_env="${1:-}"
     
-    # Check if docker-compose is available
-    if ! command -v docker-compose &> /dev/null; then
+    # Check if docker compose is available
+    if ! command -v docker compose &> /dev/null; then
         print_error "Docker Compose is not installed"
         exit 1
     fi
     
-    # Check if docker-compose.yml exists
+    # Check if docker compose.yml exists
     if [[ ! -f "$DOCKER_COMPOSE_FILE" ]]; then
-        print_error "docker-compose.yml not found at $DOCKER_COMPOSE_FILE"
+        print_error "docker compose.yml not found at $DOCKER_COMPOSE_FILE"
         exit 1
     fi
     

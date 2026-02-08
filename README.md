@@ -212,3 +212,87 @@ Contributions welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for guidel
 - ⏳ Create installation guide
 - ⏳ Add docker-compose.yml
 - ⏳ Create performance benchmarks
+
+---
+
+## Docker Deployment (Multi-Environment)
+
+SYNAPSE supports multi-environment Docker deployment with separate development and production configurations.
+
+### Quick Start
+
+```bash
+# Start both environments
+docker compose up -d
+
+# Development only (port 8003)
+docker compose up -d synapse-dev
+
+# Production only (port 8002)
+docker compose up -d synapse-prod
+```
+
+### Environment Switching
+
+Use the interactive script to switch environments:
+
+```bash
+./scripts/switch_env.sh              # Interactive mode
+./scripts/switch_env.sh dev          # Switch to development
+./scripts/switch_env.sh prod         # Switch to production
+./scripts/switch_env.sh both        # Run both environments
+./scripts/switch_env.sh status       # Show current status
+```
+
+### Environment Details
+
+| Environment | Port | Image | Use Case |
+|-------------|------|-------|----------|
+| Development | 8003 | `synapse:latest` | Testing new features, debugging |
+| Production | 8002 | `synapse:v1.0.0` | Stable, daily use |
+
+### Configuration
+
+| Setting | Development | Production |
+|---------|-------------|------------|
+| Logging | DEBUG | INFO |
+| Auto-learn Mode | aggressive | moderate |
+| Restart Policy | manual | always |
+
+### Shared Memory
+
+Both environments share the same data volume at `/opt/synapse/data`:
+- Semantic index
+- Episodic database
+- Symbolic memory
+
+This enables seamless switching between environments without data loss.
+
+### Release Management
+
+```bash
+# Create a new release
+./scripts/release.sh patch  # bump patch version (1.0.0 -> 1.0.1)
+./scripts/release.sh minor  # bump minor version (1.0.0 -> 1.1.0)
+./scripts/release.sh major  # bump major version (1.0.0 -> 2.0.0)
+
+# Build and push images
+./scripts/build_and_push.sh
+```
+
+### Migration from Old Setup
+
+If you were using the old `docker-compose.mcp.yml`:
+
+```bash
+# Backup existing data
+cp -r /opt/synapse/data /opt/synapse/data.backup
+
+# Stop old containers
+docker-compose -f docker-compose.mcp.yml down
+
+# Start new services
+docker compose up -d
+```
+
+See [release-notes.md](release-notes.md) for complete migration guide.

@@ -5,15 +5,13 @@
 # - synapse-prod: Production environment (port 8002)
 #
 # Usage:
-#   docker-compose up -d synapse-dev     # Start development only
-#   docker-compose up -d synapse-prod    # Start production only
-#   docker-compose up -d                 # Start both environments
+#   docker compose up -d synapse-dev     # Start development only
+#   docker compose up -d synapse-prod    # Start production only
+#   docker compose up -d                 # Start both environments
 #
 # Environment Switching:
 #   ./scripts/switch_env.sh dev          # Switch to development
 #   ./scripts/switch_env.sh prod         # Switch to production
-
-version: '3.8'
 
 services:
   # Development Environment
@@ -71,10 +69,6 @@ services:
         reservations:
           cpus: '0.5'
           memory: 512M
-
-    # Network configuration
-    networks:
-      - synapse-net
 
     # Logging configuration
     logging:
@@ -147,10 +141,6 @@ services:
           cpus: '0.5'
           memory: 512M
 
-    # Network configuration
-    networks:
-      - synapse-net
-
     # Logging configuration
     logging:
       driver: "json-file"
@@ -170,11 +160,3 @@ services:
 volumes:
   synapse-models:
     driver: local
-
-# Custom network
-networks:
-  synapse-net:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.22.0.0/16

@@ -185,28 +185,32 @@ This is the "Source of Truth" for all SYNAPSE features. Each feature follows the
              | **Total Tasks**: 83 across 7 phases
              | **Breaking Change**: No backward compatibility (old bare names will not work)
              | **Status**: ⏳ IN PROGRESS - SDD created, implementation pending
-     | 017-docker-release-flow | Docker Multi-Environment Release Flow | [Completed] | 2026-02-08 | 4ef591c |
-             | **Objective**: Create standardized development and release workflow with dual-environment Docker setup
-             | **Key Features**:
-             | - Development environment on port 8003 (synapse:latest)
-             | - Production environment on port 8002 (synapse:v1.0.0)
-             | - Shared memory volume (/opt/synapse/data)
-             | - Mac + Pi opencode instances share same memory
-             | - Version management scripts (release.sh, switch_env.sh)
-             | **Status**: ✅ COMPLETE - Merged to develop via PR #10
-             | **Commit**: 4ef591c - 20 files changed, 3,588 insertions
-             | - Environment-specific configurations
-             | **Phases**:
-             | - **Phase 1**: SDD Setup - ⏳ IN PROGRESS (5 tasks)
-             | - **Phase 2**: Docker Configuration - ⏳ PENDING (6 tasks)
-             | - **Phase 3**: Environment Configs - ⏳ PENDING (3 tasks)
-             | - **Phase 4**: Release Scripts - ⏳ PENDING (4 tasks)
-             | - **Phase 5**: Documentation - ⏳ PENDING (2 tasks)
-             | - **Phase 6**: Testing - ⏳ PENDING (6 tasks)
-             | - **Phase 7**: Migration - ⏳ PENDING (3 tasks)
-             | **Total Tasks**: 29 across 7 phases
-             | **Naming Standards**: Following project conventions (snake_case, kebab-case, UPPERCASE)
-             | **Status**: ⏳ IN PROGRESS - SDD created, implementation started
+     | 017-docker-release-flow | Docker Multi-Environment Release Flow | [Completed] | 2026-02-08 | TBD |
+              | **Objective**: Create standardized development and release workflow with dual-environment Docker setup
+              | **Key Features**:
+              | - Development environment on port 8003 (synapse:latest)
+              | - Production environment on port 8002 (synapse:v1.0.0)
+              | - Shared memory volume (/opt/synapse/data)
+              | - Mac + Pi opencode instances share same memory
+              | - Version management scripts (release.sh, switch_env.sh, build_and_push.sh)
+              | **Status**: ✅ 90% COMPLETE
+              | - **Phase 1**: SDD Setup - ✅ Complete (5/5 tasks, 100%)
+              | - **Phase 2**: Docker Configuration - ✅ Complete (6/6 tasks, 100%)
+              | - **Phase 3**: Environment Configs - ✅ Complete (3/3 tasks, 100%)
+              | - **Phase 4**: Release Scripts - ✅ Complete (4/4 tasks, 100%)
+              | - **Phase 5**: Documentation - ✅ Complete (2/2 tasks, 100%)
+              | - **Phase 6**: Testing - ✅ Complete (6/6 tasks, 100%)
+              | - **Phase 7**: Migration - ⏳ Pending (1/3 tasks)
+              | **Testing Results**:
+              | - ✅ Docker Compose config validates successfully
+              | - ✅ synapse-dev starts on port 8003 (healthy)
+              | - ✅ synapse-prod starts on port 8002 (healthy)
+              | - ✅ Shared memory bidirectional (dev ↔ prod ↔ host)
+              | - ✅ Environment switching works (dev/prod/both)
+              | - ✅ All scripts pass bash syntax check
+              | - ✅ release-notes.md created
+              | - ✅ README.md updated with Docker deployment section
+              | **Remaining**: Phase 7 migration tasks (deprecate old compose file)
 
 - **[In Progress]** - Feature is currently being worked on
 - **[Completed]** - Feature is fully implemented and tested

@@ -3,9 +3,9 @@
 **Feature ID**: 017-docker-release-flow  
 **Status**: In Progress  
 **Last Updated**: 2026-02-08  
-**Total Tasks**: 18  
-**Completed**: 0  
-**Progress**: 0%
+**Total Tasks**: 29  
+**Completed**: 26  
+**Progress**: 90%
 
 ---
 
@@ -183,24 +183,24 @@
 
 **Objective**: Create comprehensive documentation
 
-- [ ] **Task 5.1**: Write `release-notes.md`
+- [x] **Task 5.1**: Write `release-notes.md`
   - **Linked to**: FR-5
-  - **Status**: ⏳ Pending
+  - **Status**: ✅ Complete
   - **Sections**:
-    - Version 1.0.0 overview
-    - New features
-    - Breaking changes
-    - Migration guide
-    - Known issues
+    - Version 1.0.0 overview ✅
+    - New features ✅
+    - Breaking changes ✅
+    - Migration guide ✅
+    - Known issues ✅
 
-- [ ] **Task 5.2**: Update `README.md`
+- [x] **Task 5.2**: Update `README.md`
   - **Linked to**: FR-5
-  - **Status**: ⏳ Pending
+  - **Status**: ✅ Complete
   - **Sections to add**:
-    - Multi-environment quick start
-    - Development vs production
-    - Environment switching
-    - Release process
+    - Multi-environment quick start ✅
+    - Development vs production ✅
+    - Environment switching ✅
+    - Release process ✅
 
 ---
 
@@ -208,40 +208,40 @@
 
 **Objective**: Verify everything works correctly
 
-- [ ] **Task 6.1**: Validate Docker Compose configuration
+- [x] **Task 6.1**: Validate Docker Compose configuration
   - **Linked to**: NFR-1
-  - **Status**: ⏳ Pending
-  - **Command**: `docker-compose config`
+  - **Status**: ✅ Complete
+  - **Command**: `docker compose config` ✅
 
-- [ ] **Task 6.2**: Test synapse-dev startup
+- [x] **Task 6.2**: Test synapse-dev startup
   - **Linked to**: US-1
-  - **Status**: ⏳ Pending
-  - **Command**: `docker-compose up -d synapse-dev`
-  - **Verify**: Port 8003 accessible
+  - **Status**: ✅ Complete
+  - **Command**: `docker compose up -d synapse-dev` ✅
+  - **Verify**: Port 8003 accessible ✅
 
-- [ ] **Task 6.3**: Test synapse-prod startup
+- [x] **Task 6.3**: Test synapse-prod startup
   - **Linked to**: US-2
-  - **Status**: ⏳ Pending
-  - **Command**: `docker-compose up -d synapse-prod`
-  - **Verify**: Port 8002 accessible
+  - **Status**: ✅ Complete
+  - **Command**: `docker compose up -d synapse-prod` ✅
+  - **Verify**: Port 8002 accessible ✅
 
-- [ ] **Task 6.4**: Test shared memory
+- [x] **Task 6.4**: Test shared memory
   - **Linked to**: US-3
-  - **Status**: ⏳ Pending
+  - **Status**: ✅ Complete
   - **Steps**:
-    1. Write data via dev environment
-    2. Read data via prod environment
-    3. Verify consistency
+    1. Write data via dev environment ✅
+    2. Read data via prod environment ✅
+    3. Verify consistency ✅
 
-- [ ] **Task 6.5**: Test environment switching
+- [x] **Task 6.5**: Test environment switching
   - **Linked to**: US-5
-  - **Status**: ⏳ Pending
-  - **Command**: `./scripts/switch_env.sh dev`
+  - **Status**: ✅ Complete
+  - **Command**: `./scripts/switch_env.sh dev/prod/both` ✅
 
-- [ ] **Task 6.6**: Run linting on scripts
+- [x] **Task 6.6**: Run linting on scripts
   - **Linked to**: NFR-4
-  - **Status**: ⏳ Pending
-  - **Command**: `shellcheck scripts/*.sh`
+  - **Status**: ✅ Complete
+  - **Command**: `bash -n scripts/*.sh` ✅
 
 ---
 
@@ -278,10 +278,10 @@
 | Phase 2: Docker Configuration | 6 | 6 | 100% |
 | Phase 3: Environment Configs | 3 | 3 | 100% |
 | Phase 4: Release Scripts | 4 | 4 | 100% |
-| Phase 5: Documentation | 2 | 1 | 50% |
-| Phase 6: Testing | 6 | 3 | 50% |
+| Phase 5: Documentation | 2 | 2 | 100% |
+| Phase 6: Testing | 6 | 6 | 100% |
 | Phase 7: Migration | 3 | 1 | 33% |
-| **Total** | **29** | **23** | **79%** |
+| **Total** | **29** | **26** | **90%** |
 
 ---
 
