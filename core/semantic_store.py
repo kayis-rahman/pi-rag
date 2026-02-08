@@ -34,6 +34,7 @@ import json
 import os
 import hashlib
 import uuid
+import time
 import logging
 from typing import List, Dict, Any, Optional, Tuple, Set
 from datetime import datetime, timezone
@@ -551,8 +552,23 @@ class SemanticStore:
                 with open(chunks_file, 'r') as f:
                     chunks_data = json.load(f)
                     self.chunks = [DocumentChunk(**data) for data in chunks_data]
+            except json.JSONDecodeError as e:
+                # JSON parse error - corrupt file, back it up and start fresh
+                logger.warning(f"Failed to parse chunks.json (JSON error): {e}")
+                logger.info(f"Backing up corrupt file to chunks.json.backup")
+                try:
+                    backup_file = f"{chunks_file}.backup_{int(time.time())}"
+                    with open(backup_file, 'w') as bf:
+                        with open(chunks_file, 'r') as orig:
+                            bf.write(orig.read())
+                    logger.info(f"Corrupt file backed up to: {backup_file}")
+                except Exception as backup_err:
+                    logger.error(f"Failed to backup corrupt file: {backup_err}")
+                # Reset chunks
+                self.chunks = []
             except Exception as e:
                 logger.warning(f"Failed to load chunks: {e}")
+                self.chunks = []
 
         # Load document IDs
         if os.path.exists(metadata_file):
@@ -560,8 +576,12 @@ class SemanticStore:
                 with open(metadata_file, 'r') as f:
                     doc_metadata = json.load(f)
                     self.document_ids = set(doc_metadata.keys())
+            except json.JSONDecodeError as e:
+                logger.warning(f"Failed to parse documents.json (JSON error): {e}")
+                self.document_ids = set()
             except Exception as e:
                 logger.warning(f"Failed to load metadata: {e}")
+                self.document_ids = set()
 
 
 # Cache of semantic store instances keyed by index_path
