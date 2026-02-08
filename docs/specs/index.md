@@ -151,33 +151,53 @@ This is the "Source of Truth" for all SYNAPSE features. Each feature follows the
            | **Results**: 22/22 tasks complete, 0 errors, all acceptance criteria met
            | **Key Files**: rag/semantic_store.py, tests/test_ingestion_persistence.py
             | **Status**: ✅ COMPLETE - BUG-INGEST-01 FIXED
-        | 016-mcp-tool-renaming | MCP Tool Renaming with Compact Names | [In Progress] | ⏳ Pending |
-            | **Objective**: Rename all MCP tools to use compact hierarchical naming for optimal context usage
-            | **New Tool Names**:
-            | - `sy.proj.list` (was: list_projects)
-            | - `sy.src.list` (was: list_sources)
-            | - `sy.ctx.get` (was: get_context)
-            | - `sy.mem.search` (was: search)
-            | - `sy.mem.ingest` (was: ingest_file)
-            | - `sy.mem.fact.add` (was: add_fact)
-            | - `sy.mem.ep.add` (was: add_episode)
-            | **Key Changes**:
-            | - Deprecate mcp_server/rag_server.py (mark as deprecated)
-            | - Update mcp_server/http_wrapper.py with name= parameters
-            | - Update AGENTS.md with all new tool references (40+ refs)
-            | - Update CLI integration (synapse/cli/main.py)
-            | - Update configs/rag_config.json universal_hooks
-            | **Phases**:
-            | - **Phase 1**: Core Server Changes (P0) - ⏳ PENDING (18 tasks)
-            | - **Phase 2**: AGENTS.md Documentation (P1) - ⏳ PENDING (24 tasks)
-            | - **Phase 3**: Integration Updates (P2) - ⏳ PENDING (5 tasks)
-            | - **Phase 4**: Deprecation (P3) - ⏳ PENDING (4 tasks)
-            | - **Phase 5**: Testing (P0) - ⏳ PENDING (13 tasks)
-            | - **Phase 6**: Documentation Cleanup (P4) - ⏳ PENDING (14 tasks)
-            | - **Phase 7**: Verification & Completion (P0) - ⏳ PENDING (5 tasks)
-            | **Total Tasks**: 83 across 7 phases
-            | **Breaking Change**: No backward compatibility (old bare names will not work)
-            | **Status**: ⏳ IN PROGRESS - SDD created, implementation pending
+     | 016-mcp-tool-renaming | MCP Tool Renaming with Compact Names | [In Progress] | ⏳ Pending |
+             | **Objective**: Rename all MCP tools to use compact hierarchical naming for optimal context usage
+             | **New Tool Names**:
+             | - `sy.proj.list` (was: list_projects)
+             | - `sy.src.list` (was: list_sources)
+             | - `sy.ctx.get` (was: get_context)
+             | - `sy.mem.search` (was: search)
+             | - `sy.mem.ingest` (was: ingest_file)
+             | - `sy.mem.fact.add` (was: add_fact)
+             | - `sy.mem.ep.add` (was: add_episode)
+             | **Key Changes**:
+             | - Deprecate mcp_server/rag_server.py (mark as deprecated)
+             | - Update mcp_server/http_wrapper.py with name= parameters
+             | - Update AGENTS.md with all new tool references (40+ refs)
+             | - Update CLI integration (synapse/cli/main.py)
+             | - Update configs/rag_config.json universal_hooks
+             | **Phases**:
+             | - **Phase 1**: Core Server Changes (P0) - ⏳ PENDING (18 tasks)
+             | - **Phase 2**: AGENTS.md Documentation (P1) - ⏳ PENDING (24 tasks)
+             | - **Phase 3**: Integration Updates (P2) - ⏳ PENDING (5 tasks)
+             | - **Phase 4**: Deprecation (P3) - ⏳ PENDING (4 tasks)
+             | - **Phase 5**: Testing (P0) - ⏳ PENDING (13 tasks)
+             | - **Phase 6**: Documentation Cleanup (P4) - ⏳ PENDING (14 tasks)
+             | - **Phase 7**: Verification & Completion (P0) - ⏳ PENDING (5 tasks)
+             | **Total Tasks**: 83 across 7 phases
+             | **Breaking Change**: No backward compatibility (old bare names will not work)
+             | **Status**: ⏳ IN PROGRESS - SDD created, implementation pending
+     | 017-docker-release-flow | Docker Multi-Environment Release Flow | [In Progress] | ⏳ Pending |
+             | **Objective**: Create standardized development and release workflow with dual-environment Docker setup
+             | **Key Features**:
+             | - Development environment on port 8003 (synapse:latest)
+             | - Production environment on port 8002 (synapse:v1.0.0)
+             | - Shared memory volume (/opt/synapse/data)
+             | - Mac + Pi opencode instances share same memory
+             | - Version management scripts (release.sh, switch_env.sh)
+             | - Environment-specific configurations
+             | **Phases**:
+             | - **Phase 1**: SDD Setup - ⏳ IN PROGRESS (5 tasks)
+             | - **Phase 2**: Docker Configuration - ⏳ PENDING (6 tasks)
+             | - **Phase 3**: Environment Configs - ⏳ PENDING (3 tasks)
+             | - **Phase 4**: Release Scripts - ⏳ PENDING (4 tasks)
+             | - **Phase 5**: Documentation - ⏳ PENDING (2 tasks)
+             | - **Phase 6**: Testing - ⏳ PENDING (6 tasks)
+             | - **Phase 7**: Migration - ⏳ PENDING (3 tasks)
+             | **Total Tasks**: 29 across 7 phases
+             | **Naming Standards**: Following project conventions (snake_case, kebab-case, UPPERCASE)
+             | **Status**: ⏳ IN PROGRESS - SDD created, implementation started
 
 - **[In Progress]** - Feature is currently being worked on
 - **[Completed]** - Feature is fully implemented and tested
