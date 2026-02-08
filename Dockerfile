@@ -43,8 +43,8 @@ RUN rm -rf /tmp/* /var/tmp/*
 
 # Verify imports work
 RUN python -c "from mcp.server import Server; from mcp.types import Tool; print('✅ MCP SDK OK')" && \
-    python -c "from rag import MemoryStore, EpisodicStore, SemanticStore; print('✅ RAG imports OK')" && \
-    python -m py_compile mcp_server/rag_server.py && echo "✅ Server syntax OK"
+    python -c "from core import MemoryStore, EpisodicStore, SemanticStore; print('✅ Core imports OK')" && \
+    python -m py_compile mcp_server/synapse_server.py && echo "✅ Server syntax OK"
 
 # Final stage
 FROM python:3.11-slim
@@ -73,7 +73,7 @@ ENV LOG_LEVEL=INFO
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "from rag import MemoryStore; store = MemoryStore(); print('healthy')" || exit 1
+    CMD python -c "from core import MemoryStore; store = MemoryStore(); print('healthy')" || exit 1
 
 # Run MCP server (HTTP wrapper for remote access)
 CMD ["python", "mcp_server/http_wrapper.py"]
