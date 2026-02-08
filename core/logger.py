@@ -203,7 +203,7 @@ def setup_logging(
         if args.debug:
             os.environ["LOG_LEVEL"] = "DEBUG"
 
-        setup_logging(log_file="/opt/synapse/logs/rag.log")
+        setup_logging(log_file="/opt/synapse/logs/synapse.log")
 
     Args:
         level: Optional explicit log level

@@ -233,7 +233,7 @@ class MetricsCollector:
         Record tool performance metric.
         
         Args:
-            tool_name: Name of the tool (e.g., "rag.search")
+            tool_name: Name of the tool (e.g., "sy.mem.search")
             operation_count: Number of operations
             error_count: Number of errors
             avg_latency_ms: Average latency in milliseconds

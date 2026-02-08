@@ -113,7 +113,7 @@ class AutoLearningTracker:
 
         Patterns:
         1. Multi-step operations (3+ tools used)
-        2. Successful file ingestion (rag.ingest_file success)
+        2. Successful file ingestion (sy.mem.ingest success)
         3. Bug fix sequence (search → read → edit)
         4. Deployment sequence (build → test → deploy)
 
@@ -140,7 +140,7 @@ class AutoLearningTracker:
             if all(op.get("result") == "success" for op in last_3):
                 # Check for specific patterns first
                 # Pattern 1: File ingestion success
-                if all(op.get("tool_name") == "rag.ingest_file" for op in last_3):
+                if all(op.get("tool_name") == "sy.mem.ingest" for op in last_3):
                     return {
                         "type": "task_completion",
                         "situation": "Multiple files needed to be ingested",
@@ -153,8 +153,8 @@ class AutoLearningTracker:
                 tools_used = [op.get("tool_name") for op in last_3]
 
                 # Check for search + context retrieval
-                has_search = "rag.search" in tools_used
-                has_get_context = "rag.get_context" in tools_used
+                has_search = "sy.mem.search" in tools_used
+                has_get_context = "sy.ctx.get" in tools_used
 
                 # Check for file WRITE operations (excludes read)
                 has_write_ops = any(t in tools_used for t in ["edit_file", "write_file", "edit", "write"])
@@ -171,7 +171,7 @@ class AutoLearningTracker:
                 # Generic multi-step pattern (any 3 successful operations, excluding file ingestion)
                 tool_names = [op.get("tool_name") for op in last_3]
                 unique_tools = len(set(tool_names))
-                is_file_ingestion = all(op.get("tool_name") == "rag.ingest_file" for op in last_3)
+                is_file_ingestion = all(op.get("tool_name") == "sy.mem.ingest" for op in last_3)
 
                 if not is_file_ingestion and not has_search and not has_get_context:
                     return {

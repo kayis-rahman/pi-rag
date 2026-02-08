@@ -36,7 +36,7 @@ class TestAutoLearningTracker:
         initial_count = len(tracker.operation_buffer)
         
         operation = {
-            "tool_name": "rag.search",
+            "tool_name": "sy.mem.search",
             "project_id": "synapse",
             "arguments": {"query": "test"},
             "result": "success",
@@ -54,7 +54,7 @@ class TestAutoLearningTracker:
         # Add 101 operations
         for i in range(101):
             operation = {
-                "tool_name": "rag.search",
+                "tool_name": "sy.mem.search",
                 "result": "success",
                 "timestamp": datetime.now()
             }
@@ -63,13 +63,13 @@ class TestAutoLearningTracker:
         # Buffer should only have last 100 operations
         assert len(tracker.operation_buffer) == 100
         # First operation should be removed
-        assert tracker.operation_buffer[0]["tool_name"] == "rag.search"
+        assert tracker.operation_buffer[0]["tool_name"] == "sy.mem.search"
     
     def test_detect_task_completion_multi_step(self, tracker):
         """Test detection of multi-step operations."""
         operations = [
-            {"tool_name": "rag.search", "result": "success"},
-            {"tool_name": "rag.get_context", "result": "success"},
+            {"tool_name": "sy.mem.search", "result": "success"},
+            {"tool_name": "sy.ctx.get", "result": "success"},
             {"tool_name": "read_file", "result": "success"}
         ]
         
@@ -82,8 +82,8 @@ class TestAutoLearningTracker:
     def test_detect_task_completion_file_ingestion(self, tracker):
         """Test detection of successful file ingestion."""
         operations = [
-            {"tool_name": "rag.ingest_file", "result": "success"},
-            {"tool_name": "rag.ingest_file", "result": "success"},
+            {"tool_name": "sy.mem.ingest", "result": "success"},
+            {"tool_name": "sy.mem.ingest", "result": "success"},
             {"tool_name": "rag.ingest_file", "result": "success"}
         ]
         
@@ -96,8 +96,8 @@ class TestAutoLearningTracker:
     def test_detect_task_completion_search_context_code(self, tracker):
         """Test detection of search + context + code modification."""
         operations = [
-            {"tool_name": "rag.search", "result": "success"},
-            {"tool_name": "rag.get_context", "result": "success"},
+            {"tool_name": "sy.mem.search", "result": "success"},
+            {"tool_name": "sy.ctx.get", "result": "success"},
             {"tool_name": "read_file", "result": "success"}
         ]
         
@@ -111,7 +111,7 @@ class TestAutoLearningTracker:
     def test_detect_task_completion_insufficient_ops(self, tracker):
         """Test that less than 3 operations doesn't trigger detection."""
         operations = [
-            {"tool_name": "rag.search", "result": "success"},
+            {"tool_name": "sy.mem.search", "result": "success"},
             {"tool_name": "rag.get_context", "result": "success"}
         ]
         
@@ -123,8 +123,8 @@ class TestAutoLearningTracker:
     def test_detect_pattern_repeated_failures(self, tracker):
         """Test detection of repeated failures."""
         operations = [
-            {"tool_name": "rag.search", "result": "error", "timestamp": datetime.now()},
-            {"tool_name": "rag.search", "result": "error", "timestamp": datetime.now()}
+            {"tool_name": "sy.mem.search", "result": "error", "timestamp": datetime.now()},
+            {"tool_name": "sy.mem.search", "result": "error", "timestamp": datetime.now()}
         ]
         
         pattern = tracker.detect_pattern(operations)
@@ -155,8 +155,8 @@ class TestAutoLearningTracker:
     def test_detect_pattern_not_enough_ops(self, tracker):
         """Test that less than 5 operations doesn't trigger pattern detection."""
         operations = [
-            {"tool_name": "rag.search", "result": "success"},
-            {"tool_name": "rag.search", "result": "success"},
+            {"tool_name": "sy.mem.search", "result": "success"},
+            {"tool_name": "sy.mem.search", "result": "success"},
             {"tool_name": "rag.search", "result": "success"}
         ]
         
@@ -168,7 +168,7 @@ class TestAutoLearningTracker:
     def test_should_auto_track_respects_override_false(self, tracker):
         """Test that auto_learn=false disables tracking."""
         operation = {
-            "tool_name": "rag.search",
+            "tool_name": "sy.mem.search",
             "arguments": {"auto_learn": False}
         }
         
@@ -179,7 +179,7 @@ class TestAutoLearningTracker:
     def test_should_auto_track_respects_override_true(self, tracker):
         """Test that auto_learn=true enables tracking."""
         operation = {
-            "tool_name": "rag.search",
+            "tool_name": "sy.mem.search",
             "arguments": {"auto_learn": True}
         }
         
@@ -190,7 +190,7 @@ class TestAutoLearningTracker:
     def test_should_auto_track_default_to_global(self, tracker):
         """Test that default (no override) respects global config."""
         operation = {
-            "tool_name": "rag.search",
+            "tool_name": "sy.mem.search",
             "arguments": {}
         }
         
@@ -204,7 +204,7 @@ class TestAutoLearningTracker:
     def test_should_auto_track_global_disabled(self, tracker):
         """Test that global disabled disables all tracking."""
         operation = {
-            "tool_name": "rag.search",
+            "tool_name": "sy.mem.search",
             "arguments": {}
         }
         
@@ -235,7 +235,7 @@ class TestAutoLearningTracker:
         assert stats["success_rate"] == 0.75
         assert stats["average_duration_ms"] == 125
         assert stats["unique_tools"] == 3
-        assert "rag.search" in stats["top_tools"][0]
+        assert "sy.mem.search" in stats["top_tools"][0]
     
     def test_clear_buffer(self, tracker):
         """Test buffer clearing."""

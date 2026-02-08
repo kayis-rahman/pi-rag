@@ -44,8 +44,8 @@
 - [x] Create tasks.md (this file)
 
 ## Phase 8: Index Update
-- [ ] Update docs/specs/index.md
-- [ ] Mark Feature 018 as [Completed]
+- [x] Update docs/specs/index.md
+- [x] Mark Feature 018 as [Completed]
 
 ---
 
@@ -61,4 +61,4 @@
 | Git deletions | 901 |
 | Time taken | ~30 minutes |
 
-**Status**: ✅ Ready for commit and merge
+**Status**: ✅ MERGED to develop (commit 858e950)

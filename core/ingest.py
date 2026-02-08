@@ -221,7 +221,7 @@ if __name__ == "__main__":
     
     if len(sys.argv) < 2:
         # Keep usage as print (CLI help)
-        print("Usage: python -m rag.ingest <file_path> [chunk_size] [chunk_overlap]")
+        print("Usage: python -m core.ingest <file_path> [chunk_size] [chunk_overlap]")
         sys.exit(1)
     
     file_path = sys.argv[1]
