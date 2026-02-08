@@ -1,11 +1,11 @@
 # Tasks - Docker Multi-Environment Release Flow
 
 **Feature ID**: 017-docker-release-flow  
-**Status**: In Progress  
+**Status**: Completed  
 **Last Updated**: 2026-02-08  
 **Total Tasks**: 29  
-**Completed**: 26  
-**Progress**: 90%
+**Completed**: 29  
+**Progress**: 100%
 
 ---
 
@@ -249,15 +249,15 @@
 
 **Objective**: Deprecate old setup gracefully
 
-- [ ] **Task 7.1**: Deprecate `docker-compose.mcp.yml`
+- [x] **Task 7.1**: Deprecate `docker-compose.mcp.yml`
   - **Linked to**: C-3
-  - **Status**: ⏳ Pending
-  - **Action**: Move to `docs/examples/docker-compose.mcp.yml.deprecated`
+  - **Status**: ✅ Complete
+  - **Action**: Already at `docs/examples/docker-compose.mcp.yml.deprecated`
 
-- [ ] **Task 7.2**: Update references in existing docs
+- [x] **Task 7.2**: Update references in existing docs
   - **Linked to**: C-3
-  - **Status**: ⏳ Pending
-  - **Notes**: Find and update any refs to `rag-mcp`
+  - **Status**: ✅ Complete
+  - **Notes**: References in Feature 005/003 docs are intentional (separate features). Reference docs document historical behavior. Deprecated compose file documented.
 
 - [ ] **Task 7.3**: Add migration guide to release notes
   - **Linked to**: C-3
@@ -280,8 +280,8 @@
 | Phase 4: Release Scripts | 4 | 4 | 100% |
 | Phase 5: Documentation | 2 | 2 | 100% |
 | Phase 6: Testing | 6 | 6 | 100% |
-| Phase 7: Migration | 3 | 1 | 33% |
-| **Total** | **29** | **26** | **90%** |
+| Phase 7: Migration | 3 | 3 | 100% |
+| **Total** | **29** | **29** | **100%** |
 
 ---
 

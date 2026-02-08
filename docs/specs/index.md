@@ -185,7 +185,7 @@ This is the "Source of Truth" for all SYNAPSE features. Each feature follows the
              | **Total Tasks**: 83 across 7 phases
              | **Breaking Change**: No backward compatibility (old bare names will not work)
              | **Status**: ⏳ IN PROGRESS - SDD created, implementation pending
-     | 017-docker-release-flow | Docker Multi-Environment Release Flow | [Completed] | 2026-02-08 | TBD |
+     | 017-docker-release-flow | Docker Multi-Environment Release Flow | [Completed] | 2026-02-08 | eb683ee |
               | **Objective**: Create standardized development and release workflow with dual-environment Docker setup
               | **Key Features**:
               | - Development environment on port 8003 (synapse:latest)
@@ -193,14 +193,14 @@ This is the "Source of Truth" for all SYNAPSE features. Each feature follows the
               | - Shared memory volume (/opt/synapse/data)
               | - Mac + Pi opencode instances share same memory
               | - Version management scripts (release.sh, switch_env.sh, build_and_push.sh)
-              | **Status**: ✅ 90% COMPLETE
+              | **Status**: ✅ 100% COMPLETE - All 7 phases finished
               | - **Phase 1**: SDD Setup - ✅ Complete (5/5 tasks, 100%)
               | - **Phase 2**: Docker Configuration - ✅ Complete (6/6 tasks, 100%)
               | - **Phase 3**: Environment Configs - ✅ Complete (3/3 tasks, 100%)
               | - **Phase 4**: Release Scripts - ✅ Complete (4/4 tasks, 100%)
               | - **Phase 5**: Documentation - ✅ Complete (2/2 tasks, 100%)
               | - **Phase 6**: Testing - ✅ Complete (6/6 tasks, 100%)
-              | - **Phase 7**: Migration - ⏳ Pending (1/3 tasks)
+              | - **Phase 7**: Migration - ✅ Complete (3/3 tasks, 100%)
               | **Testing Results**:
               | - ✅ Docker Compose config validates successfully
               | - ✅ synapse-dev starts on port 8003 (healthy)
@@ -208,9 +208,9 @@ This is the "Source of Truth" for all SYNAPSE features. Each feature follows the
               | - ✅ Shared memory bidirectional (dev ↔ prod ↔ host)
               | - ✅ Environment switching works (dev/prod/both)
               | - ✅ All scripts pass bash syntax check
-              | - ✅ release-notes.md created
+              | - ✅ release-notes.md created with migration guide
               | - ✅ README.md updated with Docker deployment section
-              | **Remaining**: Phase 7 migration tasks (deprecate old compose file)
+              | - ✅ Old compose file deprecated at docs/examples/docker-compose.mcp.yml.deprecated
 
 - **[In Progress]** - Feature is currently being worked on
 - **[Completed]** - Feature is fully implemented and tested
