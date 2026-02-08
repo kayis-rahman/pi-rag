@@ -86,9 +86,11 @@ mcp = FastMCP(
 # MCP Tool Registration
 # ============================================================================
 
-@mcp.tool()
+@mcp.tool(name="sy.proj.list")
 async def list_projects(scope_type: Optional[str] = None) -> dict:
     """List all projects in RAG memory system.
+
+    Tool: sy.proj.list
 
     Args:
         scope_type: Optional filter by scope type (user, project, org, session)
@@ -99,9 +101,11 @@ async def list_projects(scope_type: Optional[str] = None) -> dict:
     return await backend.list_projects(scope_type=scope_type)
 
 
-@mcp.tool()
+@mcp.tool(name="sy.src.list")
 async def list_sources(project_id: str, source_type: Optional[str] = None) -> dict:
     """List document sources for a project in semantic memory.
+
+    Tool: sy.src.list
 
     Args:
         project_id: Project identifier
@@ -113,7 +117,7 @@ async def list_sources(project_id: str, source_type: Optional[str] = None) -> di
     return await backend.list_sources(project_id=project_id, source_type=source_type)
 
 
-@mcp.tool()
+@mcp.tool(name="sy.ctx.get")
 async def get_context(
     project_id: str,
     context_type: str = "all",
@@ -121,6 +125,8 @@ async def get_context(
     max_results: int = 10
 ) -> dict:
     """Get comprehensive project context with authority hierarchy.
+
+    Tool: sy.ctx.get
 
     Returns context respecting authority order:
     1. Symbolic memory (authoritative)
@@ -144,7 +150,7 @@ async def get_context(
     )
 
 
-@mcp.tool()
+@mcp.tool(name="sy.mem.search")
 async def search(
     project_id: str,
     query: str,
@@ -152,6 +158,8 @@ async def search(
     top_k: int = 10
 ) -> dict:
     """Semantic search across all memory types.
+
+    Tool: sy.mem.search
 
     Args:
         project_id: Project identifier
@@ -179,7 +187,7 @@ async def search(
         raise
 
 
-@mcp.tool()
+@mcp.tool(name="sy.mem.ingest")
 async def ingest_file(
     project_id: str,
     file_path: Optional[str] = None,
@@ -189,6 +197,8 @@ async def ingest_file(
     metadata: Optional[Dict[str, Any]] = None
 ) -> dict:
     """Ingest file OR text content into semantic memory.
+
+    Tool: sy.mem.ingest
 
 Current Configuration:
 --------------------
@@ -211,7 +221,7 @@ Workflow:
      {"file_path": "/tmp/rag-uploads/abc123_document.txt", ...}
 
   3. Call this tool with file_path parameter:
-     ingest_file(
+     sy.mem.ingest(
           project_id="global",
           file_path="/tmp/rag-uploads/abc123_document.txt"
      )
@@ -262,7 +272,7 @@ Only HTTP upload flow is available.
         }
 
 
-@mcp.tool()
+@mcp.tool(name="sy.mem.fact.add")
 async def add_fact(
     project_id: str,
     fact_key: str,
@@ -271,6 +281,8 @@ async def add_fact(
     category: Optional[str] = None
 ) -> dict:
     """Add a symbolic memory fact (authoritative).
+
+    Tool: sy.mem.fact.add
 
     Args:
         project_id: Project identifier
@@ -291,7 +303,7 @@ async def add_fact(
     )
 
 
-@mcp.tool()
+@mcp.tool(name="sy.mem.ep.add")
 async def add_episode(
     project_id: str,
     title: str,
@@ -300,6 +312,8 @@ async def add_episode(
     quality: float = 0.8
 ) -> dict:
     """Add an episodic memory episode (advisory).
+
+    Tool: sy.mem.ep.add
 
     Args:
         project_id: Project identifier
@@ -335,7 +349,16 @@ async def root_endpoint(request) -> Response:
         "endpoint": "/mcp",
         "data_directory": backend._get_data_dir(),
         "transport": "http",
-        "tools_available": 8,  # 7 MCP tools + 1 HTTP upload endpoint
+        "tools_available": 7,
+        "tools": [
+            "sy.proj.list",
+            "sy.src.list",
+            "sy.ctx.get",
+            "sy.mem.search",
+            "sy.mem.ingest",
+            "sy.mem.fact.add",
+            "sy.mem.ep.add"
+        ],
         "message": "Server is running and ready for connections from Mac or other MCP clients",
         "opencode_config_url": f"http://piworm.local:{_mcp_port}/mcp",
         "upload_endpoint": "/v1/upload",
@@ -355,7 +378,16 @@ async def health_endpoint(request) -> Response:
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "version": "2.0.0",
         "protocol": "MCP Streamable HTTP",
-        "tools_available": 8,  # 7 MCP tools + 1 HTTP upload endpoint
+        "tools_available": 7,
+        "tools": [
+            "sy.proj.list",
+            "sy.src.list",
+            "sy.ctx.get",
+            "sy.mem.search",
+            "sy.mem.ingest",
+            "sy.mem.fact.add",
+            "sy.mem.ep.add"
+        ],
         "transport": "http",
         "data_directory": backend._get_data_dir(),
         "server": "RAG Memory Backend",
@@ -382,7 +414,7 @@ async def upload_file(request) -> Response:
         curl -X POST http://localhost:8002/v1/upload -F "file=@myfile.txt"
 
     Then call MCP tool:
-        rag.ingest_file(project_id="global", file_path="/tmp/rag-uploads/abc123_myfile.txt")
+        sy.mem.ingest(project_id="global", file_path="/tmp/rag-uploads/abc123_myfile.txt")
     """
     try:
         # Get upload form data
@@ -486,7 +518,7 @@ async def upload_file(request) -> Response:
             "original_filename": filename,
             "file_size": file_size,
             "upload_directory": upload_dir,
-            "message": f"File uploaded successfully. Use rag.ingest_file MCP tool with file_path='{file_path}'. File will be auto-deleted after ingestion."
+            "message": f"File uploaded successfully. Use sy.mem.ingest MCP tool with file_path='{file_path}'. File will be auto-deleted after ingestion."
         })
 
     except Exception as e:
@@ -529,13 +561,13 @@ if __name__ == "__main__":
     logger.info("- Semantic Memory (non-authoritative): Document embeddings")
     logger.info("")
     logger.info("Available Tools:")
-    logger.info("1. list_projects - List all projects")
-    logger.info("2. list_sources - List document sources")
-    logger.info("3. get_context - Get comprehensive context (all memory types)")
-    logger.info("4. search - Semantic search across memory types")
-    logger.info("5. ingest_file - Ingest file (supports content mode for remote servers!)")
-    logger.info("6. add_fact - Add symbolic facts (authoritative)")
-    logger.info("7. add_episode - Add episodic episodes (advisory)")
+    logger.info("1. sy.proj.list - List all memory projects")
+    logger.info("2. sy.src.list - List document sources for a project")
+    logger.info("3. sy.ctx.get - Get comprehensive project context (all memory types)")
+    logger.info("4. sy.mem.search - Semantic search across memory types")
+    logger.info("5. sy.mem.ingest - Ingest document into semantic memory")
+    logger.info("6. sy.mem.fact.add - Add symbolic facts (authoritative)")
+    logger.info("7. sy.mem.ep.add - Add episodic episodes (advisory)")
     logger.info("=" * 60)
     logger.info("")
     logger.info("Content Mode Usage (Mac → Remote Pi):")
