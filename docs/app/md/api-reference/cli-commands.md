@@ -14,7 +14,7 @@ Complete reference for all SYNAPSE command-line interface commands.
 | `synapse mcp-server` | Start MCP HTTP server | See [MCP Tools](/usage/mcp-tools.md) |
 | `synapse query` | Query knowledge base | See [Querying](/usage/querying.md) |
 | `synapse bulk-ingest` | Ingest multiple files | See [Bulk Ingest](/usage/ingestion.md) |
-| `synapse list-projects` | List all projects | See [MCP: list_projects](/usage/mcp-tools.md) |
+| `sy proj list` | List all projects | See [MCP: sy.proj.list](/usage/mcp-tools.md) |
 | `synapse system-status` | Check system status | See [System Status](/usage/querying.md) |
 
 ## Quick Reference
@@ -44,7 +44,7 @@ Queries SYNAPSE knowledge base using natural language. See [Querying](/usage/que
 ### synapse bulk-ingest
 Ingests multiple files into knowledge base. Supports file patterns and metadata. See [Ingestion](/usage/ingestion.md) for full documentation.
 
-### synapse list-projects
+### sy proj list
 Lists all registered projects in SYNAPSE. See [MCP Protocol - list_projects](/usage/mcp-tools.md) for details.
 
 ### synapse system-status

@@ -9,16 +9,16 @@
 ---
 
 ## Phase 1: Core Server Changes (P0)
-**Objective**: Update active MCP server with compact tool names 
+**Objective**: Update active MCP server with compact tool names
 
 ### 1.1 Update Tool Decorators
-- [x] Add `name="sy.proj.list"` to list_projects decorator (FR-001)
-- [x] Add `name="sy.src.list"` to list_sources decorator (FR-002)
-- [x] Add `name="sy.ctx.get"` to get_context decorator (FR-003)
-- [x] Add `name="sy.mem.search"` to search decorator (FR-004)
-- [x] Add `name="sy.mem.ingest"` to ingest_file decorator (FR-005)
-- [x] Add `name="sy.mem.fact.add"` to add_fact decorator (FR-006)
-- [x] Add `name="sy.mem.ep.add"` to add_episode decorator (FR-007)
+- [x] Add `name="sy.proj.list"` to list_projects decorator (FR-001) ✅
+- [x] Add `name="sy.src.list"` to list_sources decorator (FR-002) ✅
+- [x] Add `name="sy.ctx.get"` to get_context decorator (FR-003) ✅
+- [x] Add `name="sy.mem.search"` to search decorator (FR-004) ✅
+- [x] Add `name="sy.mem.ingest"` to ingest_file decorator (FR-005) ✅
+- [x] Add `name="sy.mem.fact.add"` to add_fact decorator (FR-006) ✅
+- [x] Add `name="sy.mem.ep.add"` to add_episode decorator (FR-007) ✅
 
 ### 1.2 Update Documentation in Code
 - [x] Update list_projects docstring with new tool name
@@ -152,25 +152,25 @@
 - [x] Add note about naming change
 
 ### 6.2 Update docs/content/ (Starlight)
-- [ ] Update docs/content/docs/usage/mcp-tools.mdx (14 refs)
-- [ ] Update docs/content/docs/usage/ingestion.mdx (1 ref)
-- [ ] Update docs/content/docs/usage/querying.mdx (1 ref)
-- [ ] Update docs/content/docs/architecture/mcp-protocol.mdx (7 refs)
-- [ ] Update docs/content/docs/api-reference/server-api.mdx (2 refs)
+- [x] Update docs/content/docs/usage/mcp-tools.mdx (14 refs)
+- [x] Update docs/content/docs/usage/ingestion.mdx (1 ref)
+- [x] Update docs/content/docs/usage/querying.mdx (1 ref)
+- [x] Update docs/content/docs/architecture/mcp-protocol.mdx (7 refs)
+- [x] Update docs/content/docs/api-reference/server-api.mdx (2 refs)
 
 ### 6.3 Update docs/app/ (VitePress)
-- [ ] Update docs/app/md/usage/mcp-tools.md (14 refs)
-- [ ] Update docs/app/md/usage/ingestion.md (1 ref)
-- [ ] Update docs/app/md/usage/querying.md (1 ref)
-- [ ] Update docs/app/md/architecture/mcp-protocol.md (7 refs)
-- [ ] Update docs/app/md/api-reference/server-api.md (2 refs)
-- [ ] Update docs/app/md/api-reference/cli-commands.md (2 refs)
+- [x] Update docs/app/md/usage/mcp-tools.md (14 refs)
+- [x] Update docs/app/md/usage/ingestion.md (1 ref)
+- [x] Update docs/app/md/usage/querying.md (1 ref)
+- [x] Update docs/app/md/architecture/mcp-protocol.md (7 refs)
+- [x] Update docs/app/md/api-reference/server-api.md (2 refs)
+- [x] Update docs/app/md/api-reference/cli-commands.md (2 refs)
 
 ### 6.4 Create Migration Guide
-- [ ] Document old → new name mapping
-- [ ] Provide search/replace commands
-- [ ] Add to docs/content/docs/
-- [ ] Add to docs/app/md/
+- [x] Document old → new name mapping
+- [x] Provide search/replace commands
+- [x] Add to docs/content/docs/
+- [x] Add to docs/app/md/
 
 ---
 
@@ -191,14 +191,14 @@
 ### 7.3 Final Documentation
 - [x] Update CHANGELOG.md with breaking changes
 - [x] Update docs/specs/index.md (Central Progress Index)
-- [ ] Mark feature as [Completed] with commit hash
-- [ ] Create COMPLETION_SUMMARY.md
+- [x] Mark feature as [Completed] with commit hash
+- [x] Create COMPLETION_SUMMARY.md
 
 ### 7.4 Handoff
 - [x] Verify all files committed
 - [x] Verify git push successful
 - [x] Document any known issues
-- [ ] Provide context for next session
+- [x] Provide context for next session
 
 ---
 
@@ -233,7 +233,7 @@ Phase 7 (Completion) ← Needs all previous phases
 | Phase 5: Testing | 13 | 13 | ✅ Complete |
 | Phase 6: Documentation | 14 | 14 | ✅ Complete |
 | Phase 7: Completion | 5 | 5 | ✅ Complete |
-| **TOTAL** | **83** | **83** | **100%** |
+| **TOTAL** | **83** | **83** | **100%** | |
 
 ---
 

@@ -58,7 +58,7 @@ POST /mcp
   "jsonrpc": "2.0",
   "method": "tools/call",
   "params": {
-    "name": "synapse.search",
+    "name": "sy.mem.search",
     "arguments": {
       "query": "memory system",
       "top_k": 3
@@ -76,7 +76,7 @@ POST /mcp
   "jsonrpc": "2.0",
   "method": "tools/call",
   "params": {
-    "name": "synapse.get_context",
+    "name": "sy.ctx.get",
     "arguments": {
       "query": "architecture",
       "context_type": "all",

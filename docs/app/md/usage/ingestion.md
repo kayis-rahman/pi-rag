@@ -51,7 +51,7 @@ synapse-bulk-ingest --no-gitignore --exclude "*.log"
 {
   "method": "tools/call",
   "params": {
-    "name": "synapse.ingest_file",
+    "name": "sy.mem.ingest",
     "arguments": {
       "file_path": "/path/to/file.py",
       "metadata": {

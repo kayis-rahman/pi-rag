@@ -18,10 +18,10 @@ from rag import MemoryStore
 store = MemoryStore()
 
 # Add fact (symbolic memory)
-store.add_fact("version", "1.2.0", category="project", confidence=1.0)
+store.mem.fact.add("version", "1.2.0", category="project", confidence=1.0)
 
 # Add episode (episodic memory)
-store.add_episode("Success", "Deployed successfully", lesson_type="success")
+store.mem.ep.add("Success", "Deployed successfully", lesson_type="success")
 
 # Semantic retrieval
 results = store.retrieve("your query", top_k=3)
@@ -56,7 +56,7 @@ from rag import EpisodicMemory
 memory = EpisodicMemory()
 
 # Add episode
-memory.add_episode("Title", "Content", "success")
+memory.mem.ep.add("Title", "Content", "success")
 
 # Get episodes
 episodes = memory.get_episodes(project_id="synapse")
@@ -81,7 +81,7 @@ results = store.search("your query", top_k=3)
 doc = store.get_document(doc_id)
 
 # List sources
-sources = store.list_sources(project_id="synapse")
+sources = store.src.list(project_id="synapse")
 ```
 
 ## Memory Selector
@@ -94,8 +94,8 @@ from rag import MemorySelector
 selector = MemorySelector()
 
 # Get context from all memory types
-context = selector.get_context("your query", max_results=10)
+context = selector.ctx.get("your query", max_results=10)
 
 # Get from specific memory type
-context = selector.get_context("your query", memory_type="semantic")
+context = selector.ctx.get("your query", memory_type="semantic")
 ```

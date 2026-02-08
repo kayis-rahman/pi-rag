@@ -27,7 +27,7 @@ A local-first RAG (Retrieval-Augmented Generation) system where your stored know
 - API endpoints, version numbers
 
 ### ⚡ Synaptic Transmission (MCP Protocol)
-- **7 MCP Tools**: List projects, list sources, get context, search, ingest file, add fact, add episode
+- **7 MCP Tools**: `sy.proj.list`, `sy.src.list`, `sy.ctx.get`, `sy.mem.search`, `sy.mem.ingest`, `sy.mem.fact.add`, `sy.mem.ep.add`
 - **HTTP Upload**: Remote file ingestion with auto-cleanup
 
 ### 🔄 Neural Plasticity (Smart Ingestion & Sync)
@@ -122,25 +122,25 @@ Add `auto_learn: false` to any tool call to disable auto-learning for that speci
 
 ## MCP Tools
 
-### Tool 1: `synapse.list_projects`
+### Tool 1: `sy.proj.list`
 List all registered projects.
 
-### Tool 2: `synapse.list_sources`
+### Tool 2: `sy.src.list`
 List all document sources in a project.
 
-### Tool 3: `synapse.get_context`
+### Tool 3: `sy.ctx.get`
 Get comprehensive context from all memory types (dendrites, synapses, cell bodies).
 
-### Tool 4: `synapse.search`
+### Tool 4: `sy.mem.search`
 Search dendrites (semantic memory) for relevant documents.
 
-### Tool 5: `synapse.ingest_file`
+### Tool 5: `sy.mem.ingest`
 Ingest a file into dendrites (semantic memory).
 
-### Tool 6: `synapse.add_fact`
+### Tool 6: `sy.mem.fact.add`
 Add symbolic fact to cell bodies (100% accuracy).
 
-### Tool 7: `synapse.add_episode`
+### Tool 7: `sy.mem.ep.add`
 Add episodic lesson to synapses (85% confidence).
 
 ---

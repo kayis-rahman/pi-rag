@@ -11,13 +11,13 @@ SYNAPSE implements a Model Context Protocol (MCP) for seamless AI integration.
 
 SYNAPSE provides 7 MCP tools for memory interaction:
 
-1. **`synapse.list_projects`** - List all registered projects
-2. **`synapse.list_sources`** - List document sources in a project
-3. **`synapse.get_context`** - Get comprehensive context from all memory types
-4. **`synapse.search`** - Search semantic memory
-5. **`synapse.ingest_file`** - Ingest files into semantic memory
-6. **`synapse.add_fact`** - Add authoritative facts
-7. **`synapse.add_episode`** - Add episodic lessons
+1. **`sy.proj.list`** - List all registered projects
+2. **`sy.src.list`** - List document sources in a project
+3. **`sy.ctx.get`** - Get comprehensive context from all memory types
+4. **`sy.mem.search`** - Search semantic memory
+5. **`sy.mem.ingest`** - Ingest files into semantic memory
+6. **`sy.mem.fact.add`** - Add authoritative facts
+7. **`sy.mem.ep.add`** - Add episodic lessons
 
 ## HTTP Transport
 
