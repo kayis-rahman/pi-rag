@@ -128,49 +128,48 @@ class TestMCP工具签名:
     """Test MCP tool signatures (using Chinese name as per project conventions)."""
 
     def test_rag_server_has_all_tools(self):
-        """Test that rag_server.py has all expected tools."""
+        """Test that http_wrapper.py has all expected tools."""
         import os
         server_path = os.path.join(
             os.path.dirname(__file__),
             '..', '..', '..',
-            'mcp_server', 'rag_server.py'
+            'mcp_server', 'http_wrapper.py'
         )
 
         if not os.path.exists(server_path):
-            pytest.skip("rag_server.py not found")
+            pytest.skip("http_wrapper.py not found")
 
         with open(server_path, 'r') as f:
             content = f.read()
 
-        # Check for all 8 tools
+        # Check for all 7 tools (compact hierarchical naming - Feature 016)
         expected_tools = [
-            'sy.list_projects',
-            'sy.list_sources',
-            'sy.search',
-            'sy.get_context',
-            'sy.ingest_file',
-            'sy.add_fact',
-            'sy.add_episode',
-            'sy.analyze_conversation'
+            'sy.proj.list',
+            'sy.src.list',
+            'sy.mem.search',
+            'sy.ctx.get',
+            'sy.mem.ingest',
+            'sy.mem.fact.add',
+            'sy.mem.ep.add'
         ]
 
         for tool in expected_tools:
             assert f'name="{tool}"' in content, \
-                f"Tool {tool} not found in rag_server.py"
+                f"Tool {tool} not found in http_wrapper.py"
 
-        print(f"✅ All {len(expected_tools)} MCP tools found with 'sy.' prefix")
+        print(f"✅ All {len(expected_tools)} MCP tools found with compact 'sy.' prefix")
 
     def test_no_rag_prefix_in_tools(self):
-        """Test that no tools use old 'rag.' prefix."""
+        """Test that no tools use old 'rag.' prefix in active server."""
         import os
         server_path = os.path.join(
             os.path.dirname(__file__),
             '..', '..', '..',
-            'mcp_server', 'rag_server.py'
+            'mcp_server', 'http_wrapper.py'
         )
 
         if not os.path.exists(server_path):
-            pytest.skip("rag_server.py not found")
+            pytest.skip("http_wrapper.py not found")
 
         with open(server_path, 'r') as f:
             content = f.read()
@@ -181,4 +180,4 @@ class TestMCP工具签名:
         assert len(tool_definitions) == 0, \
             f"Found {len(tool_definitions)} tools with old 'rag.' prefix: {tool_definitions}"
 
-        print("✅ No tools found with old 'rag.' prefix")
+        print("✅ No tools found with old 'rag.' prefix in http_wrapper.py")
