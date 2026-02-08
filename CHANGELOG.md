@@ -182,3 +182,27 @@ FastMCP was ignoring the `@mcp.tool(name="...")` decorator parameter and auto-ge
 - Bug fixes incorporated
 - No code changes required
 
+
+### Fixed
+
+#### Critical Test Collection Errors (Feature 021)
+
+**Fixed test suite collection errors that were blocking full test execution:**
+
+**Issue 1:** `tests/cli/test_p1_start.py` - KeyError: 'default'
+- **Root Cause:** TIMEOUTS dictionary missing "default" key used by test helper
+- **Fix:** Added `"default": 30` to TIMEOUTS in `tests/cli/conftest.py`
+
+**Issue 2:** `tests/manual/test_auto_learning_config.py` - AssertionError
+- **Root Cause:** Test expected tracker to be disabled but config has enabled: true
+- **Fix:** Added `tracker.enabled = False` for test isolation
+
+**Results:**
+- ✓ Test suite now collects 591 tests (previously 586 with 2 errors)
+- ✓ Zero collection errors
+- ✓ Foundation for comprehensive test execution restored
+
+**Files Changed:**
+- `tests/cli/conftest.py` - Added TIMEOUTS["default"] 
+- `tests/manual/test_auto_learning_config.py` - Fixed test isolation
+
