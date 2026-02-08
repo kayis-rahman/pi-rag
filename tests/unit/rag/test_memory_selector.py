@@ -5,8 +5,8 @@ Tests cover 3-tier memory selection, scope priority, conflict resolution, and ca
 """
 
 import pytest
-from rag.memory_store import MemoryStore, MemoryFact
-from rag.memory_selector import MemorySelector, RequestType, ConflictResolution
+from core.memory_store import MemoryStore, MemoryFact
+from core.memory_selector import MemorySelector, RequestType, ConflictResolution
 from tests.utils.helpers import (
     create_test_fact,
     save_test_config,
@@ -24,7 +24,7 @@ class TestMemorySelectorInitialization:
         # Actual initialization tested with integration tests
 
         # Import MemorySelector
-        from rag.memory_selector import MemorySelector
+        from core.memory_selector import MemorySelector
 
         # Test that it can be imported
         assert MemorySelector is not None
@@ -58,7 +58,7 @@ class TestMemorySelectorScopePriority:
         # Project (1) should be lower than user
         # Org (3) should be highest priority
 
-        from rag.memory_selector import MemorySelector, SCOPE_PRIORITY
+        from core.memory_selector import MemorySelector, SCOPE_PRIORITY
 
         assert SCOPE_PRIORITY["session"] == 0
         assert SCOPE_PRIORITY["user"] == 2
@@ -74,7 +74,7 @@ class TestMemorySelectorCategoryRelevance:
         """Test that coding requests map to correct categories."""
         # CODING requests should be relevant to: preference, decision, constraint
 
-        from rag.memory_selector import MemorySelector, RequestType, CATEGORY_RELEVANCE
+        from core.memory_selector import MemorySelector, RequestType, CATEGORY_RELEVANCE
 
         relevance = CATEGORY_RELEVANCE[RequestType.CODING]
 
@@ -86,7 +86,7 @@ class TestMemorySelectorCategoryRelevance:
         """Test that output format requests map to correct categories."""
         # OUTPUT_FORMAT requests should be relevant to: preference
 
-        from rag.memory_selector import MemorySelector, RequestType, CATEGORY_RELEVANCE
+        from core.memory_selector import MemorySelector, RequestType, CATEGORY_RELEVANCE
 
         relevance = CATEGORY_RELEVANCE[RequestType.OUTPUT_FORMAT]
 
@@ -96,7 +96,7 @@ class TestMemorySelectorCategoryRelevance:
         """Test that architecture requests map to correct categories."""
         # ARCHITECTURE requests should be relevant to: decision, fact, constraint
 
-        from rag.memory_selector import MemorySelector, RequestType, CATEGORY_RELEVANCE
+        from core.memory_selector import MemorySelector, RequestType, CATEGORY_RELEVANCE
 
         relevance = CATEGORY_RELEVANCE[RequestType.ARCHITECTURE]
 
@@ -108,7 +108,7 @@ class TestMemorySelectorCategoryRelevance:
         """Test that framework requests map to correct categories."""
         # FRAMEWORK requests should be relevant to: decision, fact, constraint
 
-        from rag.memory_selector import MemorySelector, RequestType, CATEGORY_RELEVANCE
+        from core.memory_selector import MemorySelector, RequestType, CATEGORY_RELEVANCE
 
         relevance = CATEGORY_RELEVANCE[RequestType.FRAMEWORK]
 
@@ -120,7 +120,7 @@ class TestMemorySelectorCategoryRelevance:
         """Test that general requests map to correct categories."""
         # GENERAL requests should be relevant to all categories
 
-        from rag.memory_selector import MemorySelector, RequestType, CATEGORY_RELEVANCE
+        from core.memory_selector import MemorySelector, RequestType, CATEGORY_RELEVANCE
 
         relevance = CATEGORY_RELEVANCE[RequestType.GENERAL]
 
@@ -133,7 +133,7 @@ class TestMemorySelectorCategoryRelevance:
         """Test that debugging requests map to correct categories."""
         # DEBUGGING requests should be relevant to: preference
 
-        from rag.memory_selector import MemorySelector, RequestType, CATEGORY_RELEVANCE
+        from core.memory_selector import MemorySelector, RequestType, CATEGORY_RELEVANCE
 
         relevance = CATEGORY_RELEVANCE[RequestType.DEBUGGING]
 
@@ -290,7 +290,7 @@ class TestMemorySelectorMemoryStoreIntegration:
         # Actual integration tested in integration tests
 
         # Verify MemorySelector class exists
-        from rag.memory_selector import MemorySelector
+        from core.memory_selector import MemorySelector
 
         assert MemorySelector is not None
         # Verify it has methods that use MemoryStore

@@ -186,7 +186,7 @@ GitHub Actions workflow: `.github/workflows/test.yml`
 
 ```python
 import pytest
-from rag.memory_store import MemoryStore, MemoryFact
+from core.memory_store import MemoryStore, MemoryFact
 
 @pytest.mark.unit
 class TestMemoryStore:
@@ -211,7 +211,7 @@ class TestMemoryStore:
 
 ```python
 import pytest
-from rag.orchestrator import RAGOrchestrator
+from core.orchestrator import RAGOrchestrator
 
 @pytest.mark.integration
 class TestRAGPipeline:

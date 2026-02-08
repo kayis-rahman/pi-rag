@@ -5,10 +5,10 @@ Tests cover memory selector, authority hierarchy, conflict resolution, and combi
 """
 
 import pytest
-from rag.memory_store import MemoryStore, MemoryFact
-from rag.episodic_store import EpisodicStore, Episode
-from rag.semantic_store import SemanticStore, DocumentChunk
-from rag.memory_selector import MemorySelector
+from core.memory_store import MemoryStore, MemoryFact
+from core.episodic_store import EpisodicStore, Episode
+from core.semantic_store import SemanticStore, DocumentChunk
+from core.memory_selector import MemorySelector
 
 
 @pytest.mark.integration

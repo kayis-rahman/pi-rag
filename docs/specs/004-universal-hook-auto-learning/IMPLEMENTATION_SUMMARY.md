@@ -9,10 +9,10 @@
 ## What Was Implemented
 
 ### ✅ Phase 1: Foundation (100% Complete)
-- ✅ `rag/universal_hook.py` - Python abstract interface (5 methods)
+- ✅ `core/universal_hook.py` - Python abstract interface (5 methods)
 - ✅ `interfaces/hook-interface.ts` - TypeScript interface (5 optional methods)
-- ✅ `rag/conversation_analyzer.py` - Async analyzer with heuristics
-- ✅ `rag/adapters/__init__.py` - Adapters package initialized
+- ✅ `core/conversation_analyzer.py` - Async analyzer with heuristics
+- ✅ `core/adapters/__init__.py` - Adapters package initialized
 - ✅ `requirements.md` - User stories, NFRs, TRs, risks
 - ✅ `plan.md` - Architecture, design principles, component designs
 - ✅ `configs/rag_config.json` - universal_hooks section added
@@ -20,7 +20,7 @@
 - ✅ All TypeScript files structured correctly
 
 ### ✅ Phase 2: MCP Server Integration (100% Complete)
-- ✅ `rag.analyze_conversation` tool added to MCP server (9 tools total)
+- ✅ `core.analyze_conversation` tool added to MCP server (9 tools total)
 - ✅ `backend.analyze_conversation()` async method implemented
 - ✅ `_load_universal_hooks_config()` method added
 - ✅ ConversationAnalyzer integration (no LLM, heuristics only)
@@ -67,10 +67,10 @@
 ## Files Created/Modified
 
 ### Core Infrastructure (4 files, 576 lines)
-- `rag/universal_hook.py` (108 lines) - Python interface
+- `core/universal_hook.py` (108 lines) - Python interface
 - `interfaces/hook-interface.ts` (76 lines) - TypeScript interface
-- `rag/conversation_analyzer.py` (457 lines) - Async analyzer
-- `rag/adapters/__init__.py` (15 lines) - Adapters package
+- `core/conversation_analyzer.py` (457 lines) - Async analyzer
+- `core/adapters/__init__.py` (15 lines) - Adapters package
 
 ### OpenCode Plugin (2 files, 1,279 lines)
 - `.opencode/plugins/synapse-auto-learning.ts` (140 lines) - TypeScript plugin
@@ -166,10 +166,10 @@ Expected output:
 
 ### 4. Test with RAG Tools
 Run these RAG tools in OpenCode:
-- `rag.add_fact`
-- `rag.add_episode`
-- `rag.search`
-- `rag.get_context`
+- `core.add_fact`
+- `core.add_episode`
+- `core.search`
+- `core.get_context`
 
 Expected:
 - Console shows `[Synapse] Tool xxx matched analysis list`

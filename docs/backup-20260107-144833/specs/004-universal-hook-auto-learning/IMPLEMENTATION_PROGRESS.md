@@ -10,16 +10,16 @@
 ## What Was Completed
 
 ### ✅ Foundation Phase (100% Complete)
-- ✅ `rag/universal_hook.py` (Python interface)
+- ✅ `core/universal_hook.py` (Python interface)
 - ✅ `interfaces/hook-interface.ts` (TypeScript interface)
-- ✅ `rag/conversation_analyzer.py` (Async analyzer with heuristics)
-- ✅ `rag/adapters/__init__.py` (Adapters package)
+- ✅ `core/conversation_analyzer.py` (Async analyzer with heuristics)
+- ✅ `core/adapters/__init__.py` (Adapters package)
 - ✅ `requirements.md` (User stories, NFRs, TRs)
 - ✅ `plan.md` (Architecture, design principles)
 - ✅ `configs/rag_config.json` (universal_hooks section added)
 
 ### ✅ Phase 2: MCP Server Integration (100% Complete)
-- ✅ Added `rag.analyze_conversation` tool to MCP server
+- ✅ Added `core.analyze_conversation` tool to MCP server
 - ✅ Implemented `backend.analyze_conversation()` async method
 - ✅ Added `_load_universal_hooks_config()` method
 - ✅ Imported `ConversationAnalyzer` class
@@ -78,7 +78,7 @@
    - Verify min_message_length filter works
 
 3. **Test RAG Tool Integration**:
-   - Test OpenCode plugin calls `rag.analyze_conversation` tool
+   - Test OpenCode plugin calls `core.analyze_conversation` tool
    - Verify tool returns correct JSON structure
    - Test with sample user message and agent response
    - Test error handling (RAG server offline)
@@ -171,7 +171,7 @@
 
 **All Phase 1-4 implementation is complete and committed.**
 **OpenCode plugin is implemented and ready for testing.**
-**RAG server is updated with `rag.analyze_conversation` tool.**
+**RAG server is updated with `core.analyze_conversation` tool.**
 **Unit tests are passing (20/21 tests, 95% pass rate).**
 **Minimal documentation is complete.**
 
@@ -198,7 +198,7 @@
    - Verify no startup errors
 
 4. **Test with RAG Tools**:
-   - Run: `rag.add_fact`, `rag.add_episode`, `rag.search`
+   - Run: `core.add_fact`, `core.add_episode`, `core.search`
    - Check console for `[Synapse]` log messages
    - Verify facts/episodes are stored in RAG memory
 
@@ -252,10 +252,10 @@
 ## Files Created/Modified
 
 ### Core Infrastructure (4 files, 576 lines)
-- rag/universal_hook.py (108 lines)
+- core/universal_hook.py (108 lines)
 - interfaces/hook-interface.ts (76 lines)
-- rag/conversation_analyzer.py (457 lines) - ENHANCED
-- rag/adapters/__init__.py (15 lines)
+- core/conversation_analyzer.py (457 lines) - ENHANCED
+- core/adapters/__init__.py (15 lines)
 
 ### OpenCode Plugin (2 files, 1,418 lines)
 - .opencode/plugins/synapse-auto-learning.ts (1,279 lines)

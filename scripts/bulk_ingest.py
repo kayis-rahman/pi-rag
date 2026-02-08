@@ -62,8 +62,8 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 try:
-    from rag import SemanticStore, get_semantic_store
-    from rag.semantic_ingest import SemanticIngestor, get_semantic_ingestor
+    from core import SemanticStore, get_semantic_store
+    from core.semantic_ingest import SemanticIngestor, get_semantic_ingestor
 except ImportError as e:
     logger.error(f"Failed to import RAG modules: {e}")
     logger.error("Make sure you're running from SYNAPSE project directory")

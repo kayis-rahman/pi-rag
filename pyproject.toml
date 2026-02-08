@@ -49,7 +49,7 @@ synapse = "synapse.cli.main:main"
 # LEGACY: Old entry points (keep for backward compatibility with deprecation warnings)
 synapse-bulk-ingest = "scripts.bulk_ingest:main"
 synapse-system-status = "scripts.rag_status:main"
-synapse-mcp-server = "mcp_server.rag_server:main"
+synapse-mcp-server = "mcp_server.synapse_server:main"
 
 [project.urls]
 Homepage = "https://synapse.dev"

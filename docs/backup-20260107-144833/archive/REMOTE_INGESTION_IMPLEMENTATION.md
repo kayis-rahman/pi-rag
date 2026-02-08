@@ -83,7 +83,7 @@
 1. Config file: `index_path` or `memory_db_path` from `rag_config.json`
 2. Environment: `RAG_DATA_DIR` (fallback)
 
-**Result**: `/opt/pi-rag/data/` correctly used
+**Result**: `/opt/pi-core/data/` correctly used
 
 ---
 
@@ -295,7 +295,7 @@ export RAG_UPLOAD_MAX_SIZE=50
 
 ### 5. Backward Compatible ✅
 - Existing local files still work (if in upload dir)
-- No breaking changes to `rag.ingest_file` tool
+- No breaking changes to `core.ingest_file` tool
 - All existing functionality preserved
 
 ---
@@ -331,7 +331,7 @@ These syntax warnings don't affect functionality but should be cleaned up:
    ```
 
 3. **Test via MCP client**:
-   Call `rag.ingest_file` with path to uploaded file
+   Call `core.ingest_file` with path to uploaded file
 
 4. **Verify results**:
    - File is ingested successfully

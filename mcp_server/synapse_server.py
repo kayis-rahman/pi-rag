@@ -39,17 +39,17 @@ from mcp.server import Server
 from mcp.types import Tool, TextContent, ImageContent, EmbeddedResource
 
 # RAG system imports
-from rag import (
+from core import (
     MemoryStore, MemoryFact, get_memory_store,
     EpisodicStore, Episode, get_episodic_store,
     SemanticStore, get_semantic_store,
     SemanticIngestor, get_semantic_ingestor,
     SemanticRetriever, get_semantic_retriever
 )
-from rag.auto_learning_tracker import AutoLearningTracker
-from rag.learning_extractor import LearningExtractor
-from rag.model_manager import get_model_manager
-from rag.conversation_analyzer import ConversationAnalyzer
+from core.auto_learning_tracker import AutoLearningTracker
+from core.learning_extractor import LearningExtractor
+from core.model_manager import get_model_manager
+from core.conversation_analyzer import ConversationAnalyzer
 
 # Local imports
 from .metrics import Metrics, get_metrics
@@ -67,12 +67,12 @@ logger = logging.getLogger(__name__)
 # Deprecation warning
 import warnings
 warnings.warn(
-    "rag_server.py is deprecated. Use mcp_server.http_wrapper instead. "
+    "synapse_server.py is deprecated. Use mcp_server.http_wrapper instead. "
     "This module will be removed in a future version.",
     DeprecationWarning,
     stacklevel=2
 )
-logger.warning("DEPRECATED: rag_server.py is deprecated. Use mcp_server.http_wrapper instead.")
+logger.warning("DEPRECATED: synapse_server.py is deprecated. Use mcp_server.http_wrapper instead.")
 
 
 class RAGMemoryBackend:

@@ -6,7 +6,7 @@ Tests cover pool management, thread safety, and connection lifecycle.
 
 import pytest
 import threading
-from rag.connection_pool import SQLiteConnectionPool
+from core.connection_pool import SQLiteConnectionPool
 
 
 @pytest.mark.unit

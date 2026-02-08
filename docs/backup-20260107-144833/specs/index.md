@@ -127,8 +127,8 @@ This is the "Source of Truth" for all SYNAPSE features. Each feature follows the
 
 **Recent Progress**:
 - Configuration schema added to rag_config.json
-- AutoLearningTracker module created (rag/auto_learning_tracker.py)
-- LearningExtractor module created (rag/learning_extractor.py)
+- AutoLearningTracker module created (core/auto_learning_tracker.py)
+- LearningExtractor module created (core/learning_extractor.py)
 - All 7 MCP tools wrapped with operation tracking
 - Auto-store helper methods implemented
 - Integration tests created (tests/test_auto_learning_integration.py)

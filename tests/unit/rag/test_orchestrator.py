@@ -7,7 +7,7 @@ Tests cover RAG orchestration, context injection, streaming, and multi-model sup
 import pytest
 import tempfile
 from pathlib import Path
-from rag.orchestrator import RAGOrchestrator, get_orchestrator
+from core.orchestrator import RAGOrchestrator, get_orchestrator
 from tests.utils.helpers import (
     MockEmbeddingService,
     MockLLMService,
@@ -23,7 +23,7 @@ class TestRAGOrchestratorInitialization:
     def test_get_orchestrator_singleton(self):
         """Test that get_orchestrator returns singleton."""
         # Reset singleton
-        from rag.orchestrator import _orchestrator
+        from core.orchestrator import _orchestrator
         import importlib
         importlib.reload(rag.orchestrator)
 
@@ -221,7 +221,7 @@ class TestRAGOrchestratorModelManagement:
     def test_preload_models_exists(self):
         """Test that preload_models method exists."""
         # Reset singleton to test fresh instance
-        from rag.orchestrator import _orchestrator
+        from core.orchestrator import _orchestrator
         _orchestrator = None
 
         orchestrator = get_orchestrator()

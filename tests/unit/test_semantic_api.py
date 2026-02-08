@@ -10,7 +10,7 @@ class TestSemanticAPI:
 
     def test_search_method_signature(self):
         """Test that SemanticStore.search has correct signature."""
-        from rag.semantic_store import SemanticStore
+        from core.semantic_store import SemanticStore
         sig = inspect.signature(SemanticStore.search)
         params = list(sig.parameters.keys())
 
@@ -23,7 +23,7 @@ class TestSemanticAPI:
 
     def test_search_method_defaults(self):
         """Test that search method has appropriate defaults."""
-        from rag.semantic_store import SemanticStore
+        from core.semantic_store import SemanticStore
         sig = inspect.signature(SemanticStore.search)
 
         # Check for default values
@@ -36,7 +36,7 @@ class TestSemanticAPI:
 
     def test_add_document_method_exists(self):
         """Test that add_document method exists."""
-        from rag.semantic_store import SemanticStore
+        from core.semantic_store import SemanticStore
         assert hasattr(SemanticStore, 'add_document'), \
             "SemanticStore must have add_document method"
 
@@ -44,7 +44,7 @@ class TestSemanticAPI:
 
     def test_get_document_method_exists(self):
         """Test that SemanticStore has document retrieval methods."""
-        from rag import SemanticStore
+        from core import SemanticStore
         # SemanticStore has get_chunk_by_id, not get_document
         has_get_chunk = hasattr(SemanticStore, 'get_chunk_by_id')
         has_add = hasattr(SemanticStore, 'add_document')
@@ -55,7 +55,7 @@ class TestSemanticAPI:
 
     def test_delete_document_method_exists(self):
         """Test that delete_document method exists."""
-        from rag.semantic_store import SemanticStore
+        from core.semantic_store import SemanticStore
         assert hasattr(SemanticStore, 'delete_document'), \
             "SemanticStore must have delete_document method"
 
@@ -67,17 +67,17 @@ class TestMemoryStores:
 
     def test_memory_store_importable(self):
         """Test that MemoryStore is importable."""
-        from rag import MemoryStore
+        from core import MemoryStore
         print("✅ MemoryStore importable")
 
     def test_episodic_store_importable(self):
         """Test that EpisodicStore is importable."""
-        from rag import EpisodicStore
+        from core import EpisodicStore
         print("✅ EpisodicStore importable")
 
     def test_semantic_store_importable(self):
         """Test that SemanticStore is importable."""
-        from rag import SemanticStore
+        from core import SemanticStore
         print("✅ SemanticStore importable")
 
 
@@ -86,7 +86,7 @@ class TestIngestorAPI:
 
     def test_ingestor_has_ingest_method(self):
         """Test that SemanticIngestor has ingest methods."""
-        from rag import SemanticIngestor
+        from core import SemanticIngestor
         # Check for ingest methods (plural - there are multiple)
         has_ingest = any(hasattr(SemanticIngestor, m) for m in ['ingest_file', 'ingest_text', 'ingest'])
         assert has_ingest, \
@@ -95,7 +95,7 @@ class TestIngestorAPI:
 
     def test_ingestor_has_add_file_method(self):
         """Test that SemanticIngestor has add_file method."""
-        from rag import SemanticIngestor
+        from core import SemanticIngestor
         assert hasattr(SemanticIngestor, 'ingest_file'), \
             "SemanticIngestor must have ingest_file method"
         print("✅ SemanticIngestor.ingest_file exists")
@@ -106,7 +106,7 @@ class TestRetrieverAPI:
 
     def test_retriever_has_search_method(self):
         """Test that SemanticRetriever has retrieve methods."""
-        from rag import SemanticRetriever
+        from core import SemanticRetriever
         # SemanticRetriever uses 'retrieve' not 'search'
         has_retrieve = any(hasattr(SemanticRetriever, m) for m in ['retrieve', 'retrieve_with_expansion'])
         assert has_retrieve, \
@@ -115,7 +115,7 @@ class TestRetrieverAPI:
 
     def test_retriever_has_get_relevant_method(self):
         """Test that SemanticRetriever has retrieval methods."""
-        from rag import SemanticRetriever
+        from core import SemanticRetriever
         # Check for retrieval-related methods
         has_ranking = hasattr(SemanticRetriever, 'explain_ranking')
         has_stats = hasattr(SemanticRetriever, 'get_retrieval_stats')
@@ -127,7 +127,7 @@ class TestRetrieverAPI:
 class TestMCP工具签名:
     """Test MCP tool signatures (using Chinese name as per project conventions)."""
 
-    def test_rag_server_has_all_tools(self):
+    def test_synapse_server_has_all_tools(self):
         """Test that http_wrapper.py has all expected tools."""
         import os
         server_path = os.path.join(

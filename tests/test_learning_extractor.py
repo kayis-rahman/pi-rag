@@ -6,7 +6,7 @@ and rule-based fallback mechanisms.
 """
 
 import pytest
-from rag.learning_extractor import LearningExtractor
+from core.learning_extractor import LearningExtractor
 
 
 class TestLearningExtractor:

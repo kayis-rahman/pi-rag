@@ -114,7 +114,7 @@ warnings.warn(
 | File | Changes | Details |
 |------|---------|---------|
 | `synapse/cli/main.py` | Line 305 | `"search"` → `"sy.mem.search"` |
-| `configs/rag_config.json` | universal_hooks section | `rag.*` → `sy.mem.*` |
+| `configs/rag_config.json` | universal_hooks section | `core.*` → `sy.mem.*` |
 
 #### P3 - Deprecation
 

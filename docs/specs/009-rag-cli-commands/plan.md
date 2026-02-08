@@ -85,7 +85,7 @@ synapse query "?" --json                                      # Machine-readable
 ```
 
 **Implementation**:
-1. Call MCP tool `rag.get_context()`
+1. Call MCP tool `core.get_context()`
 2. Filter by memory_type if specified
 3. Limit results by top_k
 4. Format output (console or JSON)

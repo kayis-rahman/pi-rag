@@ -9,8 +9,8 @@
 
 Successfully migrated RAG data directory from project directory to standard Linux location:
 
-- **Old Location**: `/home/dietpi/pi-rag/data/` (inside project)
-- **New Location**: `/opt/pi-rag/data/` (standard Linux location)
+- **Old Location**: `/home/dietpi/pi-core/data/` (inside project)
+- **New Location**: `/opt/pi-core/data/` (standard Linux location)
 
 ---
 
@@ -18,7 +18,7 @@ Successfully migrated RAG data directory from project directory to standard Linu
 
 ### 1. Removed Project Data Directory
 ```bash
-rm -rf /home/dietpi/pi-rag/data/
+rm -rf /home/dietpi/pi-core/data/
 ```
 - Removed entire `data/` directory from project
 - All previous data was stale (old ingestion results)
@@ -28,9 +28,9 @@ rm -rf /home/dietpi/pi-rag/data/
 **`configs/rag_config.json`**:
 ```json
 {
-  "index_path": "/opt/pi-rag/data/rag_index",      // was: ./data/rag_index
-  "docs_path": "/opt/pi-rag/data/docs",              // was: ./data/docs
-  "memory_db_path": "/opt/pi-rag/data/memory.db"     // was: ./data/memory.db
+  "index_path": "/opt/pi-core/data/rag_index",      // was: ./data/rag_index
+  "docs_path": "/opt/pi-core/data/docs",              // was: ./data/docs
+  "memory_db_path": "/opt/pi-core/data/memory.db"     // was: ./data/memory.db
 }
 ```
 
@@ -38,7 +38,7 @@ rm -rf /home/dietpi/pi-rag/data/
 
 **`.gitignore`**:
 ```gitignore
-# RAG Data Directory (entire directory - moved to /opt/pi-rag/data/)
+# RAG Data Directory (entire directory - moved to /opt/pi-core/data/)
 data/
 ```
 - Changed from ignoring specific files to ignoring entire directory
@@ -46,7 +46,7 @@ data/
 ### 4. Created Required Directories
 
 ```bash
-/opt/pi-rag/data/
+/opt/pi-core/data/
 ├── docs/              # Document ingestion source
 ├── rag_index/         # Vector store index
 ├── semantic_index/     # Semantic memory (Chroma)
@@ -59,10 +59,10 @@ data/
 
 Committed changes with message:
 ```
-Migrate data directory to /opt/pi-rag/data/
+Migrate data directory to /opt/pi-core/data/
 
-- Removed local data/ directory from project (moved to /opt/pi-rag/data/)
-- Updated configs/rag_config.json to use /opt/pi-rag/data/ paths
+- Removed local data/ directory from project (moved to /opt/pi-core/data/)
+- Updated configs/rag_config.json to use /opt/pi-core/data/ paths
 - Updated .gitignore to ignore data/ directory entirely
 - Data is now separated from source code (best practice)
 - All databases and indexes stored in standard Linux location
@@ -74,11 +74,11 @@ Migrate data directory to /opt/pi-rag/data/
 
 ### Configuration Test
 ```bash
-export RAG_DATA_DIR=/opt/pi-rag/data
+export RAG_DATA_DIR=/opt/pi-core/data
 python3 -m mcp_server.rag_server
 ```
 ✅ MCP server starts successfully
-✅ Data directory: /opt/pi-rag/data
+✅ Data directory: /opt/pi-core/data
 ✅ Available tools: 7
 
 ### Database Creation
@@ -103,20 +103,20 @@ python3 -m mcp_server.rag_server
 
 ### Starting RAG API
 ```bash
-export RAG_DATA_DIR=/opt/pi-rag/data
+export RAG_DATA_DIR=/opt/pi-core/data
 ./scripts/start_rag_api.sh
 ```
 
 ### Starting MCP Server
 ```bash
-export RAG_DATA_DIR=/opt/pi-rag/data
+export RAG_DATA_DIR=/opt/pi-core/data
 python3 -m mcp_server.rag_server
 ```
 
 ### Docker Deployment
 ```bash
 # Volume mount:
-docker run -v /opt/pi-rag/data:/app/data ...
+docker run -v /opt/pi-core/data:/app/data ...
 ```
 
 ---
@@ -125,28 +125,28 @@ docker run -v /opt/pi-rag/data:/app/data ...
 
 All RAG components respect `RAG_DATA_DIR` environment variable:
 
-- **Default**: `/opt/pi-rag/data` (MCP server)
+- **Default**: `/opt/pi-core/data` (MCP server)
 - **Override**: Set via `export RAG_DATA_DIR=/path/to/data`
 
 ---
 
 ## Directory Structure
 
-**Project Directory** (`/home/dietpi/pi-rag/`):
+**Project Directory** (`/home/dietpi/pi-core/`):
 ```
-pi-rag/
+pi-core/
 ├── configs/           # Configuration files
 ├── mcp_server/       # MCP server implementation
-├── rag/              # RAG modules
+├── core/              # RAG modules
 ├── scripts/          # Utility scripts
 ├── api/              # FastAPI server
 ├── .gitignore        # Updated: ignores data/
 └── README.md
 ```
 
-**Data Directory** (`/opt/pi-rag/data/`):
+**Data Directory** (`/opt/pi-core/data/`):
 ```
-/opt/pi-rag/data/
+/opt/pi-core/data/
 ├── docs/             # Source documents for ingestion
 ├── rag_index/        # Vector store index files
 ├── semantic_index/    # Chroma DB for semantic memory
@@ -170,7 +170,7 @@ pi-rag/
 ## Notes
 
 - Previous data was removed intentionally (stale test data)
-- All new data will be created in `/opt/pi-rag/data/`
+- All new data will be created in `/opt/pi-core/data/`
 - Git repository is now clean (no data files tracked)
 - Ready for fresh ingestion of all pi-rag files
 

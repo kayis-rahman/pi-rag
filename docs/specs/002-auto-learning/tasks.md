@@ -29,7 +29,7 @@
 **Linked to**: Requirement FR-6 (Configuration Support)
 
 ### 1.2 Create AutoLearningTracker Module
-- [x] Create `rag/auto_learning_tracker.py` file
+- [x] Create `core/auto_learning_tracker.py` file
 - [x] Implement `AutoLearningTracker` class
 - [x] Implement `track_operation()` method
 - [x] Implement `detect_task_completion()` method
@@ -41,7 +41,7 @@
 **Linked to**: Requirement FR-1 (Operation Tracking), FR-2 (Task Completion Detection), FR-5 (Pattern Detection)
 
 ### 1.3 Create LearningExtractor Module
-- [x] Create `rag/learning_extractor.py` file
+- [x] Create `core/learning_extractor.py` file
 - [x] Implement `LearningExtractor` class
 - [x] Implement `extract_episode_from_task()` method
 - [x] Implement `extract_facts_from_code()` method

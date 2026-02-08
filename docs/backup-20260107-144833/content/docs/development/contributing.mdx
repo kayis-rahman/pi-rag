@@ -43,10 +43,10 @@ pytest --cov=rag tests/
 
 ```bash
 # Format code
-black rag/ mcp_server/ scripts/
+black core/ mcp_server/ scripts/
 
 # Type check
-mypy rag/
+mypy core/
 ```
 
 ## Submitting Changes

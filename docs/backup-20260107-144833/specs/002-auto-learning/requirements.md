@@ -175,13 +175,13 @@
 
 ### System Dependencies
 - `rag_config.json`: Configuration file (already exists)
-- `rag/episodic_store.py`: Episode storage (already exists)
-- `rag/memory_store.py`: Fact storage (already exists)
+- `core/episodic_store.py`: Episode storage (already exists)
+- `core/memory_store.py`: Fact storage (already exists)
 - `mcp_server/rag_server.py`: MCP server (modify to add tracking)
 
 ### New Dependencies
-- `rag/auto_learning_tracker.py`: New module for operation tracking and learning extraction
-- `rag/learning_extractor.py`: New module for LLM-based learning extraction
+- `core/auto_learning_tracker.py`: New module for operation tracking and learning extraction
+- `core/learning_extractor.py`: New module for LLM-based learning extraction
 
 ---
 

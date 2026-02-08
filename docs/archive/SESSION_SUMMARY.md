@@ -210,13 +210,13 @@
 
 ### Critical Issues Not Fixed (Per ChromaDB Decision):
 
-1. **`rag/chroma_semantic_store.py`**: 17+ critical issues
+1. **`core/chroma_semantic_store.py`**: 17+ critical issues
    - 9 syntax errors
    - 2 high priority errors
    - 5 medium priority errors
    - **Status**: Documented but NOT FIXED
 
-2. **`rag/chroma_vectorstore.py`**: 1-2 typos
+2. **`core/chroma_vectorstore.py`**: 1-2 typos
    - **Status**: Documented but NOT FIXED
 
 3. **`synapse/cli/commands/ingest.py`**: Import error

@@ -5,7 +5,7 @@ Tests cover fact extraction from LLM interactions, confidence scoring, and valid
 """
 
 import pytest
-from rag.memory_writer import MemoryWriter
+from core.memory_writer import MemoryWriter
 
 
 @pytest.mark.unit

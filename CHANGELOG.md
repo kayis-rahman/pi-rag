@@ -45,3 +45,39 @@ All MCP tools have been renamed to use compact hierarchical naming for optimal c
 - `AGENTS.md` - All 40+ tool references updated
 - All documentation files updated with new names
 
+#### Breaking Change: Package Rename (Feature 018)
+
+**Major structural reorganization for cleaner architecture:**
+
+| Old Location | New Location |
+|--------------|--------------|
+| `rag/` directory | `core/` directory |
+| `rag_server.py` | `synapse_server.py` |
+| `from rag.X import` | `from core.X import` |
+| `import rag` | `import core` |
+
+**Files Changed**:
+- 39 core modules moved from `rag/` to `core/`
+- `mcp_server/rag_server.py` → `mcp_server/synapse_server.py`
+- 41 Python files updated with new imports
+- 94 documentation files updated
+- `pyproject.toml` entry points updated
+- `setup.py` console scripts updated
+
+**Migration Required**:
+
+Update your imports:
+```python
+# Old (will NOT work)
+from rag.logger import get_logger
+from rag.orchestrator import RAGOrchestrator
+import rag
+
+# New
+from core.logger import get_logger
+from core.orchestrator import RAGOrchestrator
+import core
+```
+
+**No Backward Compatibility**: The `rag` package no longer exists. Update all imports before upgrading.
+

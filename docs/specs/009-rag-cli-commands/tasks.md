@@ -49,7 +49,7 @@
 
 ### 1.5 Implement `synapse query` in main.py
 - [ ] Replace stub in main.py:207-250
-- [ ] Add MCP call to `rag.get_context()`
+- [ ] Add MCP call to `core.get_context()`
 - [ ] Add `--project-id` flag
 - [ ] Add `--json` output option
 - [ ] Add `--memory-type` flag (all/symbolic/episodic/semantic)
@@ -102,11 +102,11 @@
 ## Phase 2: OpenCode Integration Documentation (5 tasks)
 
 ### 2.1 Document MCP Tools
-- [ ] Document: `rag.ingest_file()` usage
-- [ ] Document: `rag.get_context()` usage
-- [ ] Document: `rag.search()` usage
-- [ ] Document: `rag.add_fact()` usage
-- [ ] Document: `rag.add_episode()` usage
+- [ ] Document: `core.ingest_file()` usage
+- [ ] Document: `core.get_context()` usage
+- [ ] Document: `core.search()` usage
+- [ ] Document: `core.add_fact()` usage
+- [ ] Document: `core.add_episode()` usage
 
 ### 2.2 Create OpenCode Workflow Guide
 - [ ] Document: How to connect OpenCode to MCP

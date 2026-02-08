@@ -7,7 +7,7 @@
 
 ## Complete Issue Inventory
 
-After detailed analysis, `rag/chroma_semantic_store.py` has **many critical issues**:
+After detailed analysis, `core/chroma_semantic_store.py` has **many critical issues**:
 
 ### Critical Syntax Errors (Will Prevent Execution)
 
@@ -66,13 +66,13 @@ After detailed analysis, `rag/chroma_semantic_store.py` has **many critical issu
 
 ## Complexity Assessment
 
-### rag/chroma_semantic_store.py
+### core/chroma_semantic_store.py
 - **Lines**: 435
 - **Estimated Fix Time**: 8-12 hours
 - **Fix Complexity**: High (requires significant refactoring)
 - **Risk of Regression**: High (changes may break other functionality)
 
-### rag/chroma_vectorstore.py
+### core/chroma_vectorstore.py
 - **Lines**: 263
 - **Issues**: Minor (only 1-2 typos)
 - **Estimated Fix Time**: 30-45 minutes
@@ -115,7 +115,7 @@ After detailed analysis, `rag/chroma_semantic_store.py` has **many critical issu
 
 **Cons**:
 - ChromaDB integration tests not completed
-- `rag/chroma_semantic_store.py` and `rag/chroma_vectorstore.py` remain buggy
+- `core/chroma_semantic_store.py` and `core/chroma_vectorstore.py` remain buggy
 - Tests will skip ChromaDB modules
 
 **Timeline Impact**: Maintains 3-4 day timeline
@@ -152,7 +152,7 @@ After detailed analysis, `rag/chroma_semantic_store.py` has **many critical issu
 **Rationale**:
 1. **Risk Management**: ChromaDB semantic store has 9+ critical issues requiring significant refactoring
 2. **Timeline**: Fixing now would delay comprehensive test suite by 1-2 weeks
-3. **Alternatives**: JSON vector store (`rag/vectorstore.py`) is well-tested and functional
+3. **Alternatives**: JSON vector store (`core/vectorstore.py`) is well-tested and functional
 4. **Progress**: Can complete 80% of test suite without ChromaDB
 5. **Future Work**: ChromaDB refactoring can be separate feature with dedicated time
 

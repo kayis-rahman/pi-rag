@@ -5,7 +5,7 @@ Tests cover CRUD operations, querying, validation, and advisory authority level.
 """
 
 import pytest
-from rag.episodic_store import EpisodicStore, Episode
+from core.episodic_store import EpisodicStore, Episode
 
 
 @pytest.mark.unit

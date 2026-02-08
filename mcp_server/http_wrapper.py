@@ -39,7 +39,7 @@ if os.environ.get("RAG_ENV") != "docker":
     sys.path.insert(0, '/home/dietpi/synapse')
 
 # Import RAG backend
-from mcp_server.rag_server import RAGMemoryBackend
+from mcp_server.synapse_server import RAGMemoryBackend
 
 # Load RAG config once at module level for performance
 # Use local configs directory when available, fall back to /app/configs for Docker

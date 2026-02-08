@@ -43,7 +43,7 @@
 1. **Implement metric collection** in memory selector
 
 ```python
-# rag/memory_selector.py
+# core/memory_selector.py
 class QueryMetrics:
     def __init__(self):
         self.start_time = None
@@ -79,7 +79,7 @@ class QueryMetrics:
 # scripts/benchmark.py
 import json
 import time
-from rag.memory_selector import get_memory_selector
+from core.memory_selector import get_memory_selector
 
 def benchmark_query_retrieval(query: str, iterations: int = 100):
     """Measure retrieval performance"""
@@ -248,7 +248,7 @@ def verify_local_only():
 **Step 1: Update Memory Selector**
 
 ```python
-# rag/memory_selector.py (modified)
+# core/memory_selector.py (modified)
 
 class MemorySelector:
     def retrieve_with_confidence_routing(self, query: str, min_confidence: float = 0.9):
@@ -298,7 +298,7 @@ class MemorySelector:
 **Step 2: Update Orchestrator**
 
 ```python
-# rag/orchestrator.py (modified)
+# core/orchestrator.py (modified)
 
 class Orchestrator:
     def retrieve_with_confidence_routing(self, query: str, min_confidence: float = 0.9):
@@ -359,7 +359,7 @@ class Orchestrator:
 **Step 2: Implement Smart Expansion**
 
 ```python
-# rag/query_expander.py (new file)
+# core/query_expander.py (new file)
 
 class SmartQueryExpander:
     def __init__(self, memory_selector):
@@ -438,7 +438,7 @@ class SmartQueryExpander:
 **Step 3: Update Orchestrator**
 
 ```python
-# rag/orchestrator.py (modified)
+# core/orchestrator.py (modified)
 
 class Orchestrator:
     def __init__(self):
@@ -499,7 +499,7 @@ class Orchestrator:
 **Step 1: Add LLM Client for Summarization**
 
 ```python
-# rag/summarizer.py (new file)
+# core/summarizer.py (new file)
 
 class ResultSummarizer:
     def __init__(self, llm_client):
@@ -546,7 +546,7 @@ class ResultSummarizer:
 **Step 2: Update Memory Selector**
 
 ```python
-# rag/memory_selector.py (modified)
+# core/memory_selector.py (modified)
 
 class MemorySelector:
     def retrieve_with_summarization(self, query: str, summarize: bool = True):
@@ -578,7 +578,7 @@ class MemorySelector:
 **Step 3: Update Orchestrator**
 
 ```python
-# rag/orchestrator.py (modified)
+# core/orchestrator.py (modified)
 
 class Orchestrator:
     def __init__(self):
@@ -622,7 +622,7 @@ class Orchestrator:
 **Step 1: Implement Adaptive Top-K**
 
 ```python
-# rag/adaptive_retriever.py (new file)
+# core/adaptive_retriever.py (new file)
 
 class AdaptiveRetriever:
     def __init__(self, semantic_store):
@@ -655,7 +655,7 @@ class AdaptiveRetriever:
 **Step 2: Implement Semantic Chunking**
 
 ```python
-# rag/semantic_chunker.py (new file)
+# core/semantic_chunker.py (new file)
 
 class SemanticChunker:
     def __init__(self):
@@ -754,7 +754,7 @@ class SemanticChunker:
 **Step 1: Citation Validation**
 
 ```python
-# rag/citation_validator.py (new file)
+# core/citation_validator.py (new file)
 
 class CitationValidator:
     def __init__(self):
@@ -789,7 +789,7 @@ class CitationValidator:
 **Step 2: Update Memory Selector**
 
 ```python
-# rag/memory_selector.py (modified)
+# core/memory_selector.py (modified)
 
 class MemorySelector:
     def retrieve_with_grounding(self, query: str, validate_citations: bool = True):
@@ -859,7 +859,7 @@ class MemorySelector:
 **Step 1: Add LRU Cache**
 
 ```python
-# rag/query_cache.py (new file)
+# core/query_cache.py (new file)
 
 from functools import lru_cache
 import hashlib
@@ -919,7 +919,7 @@ class QueryCache:
 **Step 2: Update Orchestrator**
 
 ```python
-# rag/orchestrator.py (modified)
+# core/orchestrator.py (modified)
 
 class Orchestrator:
     def __init__(self):
@@ -1301,7 +1301,7 @@ def verify_network_isolation():
 **Answer to "Does this require coding agent? NO**
 
 **Benchmark Plan = Python scripts + configuration changes**
-**Optimizations = Code implementation in rag/ directory**
+**Optimizations = Code implementation in core/ directory**
 **Privacy Validation = Network/process checks with bash scripts**
 **No Autonomous "Coding Agent" Required** - Only metrics and testing frameworks
 

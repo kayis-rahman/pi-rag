@@ -53,7 +53,7 @@
 
 **Tasks**:
 - [ ] Create `pytest.ini` with basic configuration
-- [ ] Configure coverage to track `rag/`, `synapse/`, `mcp_server/`
+- [ ] Configure coverage to track `core/`, `synapse/`, `mcp_server/`
 - [ ] Set up coverage thresholds (60% minimum, 80% for critical modules)
 - [ ] Define markers: `unit`, `integration`, `e2e`, `slow`, `requires_model`
 
@@ -300,7 +300,7 @@
 
 **Acceptance Criteria**:
 - All unit tests pass with `pytest -m unit`
-- Overall coverage for `rag/` ≥70%
+- Overall coverage for `core/` ≥70%
 - Overall coverage for `synapse/` ≥60%
 
 ---

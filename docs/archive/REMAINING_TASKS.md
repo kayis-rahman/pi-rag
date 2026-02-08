@@ -18,9 +18,9 @@
 - Client configuration examples
 
 ### 3. ✅ Critical Errors Fixed
-- `rag/orchestrator.py` - Streaming response handling
-- `rag/prompt_builder.py` - Type errors and json import
-- `rag/model_manager.py` - Llama null check and embed method
+- `core/orchestrator.py` - Streaming response handling
+- `core/prompt_builder.py` - Type errors and json import
+- `core/model_manager.py` - Llama null check and embed method
 - `tests/test_memory_integration_comprehensive.py` - 4 unterminated strings
 - All Python syntax validated
 
@@ -225,7 +225,7 @@ docker run -i --rm rag-mcp-server
 cd /home/dietpi/pi-rag
 
 # Set environment
-export RAG_DATA_DIR=/home/dietpi/pi-rag/data
+export RAG_DATA_DIR=/home/dietpi/pi-core/data
 
 # Test server startup
 timeout 10 python -m mcp_server.rag_server || echo "Server started"
@@ -259,7 +259,7 @@ docker build -t rag-mcp-server .
 # Test container
 docker run -i --rm \
   -e RAG_DATA_DIR=/app/data \
-  -v /home/dietpi/pi-rag/data:/app/data \
+  -v /home/dietpi/pi-core/data:/app/data \
   rag-mcp-server
 ```
 

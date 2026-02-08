@@ -243,7 +243,7 @@ Phase 3 is complete when ALL of the following are met:
 - `scripts/bulk_ingest.py` - Bulk ingestion script
 - `synapse/cli/commands/ingest.py` - Ingest command
 - `synapse/cli/commands/query.py` - Query command
-- `rag/semantic_store.py` - Semantic memory storage
+- `core/semantic_store.py` - Semantic memory storage
 - `AGENTS.md` - SDD Protocol
 
 ---

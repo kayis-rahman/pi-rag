@@ -6,8 +6,8 @@ Tests cover ingest → retrieve → generate workflow.
 
 import pytest
 from pathlib import Path
-from rag.ingest import chunk_text
-from rag.orchestrator import RAGOrchestrator
+from core.ingest import chunk_text
+from core.orchestrator import RAGOrchestrator
 
 
 @pytest.mark.integration

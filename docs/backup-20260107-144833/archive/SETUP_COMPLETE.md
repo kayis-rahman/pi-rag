@@ -9,10 +9,10 @@
 ### ✅ Phase 1: Cleanup (Completed)
 - Deleted corrupted semantic index (46MB chunks.json with orphaned data)
 - Preserved 533 timebeam project files
-- Created safety backup at `/opt/pi-rag/data/backup_before_cleanup_20260103_171410/`
+- Created safety backup at `/opt/pi-core/data/backup_before_cleanup_20260103_171410/`
 
 ### ✅ Phase 2: AGENTS.md Configuration (Completed)
-- Created `/home/dietpi/pi-rag/AGENTS.md` with strict RAG usage rules
+- Created `/home/dietpi/pi-core/AGENTS.md` with strict RAG usage rules
 - 478 lines of comprehensive instructions
 - **ZERO TOLERANCE** policy for RAG tool usage
 - Mandatory tool selection decision tree
@@ -36,7 +36,7 @@
 - Memory authority hierarchy
 
 ### ✅ Phase 5: Verification Script (Completed)
-- Created `/home/dietpi/pi-rag/scripts/rag_status.sh`
+- Created `/home/dietpi/pi-core/scripts/rag_status.sh`
 - Comprehensive 9-point status check
 - Server health monitoring
 - Data integrity validation
@@ -62,7 +62,7 @@
   - project_name: "pi-rag"
   - project_purpose: "Local RAG system using llama-cpp-python for AI assistance"
   - project_version: "1.3.0"
-  - data_directory: "/opt/pi-rag/data"
+  - data_directory: "/opt/pi-core/data"
   - mcp_endpoint: "http://localhost:8002/mcp"
   - llm_backend: "llama-cpp-python"
   - embedding_model: "BGE-M3 (bge-m3-q8_0.gguf)"
@@ -83,7 +83,7 @@
 - **Total Chunks**: 5,852
 - **Total Documents**: 375
 - **Recent Ingestions**:
-  - rag/ modules: orchestrator, vectorstore, retriever, etc.
+  - core/ modules: orchestrator, vectorstore, retriever, etc.
   - mcp_server/ modules: rag_server.py, http_wrapper.py, etc.
   - api/ modules: main.py
   - scripts/ and configs/
@@ -98,9 +98,9 @@
 ### Project Files
 | Component | Status | Location |
 |-----------|---------|----------|
-| **AGENTS.md** | ✅ Created | /home/dietpi/pi-rag/AGENTS.md (478 lines) |
-| **Status Script** | ✅ Created | /home/dietpi/pi-rag/scripts/rag_status.sh |
-| **Data Directory** | ✅ Healthy | /opt/pi-rag/data/ (all files present) |
+| **AGENTS.md** | ✅ Created | /home/dietpi/pi-core/AGENTS.md (478 lines) |
+| **Status Script** | ✅ Created | /home/dietpi/pi-core/scripts/rag_status.sh |
+| **Data Directory** | ✅ Healthy | /opt/pi-core/data/ (all files present) |
 
 ---
 
@@ -154,12 +154,12 @@ rag.search(
 RAG system:
 1. Searches semantic memory for "vector store"
 2. Retrieves top 3 relevant code chunks
-3. Returns chunks from files like `rag/vectorstore.py`
+3. Returns chunks from files like `core/vectorstore.py`
 4. Includes relevance scores and metadata
 
 #### Step 4: Answer Formulation
 opencode receives RAG results and:
-1. Cites source files (e.g., `rag/vectorstore.py` lines 50-75)
+1. Cites source files (e.g., `core/vectorstore.py` lines 50-75)
 2. Provides code examples from retrieved chunks
 3. Mentions source as "semantic memory (suggestion)"
 4. States confidence level
@@ -220,7 +220,7 @@ What is the pi-rag project?
 
 **Expected Behavior**:
 - opencode reads AGENTS.md
-- Calls `rag.get_context` with project="pi-rag", context_type="all"
+- Calls `core.get_context` with project="pi-rag", context_type="all"
 - Receives project metadata from symbolic memory
 - Returns answer citing "symbolic memory (authoritative)"
 
@@ -231,8 +231,8 @@ How does the orchestrator work?
 
 **Expected Behavior**:
 - opencode reads AGENTS.md
-- Calls `rag.search` with query="orchestrator", memory_type="semantic"
-- Receives code chunks from `rag/orchestrator.py`
+- Calls `core.search` with query="orchestrator", memory_type="semantic"
+- Receives code chunks from `core/orchestrator.py`
 - Returns answer citing specific files and line numbers
 
 **Test Query 3**: Configuration Question
@@ -250,7 +250,7 @@ What's the chunk size?
 #### Check System Status
 ```bash
 # Run comprehensive status check
-/home/dietpi/pi-rag/scripts/rag_status.sh
+/home/dietpi/pi-core/scripts/rag_status.sh
 ```
 
 #### Add New Code
@@ -272,7 +272,7 @@ When opencode learns something factual:
 In opencode: "Add a symbolic fact: key='new_fact', value='new_value', confidence=1.0, category='user'"
 ```
 
-opencode will call `rag.add_fact` to store it.
+opencode will call `core.add_fact` to store it.
 
 #### Add New Episodes (when learning patterns)
 When opencode learns from experience:
@@ -280,7 +280,7 @@ When opencode learns from experience:
 In opencode: "Add an episodic episode: title='New Pattern', content='What we learned', lesson_type='pattern', quality=0.9"
 ```
 
-opencode will call `rag.add_episode` to store it.
+opencode will call `core.add_episode` to store it.
 
 ---
 
@@ -293,7 +293,7 @@ opencode will call `rag.add_episode` to store it.
 **Solution**:
 1. Check AGENTS.md is in project root:
 ```bash
-ls -lh /home/dietpi/pi-rag/AGENTS.md
+ls -lh /home/dietpi/pi-core/AGENTS.md
 ```
 
 2. Restart opencode:
@@ -310,7 +310,7 @@ pkill -f opencode && opencode run
 **Solution**:
 1. Check semantic index has data:
 ```bash
-python3 -c "import json; print(len(json.load(open('/opt/pi-rag/data/semantic_index/chunks.json'))))"
+python3 -c "import json; print(len(json.load(open('/opt/pi-core/data/semantic_index/chunks.json'))))"
 ```
 Should return: 5,852
 
@@ -384,10 +384,10 @@ Every prompt will now:
 
 | Type | Path |
 |-------|-------|
-| **AGENTS.md** | /home/dietpi/pi-rag/AGENTS.md |
-| **Status Script** | /home/dietpi/pi-rag/scripts/rag_status.sh |
-| **Data Directory** | /opt/pi-rag/data/ |
-| **Cleanup Backup** | /opt/pi-rag/data/backup_before_cleanup_20260103_171410/ |
+| **AGENTS.md** | /home/dietpi/pi-core/AGENTS.md |
+| **Status Script** | /home/dietpi/pi-core/scripts/rag_status.sh |
+| **Data Directory** | /opt/pi-core/data/ |
+| **Cleanup Backup** | /opt/pi-core/data/backup_before_cleanup_20260103_171410/ |
 | **opencode Config** | ~/.opencode/opencode.jsonc |
 | **Server Logs** | /tmp/mcp_server.log |
 

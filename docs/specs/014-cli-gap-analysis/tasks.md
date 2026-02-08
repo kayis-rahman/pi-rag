@@ -48,7 +48,7 @@
 
 ### Phase 4.1: Update Configuration
 - [ ] 4.1.1 Fix model path in `synapse/config.py` (Linked to US-003)
-- [ ] 4.1.2 Fix model path in `rag/embedding.py` if needed (Linked to US-003)
+- [ ] 4.1.2 Fix model path in `core/embedding.py` if needed (Linked to US-003)
 - [ ] 4.1.3 Verify no hardcoded paths (Linked to US-003)
 
 ### Phase 4.2: Verify Model Path

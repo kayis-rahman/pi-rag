@@ -9,7 +9,7 @@ import logging
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime
 
-from rag.metrics_collector import get_metrics_collector
+from core.metrics_collector import get_metrics_collector
 
 logger = logging.getLogger(__name__)
 

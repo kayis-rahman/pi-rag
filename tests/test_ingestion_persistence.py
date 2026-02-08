@@ -17,7 +17,7 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from rag.semantic_store import get_semantic_store, _semantic_store_cache
+from core.semantic_store import get_semantic_store, _semantic_store_cache
 
 
 class TestIngestionPersistence:
@@ -170,7 +170,7 @@ class TestBulkIngestIntegration:
                 f.write("# Test Document\n\nThis is test content.")
             
             # Ingest it
-            from rag.semantic_ingest import get_semantic_ingestor
+            from core.semantic_ingest import get_semantic_ingestor
             ingestor = get_semantic_ingestor()
             
             chunk_ids = ingestor.ingest_file(

@@ -5,7 +5,7 @@ Tests cover embedding generation, caching, thread safety, and test mode.
 """
 
 import pytest
-from rag.embedding import EmbeddingService, get_embedding_service
+from core.embedding import EmbeddingService, get_embedding_service
 
 
 @pytest.mark.unit

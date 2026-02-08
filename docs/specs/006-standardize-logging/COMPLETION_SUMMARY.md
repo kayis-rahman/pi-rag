@@ -15,7 +15,7 @@ Successfully implemented Python standard logging module across the Synapse codeb
 ### 1. Logging Infrastructure ✅
 
 **Created:**
-- `rag/logger.py` - Unified LoggerManager class (200+ lines)
+- `core/logger.py` - Unified LoggerManager class (200+ lines)
   - Singleton pattern for logger instances
   - Environment detection (dev: DEBUG, prod: INFO)
   - Log level priority: --debug > LOG_LEVEL > config > default
@@ -35,33 +35,33 @@ Successfully implemented Python standard logging module across the Synapse codeb
 ### 2. Production Code Updates ✅
 
 **Core Modules (Phase 2):**
-- ✅ `rag/orchestrator.py` - 6 prints → logger.warning/error
-- ✅ `rag/model_manager.py` - 6 prints → logger.info/warning
-- ✅ `rag/embedding.py` - 6 prints + emojis → logger (all emojis removed)
-- ✅ `rag/semantic_store.py` - 2 prints → logger.warning
-- ✅ `rag/vectorstore.py` - 3 prints → logger.warning
+- ✅ `core/orchestrator.py` - 6 prints → logger.warning/error
+- ✅ `core/model_manager.py` - 6 prints → logger.info/warning
+- ✅ `core/embedding.py` - 6 prints + emojis → logger (all emojis removed)
+- ✅ `core/semantic_store.py` - 2 prints → logger.warning
+- ✅ `core/vectorstore.py` - 3 prints → logger.warning
 
 **Tool Scripts (Phase 3):**
 - ✅ `scripts/bulk_ingest.py` - Already using Rich + logging
-- ✅ `rag/ingest.py` - 5 prints → logger (CLI help kept as print)
-- ✅ `rag/semantic_ingest.py` - 5 prints → logger.info/warning
+- ✅ `core/ingest.py` - 5 prints → logger (CLI help kept as print)
+- ✅ `core/semantic_ingest.py` - 5 prints → logger.info/warning
 
 **Memory Modules (Phase 4):**
-- ✅ `rag/retriever.py` - 2 prints → logger.warning/debug
-- ✅ `rag/memory_writer.py` - 8 prints → logger.error/warning
-- ✅ `rag/episode_extractor.py` - 3 prints → logger.error
+- ✅ `core/retriever.py` - 2 prints → logger.warning/debug
+- ✅ `core/memory_writer.py` - 8 prints → logger.error/warning
+- ✅ `core/episode_extractor.py` - 3 prints → logger.error
 
 **Total Prints Replaced: 48+ across 13 files**
 
 ### 3. Docstring Updates (Phase 5) ✅
 
 Updated 6 docstring examples:
-- ✅ `rag/semantic_injector.py`
-- ✅ `rag/prompt_builder.py`
-- ✅ `rag/episodic_reader.py`
-- ✅ `rag/memory_selector.py`
-- ✅ `rag/memory_formatter.py`
-- ✅ `rag/memory_reader.py`
+- ✅ `core/semantic_injector.py`
+- ✅ `core/prompt_builder.py`
+- ✅ `core/episodic_reader.py`
+- ✅ `core/memory_selector.py`
+- ✅ `core/memory_formatter.py`
+- ✅ `core/memory_reader.py`
 
 All docstrings now include comments explaining logger usage in production vs print() for doctest clarity.
 
@@ -183,7 +183,7 @@ When adding new code to Synapse:
 
 ```python
 # ✅ CORRECT - Use logger
-from rag.logger import get_logger
+from core.logger import get_logger
 
 logger = get_logger(__name__)
 logger.info("My message")

@@ -9,6 +9,6 @@ Adapters:
 - rest_hook: REST API adapter (for remote agents)
 """
 
-from rag.universal_hook import UniversalHookInterface
+from core.universal_hook import UniversalHookInterface
 
 __all__ = ["UniversalHookInterface"]

@@ -434,7 +434,7 @@ $ pytest --cov=rag --cov=synapse --cov-report=html
 
 Name                 Stmts   Miss  Cover   Missing
 --------------------------------------------------
-rag/memory_store        150      20    87%   23-45, 78-90
+core/memory_store        150      20    87%   23-45, 78-90
 synapse/config          80      10    88%   12-18, 45-50
 ...
 --------------------------------------------------

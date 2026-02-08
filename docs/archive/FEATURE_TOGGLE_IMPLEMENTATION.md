@@ -52,7 +52,7 @@ Added configuration-based toggles for:
 
 ---
 
-### 2. Orchestrator (`rag/orchestrator.py`)
+### 2. Orchestrator (`core/orchestrator.py`)
 
 **Changes:**
 
@@ -93,7 +93,7 @@ def _inject_context(self, messages, context, memory_context=""):
 **3.1 Added config loading at module level (line ~42)**
 ```python
 # Load RAG config once at module level for performance
-_config_path = os.environ.get("RAG_CONFIG_PATH", "/home/dietpi/pi-rag/configs/rag_config.json")
+_config_path = os.environ.get("RAG_CONFIG_PATH", "/home/dietpi/pi-core/configs/rag_config.json")
 with open(_config_path, 'r') as f:
     _rag_config = json.load(f)
 _file_path_mode_enabled = _rag_config.get("file_path_mode_enabled", False)
@@ -130,7 +130,7 @@ elif file_path is not None:
 | File | Lines Added | Lines Modified | Purpose |
 |------|--------------|----------------|----------|
 | `configs/rag_config.json` | 2 | 0 | Add configuration flags |
-| `rag/orchestrator.py` | 10 | 0 | Load flags, check context injection |
+| `core/orchestrator.py` | 10 | 0 | Load flags, check context injection |
 | `mcp_server/http_wrapper.py` | 25 | 0 | Load config, check file_path_mode |
 | **Total** | **37** | **0** | Config-based feature toggles |
 
@@ -342,7 +342,7 @@ POST /v1/memory/inject
 
 ### Method 1: Edit Config File
 
-**Edit:** `/home/dietpi/pi-rag/configs/rag_config.json`
+**Edit:** `/home/dietpi/pi-core/configs/rag_config.json`
 
 ```json
 {
@@ -353,8 +353,8 @@ POST /v1/memory/inject
 
 **Restart MCP server:**
 ```bash
-bash /home/dietpi/pi-rag/start_http_server.sh --stop
-bash /home/dietpi/pi-rag/start_http_server.sh
+bash /home/dietpi/pi-core/start_http_server.sh --stop
+bash /home/dietpi/pi-core/start_http_server.sh
 ```
 
 ---
@@ -409,8 +409,8 @@ export RAG_CONTEXT_INJECTION_ENABLED=false
 
 **Step 2:** Restart server
 ```bash
-bash /home/dietpi/pi-rag/start_http_server.sh --stop
-bash /home/dietpi/pi-rag/start_http_server.sh
+bash /home/dietpi/pi-core/start_http_server.sh --stop
+bash /home/dietpi/pi-core/start_http_server.sh
 ```
 
 **Step 3:** Continue using file_path mode (no code changes needed)
@@ -430,8 +430,8 @@ bash /home/dietpi/pi-rag/start_http_server.sh
 
 **Step 2:** Restart server
 ```bash
-bash /home/dietpi/pi-rag/start_http_server.sh --stop
-bash /home/dietpi/pi-rag/start_http_server.sh
+bash /home/dietpi/pi-core/start_http_server.sh --stop
+bash /home/dietpi/pi-core/start_http_server.sh
 ```
 
 **Step 3:** Context injection works automatically (no code changes needed)

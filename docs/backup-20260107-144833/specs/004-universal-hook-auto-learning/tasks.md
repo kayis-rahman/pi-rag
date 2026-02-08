@@ -29,10 +29,10 @@ This task list provides granular checklist for implementing universal hook-based
 ## Phase 1: Foundation (2-3 hours, 10 tasks)
 
 ### 1.1 Create Directory Structure
-- [x] Create `rag/universal_hook.py` for Python interface
+- [x] Create `core/universal_hook.py` for Python interface
 - [x] Create `interfaces/hook-interface.ts` for TypeScript interface
-- [x] Create `rag/adapters/` directory for adapter implementations
-- [x] Create `rag/conversation_analyzer.py` for analyzer
+- [x] Create `core/adapters/` directory for adapter implementations
+- [x] Create `core/conversation_analyzer.py` for analyzer
 - [x] Create `interfaces/` directory if not exists
 
 ### 1.2 Define Standard Hook Interface (Python)
@@ -65,7 +65,7 @@ This task list provides granular checklist for implementing universal hook-based
 - [x] Add comments explaining each configuration option
 
 ### 1.5 Create Adapter Directory Structure
-- [x] Create `rag/adapters/__init__.py` for Python package
+- [x] Create `core/adapters/__init__.py` for Python package
 - [x] Add docstrings to `__init__.py` describing adapters
 - [ ] Create placeholder files for future adapters
 
@@ -82,7 +82,7 @@ This task list provides granular checklist for implementing universal hook-based
 - [x] Explain performance tuning options
 
 ### 1.8 Verify Foundation Components
-- [x] Run `python -m py_compile rag/universal_hook.py` to check syntax
+- [x] Run `python -m py_compile core/universal_hook.py` to check syntax
 - [ ] Run `tsc` on TypeScript interface (if TypeScript available)
 - [x] Verify `rag_config.json` is valid JSON
 - [x] Verify all directories are created correctly
@@ -92,7 +92,7 @@ This task list provides granular checklist for implementing universal hook-based
 ## Phase 2: Core Components (3-4 hours, 15 tasks)
 
 ### 2.1 Create Conversation Analyzer Class
-- [x] Define `ConversationAnalyzer` class in `rag/conversation_analyzer.py`
+- [x] Define `ConversationAnalyzer` class in `core/conversation_analyzer.py`
 - [x] Add `__init__()` method with model_manager and config parameters
 - [x] Add class-level docstring explaining extraction strategies
 - [x] Add logging configuration
@@ -294,7 +294,7 @@ This task list provides granular checklist for implementing universal hook-based
 - [ ] Test hook execution flow
 
 ### 3.1.11 Integration Test: OpenCode Plugin + RAG MCP Tool
-- [ ] Test OpenCode plugin calls `rag.analyze_conversation` tool
+- [ ] Test OpenCode plugin calls `core.analyze_conversation` tool
 - [ ] Test with sample user message and agent response
 - [ ] Verify tool returns correct JSON structure
 - [ ] Verify facts and episodes are stored correctly
@@ -380,7 +380,7 @@ This task list provides granular checklist for implementing universal hook-based
 ## Phase 3.2: Claude Code Adapter (Priority 2) - AFTER APPROVAL (6-8 hours, 20 tasks)
 
 ### 3.2.1 Create Claude Code Hook Adapter Class
-- [ ] Create `ClaudeCodeHookAdapter` class in `rag/adapters/claude_code_hook.py`
+- [ ] Create `ClaudeCodeHookAdapter` class in `core/adapters/claude_code_hook.py`
 - [ ] Implement `__init__()` with project_id parameter
 - [ ] Add conversation buffer (list for storing turns)
 - [ ] Add type hints and docstrings

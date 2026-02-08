@@ -51,7 +51,7 @@ Created a comprehensive bulk injection script for SYNAPSE that injects project f
    - Re-ingests modified files
 
 5. **Python API Direct**
-   - Uses `rag.semantic_ingest.SemanticIngestor` directly
+   - Uses `core.semantic_ingest.SemanticIngestor` directly
    - Bypasses MCP server restrictions
    - Full local file path access
 
@@ -348,10 +348,10 @@ They will be retried on next run.
 - `rich` - Progress bar and formatted logging (already installed)
 
 ### SYNAPSE Modules
-- `rag.SemanticStore`
-- `rag.semantic_ingest.SemanticIngestor`
-- `rag.get_semantic_store`
-- `rag.get_semantic_ingestor`
+- `core.SemanticStore`
+- `core.semantic_ingest.SemanticIngestor`
+- `core.get_semantic_store`
+- `core.get_semantic_ingestor`
 
 ---
 

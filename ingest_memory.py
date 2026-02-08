@@ -20,9 +20,9 @@ from datetime import datetime, timezone
 project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
 
-from rag.ingest import chunk_text
-from rag.vectorstore import VectorStore
-from rag.semantic_store import SemanticStore
+from core.ingest import chunk_text
+from core.vectorstore import VectorStore
+from core.semantic_store import SemanticStore
 
 def get_data_dir():
     """Get the data directory path."""
@@ -121,7 +121,7 @@ def main():
         ("/home/dietpi/synapse/rag/embedding.py", "code"),
         ("/home/dietpi/synapse/rag/vectorstore.py", "code"),
         ("/home/dietpi/synapse/rag/retriever.py", "code"),
-        ("/home/dietpi/synapse/mcp_server/rag_server.py", "code"),
+        ("/home/dietpi/synapse/mcp_server/synapse_server.py", "code"),
         
         # Configuration
         ("/home/dietpi/synapse/configs/rag_config.json", "code"),

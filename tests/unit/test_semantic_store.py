@@ -5,7 +5,7 @@ Tests cover document storage, search, chunking, metadata, and non-authoritative 
 """
 
 import pytest
-from rag.semantic_store import SemanticStore, DocumentChunk
+from core.semantic_store import SemanticStore, DocumentChunk
 
 
 @pytest.mark.unit

@@ -516,7 +516,7 @@ After implementing fixes, test with OpenCode:
 
 1. **Fix MCP Data Directory** (highest priority, unblocks everything)
    - Modify `mcp_server/rag_server.py`
-   - Test with OpenCode (verify `rag.list_projects` works)
+   - Test with OpenCode (verify `core.list_projects` works)
    - Run pytest for data directory
 
 2. **Fix Server Management**

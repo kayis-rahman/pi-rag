@@ -728,7 +728,7 @@ Interactive first-time setup wizard with three command modes:
 - Reuses `verify_models()` from `models.py`
 - Reuses `get_models_directory()` from `models.py`
 - Reuses `FileScanner` from `scripts/bulk_ingest.py`
-- Reuses `get_semantic_ingestor()` from `rag.semantic_ingest`
+- Reuses `get_semantic_ingestor()` from `core.semantic_ingest`
 - Uses existing configuration system from `synapse/config`
 
 **User Experience:**

@@ -180,12 +180,12 @@ rag.ingest_file(file_path=upload_response["file_path"])
 
 ### Start Server
 ```bash
-bash /home/dietpi/pi-rag/start_http_server.sh
+bash /home/dietpi/pi-core/start_http_server.sh
 ```
 
 ### Stop Server
 ```bash
-bash /home/dietpi/pi-rag/start_http_server.sh --stop
+bash /home/dietpi/pi-core/start_http_server.sh --stop
 ```
 
 ### Check Health
@@ -209,9 +209,9 @@ tail -f /tmp/mcp_server.log
 
 **What Works:**
 - ✅ Upload file via HTTP multipart
-- ✅ Ingest file via MCP tool `rag.ingest_file`
+- ✅ Ingest file via MCP tool `core.ingest_file`
 - ✅ Auto-delete after successful ingestion
-- ✅ Search uploaded content via `rag.search`
+- ✅ Search uploaded content via `core.search`
 - ✅ Single port (8002) for everything
 
 **What Didn't Change:**

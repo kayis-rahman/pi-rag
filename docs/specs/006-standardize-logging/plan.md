@@ -16,7 +16,7 @@
 │         └────────┬─────────┘                         │
 │                  │                                   │
 │         ┌────────▼─────────┐                         │
-│         │  rag/logger.py   │                         │
+│         │  core/logger.py   │                         │
 │         │  setup_logging() │                         │
 │         │  get_logger()    │                         │
 │         └────────┬─────────┘                         │
@@ -36,7 +36,7 @@
 
 ## Component Design
 
-### 1. Logging Utility (`rag/logger.py`)
+### 1. Logging Utility (`core/logger.py`)
 
 ```python
 class LoggerManager:
@@ -152,7 +152,7 @@ class LoggerManager:
 ```python
 # scripts/bulk_ingest.py
 from rich.console import Console
-from rag.logger import get_logger
+from core.logger import get_logger
 import argparse
 
 console = Console()
@@ -188,10 +188,10 @@ def main():
 ```
 
 ### Module-Level Overrides
-- `rag.orchestrator`: INFO (reduce noise from orchestrator)
-- `rag.model_manager`: INFO (important lifecycle events)
-- `rag.embedding`: INFO (model loading status)
-- `rag.memory_writer`: WARNING (only errors, no debug noise)
+- `core.orchestrator`: INFO (reduce noise from orchestrator)
+- `core.model_manager`: INFO (important lifecycle events)
+- `core.embedding`: INFO (model loading status)
+- `core.memory_writer`: WARNING (only errors, no debug noise)
 
 ## Dependencies
 
@@ -220,26 +220,26 @@ def main():
 ### File-by-File Migration Order
 
 1. **Core Infrastructure** (Week 1)
-   - `rag/logger.py` - NEW
+   - `core/logger.py` - NEW
    - `configs/logging_config.json` - NEW
    - Update `configs/rag_config.json`
 
 2. **Core Modules** (Week 1-2)
-   - `rag/orchestrator.py` (6 prints)
-   - `rag/model_manager.py` (6 prints)
-   - `rag/embedding.py` (6 prints)
-   - `rag/semantic_store.py` (2 prints)
-   - `rag/vectorstore.py` (3 prints)
+   - `core/orchestrator.py` (6 prints)
+   - `core/model_manager.py` (6 prints)
+   - `core/embedding.py` (6 prints)
+   - `core/semantic_store.py` (2 prints)
+   - `core/vectorstore.py` (3 prints)
 
 3. **Tool Scripts** (Week 2)
    - `scripts/bulk_ingest.py` (20 prints) - Rich + logger
-   - `rag/ingest.py` (5 prints)
-   - `rag/semantic_ingest.py` (5 prints)
+   - `core/ingest.py` (5 prints)
+   - `core/semantic_ingest.py` (5 prints)
 
 4. **Memory Modules** (Week 2-3)
-   - `rag/retriever.py` (2 prints)
-   - `rag/memory_writer.py` (8 prints)
-   - `rag/episode_extractor.py` (3 prints)
+   - `core/retriever.py` (2 prints)
+   - `core/memory_writer.py` (8 prints)
+   - `core/episode_extractor.py` (3 prints)
 
 5. **Docstrings** (Week 3)
    - Update all 6 files with `>>> print()` examples

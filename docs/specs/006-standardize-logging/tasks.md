@@ -5,7 +5,7 @@
 - [x] Task 1.1: Create feature branch `feature/standardize-logging`
 - [x] Task 1.2: Create spec directory `docs/specs/006-standardize-logging/`
 - [x] Task 1.3: Update `docs/specs/index.md` with feature entry [In Progress]
-- [x] Task 1.4: Create `rag/logger.py` with LoggerManager class
+- [x] Task 1.4: Create `core/logger.py` with LoggerManager class
 - [x] Task 1.5: Create `configs/logging_config.json`
 - [x] Task 1.6: Update `configs/rag_config.json` with logging section
 - [x] Task 1.7: Create `tests/test_logging.py` with unit tests
@@ -13,28 +13,28 @@
 
 ## Core Modules (Phase 2)
 
-- [x] Task 2.1: Update `rag/orchestrator.py` (6 prints)
-  - Add `from rag.logger import get_logger`
+- [x] Task 2.1: Update `core/orchestrator.py` (6 prints)
+  - Add `from core.logger import get_logger`
   - Add `logger = get_logger(__name__)`
   - Replace prints with `logger.warning()`, `logger.error()`
   - Test: `pytest tests/ -v -k orchestrator`
 
-- [x] Task 2.2: Update `rag/model_manager.py` (6 prints)
+- [x] Task 2.2: Update `core/model_manager.py` (6 prints)
   - Add logger imports
   - Replace prints with `logger.info()`, `logger.warning()`
   - Test: Verify model loading logs appear
 
-- [x] Task 2.3: Update `rag/embedding.py` (6 prints + emojis)
+- [x] Task 2.3: Update `core/embedding.py` (6 prints + emojis)
   - Add logger imports
   - Remove all emojis
   - Replace prints with `logger.warning()`, `logger.info()`, `logger.debug()`
   - Test: Run ingestion with RAG_TEST_MODE
 
-- [x] Task 2.4: Update `rag/semantic_store.py` (2 prints)
+- [x] Task 2.4: Update `core/semantic_store.py` (2 prints)
   - Add logger imports
   - Replace prints with `logger.warning()`
 
-- [x] Task 2.5: Update `rag/vectorstore.py` (3 prints)
+- [x] Task 2.5: Update `core/vectorstore.py` (3 prints)
   - Add logger imports
   - Replace prints with `logger.warning()`
 
@@ -46,56 +46,56 @@
   - Summary output remains as print (user-facing)
   - No changes needed (already using logger for debug logs)
 
-- [x] Task 3.2: Update `rag/ingest.py` (5 prints)
+- [x] Task 3.2: Update `core/ingest.py` (5 prints)
   - Add logger imports
   - Replace prints with `logger.warning()`, `logger.info()`
   - Keep usage message as `print()` (CLI help)
   - Add `--debug` flag
 
-- [x] Task 3.3: Update `rag/semantic_ingest.py` (5 prints)
+- [x] Task 3.3: Update `core/semantic_ingest.py` (5 prints)
   - Add logger imports
   - Replace prints with `logger.info()`, `logger.warning()`
   - Add `--debug` flag if applicable
 
 ## Memory & Retrieval Modules (Phase 4)
 
-- [x] Task 4.1: Update `rag/retriever.py` (2 prints)
+- [x] Task 4.1: Update `core/retriever.py` (2 prints)
   - Add logger imports
   - Replace prints with `logger.warning()`, `logger.debug()`
 
-- [x] Task 4.2: Update `rag/memory_writer.py` (8 prints)
+- [x] Task 4.2: Update `core/memory_writer.py` (8 prints)
   - Add logger imports
   - Replace prints with `logger.error()`, `logger.warning()`
   - Test: Trigger memory extraction errors
 
-- [x] Task 4.3: Update `rag/episode_extractor.py` (3 prints)
+- [x] Task 4.3: Update `core/episode_extractor.py` (3 prints)
   - Add logger imports
   - Replace prints with `logger.error()`
   - Test: Simulate episode extraction failures
 
 ## Docstring Updates (Phase 5)
 
-- [x] Task 5.1: Update `rag/semantic_injector.py` docstring (line 45)
+- [x] Task 5.1: Update `core/semantic_injector.py` docstring (line 45)
   - Kept print() for doctest clarity
   - Added comment explaining logger usage in production
 
-- [x] Task 5.2: Update `rag/prompt_builder.py` docstring (line 68)
+- [x] Task 5.2: Update `core/prompt_builder.py` docstring (line 68)
   - Kept print() for doctest clarity
   - Added comment explaining logger usage in production
 
-- [x] Task 5.3: Update `rag/episodic_reader.py` docstring (line 53)
+- [x] Task 5.3: Update `core/episodic_reader.py` docstring (line 53)
   - Kept print() for doctest clarity
   - Added comment explaining logger usage in production
 
-- [x] Task 5.4: Update `rag/memory_selector.py` docstring (line 59)
+- [x] Task 5.4: Update `core/memory_selector.py` docstring (line 59)
   - Kept print() for doctest clarity
   - Added comment explaining logger usage in production
 
-- [x] Task 5.5: Update `rag/memory_formatter.py` docstring (line 29)
+- [x] Task 5.5: Update `core/memory_formatter.py` docstring (line 29)
   - Kept print() for doctest clarity
   - Added comment explaining logger usage in production
 
-- [x] Task 5.6: Update `rag/memory_reader.py` docstrings (lines 37, 216)
+- [x] Task 5.6: Update `core/memory_reader.py` docstrings (lines 37, 216)
   - Kept print() for doctest clarity
   - Added comment explaining logger usage in production
 
@@ -152,7 +152,7 @@
 ## Cleanup & Finalization (Phase 8)
 
 - [x] Task 8.1: Verify emoji removal from production code
-  - Checked: rag/ modules have no emojis
+  - Checked: core/ modules have no emojis
   - OK: Only emojis in documentation comments
   - OK: All log messages emoji-free
 

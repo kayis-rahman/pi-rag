@@ -5,7 +5,7 @@ Tests cover prompt building with context, memory injection, system messages, and
 """
 
 import pytest
-from rag.prompt_builder import PromptBuilder, build_prompt_from_components
+from core.prompt_builder import PromptBuilder, build_prompt_from_components
 
 
 @pytest.mark.unit
@@ -145,7 +145,7 @@ class TestPromptBuilder:
 
     def test_build_prompt_with_selector(self):
         """Test building prompt with MemorySelector."""
-        from rag.memory_selector import MemorySelector
+        from core.memory_selector import MemorySelector
 
         builder = PromptBuilder()
         selector = MemorySelector()

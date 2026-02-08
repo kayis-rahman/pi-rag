@@ -129,12 +129,12 @@ def test_import_rag_modules():
     """Verify core RAG modules can be imported."""
     # These imports may fail if modules have issues
     try:
-        from rag.memory_store import MemoryStore, MemoryFact
-        from rag.episodic_store import EpisodicStore, Episode
-        from rag.semantic_store import SemanticStore, DocumentChunk
-        from rag.embedding import EmbeddingService
-        from rag.retriever import Retriever
-        from rag.orchestrator import RAGOrchestrator
+        from core.memory_store import MemoryStore, MemoryFact
+        from core.episodic_store import EpisodicStore, Episode
+        from core.semantic_store import SemanticStore, DocumentChunk
+        from core.embedding import EmbeddingService
+        from core.retriever import Retriever
+        from core.orchestrator import RAGOrchestrator
     except ImportError as e:
         pytest.fail(f"Failed to import RAG modules: {e}")
 

@@ -488,7 +488,7 @@ def memory_store(test_db_path: Path):
     Returns:
         MemoryStore instance
     """
-    from rag.memory_store import get_memory_store
+    from core.memory_store import get_memory_store
 
     store = get_memory_store(str(test_db_path))
     yield store
@@ -515,7 +515,7 @@ def episodic_store(test_db_path: Path):
     Returns:
         EpisodicStore instance
     """
-    from rag.episodic_store import get_episodic_store
+    from core.episodic_store import get_episodic_store
 
     store = get_episodic_store(str(test_db_path))
     yield store
@@ -541,7 +541,7 @@ def semantic_store(temp_dir: Path, mock_embedding_service):
     Returns:
         SemanticStore instance
     """
-    from rag.semantic_store import get_semantic_store
+    from core.semantic_store import get_semantic_store
 
     store = get_semantic_store(
         index_path=str(temp_dir / "semantic_index"),

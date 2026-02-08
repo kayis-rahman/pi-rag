@@ -5,7 +5,7 @@ Tests cover model registration, loading, unloading, caching, and external models
 """
 
 import pytest
-from rag.model_manager import ModelManager, ModelConfig, get_model_manager
+from core.model_manager import ModelManager, ModelConfig, get_model_manager
 
 
 @pytest.mark.unit

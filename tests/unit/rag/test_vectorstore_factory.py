@@ -7,17 +7,17 @@ Tests cover vector store creation, configuration-based routing, and error handli
 import pytest
 import tempfile
 from pathlib import Path
-from rag.vectorstore_factory import get_vector_store, get_semantic_store_config
+from core.vectorstore_factory import get_vector_store, get_semantic_store_config
 from tests.utils.helpers import (
     MockEmbeddingService,
     save_test_config,
     load_test_config,
 )
-from rag.vectorstore_base import IVectorStore
-from rag.vectorstore import VectorStore
-from rag.chroma_vectorstore import ChromaVectorStore
-from rag.semantic_store import SemanticStore
-from rag.chroma_semantic_store import ChromaSemanticStore
+from core.vectorstore_base import IVectorStore
+from core.vectorstore import VectorStore
+from core.chroma_vectorstore import ChromaVectorStore
+from core.semantic_store import SemanticStore
+from core.chroma_semantic_store import ChromaSemanticStore
 
 
 @pytest.mark.unit

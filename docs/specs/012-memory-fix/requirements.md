@@ -43,9 +43,9 @@ Fix the critical bug where RAG memory ingestion reports success but content is n
 **So that** they're easier to type.
 
 **Acceptance Criteria:**
-- [x] `rag.list_projects` → `sy.list_projects`
-- [x] `rag.search` → `sy.search`
-- [x] `rag.add_fact` → `sy.add_fact`
+- [x] `core.list_projects` → `sy.list_projects`
+- [x] `core.search` → `sy.search`
+- [x] `core.add_fact` → `sy.add_fact`
 - [x] All 8 MCP tools renamed
 
 ### US-3: CLI Renaming
@@ -82,14 +82,14 @@ Fix the critical bug where RAG memory ingestion reports success but content is n
 - [x] FR-1.5 Export from `synapse/config/__init__.py`
 
 ### FR-2: MCP Tool Renaming
-- [x] FR-2.1 Rename `rag.list_projects` → `sy.list_projects`
-- [x] FR-2.2 Rename `rag.list_sources` → `sy.list_sources`
-- [x] FR-2.3 Rename `rag.search` → `sy.search`
-- [x] FR-2.4 Rename `rag.get_context` → `sy.get_context`
-- [x] FR-2.5 Rename `rag.ingest_file` → `sy.ingest_file`
-- [x] FR-2.6 Rename `rag.add_fact` → `sy.add_fact`
-- [x] FR-2.7 Rename `rag.add_episode` → `sy.add_episode`
-- [x] FR-2.8 Rename `rag.analyze_conversation` → `sy.analyze_conversation`
+- [x] FR-2.1 Rename `core.list_projects` → `sy.list_projects`
+- [x] FR-2.2 Rename `core.list_sources` → `sy.list_sources`
+- [x] FR-2.3 Rename `core.search` → `sy.search`
+- [x] FR-2.4 Rename `core.get_context` → `sy.get_context`
+- [x] FR-2.5 Rename `core.ingest_file` → `sy.ingest_file`
+- [x] FR-2.6 Rename `core.add_fact` → `sy.add_fact`
+- [x] FR-2.7 Rename `core.add_episode` → `sy.add_episode`
+- [x] FR-2.8 Rename `core.analyze_conversation` → `sy.analyze_conversation`
 
 ### FR-3: CLI Renaming
 - [x] FR-3.1 Update Typer app name from "rag" to "sy"

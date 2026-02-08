@@ -17,9 +17,9 @@ sys.path.insert(0, project_root)
 class TestMCPDataDirectory:
     """Test MCP data directory detection for different OS and configurations."""
     
-    @patch('mcp_server.rag_server.platform.system')
-    @patch('mcp_server.rag_server.os.path.exists')
-    @patch('mcp_server.rag_server.os.access')
+    @patch('mcp_server.synapse_server.platform.system')
+    @patch('mcp_server.synapse_server.os.path.exists')
+    @patch('mcp_server.synapse_server.os.access')
     def test_macos_data_directory(self, mock_access, mock_exists, mock_system):
         """Test that Mac uses ~/.synapse/data"""
         # Setup mocks
@@ -28,7 +28,7 @@ class TestMCPDataDirectory:
         mock_access.return_value = True
         
         # Import after patching
-        from mcp_server.rag_server import RAGMemoryBackend
+        from mcp_server.synapse_server import RAGMemoryBackend
         backend = RAGMemoryBackend()
         
         # Test the method
@@ -38,9 +38,9 @@ class TestMCPDataDirectory:
         assert data_dir == expected, f"Expected {expected}, got {data_dir}"
         print(f"✅ Mac test passed: {data_dir}")
     
-    @patch('mcp_server.rag_server.platform.system')
-    @patch('mcp_server.rag_server.os.path.exists')
-    @patch('mcp_server.rag_server.os.access')
+    @patch('mcp_server.synapse_server.platform.system')
+    @patch('mcp_server.synapse_server.os.path.exists')
+    @patch('mcp_server.synapse_server.os.access')
     def test_linux_data_directory_writable(self, mock_access, mock_exists, mock_system):
         """Test that Linux uses /opt/synapse/data if writable"""
         # Setup mocks
@@ -48,7 +48,7 @@ class TestMCPDataDirectory:
         mock_exists.return_value = True  # Config file exists
         mock_access.return_value = True  # Path is writable
         
-        from mcp_server.rag_server import RAGMemoryBackend
+        from mcp_server.synapse_server import RAGMemoryBackend
         backend = RAGMemoryBackend()
         
         # Test the method
@@ -57,9 +57,9 @@ class TestMCPDataDirectory:
         assert data_dir == "/opt/synapse/data", f"Expected /opt/synapse/data, got {data_dir}"
         print(f"✅ Linux (writable) test passed: {data_dir}")
     
-    @patch('mcp_server.rag_server.platform.system')
-    @patch('mcp_server.rag_server.os.path.exists')
-    @patch('mcp_server.rag_server.os.access')
+    @patch('mcp_server.synapse_server.platform.system')
+    @patch('mcp_server.synapse_server.os.path.exists')
+    @patch('mcp_server.synapse_server.os.access')
     def test_linux_data_directory_not_writable(self, mock_access, mock_exists, mock_system):
         """Test that Linux falls back to user home if /opt not writable"""
         # Setup mocks
@@ -67,7 +67,7 @@ class TestMCPDataDirectory:
         mock_exists.return_value = True
         mock_access.return_value = False  # Path NOT writable
         
-        from mcp_server.rag_server import RAGMemoryBackend
+        from mcp_server.synapse_server import RAGMemoryBackend
         backend = RAGMemoryBackend()
         
         # Test the method
@@ -77,9 +77,9 @@ class TestMCPDataDirectory:
         assert data_dir == expected, f"Expected {expected}, got {data_dir}"
         print(f"✅ Linux (not writable) test passed: {data_dir}")
     
-    @patch('mcp_server.rag_server.platform.system')
-    @patch('mcp_server.rag_server.os.path.exists')
-    @patch('mcp_server.rag_server.os.access')
+    @patch('mcp_server.synapse_server.platform.system')
+    @patch('mcp_server.synapse_server.os.path.exists')
+    @patch('mcp_server.synapse_server.os.access')
     def test_windows_data_directory(self, mock_access, mock_exists, mock_system):
         """Test that Windows uses user home"""
         # Setup mocks
@@ -87,7 +87,7 @@ class TestMCPDataDirectory:
         mock_exists.return_value = False
         mock_access.return_value = True
         
-        from mcp_server.rag_server import RAGMemoryBackend
+        from mcp_server.synapse_server import RAGMemoryBackend
         backend = RAGMemoryBackend()
         
         # Test the method
@@ -97,7 +97,7 @@ class TestMCPDataDirectory:
         assert data_dir == expected, f"Expected {expected}, got {data_dir}"
         print(f"✅ Windows test passed: {data_dir}")
     
-    @patch('mcp_server.rag_server.os.environ.get')
+    @patch('mcp_server.synapse_server.os.environ.get')
     def test_environment_variable_override(self, mock_env):
         """Test that RAG_DATA_DIR environment variable takes priority"""
         # Set environment variable
@@ -105,7 +105,7 @@ class TestMCPDataDirectory:
             "RAG_DATA_DIR": "/custom/test/path"
         }.get(key, default)
         
-        from mcp_server.rag_server import RAGMemoryBackend
+        from mcp_server.synapse_server import RAGMemoryBackend
         backend = RAGMemoryBackend()
         
         # Test the method
@@ -114,7 +114,7 @@ class TestMCPDataDirectory:
         assert data_dir == "/custom/test/path", f"Expected /custom/test/path, got {data_dir}"
         print(f"✅ Environment variable test passed: {data_dir}")
     
-    @patch('mcp_server.rag_server.os.path.exists')
+    @patch('mcp_server.synapse_server.os.path.exists')
     @patch('builtins.open', new_callable=MagicMock)
     def test_config_file_data_dir(self, mock_file, mock_exists):
         """Test that config file data_dir takes priority"""
@@ -122,7 +122,7 @@ class TestMCPDataDirectory:
         mock_exists.return_value = True
         mock_file.return_value.__enter__.return_value.read.return_value = '{"data_dir": "/config/path"}'
         
-        from mcp_server.rag_server import RAGMemoryBackend
+        from mcp_server.synapse_server import RAGMemoryBackend
         backend = RAGMemoryBackend()
         
         # Test the method
@@ -131,7 +131,7 @@ class TestMCPDataDirectory:
         assert data_dir == "/config/path", f"Expected /config/path, got {data_dir}"
         print(f"✅ Config file (data_dir) test passed: {data_dir}")
     
-    @patch('mcp_server.rag_server.os.path.exists')
+    @patch('mcp_server.synapse_server.os.path.exists')
     @patch('builtins.open', new_callable=MagicMock)
     def test_config_file_index_path(self, mock_file, mock_exists):
         """Test that config file index_path derivation works"""
@@ -139,7 +139,7 @@ class TestMCPDataDirectory:
         mock_exists.return_value = True
         mock_file.return_value.__enter__.return_value.read.return_value = '{"index_path": "/some/path/index.json"}'
         
-        from mcp_server.rag_server import RAGMemoryBackend
+        from mcp_server.synapse_server import RAGMemoryBackend
         backend = RAGMemoryBackend()
         
         # Test the method

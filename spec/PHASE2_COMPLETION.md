@@ -102,8 +102,8 @@ $ python3 -m pytest tests/unit/ --collect-only -q
 **Root Cause**: MemoryStore and EpisodicStore methods may have different signatures than expected
 
 **Resolution Required**:
-- [ ] Review actual `rag/memory_store.py` implementation
-- [ ] Review actual `rag/episodic_store.py` implementation
+- [ ] Review actual `core/memory_store.py` implementation
+- [ ] Review actual `core/episodic_store.py` implementation
 - [ ] Update tests to match actual API
 - [ ] Or update implementations to match planned API
 

@@ -30,9 +30,9 @@ ls -la ~/.synapse/semantic_index/     # Should have files, currently empty
 
 ### Step 1.2: Trace the Code Flow
 1. `synapse ingest` → calls `scripts/bulk_ingest.py`
-2. `bulk_ingest.py` → calls `rag/semantic_ingestor.py`
-3. `semantic_ingestor.py` → calls `rag/semantic_store.py`
-4. `semantic_store.py` → writes to `rag/vectorstore.py`
+2. `bulk_ingest.py` → calls `core/semantic_ingestor.py`
+3. `semantic_ingestor.py` → calls `core/semantic_store.py`
+4. `semantic_store.py` → writes to `core/vectorstore.py`
 
 ### Step 1.3: Identify Root Cause
 - Check if `semantic_index` directory is created
@@ -54,7 +54,7 @@ ls -la ~/.synapse/semantic_index/     # Should have files, currently empty
 **Actual Bug**: Singleton pattern in `get_semantic_store()`
 
 ```python
-# rag/semantic_store.py lines 571-584
+# core/semantic_store.py lines 571-584
 _global_semantic_store = None
 
 def get_semantic_store(index_path: str = "./data/semantic_index") -> SemanticStore:
@@ -84,7 +84,7 @@ The issue is NOT that data isn't persisted - it's that the **singleton ignores t
 
 ## Plan 2: Fix Storage Backend
 
-### File: `rag/semantic_store.py`
+### File: `core/semantic_store.py`
 
 **Current Issue**: Data may be written but not committed to disk.
 
@@ -117,7 +117,7 @@ def add_documents(self, documents: List[Document]) -> List[str]:
 
 ## Plan 3: Fix VectorStore
 
-### File: `rag/vectorstore.py`
+### File: `core/vectorstore.py`
 
 **Check**: Verify `save()` and `load()` methods work correctly.
 
@@ -195,7 +195,7 @@ from pathlib import Path
 
 def test_persistence(tmp_path):
     """Test that ingested data persists to disk."""
-    from rag.semantic_store import SemanticStore
+    from core.semantic_store import SemanticStore
     
     store = SemanticStore(str(tmp_path / "index"))
     

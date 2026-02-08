@@ -5,7 +5,7 @@ Tests cover memory querying, filtering, fact ordering, conflict detection, and p
 """
 
 import pytest
-from rag.memory_reader import MemoryReader, get_memory_reader
+from core.memory_reader import MemoryReader, get_memory_reader
 
 
 @pytest.mark.unit

@@ -5,7 +5,7 @@ Tests cover chunk splitting, size control, overlap, and edge cases.
 """
 
 import pytest
-from rag.ingest import chunk_text
+from core.ingest import chunk_text
 
 
 @pytest.mark.unit

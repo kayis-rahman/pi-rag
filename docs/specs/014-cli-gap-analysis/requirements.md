@@ -95,7 +95,7 @@ WARNING: Embedding model file not found: /home/dietpi/models/bge-small-en-v1.5-q
 Falling back to test mode with mock embeddings
 ```
 
-**Root Cause**: Hardcoded path in `rag/embedding.py` vs actual model location
+**Root Cause**: Hardcoded path in `core/embedding.py` vs actual model location
 
 ---
 

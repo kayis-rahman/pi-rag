@@ -313,7 +313,7 @@ Confidence: [Level based on sources]
 **MANDATORY STEPS:**
 1. Call `sy.mem.search` with query="orchestrator", memory_type="semantic", top_k=3
 2. Analyze returned code chunks
-3. Answer using code from rag/orchestrator.py
+3. Answer using code from core/orchestrator.py
 4. Cite specific files and line numbers
 
 ### Scenario 2: Configuration Question
@@ -539,7 +539,7 @@ You MUST still manually add facts/episodes when:
 - **Semantic Memory**: Document embeddings in JSON format (lowest authority)
 
 ### Core Modules (Source: Semantic Memory - 60% Confidence)
-- **rag/**: Core RAG system (orchestrator, vectorstore, retriever, etc.)
+- **core/**: Core RAG system (orchestrator, vectorstore, retriever, etc.)
 - **mcp_server/**: MCP HTTP server implementation (8 tools available)
 - **api/**: FastAPI layer for chat completions
 - **scripts/**: Utility scripts

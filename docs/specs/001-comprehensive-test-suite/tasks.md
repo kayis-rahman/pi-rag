@@ -29,7 +29,7 @@ This document contains granular task breakdown for implementation of comprehensi
 
 ### 1.2 Fix Import Errors
 - [x] Fix import error in tests/unit/test_prompt_builder.py - remove incorrect import of get_prompt_builder (Linked to FR-1)
-- [x] Check actual exports from rag.prompt_builder and update import (Linked to FR-1)
+- [x] Check actual exports from core.prompt_builder and update import (Linked to FR-1)
 - [x] Fix module not found error in tests/integration/test_rag_pipeline.py - remove reference to rag.rag_pipeline (Linked to FR-1)
 - [x] Fix import error in tests/integration/test_memory_integration.py - remove incorrect import of get_memory_selector (Linked to FR-1)
 
@@ -113,7 +113,7 @@ This document contains granular task breakdown for implementation of comprehensi
 - [ ] Test all data generators (Linked to FR-5)
 
 ### 2.5 Create Test Fixtures
-- [x] Add module-specific fixtures to tests/unit/rag/conftest.py (Linked to FR-1)
+- [x] Add module-specific fixtures to tests/unit/core/conftest.py (Linked to FR-1)
 - [x] Add module-specific fixtures to tests/unit/cli/conftest.py (Linked to FR-1)
 - [x] Add module-specific fixtures to tests/unit/mcp_server/conftest.py (Linked to FR-1)
 - [ ] Test all fixtures work correctly (Linked to FR-5)
@@ -145,7 +145,7 @@ This document contains granular task breakdown for implementation of comprehensi
 - Alternative: Use JSON vector store instead (already well-tested)
 
 ### 2.5 Create Test Fixtures
-- [ ] Add module-specific fixtures to tests/unit/rag/conftest.py (Linked to FR-1)
+- [ ] Add module-specific fixtures to tests/unit/core/conftest.py (Linked to FR-1)
 - [ ] Add module-specific fixtures to tests/unit/cli/conftest.py (Linked to FR-1)
 - [ ] Add module-specific fixtures to tests/unit/mcp_server/conftest.py (Linked to FR-1)
 - [ ] Test all fixtures work correctly (Linked to FR-5)
@@ -163,14 +163,14 @@ This document contains granular task breakdown for implementation of comprehensi
 
 ### 3.1 Critical RAG Module Tests
 
-- [x] Create tests/unit/rag/test_orchestrator.py with 22 tests (Linked to FR-2)
+- [x] Create tests/unit/core/test_orchestrator.py with 22 tests (Linked to FR-2)
   - [x] TestRAGOrchestratorInitialization (4 tests)
   - [x] TestRAGOrchestratorChat (8 tests)
   - [x] TestRAGOrchestratorContextInjection (3 tests)
   - [x] TestRAGOrchestratorModelManagement (3 tests)
   - [x] TestRAGOrchestratorErrorHandling (3 tests)
 
-- [x] Create tests/unit/rag/test_vectorstore_factory.py with 24 tests (Linked to FR-2)
+- [x] Create tests/unit/core/test_vectorstore_factory.py with 24 tests (Linked to FR-2)
   - [x] TestVectorStoreFactory (8 tests)
   - [x] TestSemanticStoreConfigFactory (4 tests)
   - [x] TestVectorStoreFactoryErrorHandling (3 tests)
@@ -181,7 +181,7 @@ This document contains granular task breakdown for implementation of comprehensi
   - ⏳ Tests created but cannot run due to production syntax errors
   - ⏳ DEFERRED: Skip testing ChromaDB modules until production code is refactored
 
-- [x] Create tests/unit/rag/test_memory_selector.py with 34 tests (Linked to FR-2)
+- [x] Create tests/unit/core/test_memory_selector.py with 34 tests (Linked to FR-2)
   - [x] TestMemorySelectorInitialization (3 tests)
   - [x] TestMemorySelectorScopePriority (1 test)
   - [x] TestMemorySelectorCategoryRelevance (6 tests)
@@ -192,7 +192,7 @@ This document contains granular task breakdown for implementation of comprehensi
   - [x] TestMemorySelectorMemoryStoreIntegration (1 test)
 
 ### 3.2 Standard RAG Module Tests
-- [ ] Create tests/unit/rag/test_bulk_ingest.py with 10 tests (Linked to FR-2)
+- [ ] Create tests/unit/core/test_bulk_ingest.py with 10 tests (Linked to FR-2)
   - [ ] test_file_discovery()
   - [ ] test_extension_filtering()
   - [ ] test_directory_skipping()
@@ -204,7 +204,7 @@ This document contains granular task breakdown for implementation of comprehensi
   - [ ] test_incremental_ingestion()
   - [ ] test_configuration_handling()
 
-- [ ] Create tests/unit/rag/test_memory_formatter.py with 8 tests (Linked to FR-2)
+- [ ] Create tests/unit/core/test_memory_formatter.py with 8 tests (Linked to FR-2)
   - [ ] test_format_symbolic_memory()
   - [ ] test_format_episodic_memory()
   - [ ] test_format_semantic_memory()
@@ -214,7 +214,7 @@ This document contains granular task breakdown for implementation of comprehensi
   - [ ] test_empty_memory()
   - [ ] test_large_memory()
 
-- [ ] Create tests/unit/rag/test_query_cache.py with 8 tests (Linked to FR-2)
+- [ ] Create tests/unit/core/test_query_cache.py with 8 tests (Linked to FR-2)
   - [ ] test_cache_hit()
   - [ ] test_cache_miss()
   - [ ] test_cache_eviction()
@@ -224,7 +224,7 @@ This document contains granular task breakdown for implementation of comprehensi
   - [ ] test_concurrent_access()
   - [ ] test_cache_disabled()
 
-- [ ] Create tests/unit/rag/test_episode_extractor.py with 8 tests (Linked to FR-2)
+- [ ] Create tests/unit/core/test_episode_extractor.py with 8 tests (Linked to FR-2)
   - [ ] test_lesson_extraction()
   - [ ] test_quality_scoring()
   - [ ] test_confidence_calculation()
@@ -234,7 +234,7 @@ This document contains granular task breakdown for implementation of comprehensi
   - [ ] test_success_recognition()
   - [ ] test_mixed_outcomes()
 
-- [ ] Create tests/unit/rag/test_episodic_reader.py with 8 tests (Linked to FR-2)
+- [ ] Create tests/unit/core/test_episodic_reader.py with 8 tests (Linked to FR-2)
   - [ ] test_query_by_lesson_type()
   - [ ] test_query_by_quality()
   - [ ] test_query_by_confidence()
@@ -244,7 +244,7 @@ This document contains granular task breakdown for implementation of comprehensi
   - [ ] test_filter_combinations()
   - [ ] test_pagination()
 
-- [ ] Create tests/unit/rag/test_semantic_ingest.py with 10 tests (Linked to FR-2)
+- [ ] Create tests/unit/core/test_semantic_ingest.py with 10 tests (Linked to FR-2)
   - [ ] test_document_chunking()
   - [ ] test_embedding_generation()
   - [ ] test_storage()
@@ -256,7 +256,7 @@ This document contains granular task breakdown for implementation of comprehensi
   - [ ] test_batch_ingestion()
   - [ ] test_error_recovery()
 
-- [ ] Create tests/unit/rag/test_semantic_injector.py with 8 tests (Linked to FR-2)
+- [ ] Create tests/unit/core/test_semantic_injector.py with 8 tests (Linked to FR-2)
   - [ ] test_context_selection()
   - [ ] test_context_formatting()
   - [ ] test_context_ranking()
@@ -266,7 +266,7 @@ This document contains granular task breakdown for implementation of comprehensi
   - [ ] test_large_results()
   - [ ] test_metadata_filtering()
 
-- [ ] Create tests/unit/rag/test_semantic_retriever.py with 10 tests (Linked to FR-2)
+- [ ] Create tests/unit/core/test_semantic_retriever.py with 10 tests (Linked to FR-2)
   - [ ] test_similarity_search()
   - [ ] test_score_filtering()
   - [ ] test_top_k_results()
@@ -278,7 +278,7 @@ This document contains granular task breakdown for implementation of comprehensi
   - [ ] test_pagination()
   - [ ] test_concurrent_queries()
 
-- [ ] Create tests/unit/rag/test_chroma_vectorstore.py with 10 tests (Linked to FR-2)
+- [ ] Create tests/unit/core/test_chroma_vectorstore.py with 10 tests (Linked to FR-2)
   - [ ] test_crud_operations()
   - [ ] test_indexing()
   - [ ] test_querying()
@@ -290,7 +290,7 @@ This document contains granular task breakdown for implementation of comprehensi
   - [ ] test_large_dataset()
   - [ ] test_concurrent_access()
 
-- [ ] Create tests/unit/rag/test_chroma_semantic_store.py with 10 tests (Linked to FR-2)
+- [ ] Create tests/unit/core/test_chroma_semantic_store.py with 10 tests (Linked to FR-2)
   - [ ] test_chromadb_integration()
   - [ ] test_collection_management()
   - [ ] test_batch_operations()
@@ -302,7 +302,7 @@ This document contains granular task breakdown for implementation of comprehensi
   - [ ] test_query_performance()
   - [ ] test_cleanup()
 
-- [ ] Create tests/unit/rag/test_vectorstore.py with 8 tests (Linked to FR-2)
+- [ ] Create tests/unit/core/test_vectorstore.py with 8 tests (Linked to FR-2)
   - [ ] test_json_storage()
   - [ ] test_crud_operations()
   - [ ] test_querying()
@@ -312,7 +312,7 @@ This document contains granular task breakdown for implementation of comprehensi
   - [ ] test_large_dataset()
   - [ ] test_performance()
 
-- [ ] Create tests/unit/rag/test_vectorstore_base.py with 6 tests (Linked to FR-2)
+- [ ] Create tests/unit/core/test_vectorstore_base.py with 6 tests (Linked to FR-2)
   - [ ] test_interface_compliance()
   - [ ] test_abstract_methods()
   - [ ] test_type_validation()

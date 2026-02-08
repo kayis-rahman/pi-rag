@@ -9,7 +9,7 @@
 
 ```
 synapse/
-├── rag/                    # Core RAG system (30+ Python modules)
+├── core/                    # Core RAG system (30+ Python modules)
 ├── mcp_server/            # MCP server implementation (7 modules)
 ├── synapse/               # CLI application (Typer-based)
 ├── tests/                 # Comprehensive test suite (30+ test files)
@@ -26,7 +26,7 @@ synapse/
 
 ### Core Directories Breakdown
 
-#### **rag/** - Main RAG System
+#### **core/** - Main RAG System
 - `orchestrator.py` - Main coordinator (442 lines)
 - `memory_store.py` - Symbolic memory (SQLite)
 - `episodic_store.py` - Episodic memory (SQLite)
@@ -287,7 +287,7 @@ asyncio.create_task(self._delete_upload_file_async(real_path))
 |------|------------|----------|
 | Python Modules | snake_case | `orchestrator.py`, `memory_reader.py` |
 | Shell Scripts | kebab-case | `rag_status.sh` |
-| Directories | snake_case | `mcp_server/`, `rag/`, `tests/` |
+| Directories | snake_case | `mcp_server/`, `core/`, `tests/` |
 | Configuration | snake_case | `rag_config.json` |
 
 ### Class Naming Conventions
@@ -509,7 +509,7 @@ LOG_LEVEL
 ## 8. TESTING PATTERNS
 
 ### Test File Naming
-- Unit tests: `tests/unit/rag/test_retriever.py`
+- Unit tests: `tests/unit/core/test_retriever.py`
 - Integration tests: `tests/integration/test_*.py`
 - Fixtures: `tests/fixtures/`
 - Global config: `tests/conftest.py`

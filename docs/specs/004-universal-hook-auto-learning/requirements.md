@@ -50,7 +50,7 @@ Implement a universal hook-based auto-learning system that automatically extract
 
 **Acceptance Criteria**:
 - OpenCode plugin uses `tool.execute.before` and `tool.execute.after` hooks
-- Calls `rag.analyze_conversation` tool after configured tools execute
+- Calls `core.analyze_conversation` tool after configured tools execute
 - Configurable skip patterns and min message length
 - Non-blocking (hooks complete in <50ms)
 - Graceful degradation (RAG server offline shouldn't crash agent)
@@ -92,7 +92,7 @@ Implement a universal hook-based auto-learning system that automatically extract
 
 ### US-7: RAG MCP Tool
 **As** an OpenCode plugin,
-**I want** to call a `rag.analyze_conversation` tool via MCP protocol,
+**I want** to call a `core.analyze_conversation` tool via MCP protocol,
 **So that** I can analyze conversations and store learnings.
 
 **Acceptance Criteria**:
@@ -164,7 +164,7 @@ Implement a universal hook-based auto-learning system that automatically extract
 - Type hints and JSDoc for all methods
 
 ### TR-2: Conversation Analyzer
-- Class: `ConversationAnalyzer` in `rag/conversation_analyzer.py`
+- Class: `ConversationAnalyzer` in `core/conversation_analyzer.py`
 - Extraction mode: Heuristic only (regex patterns, no LLM)
 - Heuristic patterns: 5 fact patterns, 5 episode patterns
 - Confidence scoring: 0.7-0.9 for facts, 0.6-0.8 for episodes
@@ -172,7 +172,7 @@ Implement a universal hook-based auto-learning system that automatically extract
 - Async support: `analyze_conversation_async()` method
 
 ### TR-3: MCP Server Integration
-- New tool: `rag.analyze_conversation`
+- New tool: `core.analyze_conversation`
 - Parameters: project_id, user_message, agent_response, context, auto_store, return_only
 - Returns: facts_stored, episodes_stored, facts, episodes
 - Parallel storage: Use `asyncio.gather()` for facts and episodes

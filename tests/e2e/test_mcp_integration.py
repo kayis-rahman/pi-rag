@@ -79,7 +79,7 @@ class TestMCPIntegration:
 
         # Import MCP server module to check for tool definitions
         try:
-            from mcp_server.rag_server import get_server
+            from mcp_server.synapse_server import get_server
 
             server = get_server()
             assert server is not None, "MCP server should be gettable"
@@ -97,7 +97,7 @@ class TestMCPIntegration:
         # (implementation dependent - structure check)
 
         try:
-            from mcp_server.rag_server import get_server
+            from mcp_server.synapse_server import get_server
 
             server = get_server()
             assert server is not None, "MCP server should be gettable"

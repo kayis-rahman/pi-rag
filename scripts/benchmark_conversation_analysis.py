@@ -5,7 +5,7 @@ import time
 import sys
 sys.path.insert(0, '.')
 
-from rag.conversation_analyzer import ConversationAnalyzer
+from core.conversation_analyzer import ConversationAnalyzer
 
 test_conversations = [
     {

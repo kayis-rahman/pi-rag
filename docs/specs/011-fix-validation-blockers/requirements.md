@@ -26,13 +26,13 @@ Fix the 4 critical bugs identified during fresh installation validation (010-fre
 
 **Acceptance Criteria:**
 - [ ] MCP server starts without permission errors
-- [ ] `rag.list_projects` returns project list
-- [ ] `rag.list_sources` returns source list
-- [ ] `rag.search` returns results
-- [ ] `rag.ingest_file` ingests files
-- [ ] `rag.add_fact` adds symbolic facts
-- [ ] `rag.add_episode` adds episodic lessons
-- [ ] `rag.analyze_conversation` extracts learning
+- [ ] `core.list_projects` returns project list
+- [ ] `core.list_sources` returns source list
+- [ ] `core.search` returns results
+- [ ] `core.ingest_file` ingests files
+- [ ] `core.add_fact` adds symbolic facts
+- [ ] `core.add_episode` adds episodic lessons
+- [ ] `core.analyze_conversation` extracts learning
 - [ ] Linux users maintain `/opt/synapse/data` default (if writable)
 
 ### US-2: Fix Server Management (BUG-001, 002, 003)

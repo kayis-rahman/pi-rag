@@ -2,12 +2,12 @@
 
 ## Overview
 
-The `rag.ingest_file` MCP tool now supports **remote file uploads** from any machine (Mac, Windows, Linux).
+The `core.ingest_file` MCP tool now supports **remote file uploads** from any machine (Mac, Windows, Linux).
 
 ## How It Works
 
 1. **Upload Phase**: Upload file to server's upload directory
-2. **Ingestion Phase**: Call `rag.ingest_file` with full absolute path
+2. **Ingestion Phase**: Call `core.ingest_file` with full absolute path
 3. **Validation Phase**: Server validates path and reads file
 4. **Processing Phase**: File is ingested into semantic memory
 5. **Cleanup Phase**: Old files automatically removed (after 1 hour)
@@ -326,7 +326,7 @@ realpath /tmp/rag-uploads/file.md
 
 ### 1. Upload Files First
 
-Always upload files before calling `rag.ingest_file`:
+Always upload files before calling `core.ingest_file`:
 ```bash
 # ✅ Good
 scp file.md pi:/tmp/rag-uploads/ && call_mcp_tool

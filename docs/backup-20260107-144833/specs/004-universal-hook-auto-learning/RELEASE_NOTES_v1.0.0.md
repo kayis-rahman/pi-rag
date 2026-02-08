@@ -26,7 +26,7 @@ The **Universal Hook Auto-Learning** system is now production-ready for OpenCode
 
 ## 🚀 New Features
 
-### 1. Conversation Analyzer (`rag/conversation_analyzer.py`)
+### 1. Conversation Analyzer (`core/conversation_analyzer.py`)
 - **Heuristic Extraction**: Fast regex-based fact and episode extraction (<10ms)
 - **Async Processing**: Non-blocking conversation analysis
 - **Per-Day Deduplication**: Allow repeats across sessions with 7-day window
@@ -42,7 +42,7 @@ The **Universal Hook Auto-Learning** system is now production-ready for OpenCode
 - **Performance Monitoring**: Logs hook execution time (warns if >50ms)
 - **Error Handling**: Comprehensive try-catch with detailed logging
 
-### 3. RAG MCP Tool (`rag.analyze_conversation`)
+### 3. RAG MCP Tool (`core.analyze_conversation`)
 - **New Tool**: Extract facts and episodes from conversations
 - **Auto-Storage**: Automatically stores learnings in RAG memory
 - **Confidence Filtering**: Filters low-confidence extractions
@@ -150,7 +150,7 @@ tests/test_rag_config_hooks.py - 7 tests
 - `docs/specs/004-universal-hook-auto-learning/PHASE_7_COMPLETION_REPORT.md` - Final validation
 
 ### Updated Documentation
-- `AGENTS.md` - Added `rag.analyze_conversation` tool documentation (8th RAG tool)
+- `AGENTS.md` - Added `core.analyze_conversation` tool documentation (8th RAG tool)
 - `docs/specs/index.md` - Central progress index updated
 
 ---
@@ -220,7 +220,7 @@ OpenCode will automatically load the plugin and begin extracting learnings from 
 1. **Conversation Context Not Available**
    - OpenCode SDK doesn't provide `userMessage` or `lastAgentResponse` in tool hooks
    - Plugin logs intent but cannot analyze conversations until SDK updated
-   - **Workaround**: Manual analysis via `rag.analyze_conversation` tool or wait for SDK update
+   - **Workaround**: Manual analysis via `core.analyze_conversation` tool or wait for SDK update
 
 2. **Missing Fact Patterns**
    - Some fact patterns not yet implemented (e.g., `data_dir`, `chunk_size`)
@@ -272,7 +272,7 @@ OpenCode will automatically load the plugin and begin extracting learnings from 
 - **Memory Growth**: ~1-2MB per 1000 conversations (minimal)
 
 ### Developer Productivity
-- **Automatic Learning**: No manual `rag.add_fact` or `rag.add_episode` calls needed
+- **Automatic Learning**: No manual `core.add_fact` or `core.add_episode` calls needed
 - **Reduced Context Loss**: Critical learnings automatically preserved
 - **Faster Onboarding**: New agents can leverage existing knowledge
 
@@ -357,7 +357,7 @@ User: "Run chmod 777 on the directory before starting the container"
 - ✅ Initial production release
 - ✅ OpenCode adapter implementation (52/59 tasks)
 - ✅ Conversation analyzer with 47 heuristic patterns
-- ✅ RAG MCP tool: `rag.analyze_conversation`
+- ✅ RAG MCP tool: `core.analyze_conversation`
 - ✅ 40/41 tests passing (97.6%)
 - ✅ Performance: 0.055ms heuristic (19x faster than target)
 - ✅ Accuracy: 83.33% fact precision, 100% episode precision

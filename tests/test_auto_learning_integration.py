@@ -14,11 +14,11 @@ import pytest
 import asyncio
 from datetime import datetime
 
-from rag.auto_learning_tracker import AutoLearningTracker
-from rag.learning_extractor import LearningExtractor
-from rag.model_manager import ModelManager
-from rag import EpisodicStore, get_episodic_store, Episode
-from rag import MemoryStore, get_memory_store, MemoryFact
+from core.auto_learning_tracker import AutoLearningTracker
+from core.learning_extractor import LearningExtractor
+from core.model_manager import ModelManager
+from core import EpisodicStore, get_episodic_store, Episode
+from core import MemoryStore, get_memory_store, MemoryFact
 
 
 class MockModelManager:
