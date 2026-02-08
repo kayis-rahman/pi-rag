@@ -70,14 +70,43 @@ Update your imports:
 ```python
 # Old (will NOT work)
 from rag.logger import get_logger
-from rag.orchestrator import RAGOrchestrator
+from rag.orchestrator import Orchestrator
 import rag
 
 # New
 from core.logger import get_logger
-from core.orchestrator import RAGOrchestrator
+from core.orchestrator import Orchestrator
 import core
 ```
 
 **No Backward Compatibility**: The `rag` package no longer exists. Update all imports before upgrading.
+
+#### Breaking Change: Complete RAG to Synapse Rebrand (Feature 019)
+
+**Complete rebrand from RAG-centric naming to Synapse branding:**
+
+| Old | New |
+|-----|-----|
+| `RAGOrchestrator` | `Orchestrator` |
+| `RAGMemoryBackend` | `MemoryBackend` |
+| `RAG_DATA_DIR` | `SYNAPSE_DATA_DIR` |
+| `RAG_CONFIG_PATH` | `SYNAPSE_CONFIG_PATH` |
+| `RAG_ENV` | `SYNAPSE_ENV` |
+| `RAG_TEST_MODE` | `SYNAPSE_TEST_MODE` |
+| `RAG_REMOTE_UPLOAD_ENABLED` | `SYNAPSE_REMOTE_UPLOAD_ENABLED` |
+| `RAG_UPLOAD_DIR` | `SYNAPSE_UPLOAD_DIR` |
+| `RAG_UPLOAD_MAX_AGE` | `SYNAPSE_UPLOAD_MAX_AGE` |
+| `RAG_UPLOAD_MAX_SIZE` | `SYNAPSE_UPLOAD_MAX_SIZE` |
+
+**Files Changed:**
+- `core/orchestrator.py` - Class renamed to Orchestrator
+- `mcp_server/synapse_server.py` - Class renamed to MemoryBackend
+- All Python files - Environment variables updated
+- All documentation - References updated
+- `docker-compose.yml` - Environment variables updated
+
+**Migration Required:**
+See `MIGRATION_v2.0.md` for complete migration guide.
+
+**Version:** v2.0.0 (major breaking change)
 

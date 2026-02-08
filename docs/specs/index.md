@@ -224,8 +224,8 @@ This is the "Source of Truth" for all SYNAPSE features. Each feature follows the
      | 019-complete-rag-rebrand | Complete RAG to Synapse Rebrand | [In Progress] | ⏳ Pending |
                | **Objective**: Complete rebrand from RAG-centric naming to Synapse branding (v2.0.0)
                | **Key Changes**:
-               | - Classes: `RAGOrchestrator` → `Orchestrator`, `RAGMemoryBackend` → `MemoryBackend`
-               | - Environment Variables: `RAG_*` → `SYNAPSE_*` (8 variables)
+               | - Classes: `Orchestrator` → `Orchestrator`, `MemoryBackend` → `MemoryBackend`
+               | - Environment Variables: `SYNAPSE_*` → `SYNAPSE_*` (8 variables)
                | - Total: 57 tasks across 9 phases
                | **Breaking Changes** (v2.0.0):
                | - All class names updated

@@ -64,7 +64,7 @@ Fix the 4 critical bugs identified during fresh installation validation (010-fre
 
 ### FR-1: MCP Data Directory (CRITICAL)
 The MCP server must:
-- [ ] FR-1.1 Use environment variable `RAG_DATA_DIR` if set
+- [ ] FR-1.1 Use environment variable `SYNAPSE_DATA_DIR` if set
 - [ ] FR-1.2 Detect OS type (Darwin/Linux/Windows)
 - [ ] FR-1.3 Use `~/.synapse/data` on Mac
 - [ ] FR-1.4 Use `/opt/synapse/data` on Linux (if writable)

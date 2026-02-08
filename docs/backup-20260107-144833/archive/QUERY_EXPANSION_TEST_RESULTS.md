@@ -278,7 +278,7 @@ Query expansion significantly improves retrieval quality, exceeding the 15% targ
    - A/B testing framework
 
 3. **Orchestrator Integration** (1-2 hours)
-   - Update RAGOrchestrator to use SemanticRetriever
+   - Update Orchestrator to use SemanticRetriever
    - Make expansion default in orchestrator
    - Expose configuration to API
 

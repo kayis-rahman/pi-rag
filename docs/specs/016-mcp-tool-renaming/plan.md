@@ -154,7 +154,7 @@ OpenCode → MCP Request → http_wrapper.py
 - Starlette (already installed)
 
 ### Internal
-- `mcp_server.rag_server.RAGMemoryBackend`
+- `mcp_server.rag_server.MemoryBackend`
 - `synapse.config.config.get_shortname()`
 
 ---

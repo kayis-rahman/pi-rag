@@ -105,12 +105,12 @@ Update your imports:
 ```python
 # Before
 from rag.logger import get_logger
-from rag.orchestrator import RAGOrchestrator
+from rag.orchestrator import Orchestrator
 import rag
 
 # After
 from core.logger import get_logger
-from core.orchestrator import RAGOrchestrator
+from core.orchestrator import Orchestrator
 import core
 ```
 

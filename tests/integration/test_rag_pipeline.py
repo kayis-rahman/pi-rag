@@ -7,11 +7,11 @@ Tests cover ingest → retrieve → generate workflow.
 import pytest
 from pathlib import Path
 from core.ingest import chunk_text
-from core.orchestrator import RAGOrchestrator
+from core.orchestrator import Orchestrator
 
 
 @pytest.mark.integration
-class TestRAGOrchestrator:
+class TestOrchestrator:
     """Test RAG orchestrator integration."""
 
     def test_orchestrator_initialization(self, temp_dir):
@@ -30,7 +30,7 @@ class TestRAGOrchestrator:
         config_path.write_text(json.dumps(config, indent=2))
 
         # Test initialization
-        orchestrator = RAGOrchestrator(config_path=str(config_path))
+        orchestrator = Orchestrator(config_path=str(config_path))
 
         assert orchestrator is not None, "RAG orchestrator should be initialized"
 
@@ -115,6 +115,6 @@ class TestRAGOrchestrator:
         config_path.write_text(json.dumps(config, indent=2))
 
         # Test initialization with RAG disabled
-        orchestrator = RAGOrchestrator(config_path=str(config_path))
+        orchestrator = Orchestrator(config_path=str(config_path))
 
         assert orchestrator is not None, "Orchestrator should initialize even with RAG disabled"

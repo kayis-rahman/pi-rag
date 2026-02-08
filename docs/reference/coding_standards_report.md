@@ -296,7 +296,7 @@ asyncio.create_task(self._delete_upload_file_async(real_path))
 - Descriptive names with business domain terms
 
 ```python
-class RAGOrchestrator:
+class Orchestrator:
 class MemoryStore:
 class EpisodicStore:
 class SemanticStore:
@@ -316,7 +316,7 @@ def _load_config(self) -> None:
 def _get_symbolic_store(self) -> MemoryStore:
 def _register_chat_model(self) -> None:
 def set_chat_model(self, model_path: str, model_name: str = "chat") -> None:
-def get_orchestrator(config_path: str = "./configs/rag_config.json") -> RAGOrchestrator:
+def get_orchestrator(config_path: str = "./configs/rag_config.json") -> Orchestrator:
 def store_memory(self, fact: MemoryFact) -> MemoryFact:
 def analyze_conversation(self, user_message: str, agent_response: str):
 ```
@@ -396,12 +396,12 @@ Features:
 
 ### Class Docstring Pattern
 ```python
-class RAGOrchestrator:
+class Orchestrator:
     """
     Orchestrates RAG pipeline: retrieval + LLM generation.
     
     Usage:
-        orchestrator = RAGOrchestrator(config_path="./configs/rag_config.json")
+        orchestrator = Orchestrator(config_path="./configs/rag_config.json")
         response = orchestrator.chat(
             messages=[{"role": "user", "content": "How does auth work?"}]
         )
@@ -519,7 +519,7 @@ LOG_LEVEL
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_environment():
     """Global test environment setup."""
-    os.environ["RAG_TEST_MODE"] = "true"
+    os.environ["SYNAPSE_TEST_MODE"] = "true"
     yield
     # Cleanup
     pass

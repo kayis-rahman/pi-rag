@@ -20,7 +20,7 @@
 **Solution**:
 1. Modified `mcp_server/rag_server.py` to use OS-aware data directory detection
 2. Modified `mcp_server/project_manager.py` to use OS-aware data directory
-3. Added environment variable support (`RAG_DATA_DIR`)
+3. Added environment variable support (`SYNAPSE_DATA_DIR`)
 4. Implemented OS-specific defaults:
    - macOS: `~/.synapse/data`
    - Linux: `/opt/synapse/data` (if writable) else `~/.synapse/data`
@@ -46,7 +46,7 @@
 
 **Solution**:
 1. Added `check_server_already_running()` function with health endpoint check
-2. Added `RAG_DATA_DIR` environment variable setting in `start_native()`
+2. Added `SYNAPSE_DATA_DIR` environment variable setting in `start_native()`
 3. Added OS-aware data directory logic to CLI
 4. Improved error messages and user feedback
 
@@ -114,7 +114,7 @@
 1. **`synapse/cli/commands/start.py`** (+25 lines)
    - Added `check_server_already_running()` function
    - Added OS-aware data directory logic
-   - Set `RAG_DATA_DIR` environment variable
+   - Set `SYNAPSE_DATA_DIR` environment variable
    - Added health endpoint check
 
 2. **`synapse/cli/commands/stop.py`** (+65 lines)
@@ -211,7 +211,7 @@
 ### Start MCP Server
 ```bash
 # Manual (with environment variables)
-RAG_DATA_DIR=~/.synapse/data RAG_CONFIG_PATH=/Users/kayisrahman/Documents/workspace/ideas/synapse/configs/rag_config.json \
+SYNAPSE_DATA_DIR=~/.synapse/data SYNAPSE_CONFIG_PATH=/Users/kayisrahman/Documents/workspace/ideas/synapse/configs/rag_config.json \
 python3 -m mcp_server.http_wrapper > /tmp/synapse.log 2>&1 &
 
 # Using CLI (auto-sets environment)

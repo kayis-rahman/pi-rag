@@ -194,7 +194,7 @@
 - [ ] Implement `test_cache_key_generation()` - Verify cache keys
 
 **Acceptance Criteria**:
-- All tests pass with `RAG_TEST_MODE=true`
+- All tests pass with `SYNAPSE_TEST_MODE=true`
 - Coverage for `embedding.py` is ≥80%
 
 #### 2.5 Retrieval System Tests
@@ -218,7 +218,7 @@
 
 #### 2.6 RAG Orchestrator Tests
 **File**: `tests/unit/test_orchestrator.py`
-- 9 test methods for RAGOrchestrator class
+- 9 test methods for Orchestrator class
 - Tests cover chat, streaming, context injection
 
 **Tasks**:
@@ -502,8 +502,8 @@ pytest --cov=rag --cov=synapse --cov-report=html
 
 #### CI/CD Pipeline
 ```bash
-# Run all tests with RAG_TEST_MODE=true
-RAG_TEST_MODE=true pytest
+# Run all tests with SYNAPSE_TEST_MODE=true
+SYNAPSE_TEST_MODE=true pytest
 
 # Upload coverage to Codecov
 codecov -t $CODECOV_TOKEN
@@ -526,7 +526,7 @@ codecov -t $CODECOV_TOKEN
 ### Mocking Strategy
 
 #### What to Mock
-- Embedding models (use `RAG_TEST_MODE=true`)
+- Embedding models (use `SYNAPSE_TEST_MODE=true`)
 - LLM generation (return mock responses)
 - External APIs (use `responses` library)
 - File system (use `tmp_path` fixture)
@@ -578,7 +578,7 @@ codecov -t $CODECOV_TOKEN
 #### 1. Slow Tests
 **Risk**: Tests taking too long due to model loading
 **Mitigation**:
-- Use `RAG_TEST_MODE=true` for mock embeddings
+- Use `SYNAPSE_TEST_MODE=true` for mock embeddings
 - Mark slow tests with `@pytest.mark.slow`
 - Skip model-dependent tests in CI unless explicitly requested
 
@@ -603,7 +603,7 @@ codecov -t $CODECOV_TOKEN
 **Mitigation**:
 - Use Docker containers for CI/CD
 - Pin dependency versions
-- Use `RAG_TEST_MODE=true` in CI
+- Use `SYNAPSE_TEST_MODE=true` in CI
 - Separate CI runs for different test types
 
 ---

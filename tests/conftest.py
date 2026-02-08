@@ -32,7 +32,7 @@ def setup_test_environment():
     Ensures test mode is enabled for fast tests.
     """
     # Enable test mode for mock embeddings (fast tests)
-    os.environ["RAG_TEST_MODE"] = "true"
+    os.environ["SYNAPSE_TEST_MODE"] = "true"
 
     # Set test database paths
     os.environ["TEST_MODE"] = "true"

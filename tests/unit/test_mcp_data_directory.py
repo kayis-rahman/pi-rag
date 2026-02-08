@@ -28,8 +28,8 @@ class TestMCPDataDirectory:
         mock_access.return_value = True
         
         # Import after patching
-        from mcp_server.synapse_server import RAGMemoryBackend
-        backend = RAGMemoryBackend()
+        from mcp_server.synapse_server import MemoryBackend
+        backend = MemoryBackend()
         
         # Test the method
         data_dir = backend._get_data_dir()
@@ -48,8 +48,8 @@ class TestMCPDataDirectory:
         mock_exists.return_value = True  # Config file exists
         mock_access.return_value = True  # Path is writable
         
-        from mcp_server.synapse_server import RAGMemoryBackend
-        backend = RAGMemoryBackend()
+        from mcp_server.synapse_server import MemoryBackend
+        backend = MemoryBackend()
         
         # Test the method
         data_dir = backend._get_data_dir()
@@ -67,8 +67,8 @@ class TestMCPDataDirectory:
         mock_exists.return_value = True
         mock_access.return_value = False  # Path NOT writable
         
-        from mcp_server.synapse_server import RAGMemoryBackend
-        backend = RAGMemoryBackend()
+        from mcp_server.synapse_server import MemoryBackend
+        backend = MemoryBackend()
         
         # Test the method
         data_dir = backend._get_data_dir()
@@ -87,8 +87,8 @@ class TestMCPDataDirectory:
         mock_exists.return_value = False
         mock_access.return_value = True
         
-        from mcp_server.synapse_server import RAGMemoryBackend
-        backend = RAGMemoryBackend()
+        from mcp_server.synapse_server import MemoryBackend
+        backend = MemoryBackend()
         
         # Test the method
         data_dir = backend._get_data_dir()
@@ -99,14 +99,14 @@ class TestMCPDataDirectory:
     
     @patch('mcp_server.synapse_server.os.environ.get')
     def test_environment_variable_override(self, mock_env):
-        """Test that RAG_DATA_DIR environment variable takes priority"""
+        """Test that SYNAPSE_DATA_DIR environment variable takes priority"""
         # Set environment variable
         mock_env.side_effect = lambda key, default: {
-            "RAG_DATA_DIR": "/custom/test/path"
+            "SYNAPSE_DATA_DIR": "/custom/test/path"
         }.get(key, default)
         
-        from mcp_server.synapse_server import RAGMemoryBackend
-        backend = RAGMemoryBackend()
+        from mcp_server.synapse_server import MemoryBackend
+        backend = MemoryBackend()
         
         # Test the method
         data_dir = backend._get_data_dir()
@@ -122,8 +122,8 @@ class TestMCPDataDirectory:
         mock_exists.return_value = True
         mock_file.return_value.__enter__.return_value.read.return_value = '{"data_dir": "/config/path"}'
         
-        from mcp_server.synapse_server import RAGMemoryBackend
-        backend = RAGMemoryBackend()
+        from mcp_server.synapse_server import MemoryBackend
+        backend = MemoryBackend()
         
         # Test the method
         data_dir = backend._get_data_dir()
@@ -139,8 +139,8 @@ class TestMCPDataDirectory:
         mock_exists.return_value = True
         mock_file.return_value.__enter__.return_value.read.return_value = '{"index_path": "/some/path/index.json"}'
         
-        from mcp_server.synapse_server import RAGMemoryBackend
-        backend = RAGMemoryBackend()
+        from mcp_server.synapse_server import MemoryBackend
+        backend = MemoryBackend()
         
         # Test the method
         data_dir = backend._get_data_dir()
@@ -177,7 +177,7 @@ class TestProjectManagerDataDirectory:
     def test_project_manager_env_override(self, mock_env):
         """Test that ProjectManager respects environment variable"""
         mock_env.side_effect = lambda key, default: {
-            "RAG_DATA_DIR": "/env/override/path"
+            "SYNAPSE_DATA_DIR": "/env/override/path"
         }.get(key, default)
         
         from mcp_server.project_manager import ProjectManager

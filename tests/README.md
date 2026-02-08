@@ -100,7 +100,7 @@ pytest -m "not slow"
 
 ```bash
 # Use mock embeddings for fast tests (no model loading)
-RAG_TEST_MODE=true pytest
+SYNAPSE_TEST_MODE=true pytest
 ```
 
 ### Coverage Reports
@@ -211,7 +211,7 @@ class TestMemoryStore:
 
 ```python
 import pytest
-from core.orchestrator import RAGOrchestrator
+from core.orchestrator import Orchestrator
 
 @pytest.mark.integration
 class TestRAGPipeline:
@@ -219,7 +219,7 @@ class TestRAGPipeline:
 
     def test_ingest_retrieve_generate(self, temp_dir, mock_embedding_service):
         """Test full RAG workflow."""
-        orchestrator = RAGOrchestrator(config_path=str(temp_dir / "config.json"))
+        orchestrator = Orchestrator(config_path=str(temp_dir / "config.json"))
         # ... test implementation
 ```
 
@@ -248,7 +248,7 @@ class TestCLIWorkflows:
 ### Tests failing with model loading errors
 ```bash
 # Enable test mode to use mock embeddings
-RAG_TEST_MODE=true pytest
+SYNAPSE_TEST_MODE=true pytest
 ```
 
 ### Coverage report not generating

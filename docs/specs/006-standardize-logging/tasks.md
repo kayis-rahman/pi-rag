@@ -28,7 +28,7 @@
   - Add logger imports
   - Remove all emojis
   - Replace prints with `logger.warning()`, `logger.info()`, `logger.debug()`
-  - Test: Run ingestion with RAG_TEST_MODE
+  - Test: Run ingestion with SYNAPSE_TEST_MODE
 
 - [x] Task 2.4: Update `core/semantic_store.py` (2 prints)
   - Add logger imports

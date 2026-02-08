@@ -12,7 +12,7 @@ import pytest
 def test_pytest_config_exists():
     """Verify pytest configuration is loaded."""
     import os
-    assert os.environ.get("RAG_TEST_MODE") == "true", "Test mode should be enabled"
+    assert os.environ.get("SYNAPSE_TEST_MODE") == "true", "Test mode should be enabled"
 
 
 @pytest.mark.unit
@@ -134,7 +134,7 @@ def test_import_rag_modules():
         from core.semantic_store import SemanticStore, DocumentChunk
         from core.embedding import EmbeddingService
         from core.retriever import Retriever
-        from core.orchestrator import RAGOrchestrator
+        from core.orchestrator import Orchestrator
     except ImportError as e:
         pytest.fail(f"Failed to import RAG modules: {e}")
 

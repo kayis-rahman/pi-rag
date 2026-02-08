@@ -11,22 +11,22 @@
 ```
 Before:
 ├── Classes:
-│   ├── RAGOrchestrator
-│   ├── RAGMemoryBackend
-│   └── TestRAGOrchestrator*
+│   ├── Orchestrator
+│   ├── MemoryBackend
+│   └── TestOrchestrator*
 │
 ├── Environment Variables:
-│   ├── RAG_DATA_DIR
-│   ├── RAG_CONFIG_PATH
-│   ├── RAG_ENV
-│   ├── RAG_TEST_MODE
-│   ├── RAG_REMOTE_UPLOAD_ENABLED
-│   ├── RAG_UPLOAD_DIR
-│   ├── RAG_UPLOAD_MAX_AGE
-│   └── RAG_UPLOAD_MAX_SIZE
+│   ├── SYNAPSE_DATA_DIR
+│   ├── SYNAPSE_CONFIG_PATH
+│   ├── SYNAPSE_ENV
+│   ├── SYNAPSE_TEST_MODE
+│   ├── SYNAPSE_REMOTE_UPLOAD_ENABLED
+│   ├── SYNAPSE_UPLOAD_DIR
+│   ├── SYNAPSE_UPLOAD_MAX_AGE
+│   └── SYNAPSE_UPLOAD_MAX_SIZE
 │
 └── Constants:
-    └── RAG_HEADER
+    └── SYNAPSE_HEADER
 
 After:
 ├── Classes:
@@ -63,70 +63,70 @@ After:
 **Commands:**
 ```bash
 # Class definitions
-sed -i '' 's/class RAGOrchestrator:/class Orchestrator:/g' core/orchestrator.py
-sed -i '' 's/class RAGMemoryBackend:/class MemoryBackend:/g' mcp_server/synapse_server.py
+sed -i '' 's/class Orchestrator:/class Orchestrator:/g' core/orchestrator.py
+sed -i '' 's/class MemoryBackend:/class MemoryBackend:/g' mcp_server/synapse_server.py
 
 # Update all references in codebase
-find . -name "*.py" -exec sed -i '' 's/RAGOrchestrator/Orchestrator/g' {} +
-find . -name "*.py" -exec sed -i '' 's/RAGMemoryBackend/MemoryBackend/g' {} +
-find . -name "*.py" -exec sed -i '' 's/RAG_HEADER/CONTEXT_HEADER/g' {} +
+find . -name "*.py" -exec sed -i '' 's/Orchestrator/Orchestrator/g' {} +
+find . -name "*.py" -exec sed -i '' 's/MemoryBackend/MemoryBackend/g' {} +
+find . -name "*.py" -exec sed -i '' 's/SYNAPSE_HEADER/CONTEXT_HEADER/g' {} +
 ```
 
 ### Phase 2: Environment Variable Renames
 
 **Priority 1: Core env vars (used everywhere)**
 ```bash
-find . -name "*.py" -exec sed -i '' 's/RAG_DATA_DIR/SYNAPSE_DATA_DIR/g' {} +
-find . -name "*.py" -exec sed -i '' 's/RAG_CONFIG_PATH/SYNAPSE_CONFIG_PATH/g' {} +
-find . -name "*.py" -exec sed -i '' 's/RAG_ENV/SYNAPSE_ENV/g' {} +
-find . -name "*.py" -exec sed -i '' 's/RAG_TEST_MODE/SYNAPSE_TEST_MODE/g' {} +
+find . -name "*.py" -exec sed -i '' 's/SYNAPSE_DATA_DIR/SYNAPSE_DATA_DIR/g' {} +
+find . -name "*.py" -exec sed -i '' 's/SYNAPSE_CONFIG_PATH/SYNAPSE_CONFIG_PATH/g' {} +
+find . -name "*.py" -exec sed -i '' 's/SYNAPSE_ENV/SYNAPSE_ENV/g' {} +
+find . -name "*.py" -exec sed -i '' 's/SYNAPSE_TEST_MODE/SYNAPSE_TEST_MODE/g' {} +
 ```
 
 **Priority 2: Upload-related env vars**
 ```bash
-find . -name "*.py" -exec sed -i '' 's/RAG_REMOTE_UPLOAD_ENABLED/SYNAPSE_REMOTE_UPLOAD_ENABLED/g' {} +
-find . -name "*.py" -exec sed -i '' 's/RAG_UPLOAD_DIR/SYNAPSE_UPLOAD_DIR/g' {} +
-find . -name "*.py" -exec sed -i '' 's/RAG_UPLOAD_MAX_AGE/SYNAPSE_UPLOAD_MAX_AGE/g' {} +
-find . -name "*.py" -exec sed -i '' 's/RAG_UPLOAD_MAX_SIZE/SYNAPSE_UPLOAD_MAX_SIZE/g' {} +
+find . -name "*.py" -exec sed -i '' 's/SYNAPSE_REMOTE_UPLOAD_ENABLED/SYNAPSE_REMOTE_UPLOAD_ENABLED/g' {} +
+find . -name "*.py" -exec sed -i '' 's/SYNAPSE_UPLOAD_DIR/SYNAPSE_UPLOAD_DIR/g' {} +
+find . -name "*.py" -exec sed -i '' 's/SYNAPSE_UPLOAD_MAX_AGE/SYNAPSE_UPLOAD_MAX_AGE/g' {} +
+find . -name "*.py" -exec sed -i '' 's/SYNAPSE_UPLOAD_MAX_SIZE/SYNAPSE_UPLOAD_MAX_SIZE/g' {} +
 ```
 
 ### Phase 3: Documentation Updates
 
 **Update all markdown files:**
 ```bash
-find docs/ -name "*.md" -o -name "*.mdx" | xargs sed -i '' 's/RAG_DATA_DIR/SYNAPSE_DATA_DIR/g'
-find docs/ -name "*.md" -o -name "*.mdx" | xargs sed -i '' 's/RAG_CONFIG_PATH/SYNAPSE_CONFIG_PATH/g'
+find docs/ -name "*.md" -o -name "*.mdx" | xargs sed -i '' 's/SYNAPSE_DATA_DIR/SYNAPSE_DATA_DIR/g'
+find docs/ -name "*.md" -o -name "*.mdx" | xargs sed -i '' 's/SYNAPSE_CONFIG_PATH/SYNAPSE_CONFIG_PATH/g'
 # ... repeat for all env vars
 
 # Update class references in docs
-find docs/ -name "*.md" -o -name "*.mdx" | xargs sed -i '' 's/RAGOrchestrator/Orchestrator/g'
-find docs/ -name "*.md" -o -name "*.mdx" | xargs sed -i '' 's/RAGMemoryBackend/MemoryBackend/g'
+find docs/ -name "*.md" -o -name "*.mdx" | xargs sed -i '' 's/Orchestrator/Orchestrator/g'
+find docs/ -name "*.md" -o -name "*.mdx" | xargs sed -i '' 's/MemoryBackend/MemoryBackend/g'
 ```
 
 ### Phase 4: Configuration Files
 
 **Docker Compose:**
 ```bash
-sed -i '' 's/RAG_/SYNAPSE_/g' docker-compose.yml
-sed -i '' 's/RAG_/SYNAPSE_/g' docker-compose.override.yml
+sed -i '' 's/SYNAPSE_/SYNAPSE_/g' docker-compose.yml
+sed -i '' 's/SYNAPSE_/SYNAPSE_/g' docker-compose.override.yml
 ```
 
 **Config JSONs (if any hardcoded):**
 ```bash
-sed -i '' 's/RAG_/SYNAPSE_/g' configs/*.json
+sed -i '' 's/SYNAPSE_/SYNAPSE_/g' configs/*.json
 ```
 
 **pyproject.toml:**
 ```bash
-sed -i '' 's/RAG_/SYNAPSE_/g' pyproject.toml
+sed -i '' 's/SYNAPSE_/SYNAPSE_/g' pyproject.toml
 ```
 
 ### Phase 5: Test Class Renames
 
 ```bash
 # Update test class names
-sed -i '' 's/TestRAGOrchestrator/TestOrchestrator/g' tests/unit/rag/test_orchestrator.py
-sed -i '' 's/TestRAGOrchestrator/TestOrchestrator/g' tests/integration/test_rag_pipeline.py
+sed -i '' 's/TestOrchestrator/TestOrchestrator/g' tests/unit/rag/test_orchestrator.py
+sed -i '' 's/TestOrchestrator/TestOrchestrator/g' tests/integration/test_rag_pipeline.py
 ```
 
 ## Files Modified Summary
@@ -158,10 +158,10 @@ python -c "import os; os.environ['SYNAPSE_DATA_DIR'] = '/test'; print('✓ Env v
 ### Final Validation:
 ```bash
 # Check no old references remain
-grep -r "RAGOrchestrator\|RAGMemoryBackend" --include="*.py" . | grep -v ".git" | wc -l
+grep -r "Orchestrator\|MemoryBackend" --include="*.py" . | grep -v ".git" | wc -l
 # Expected: 0
 
-grep -r "RAG_DATA_DIR\|RAG_CONFIG_PATH" --include="*.py" . | grep -v ".git" | wc -l
+grep -r "SYNAPSE_DATA_DIR\|SYNAPSE_CONFIG_PATH" --include="*.py" . | grep -v ".git" | wc -l
 # Expected: 0
 
 # Run tests
@@ -190,10 +190,10 @@ Update your environment files:
 
 ```bash
 # Old → New
-RAG_DATA_DIR → SYNAPSE_DATA_DIR
-RAG_CONFIG_PATH → SYNAPSE_CONFIG_PATH
-RAG_ENV → SYNAPSE_ENV
-RAG_TEST_MODE → SYNAPSE_TEST_MODE
+SYNAPSE_DATA_DIR → SYNAPSE_DATA_DIR
+SYNAPSE_CONFIG_PATH → SYNAPSE_CONFIG_PATH
+SYNAPSE_ENV → SYNAPSE_ENV
+SYNAPSE_TEST_MODE → SYNAPSE_TEST_MODE
 ```
 
 ## Docker Compose
@@ -212,8 +212,8 @@ Update your Python code:
 
 ```python
 # Old
-from core.orchestrator import RAGOrchestrator
-from mcp_server.synapse_server import RAGMemoryBackend
+from core.orchestrator import Orchestrator
+from mcp_server.synapse_server import MemoryBackend
 
 # New
 from core.orchestrator import Orchestrator
@@ -224,13 +224,13 @@ from mcp_server.synapse_server import MemoryBackend
 
 ```bash
 # Update environment variables
-export SYNAPSE_DATA_DIR="$RAG_DATA_DIR"
-export SYNAPSE_CONFIG_PATH="$RAG_CONFIG_PATH"
-unset RAG_DATA_DIR RAG_CONFIG_PATH
+export SYNAPSE_DATA_DIR="$SYNAPSE_DATA_DIR"
+export SYNAPSE_CONFIG_PATH="$SYNAPSE_CONFIG_PATH"
+unset SYNAPSE_DATA_DIR SYNAPSE_CONFIG_PATH
 
 # Update your scripts
-find . -name "*.py" -exec sed -i '' 's/RAGOrchestrator/Orchestrator/g' {} +
-find . -name "*.py" -exec sed -i '' 's/RAGMemoryBackend/MemoryBackend/g' {} +
+find . -name "*.py" -exec sed -i '' 's/Orchestrator/Orchestrator/g' {} +
+find . -name "*.py" -exec sed -i '' 's/MemoryBackend/MemoryBackend/g' {} +
 ```
 ```
 

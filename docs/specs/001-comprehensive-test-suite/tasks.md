@@ -164,11 +164,11 @@ This document contains granular task breakdown for implementation of comprehensi
 ### 3.1 Critical RAG Module Tests
 
 - [x] Create tests/unit/core/test_orchestrator.py with 22 tests (Linked to FR-2)
-  - [x] TestRAGOrchestratorInitialization (4 tests)
-  - [x] TestRAGOrchestratorChat (8 tests)
-  - [x] TestRAGOrchestratorContextInjection (3 tests)
-  - [x] TestRAGOrchestratorModelManagement (3 tests)
-  - [x] TestRAGOrchestratorErrorHandling (3 tests)
+  - [x] TestOrchestratorInitialization (4 tests)
+  - [x] TestOrchestratorChat (8 tests)
+  - [x] TestOrchestratorContextInjection (3 tests)
+  - [x] TestOrchestratorModelManagement (3 tests)
+  - [x] TestOrchestratorErrorHandling (3 tests)
 
 - [x] Create tests/unit/core/test_vectorstore_factory.py with 24 tests (Linked to FR-2)
   - [x] TestVectorStoreFactory (8 tests)

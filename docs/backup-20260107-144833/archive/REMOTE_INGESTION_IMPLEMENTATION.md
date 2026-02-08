@@ -81,7 +81,7 @@
 
 **Priority**:
 1. Config file: `index_path` or `memory_db_path` from `rag_config.json`
-2. Environment: `RAG_DATA_DIR` (fallback)
+2. Environment: `SYNAPSE_DATA_DIR` (fallback)
 
 **Result**: `/opt/pi-core/data/` correctly used
 
@@ -155,16 +155,16 @@ cp my-project/README.md /tmp/rag-uploads/
 
 ```bash
 # Enable remote uploads
-export RAG_REMOTE_UPLOAD_ENABLED=true
+export SYNAPSE_REMOTE_UPLOAD_ENABLED=true
 
 # Set upload directory
-export RAG_UPLOAD_DIR=/tmp/rag-uploads
+export SYNAPSE_UPLOAD_DIR=/tmp/rag-uploads
 
 # Set max file age (cleanup)
-export RAG_UPLOAD_MAX_AGE=3600
+export SYNAPSE_UPLOAD_MAX_AGE=3600
 
 # Set max file size (MB)
-export RAG_UPLOAD_MAX_SIZE=50
+export SYNAPSE_UPLOAD_MAX_SIZE=50
 ```
 
 ---
@@ -173,7 +173,7 @@ export RAG_UPLOAD_MAX_SIZE=50
 
 ### Upload Directory
 - **Default**: `/tmp/rag-uploads`
-- **Configurable**: Via `RAG_UPLOAD_DIR` environment variable
+- **Configurable**: Via `SYNAPSE_UPLOAD_DIR` environment variable
 - **Permissions**: `0o700` (owner read/write only)
 
 ### File Limits

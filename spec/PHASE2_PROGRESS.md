@@ -337,7 +337,7 @@ pytest tests/unit/ --pdb
 |------|--------|------------|--------|
 | Failing tests due to API mismatch | High | Review implementations, update tests | 🔴 In Progress |
 | Low coverage for critical modules | Medium | Create more tests | 🟡 Pending |
-| Tests too slow | Low | Use `RAG_TEST_MODE=true` | ✅ Implemented |
+| Tests too slow | Low | Use `SYNAPSE_TEST_MODE=true` | ✅ Implemented |
 | Flaky tests | Medium | Use fixtures, avoid delays | ⏳ To Verify |
 
 ---

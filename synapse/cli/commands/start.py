@@ -119,7 +119,7 @@ def start_native(port: int = 8002) -> bool:
 
     # Set environment for native mode
     env = os.environ.copy()
-    env["RAG_ENV"] = "native"
+    env["SYNAPSE_ENV"] = "native"
 
     # Set OS-aware data directory
     import platform
@@ -134,7 +134,7 @@ def start_native(port: int = 8002) -> bool:
     else:  # Windows and others
         data_dir = os.path.expanduser("~/.synapse/data")
 
-    env["RAG_DATA_DIR"] = data_dir
+    env["SYNAPSE_DATA_DIR"] = data_dir
     print(f"  Data directory: {data_dir}")
 
     # Find the config file - search in multiple locations
@@ -157,7 +157,7 @@ def start_native(port: int = 8002) -> bool:
             print(f"   - {p}")
         return False
 
-    env["RAG_CONFIG_PATH"] = config_path
+    env["SYNAPSE_CONFIG_PATH"] = config_path
 
     # Pass port to HTTP server via environment variable
     env["MCP_PORT"] = str(port)

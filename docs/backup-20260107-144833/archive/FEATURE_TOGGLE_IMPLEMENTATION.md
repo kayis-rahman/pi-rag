@@ -93,7 +93,7 @@ def _inject_context(self, messages, context, memory_context=""):
 **3.1 Added config loading at module level (line ~42)**
 ```python
 # Load RAG config once at module level for performance
-_config_path = os.environ.get("RAG_CONFIG_PATH", "/home/dietpi/pi-core/configs/rag_config.json")
+_config_path = os.environ.get("SYNAPSE_CONFIG_PATH", "/home/dietpi/pi-core/configs/rag_config.json")
 with open(_config_path, 'r') as f:
     _rag_config = json.load(f)
 _file_path_mode_enabled = _rag_config.get("file_path_mode_enabled", False)
@@ -253,7 +253,7 @@ result == test_messages  # True
 
 ```python
 # Load orchestrator
-orch = RAGOrchestrator()
+orch = Orchestrator()
 
 # Verify flags loaded
 orch.file_path_mode_enabled      # False
@@ -364,8 +364,8 @@ bash /home/dietpi/pi-core/start_http_server.sh
 **Not implemented** - Could add in future:
 
 ```bash
-export RAG_FILE_PATH_MODE_ENABLED=true
-export RAG_CONTEXT_INJECTION_ENABLED=false
+export SYNAPSE_FILE_PATH_MODE_ENABLED=true
+export SYNAPSE_CONTEXT_INJECTION_ENABLED=false
 ```
 
 ---

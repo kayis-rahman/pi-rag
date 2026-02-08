@@ -315,7 +315,7 @@ class QueryGenerator:
 @pytest.fixture(scope="session")
 def test_environment():
     """Set up test environment variables."""
-    os.environ["RAG_TEST_MODE"] = "true"
+    os.environ["SYNAPSE_TEST_MODE"] = "true"
     os.environ["TEST_MODE"] = "true"
     yield
     # Cleanup
@@ -380,10 +380,10 @@ def cli_runner():
 @pytest.fixture
 def orchestrator(temp_dir, mock_embedding_service):
     """Provide RAG orchestrator instance."""
-    from core.orchestrator import RAGOrchestrator
+    from core.orchestrator import Orchestrator
     config_path = temp_dir / "test_config.json"
     # Create test config
-    yield RAGOrchestrator(config_path=str(config_path))
+    yield Orchestrator(config_path=str(config_path))
     # Cleanup
 
 @pytest.fixture
@@ -447,7 +447,7 @@ class TestMemoryStore:
 
 ```python
 import pytest
-from core.orchestrator import RAGOrchestrator
+from core.orchestrator import Orchestrator
 from core.memory_store import MemoryStore
 
 @pytest.mark.integration
@@ -457,7 +457,7 @@ class TestRAGPipeline:
     def test_ingest_retrieve_generate(self, temp_dir, mock_embedding_service):
         """Test full RAG workflow."""
         # Arrange
-        orchestrator = RAGOrchestrator(config_path=str(temp_dir / "config.json"))
+        orchestrator = Orchestrator(config_path=str(temp_dir / "config.json"))
         test_doc = "This is a test document about authentication."
 
         # Act

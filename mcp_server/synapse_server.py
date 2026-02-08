@@ -75,7 +75,7 @@ warnings.warn(
 logger.warning("DEPRECATED: synapse_server.py is deprecated. Use mcp_server.http_wrapper instead.")
 
 
-class RAGMemoryBackend:
+class MemoryBackend:
     """
     Thin, stateless wrapper for RAG memory operations.
 
@@ -228,14 +228,14 @@ class RAGMemoryBackend:
         }
 
         # Load from environment variables (highest priority)
-        config["enabled"] = os.environ.get("RAG_REMOTE_UPLOAD_ENABLED", "true").lower() == "true"
-        config["directory"] = os.environ.get("RAG_UPLOAD_DIR", config["directory"])
-        config["max_age"] = int(os.environ.get("RAG_UPLOAD_MAX_AGE", str(config["max_age"])))
-        config["max_size_mb"] = int(os.environ.get("RAG_UPLOAD_MAX_SIZE", str(config["max_size_mb"])))
+        config["enabled"] = os.environ.get("SYNAPSE_REMOTE_UPLOAD_ENABLED", "true").lower() == "true"
+        config["directory"] = os.environ.get("SYNAPSE_UPLOAD_DIR", config["directory"])
+        config["max_age"] = int(os.environ.get("SYNAPSE_UPLOAD_MAX_AGE", str(config["max_age"])))
+        config["max_size_mb"] = int(os.environ.get("SYNAPSE_UPLOAD_MAX_SIZE", str(config["max_size_mb"])))
 
         # Load from config file (medium priority)
         try:
-            config_path = os.environ.get("RAG_CONFIG_PATH", "./configs/rag_config.json")
+            config_path = os.environ.get("SYNAPSE_CONFIG_PATH", "./configs/rag_config.json")
             if os.path.exists(config_path):
                 with open(config_path, 'r') as f:
                     file_config = json.load(f)
@@ -273,7 +273,7 @@ class RAGMemoryBackend:
         }
 
         try:
-            config_path = os.environ.get("RAG_CONFIG_PATH", "./configs/rag_config.json")
+            config_path = os.environ.get("SYNAPSE_CONFIG_PATH", "./configs/rag_config.json")
             if os.path.exists(config_path):
                 with open(config_path, 'r') as f:
                     file_config = json.load(f)
@@ -323,7 +323,7 @@ class RAGMemoryBackend:
         }
 
         try:
-            config_path = os.environ.get("RAG_CONFIG_PATH", "./configs/rag_config.json")
+            config_path = os.environ.get("SYNAPSE_CONFIG_PATH", "./configs/rag_config.json")
             if os.path.exists(config_path):
                 with open(config_path, 'r') as f:
                     file_config = json.load(f)
@@ -1597,7 +1597,7 @@ class RAGMemoryBackend:
 
 # Create MCP server
 server = Server("rag-memory-server")
-backend = RAGMemoryBackend()
+backend = MemoryBackend()
 
 
 # Define tools
@@ -2046,7 +2046,7 @@ async def main():
 
 if __name__ == "__main__":
     logger.info("Starting RAG MCP Server...")
-    logger.info(f"Data directory: {os.environ.get('RAG_DATA_DIR', '/app/data')}")
+    logger.info(f"Data directory: {os.environ.get('SYNAPSE_DATA_DIR', '/app/data')}")
     logger.info(f"Log level: {os.environ.get('LOG_LEVEL', 'INFO')}")
     logger.info(f"Available tools: {len(tools)}")
 

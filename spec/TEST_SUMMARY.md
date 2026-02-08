@@ -118,7 +118,7 @@ pytest
 pytest --cov=rag --cov=synapse --cov=mcp_server --cov-report=html
 
 # Run with mock embeddings (fast)
-RAG_TEST_MODE=true pytest
+SYNAPSE_TEST_MODE=true pytest
 
 # Skip slow tests
 pytest -m "not slow"
@@ -138,7 +138,7 @@ open htmlcov/index.html
 ## Key Features
 
 ### Test Mode for Fast Execution
-- `RAG_TEST_MODE=true` environment variable enables mock embeddings
+- `SYNAPSE_TEST_MODE=true` environment variable enables mock embeddings
 - Mock embeddings return consistent vectors: `[0.1] * 768`
 - Enables fast test execution without loading actual models
 
@@ -262,7 +262,7 @@ open htmlcov/index.html
 
 | Risk | Impact | Mitigation |
 |------|--------|------------|
-| Slow tests due to model loading | High | Use `RAG_TEST_MODE=true` for mock embeddings |
+| Slow tests due to model loading | High | Use `SYNAPSE_TEST_MODE=true` for mock embeddings |
 | Flaky tests | Medium | Use fixtures, avoid hard-coded delays |
 | Coverage gaps | Medium | Focus on critical paths, document untestable code |
 | CI/CD failures | Medium | Use Docker, pin dependencies, separate test types |

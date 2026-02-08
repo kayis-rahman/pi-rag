@@ -126,7 +126,7 @@ FileNotFoundError: [Errno 2] No such file or directory: '/app/configs/rag_config
 **Root Cause**:
 Line 105 in `synapse/cli/commands/start.py`:
 ```python
-env["RAG_CONFIG_PATH"] = str(Path.cwd() / "configs" / "rag_config.json")
+env["SYNAPSE_CONFIG_PATH"] = str(Path.cwd() / "configs" / "rag_config.json")
 ```
 `Path.cwd()` may not resolve to the correct location depending on execution context (e.g., when called from different directories or by different tools).
 
@@ -152,7 +152,7 @@ if config_path is None:
         print(f"   - {p}")
     return False
 
-env["RAG_CONFIG_PATH"] = config_path
+env["SYNAPSE_CONFIG_PATH"] = config_path
 ```
 
 **Code Changes**:

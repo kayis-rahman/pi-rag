@@ -54,7 +54,7 @@ class ProjectManager:
         Get data directory with OS-aware detection.
         
         Priority:
-        1. Environment variable (RAG_DATA_DIR)
+        1. Environment variable (SYNAPSE_DATA_DIR)
         2. Config file (data_dir or index_path)
         3. OS-specific defaults:
            - macOS: ~/.synapse/data
@@ -64,14 +64,14 @@ class ProjectManager:
         import platform
         
         # Priority 1: Environment variable
-        if "RAG_DATA_DIR" in os.environ:
-            data_dir = os.environ["RAG_DATA_DIR"]
+        if "SYNAPSE_DATA_DIR" in os.environ:
+            data_dir = os.environ["SYNAPSE_DATA_DIR"]
             logger.info(f"Using data directory from environment: {data_dir}")
             return data_dir
         
         # Priority 2: Config file
         try:
-            config_path = os.environ.get("RAG_CONFIG_PATH", "./configs/rag_config.json")
+            config_path = os.environ.get("SYNAPSE_CONFIG_PATH", "./configs/rag_config.json")
             if os.path.exists(config_path):
                 with open(config_path, 'r') as f:
                     config = json.load(f)

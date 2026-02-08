@@ -134,7 +134,7 @@ lsof -i :8002
 kill [PID]
 
 # Or use different port
-export RAG_API_PORT=8080
+export SYNAPSE_API_PORT=8080
 synapse start
 ```
 

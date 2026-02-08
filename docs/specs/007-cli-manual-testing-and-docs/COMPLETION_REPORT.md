@@ -110,7 +110,7 @@
        print(f"❌ Error: Cannot find rag_config.json")
        return False
    
-   env["RAG_CONFIG_PATH"] = config_path
+   env["SYNAPSE_CONFIG_PATH"] = config_path
    ```
 
 2. Lines 133-165: Enhanced error handling with stderr/stdout details

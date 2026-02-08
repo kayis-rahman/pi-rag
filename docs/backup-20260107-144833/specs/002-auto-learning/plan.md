@@ -340,7 +340,7 @@ def extract_facts_from_code(self, file_path: str, file_content: str) -> List[dic
 ```python
 def _load_auto_learning_config(self) -> dict:
     """Load automatic learning configuration from rag_config.json."""
-    config_path = os.environ.get("RAG_CONFIG_PATH", "./configs/rag_config.json")
+    config_path = os.environ.get("SYNAPSE_CONFIG_PATH", "./configs/rag_config.json")
     
     try:
         with open(config_path, 'r') as f:

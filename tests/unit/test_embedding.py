@@ -79,7 +79,7 @@ class TestEmbeddingService:
         import os
 
         # Enable test mode
-        monkeypatch.setenv("RAG_TEST_MODE", "true")
+        monkeypatch.setenv("SYNAPSE_TEST_MODE", "true")
 
         # Create service
         service = EmbeddingService()

@@ -32,7 +32,7 @@ Fix critical bugs preventing full validation on Mac:
 
 ### Start MCP Server (with fixes)
 ```bash
-RAG_DATA_DIR=~/.synapse/data RAG_CONFIG_PATH=/Users/kayisrahman/Documents/workspace/ideas/synapse/configs/rag_config.json \
+SYNAPSE_DATA_DIR=~/.synapse/data SYNAPSE_CONFIG_PATH=/Users/kayisrahman/Documents/workspace/ideas/synapse/configs/rag_config.json \
 python3 -m mcp_server.http_wrapper > /tmp/synapse.log 2>&1 &
 ```
 
@@ -149,7 +149,7 @@ pytest tests/unit/test_server_management.py -v
 **Priority 3**: Test remaining MCP tools
 **Priority 4**: Complete Phase 5 validation
 
-**Start command**: `RAG_DATA_DIR=~/.synapse/data RAG_CONFIG_PATH=/Users/kayisrahman/Documents/workspace/ideas/synapse/configs/rag_config.json python3 -m mcp_server.http_wrapper`
+**Start command**: `SYNAPSE_DATA_DIR=~/.synapse/data SYNAPSE_CONFIG_PATH=/Users/kayisrahman/Documents/workspace/ideas/synapse/configs/rag_config.json python3 -m mcp_server.http_wrapper`
 
 **Branch**: `feature/011-fix-validation-blockers`
 

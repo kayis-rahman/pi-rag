@@ -146,7 +146,7 @@
 ```bash
 cd /Users/kayisrahman/Documents/workspace/ideas/synapse
 source venv/bin/activate
-export RAG_DATA_DIR=~/.synapse/data
+export SYNAPSE_DATA_DIR=~/.synapse/data
 synapse start
 ```
 

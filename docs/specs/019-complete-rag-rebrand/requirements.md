@@ -31,22 +31,22 @@ Complete rebrand of the codebase from RAG-centric naming to Synapse branding. Th
 ## Functional Requirements
 
 ### FR1: Class Renames
-- Rename `RAGOrchestrator` → `Orchestrator`
-- Rename `RAGMemoryBackend` → `MemoryBackend`
-- Rename `TestRAGOrchestrator*` → `TestOrchestrator*`
-- Rename `RAG_HEADER` → `CONTEXT_HEADER`
+- Rename `Orchestrator` → `Orchestrator`
+- Rename `MemoryBackend` → `MemoryBackend`
+- Rename `TestOrchestrator*` → `TestOrchestrator*`
+- Rename `SYNAPSE_HEADER` → `CONTEXT_HEADER`
 
 ### FR2: Environment Variable Renames
 | Old | New |
 |-----|-----|
-| `RAG_DATA_DIR` | `SYNAPSE_DATA_DIR` |
-| `RAG_CONFIG_PATH` | `SYNAPSE_CONFIG_PATH` |
-| `RAG_ENV` | `SYNAPSE_ENV` |
-| `RAG_TEST_MODE` | `SYNAPSE_TEST_MODE` |
-| `RAG_REMOTE_UPLOAD_ENABLED` | `SYNAPSE_REMOTE_UPLOAD_ENABLED` |
-| `RAG_UPLOAD_DIR` | `SYNAPSE_UPLOAD_DIR` |
-| `RAG_UPLOAD_MAX_AGE` | `SYNAPSE_UPLOAD_MAX_AGE` |
-| `RAG_UPLOAD_MAX_SIZE` | `SYNAPSE_UPLOAD_MAX_SIZE` |
+| `SYNAPSE_DATA_DIR` | `SYNAPSE_DATA_DIR` |
+| `SYNAPSE_CONFIG_PATH` | `SYNAPSE_CONFIG_PATH` |
+| `SYNAPSE_ENV` | `SYNAPSE_ENV` |
+| `SYNAPSE_TEST_MODE` | `SYNAPSE_TEST_MODE` |
+| `SYNAPSE_REMOTE_UPLOAD_ENABLED` | `SYNAPSE_REMOTE_UPLOAD_ENABLED` |
+| `SYNAPSE_UPLOAD_DIR` | `SYNAPSE_UPLOAD_DIR` |
+| `SYNAPSE_UPLOAD_MAX_AGE` | `SYNAPSE_UPLOAD_MAX_AGE` |
+| `SYNAPSE_UPLOAD_MAX_SIZE` | `SYNAPSE_UPLOAD_MAX_SIZE` |
 
 ### FR3: File Updates
 - Update all Python files with class references

@@ -6,7 +6,7 @@ Components:
 - EmbeddingService: Generate embeddings using GGUF models
 - VectorStore: CPU-based vector storage with cosine similarity
 - Retriever: Semantic document search
-- RAGOrchestrator: Coordinate retrieval and LLM generation
+- Orchestrator: Coordinate retrieval and LLM generation
 - ingest_file/ingest_directory: Document ingestion tools
 - SymbolicMemory: Deterministic, auditable memory subsystem (Phase 1)
 - EpisodicMemory: Agent experience and lessons (Phase 3)
@@ -17,7 +17,7 @@ from .model_manager import ModelManager, ModelConfig, get_model_manager
 from .vectorstore import VectorStore
 from .embedding import EmbeddingService, get_embedding_service
 from .retriever import Retriever, get_retriever
-from .orchestrator import RAGOrchestrator, get_orchestrator
+from .orchestrator import Orchestrator, get_orchestrator
 from .ingest import ingest_file, ingest_text, chunk_text
 from .bulk_ingest import ingest_directory
 
@@ -55,7 +55,7 @@ __all__ = [
     'get_retriever',
 
     # Orchestration
-    'RAGOrchestrator',
+    'Orchestrator',
     'get_orchestrator',
 
     # Ingestion

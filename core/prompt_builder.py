@@ -73,7 +73,7 @@ class PromptBuilder:
     # Section headers
     SYSTEM_HEADER = "SYSTEM:"
     MEMORY_HEADER = "PERSISTENT MEMORY (READ-ONLY):"
-    RAG_HEADER = "RELEVANT CONTEXT (RAG):"
+    CONTEXT_HEADER = "RELEVANT CONTEXT (RAG):"
     REQUEST_HEADER = "---\nUSER REQUEST:\n"
 
     # Memory read-only warning

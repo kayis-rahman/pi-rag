@@ -32,7 +32,7 @@ Configuration Priority (lowest to highest):
 1. OS-specific defaults
 2. Project config (.synapse/config.json)
 3. User config (~/.synapse/config.json)
-4. Environment variables (RAG_*)
+4. Environment variables (SYNAPSE_*)
 5. CLI arguments
 
 Config Values:
@@ -175,12 +175,12 @@ class SynapseConfig:
     def _load_env_overrides(self) -> None:
         """Apply environment variable overrides."""
         env_mappings = {
-            "RAG_DATA_DIR": "data_dir",
-            "RAG_INDEX_DIR": "index_path",
-            "RAG_PORT": "mcp_port",
-            "RAG_HOST": "mcp_host",
-            "RAG_CHUNK_SIZE": "chunk_size",
-            "RAG_TOP_K": "top_k",
+            "SYNAPSE_DATA_DIR": "data_dir",
+            "SYNAPSE_INDEX_DIR": "index_path",
+            "SYNAPSE_PORT": "mcp_port",
+            "SYNAPSE_HOST": "mcp_host",
+            "SYNAPSE_CHUNK_SIZE": "chunk_size",
+            "SYNAPSE_TOP_K": "top_k",
             "LOG_LEVEL": "log_level",
         }
         
@@ -327,7 +327,7 @@ app = typer.Typer(
 # FROM:
 def _get_data_dir(self) -> str:
     # Hardcoded path that may not exist
-    return os.environ.get("RAG_DATA_DIR", "/opt/synapse/data")
+    return os.environ.get("SYNAPSE_DATA_DIR", "/opt/synapse/data")
 
 # TO:
 from synapse.config import get_data_dir

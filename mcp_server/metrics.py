@@ -37,7 +37,7 @@ class Metrics:
     def _get_data_dir(self) -> str:
         """Get data directory path from environment."""
         import os
-        return os.environ.get("RAG_DATA_DIR", "/app/data")
+        return os.environ.get("SYNAPSE_DATA_DIR", "/app/data")
 
     def record_tool_call(self, project_id: str, tool_name: str) -> str:
         """

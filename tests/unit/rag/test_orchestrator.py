@@ -1,5 +1,5 @@
 """
-Unit tests for RAGOrchestrator.
+Unit tests for Orchestrator.
 
 Tests cover RAG orchestration, context injection, streaming, and multi-model support.
 """
@@ -7,7 +7,7 @@ Tests cover RAG orchestration, context injection, streaming, and multi-model sup
 import pytest
 import tempfile
 from pathlib import Path
-from core.orchestrator import RAGOrchestrator, get_orchestrator
+from core.orchestrator import Orchestrator, get_orchestrator
 from tests.utils.helpers import (
     MockEmbeddingService,
     MockLLMService,
@@ -17,8 +17,8 @@ from tests.utils.helpers import (
 
 
 @pytest.mark.unit
-class TestRAGOrchestratorInitialization:
-    """Test RAGOrchestrator initialization."""
+class TestOrchestratorInitialization:
+    """Test Orchestrator initialization."""
 
     def test_get_orchestrator_singleton(self):
         """Test that get_orchestrator returns singleton."""
@@ -40,7 +40,7 @@ class TestRAGOrchestratorInitialization:
         config_path = tmp_path / "config.json"
         save_test_config(str(config_path), {})
 
-        orchestrator = RAGOrchestrator(config_path=str(config_path))
+        orchestrator = Orchestrator(config_path=str(config_path))
 
         assert orchestrator is not None
         assert orchestrator.rag_enabled == True
@@ -59,7 +59,7 @@ class TestRAGOrchestratorInitialization:
         }
         save_test_config(str(config_path), custom_config)
 
-        orchestrator = RAGOrchestrator(config_path=str(config_path))
+        orchestrator = Orchestrator(config_path=str(config_path))
 
         assert orchestrator.rag_enabled == False
         assert orchestrator.top_k == 5
@@ -78,7 +78,7 @@ class TestRAGOrchestratorInitialization:
         }
         save_test_config(str(config_path), config)
 
-        orchestrator = RAGOrchestrator(config_path=str(config_path))
+        orchestrator = Orchestrator(config_path=str(config_path))
 
         assert orchestrator.memory_enabled == True
         assert orchestrator.memory_scope == "project"
@@ -87,8 +87,8 @@ class TestRAGOrchestratorInitialization:
 
 
 @pytest.mark.unit
-class TestRAGOrchestratorChat:
-    """Test RAGOrchestrator chat functionality."""
+class TestOrchestratorChat:
+    """Test Orchestrator chat functionality."""
 
     def test_chat_with_rag_enabled(self, tmp_path):
         """Test chat with RAG enabled."""
@@ -97,7 +97,7 @@ class TestRAGOrchestratorChat:
 
         # This test verifies that chat method exists
         # Actual RAG retrieval is tested in integration tests
-        orchestrator = RAGOrchestrator(config_path=str(config_path))
+        orchestrator = Orchestrator(config_path=str(config_path))
 
         assert hasattr(orchestrator, 'chat')
 
@@ -106,7 +106,7 @@ class TestRAGOrchestratorChat:
         config_path = tmp_path / "config.json"
         save_test_config(str(config_path), {"rag_enabled": False})
 
-        orchestrator = RAGOrchestrator(config_path=str(config_path))
+        orchestrator = Orchestrator(config_path=str(config_path))
 
         assert orchestrator.rag_enabled == False
         assert hasattr(orchestrator, 'chat')
@@ -116,7 +116,7 @@ class TestRAGOrchestratorChat:
         config_path = tmp_path / "config.json"
         save_test_config(str(config_path), {"rag_disable_keyword": "disable-rag"})
 
-        orchestrator = RAGOrchestrator(config_path=str(config_path))
+        orchestrator = Orchestrator(config_path=str(config_path))
 
         assert orchestrator.disable_keyword == "disable-rag"
         assert hasattr(orchestrator, 'chat')
@@ -129,7 +129,7 @@ class TestRAGOrchestratorChat:
             "memory_db_path": str(tmp_path / "memory.db")
         })
 
-        orchestrator = RAGOrchestrator(config_path=str(config_path))
+        orchestrator = Orchestrator(config_path=str(config_path))
 
         assert orchestrator.memory_enabled == True
         assert hasattr(orchestrator, 'chat')
@@ -139,7 +139,7 @@ class TestRAGOrchestratorChat:
         config_path = tmp_path / "config.json"
         save_test_config(str(config_path), {"memory_enabled": False})
 
-        orchestrator = RAGOrchestrator(config_path=str(config_path))
+        orchestrator = Orchestrator(config_path=str(config_path))
 
         assert orchestrator.memory_enabled == False
         assert hasattr(orchestrator, 'chat')
@@ -149,7 +149,7 @@ class TestRAGOrchestratorChat:
         config_path = tmp_path / "config.json"
         save_test_config(str(config_path), {"temperature": 0.9})
 
-        orchestrator = RAGOrchestrator(config_path=str(config_path))
+        orchestrator = Orchestrator(config_path=str(config_path))
 
         assert orchestrator.temperature == 0.9
         assert hasattr(orchestrator, 'chat')
@@ -159,7 +159,7 @@ class TestRAGOrchestratorChat:
         config_path = tmp_path / "config.json"
         save_test_config(str(config_path), {"top_k": 10})
 
-        orchestrator = RAGOrchestrator(config_path=str(config_path))
+        orchestrator = Orchestrator(config_path=str(config_path))
 
         assert orchestrator.top_k == 10
         assert hasattr(orchestrator, 'chat')
@@ -169,14 +169,14 @@ class TestRAGOrchestratorChat:
         config_path = tmp_path / "config.json"
         save_test_config(str(config_path), {"max_tokens": 4096})
 
-        orchestrator = RAGOrchestrator(config_path=str(config_path))
+        orchestrator = Orchestrator(config_path=str(config_path))
 
         assert orchestrator.max_tokens == 4096
         assert hasattr(orchestrator, 'chat')
 
 
 @pytest.mark.unit
-class TestRAGOrchestratorContextInjection:
+class TestOrchestratorContextInjection:
     """Test context injection functionality."""
 
     def test_context_injection_enabled(self, tmp_path):
@@ -186,7 +186,7 @@ class TestRAGOrchestratorContextInjection:
             "context_injection_enabled": True
         })
 
-        orchestrator = RAGOrchestrator(config_path=str(config_path))
+        orchestrator = Orchestrator(config_path=str(config_path))
 
         assert hasattr(orchestrator, '_inject_context')
         assert hasattr(orchestrator, '_extract_query')
@@ -198,7 +198,7 @@ class TestRAGOrchestratorContextInjection:
             "context_injection_enabled": False
         })
 
-        orchestrator = RAGOrchestrator(config_path=str(config_path))
+        orchestrator = Orchestrator(config_path=str(config_path))
 
         assert orchestrator.context_injection_enabled == False
 
@@ -209,13 +209,13 @@ class TestRAGOrchestratorContextInjection:
             "file_path_mode_enabled": True
         })
 
-        orchestrator = RAGOrchestrator(config_path=str(config_path))
+        orchestrator = Orchestrator(config_path=str(config_path))
 
         assert orchestrator.file_path_mode_enabled == True
 
 
 @pytest.mark.unit
-class TestRAGOrchestratorModelManagement:
+class TestOrchestratorModelManagement:
     """Test model management functionality."""
 
     def test_preload_models_exists(self):
@@ -244,7 +244,7 @@ class TestRAGOrchestratorModelManagement:
         config_path = tmp_path / "config.json"
         save_test_config(str(config_path), {})
 
-        orchestrator = RAGOrchestrator(config_path=str(config_path))
+        orchestrator = Orchestrator(config_path=str(config_path))
         stats = orchestrator.get_stats()
 
         assert isinstance(stats, dict)
@@ -253,7 +253,7 @@ class TestRAGOrchestratorModelManagement:
 
 
 @pytest.mark.unit
-class TestRAGOrchestratorErrorHandling:
+class TestOrchestratorErrorHandling:
     """Test error handling in orchestrator."""
 
     def test_missing_config_file(self, tmp_path):
@@ -261,7 +261,7 @@ class TestRAGOrchestratorErrorHandling:
         config_path = tmp_path / "nonexistent.json"
 
         # Orchestrator should use defaults when config file is missing
-        orchestrator = RAGOrchestrator(config_path=str(config_path))
+        orchestrator = Orchestrator(config_path=str(config_path))
 
         # Should still initialize with defaults
         assert orchestrator is not None
@@ -274,7 +274,7 @@ class TestRAGOrchestratorErrorHandling:
 
         # Orchestrator should handle invalid JSON gracefully
         # This test verifies error handling
-        orchestrator = RAGOrchestrator(config_path=str(config_path))
+        orchestrator = Orchestrator(config_path=str(config_path))
 
         # Should still initialize
         assert orchestrator is not None
@@ -286,7 +286,7 @@ class TestRAGOrchestratorErrorHandling:
 
         # Test that orchestrator can handle missing model manager, retriever, etc.
         # This verifies graceful degradation
-        orchestrator = RAGOrchestrator(config_path=str(config_path))
+        orchestrator = Orchestrator(config_path=str(config_path))
 
         # Should initialize even with warnings
         assert orchestrator is not None

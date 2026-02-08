@@ -69,7 +69,7 @@
 ## Phase 2: Integration (2-3 hours)
 
 ### 2.1 MCP Server Configuration Loading
-- [x] Add `_load_auto_learning_config()` method to `RAGMemoryBackend`
+- [x] Add `_load_auto_learning_config()` method to `MemoryBackend`
 - [x] Load config from `configs/rag_config.json`
 - [x] Add error handling with sensible defaults
 - [x] Add logging for configuration loading
@@ -77,7 +77,7 @@
 **Linked to**: Requirement FR-6 (Configuration Support)
 
 ### 2.2 Initialize AutoLearningTracker
-- [x] Add `auto_learning` attribute to `RAGMemoryBackend.__init__`
+- [x] Add `auto_learning` attribute to `MemoryBackend.__init__`
 - [x] Add `_load_auto_learning_config()` method
 - [x] Initialize `AutoLearningTracker` if enabled
 - [x] Initialize `LearningExtractor` if enabled

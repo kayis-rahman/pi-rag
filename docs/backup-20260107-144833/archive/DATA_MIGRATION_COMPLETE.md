@@ -74,7 +74,7 @@ Migrate data directory to /opt/pi-core/data/
 
 ### Configuration Test
 ```bash
-export RAG_DATA_DIR=/opt/pi-core/data
+export SYNAPSE_DATA_DIR=/opt/pi-core/data
 python3 -m mcp_server.rag_server
 ```
 ✅ MCP server starts successfully
@@ -103,13 +103,13 @@ python3 -m mcp_server.rag_server
 
 ### Starting RAG API
 ```bash
-export RAG_DATA_DIR=/opt/pi-core/data
+export SYNAPSE_DATA_DIR=/opt/pi-core/data
 ./scripts/start_rag_api.sh
 ```
 
 ### Starting MCP Server
 ```bash
-export RAG_DATA_DIR=/opt/pi-core/data
+export SYNAPSE_DATA_DIR=/opt/pi-core/data
 python3 -m mcp_server.rag_server
 ```
 
@@ -123,10 +123,10 @@ docker run -v /opt/pi-core/data:/app/data ...
 
 ## Environment Variables
 
-All RAG components respect `RAG_DATA_DIR` environment variable:
+All RAG components respect `SYNAPSE_DATA_DIR` environment variable:
 
 - **Default**: `/opt/pi-core/data` (MCP server)
-- **Override**: Set via `export RAG_DATA_DIR=/path/to/data`
+- **Override**: Set via `export SYNAPSE_DATA_DIR=/path/to/data`
 
 ---
 

@@ -359,7 +359,7 @@ services:
       - rag-metrics-net
     environment:
       - METRICS_DB_PATH=/app/data/metrics.db
-      - RAG_MCP_URL=http://rag-mcp:8002
+      - SYNAPSE_MCP_URL=http://rag-mcp:8002
 
   influxdb:
     image: influxdb:1.8
