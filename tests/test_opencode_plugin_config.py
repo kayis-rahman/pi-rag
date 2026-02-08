@@ -43,11 +43,11 @@ class TestOpenCodePluginConfig:
 
         # Check for expected tools
         expected_tools = [
-            "rag.add_fact",
-            "rag.add_episode",
-            "rag.search",
-            "rag.get_context",
-            "rag.ingest_file"
+            "sy.mem.fact.add",
+            "sy.mem.ep.add",
+            "sy.mem.search",
+            "sy.ctx.get",
+            "sy.mem.ingest"
         ]
 
         for tool in expected_tools:

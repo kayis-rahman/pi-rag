@@ -117,8 +117,8 @@ class TestAutoLearningIntegration:
         """Test episode is stored after task completion detection."""
         # Track a multi-step task
         operations = [
-            {"tool_name": "rag.search", "result": "success", "timestamp": datetime.now()},
-            {"tool_name": "rag.get_context", "result": "success", "timestamp": datetime.now()},
+            {"tool_name": "sy.mem.search", "result": "success", "timestamp": datetime.now()},
+            {"tool_name": "sy.ctx.get", "result": "success", "timestamp": datetime.now()},
             {"tool_name": "read_file", "result": "success", "timestamp": datetime.now()}
         ]
 
@@ -160,7 +160,7 @@ from pydantic import BaseModel
         # Track repeated failures
         for i in range(3):
             operation = {
-                "tool_name": "rag.search",
+                "tool_name": "sy.mem.search",
                 "result": "error",
                 "timestamp": datetime.now()
             }
@@ -178,7 +178,7 @@ from pydantic import BaseModel
         # Track repeated successes
         for i in range(5):
             operation = {
-                "tool_name": "rag.search",
+                "tool_name": "sy.mem.search",
                 "result": "success",
                 "timestamp": datetime.now()
             }
@@ -193,7 +193,7 @@ from pydantic import BaseModel
         """Test auto_learn=false disables tracking."""
         # Test with auto_learn=false
         operation = {
-            "tool_name": "rag.search",
+                "tool_name": "sy.mem.search",
             "arguments": {"auto_learn": False},
             "result": "success",
             "timestamp": datetime.now()
@@ -222,7 +222,7 @@ from pydantic import BaseModel
         # Add 101 operations
         for i in range(101):
             operation = {
-                "tool_name": "rag.search",
+                "tool_name": "sy.mem.search",
                 "result": "success",
                 "timestamp": datetime.now()
             }
@@ -261,9 +261,9 @@ from pydantic import BaseModel
     def test_file_ingestion_pattern(self, tracker):
         """Test file ingestion task completion detection."""
         operations = [
-            {"tool_name": "rag.ingest_file", "result": "success", "timestamp": datetime.now()},
-            {"tool_name": "rag.ingest_file", "result": "success", "timestamp": datetime.now()},
-            {"tool_name": "rag.ingest_file", "result": "success", "timestamp": datetime.now()}
+            {"tool_name": "sy.mem.ingest", "result": "success", "timestamp": datetime.now()},
+            {"tool_name": "sy.mem.ingest", "result": "success", "timestamp": datetime.now()},
+            {"tool_name": "sy.mem.ingest", "result": "success", "timestamp": datetime.now()}
         ]
 
         for op in operations:
@@ -276,9 +276,9 @@ from pydantic import BaseModel
     def test_get_buffer_stats(self, tracker):
         """Test buffer statistics calculation."""
         operations = [
-            {"tool_name": "rag.search", "result": "success", "duration_ms": 100, "timestamp": datetime.now()},
-            {"tool_name": "rag.search", "result": "error", "duration_ms": 50, "timestamp": datetime.now()},
-            {"tool_name": "rag.get_context", "result": "success", "duration_ms": 200, "timestamp": datetime.now()}
+            {"tool_name": "sy.mem.search", "result": "success", "duration_ms": 100, "timestamp": datetime.now()},
+            {"tool_name": "sy.mem.search", "result": "error", "duration_ms": 50, "timestamp": datetime.now()},
+            {"tool_name": "sy.ctx.get", "result": "success", "duration_ms": 200, "timestamp": datetime.now()}
         ]
 
         for op in operations:
@@ -297,7 +297,7 @@ from pydantic import BaseModel
         # Add operations
         for i in range(10):
             operation = {
-                "tool_name": "rag.search",
+                "tool_name": "sy.mem.search",
                 "result": "success",
                 "timestamp": datetime.now()
             }

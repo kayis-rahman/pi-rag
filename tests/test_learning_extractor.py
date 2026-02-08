@@ -162,8 +162,8 @@ def hello():
         """Test episode extraction from repeated failure pattern."""
         pattern = {
             "type": "pattern",
-            "situation": "Repeated failures in rag.search",
-            "action": "Attempted rag.search 2 times without success",
+            "situation": "Repeated failures in sy.mem.search",
+            "action": "Attempted sy.mem.search 2 times without success",
             "outcome": "Pattern detected: operation failing repeatedly",
             "confidence": 0.85
         }
@@ -178,8 +178,8 @@ def hello():
         """Test episode extraction from repeated success pattern."""
         pattern = {
             "type": "pattern",
-            "situation": "Repeated success with rag.search",
-            "action": "Successfully used rag.search 3 times",
+            "situation": "Repeated success with sy.mem.search",
+            "action": "Successfully used sy.mem.search 3 times",
             "outcome": "Pattern detected: operation consistently succeeds",
             "confidence": 0.8
         }

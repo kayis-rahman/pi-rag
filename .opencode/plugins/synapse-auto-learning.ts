@@ -32,7 +32,7 @@ const SynapseAutoLearningPlugin = async (ctx: PluginInput): Promise<Hooks> => {
   const config: SynapseConfig = {
     enabled: true,
     priority: 1,
-    analyze_after_tools: ["rag.add_fact", "rag.add_episode", "rag.search", "rag.get_context", "rag.ingest_file"],
+    analyze_after_tools: ["sy.mem.fact.add", "sy.mem.ep.add", "sy.mem.search", "sy.ctx.get", "sy.mem.ingest"],
     min_message_length: 10,
     skip_patterns: ["^test$", "^hello$", "^help$"],
     rag_project_id: "synapse",

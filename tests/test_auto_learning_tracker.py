@@ -84,7 +84,7 @@ class TestAutoLearningTracker:
         operations = [
             {"tool_name": "sy.mem.ingest", "result": "success"},
             {"tool_name": "sy.mem.ingest", "result": "success"},
-            {"tool_name": "rag.ingest_file", "result": "success"}
+            {"tool_name": "sy.mem.ingest", "result": "success"}
         ]
         
         task_completion = tracker.detect_task_completion(operations)
@@ -112,7 +112,7 @@ class TestAutoLearningTracker:
         """Test that less than 3 operations doesn't trigger detection."""
         operations = [
             {"tool_name": "sy.mem.search", "result": "success"},
-            {"tool_name": "rag.get_context", "result": "success"}
+            {"tool_name": "sy.ctx.get", "result": "success"}
         ]
         
         task_completion = tracker.detect_task_completion(operations)
@@ -140,9 +140,9 @@ class TestAutoLearningTracker:
         tracker.mode = "aggressive"
         
         operations = [
-            {"tool_name": "rag.search", "result": "success", "timestamp": datetime.now()},
-            {"tool_name": "rag.search", "result": "success", "timestamp": datetime.now()},
-            {"tool_name": "rag.search", "result": "success", "timestamp": datetime.now()}
+            {"tool_name": "sy.mem.search", "result": "success", "timestamp": datetime.now()},
+            {"tool_name": "sy.mem.search", "result": "success", "timestamp": datetime.now()},
+            {"tool_name": "sy.mem.search", "result": "success", "timestamp": datetime.now()}
         ]
         
         pattern = tracker.detect_pattern(operations)
@@ -157,7 +157,7 @@ class TestAutoLearningTracker:
         operations = [
             {"tool_name": "sy.mem.search", "result": "success"},
             {"tool_name": "sy.mem.search", "result": "success"},
-            {"tool_name": "rag.search", "result": "success"}
+            {"tool_name": "sy.mem.search", "result": "success"}
         ]
         
         pattern = tracker.detect_pattern(operations)
@@ -218,10 +218,10 @@ class TestAutoLearningTracker:
     def test_get_buffer_stats(self, tracker):
         """Test buffer statistics calculation."""
         operations = [
-            {"tool_name": "rag.search", "result": "success", "duration_ms": 100},
-            {"tool_name": "rag.search", "result": "error", "duration_ms": 50},
-            {"tool_name": "rag.get_context", "result": "success", "duration_ms": 200},
-            {"tool_name": "rag.ingest_file", "result": "success", "duration_ms": 150}
+            {"tool_name": "sy.mem.search", "result": "success", "duration_ms": 100},
+            {"tool_name": "sy.mem.search", "result": "error", "duration_ms": 50},
+            {"tool_name": "sy.ctx.get", "result": "success", "duration_ms": 200},
+            {"tool_name": "sy.mem.ingest", "result": "success", "duration_ms": 150}
         ]
         
         for op in operations:
@@ -240,7 +240,7 @@ class TestAutoLearningTracker:
     def test_clear_buffer(self, tracker):
         """Test buffer clearing."""
         operations = [
-            {"tool_name": "rag.search", "result": "success"} for _ in range(10)
+            {"tool_name": "sy.mem.search", "result": "success"} for _ in range(10)
         ]
         
         for op in operations:
