@@ -21,7 +21,7 @@ import os
 import shutil
 import sys
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Optional, Dict, Any
 
 from starlette.applications import Starlette
@@ -40,6 +40,10 @@ if os.environ.get("SYNAPSE_ENV") != "docker":
 
 # Import RAG backend
 from mcp_server.synapse_server import MemoryBackend
+
+# Import Auto-Learning System
+from core.auto_learning_tracker import AutoLearningTracker
+from core.learning_extractor import LearningExtractor
 
 # Load RAG config once at module level for performance
 # Use local configs directory when available, fall back to /app/configs for Docker
@@ -63,6 +67,79 @@ logger = logging.getLogger(__name__)
 
 # Initialize RAG Backend
 backend = MemoryBackend()
+
+# Initialize Auto-Learning System
+_auto_learning_config = _rag_config.get("automatic_learning", {})
+auto_tracker = AutoLearningTracker(_auto_learning_config)
+auto_extractor = LearningExtractor(config=_auto_learning_config)
+logger.info(f"Auto-Learning System initialized: enabled={auto_tracker.enabled}, mode={auto_tracker.mode}")
+
+# ============================================================================
+# Auto-Learning Tracking Helpers
+# ============================================================================
+
+async def _track_operation(
+    tool_name: str,
+    project_id: str,
+    arguments: Dict[str, Any],
+    result: str,
+    duration_ms: int = 0
+) -> None:
+    """
+    Track an MCP tool operation for auto-learning.
+    
+    Args:
+        tool_name: Name of the MCP tool
+        project_id: Project identifier
+        arguments: Tool arguments
+        result: "success" or "error"
+        duration_ms: Execution time in milliseconds
+    """
+    if not auto_tracker.enabled:
+        return
+    
+    operation = {
+        "tool_name": tool_name,
+        "project_id": project_id,
+        "arguments": arguments,
+        "result": result,
+        "duration_ms": duration_ms,
+        "timestamp": datetime.now()
+    }
+    
+    # Track in buffer
+    auto_tracker.track_operation(operation)
+    
+    # Check for patterns and task completion
+    if result == "success" and auto_tracker.track_tasks:
+        task_completion = auto_tracker.detect_task_completion()
+        if task_completion:
+            # Extract and store episode
+            episode = auto_extractor.extract_episode_from_task(task_completion)
+            if episode and episode.get("should_extract") != False:
+                confidence = episode.get("confidence", 0.7)
+                if confidence >= auto_tracker.min_episode_confidence:
+                    try:
+                        await backend.add_episode(
+                            project_id=project_id,
+                            title=f"Auto-learned: {task_completion.get('situation', 'Task')}",
+                            content=f"Situation: {task_completion.get('situation', '')}\n"
+                                   f"Action: {task_completion.get('action', '')}\n"
+                                   f"Outcome: {task_completion.get('outcome', '')}\n"
+                                   f"Lesson: {episode.get('lesson', 'No specific lesson')}",
+                            lesson_type="pattern",
+                            quality=confidence
+                        )
+                        logger.info(f"Auto-learned episode stored: {episode.get('lesson', 'N/A')[:50]}...")
+                    except Exception as e:
+                        logger.debug(f"Failed to store auto-learned episode: {e}")
+    
+    # Check for patterns
+    pattern = auto_tracker.detect_pattern()
+    if pattern:
+        confidence = pattern.get("confidence", 0.7)
+        if confidence >= auto_tracker.min_episode_confidence:
+            logger.info(f"Pattern detected: {pattern.get('situation', 'N/A')} - {pattern.get('outcome', 'N/A')}")
 
 # Configure transport security to allow remote connections
 # This allows opencode to connect from Mac
@@ -98,10 +175,16 @@ async def list_projects(scope_type: Optional[str] = None) -> dict:
     Returns:
         Dict with projects list and metadata
     """
+    start_time = datetime.now()
     try:
-        return await backend.list_projects(scope_type=scope_type)
+        result = await backend.list_projects(scope_type=scope_type)
+        duration_ms = int((datetime.now() - start_time).total_seconds() * 1000)
+        await _track_operation("sy.proj.list", "global", {"scope_type": scope_type}, "success", duration_ms)
+        return result
     except Exception as e:
         import traceback
+        duration_ms = int((datetime.now() - start_time).total_seconds() * 1000)
+        await _track_operation("sy.proj.list", "global", {"scope_type": scope_type}, "error", duration_ms)
         logger.error(f"[DEBUG] backend.list_projects() failed: {e}")
         logger.error(f"[DEBUG] Traceback: {traceback.format_exc()}")
         # Return structured error instead of raising to prevent HTTP 500
@@ -126,10 +209,16 @@ async def list_sources(project_id: str, source_type: Optional[str] = None) -> di
     Returns:
         Dict with sources list and metadata
     """
+    start_time = datetime.now()
     try:
-        return await backend.list_sources(project_id=project_id, source_type=source_type)
+        result = await backend.list_sources(project_id=project_id, source_type=source_type)
+        duration_ms = int((datetime.now() - start_time).total_seconds() * 1000)
+        await _track_operation("sy.src.list", project_id, {"source_type": source_type}, "success", duration_ms)
+        return result
     except Exception as e:
         import traceback
+        duration_ms = int((datetime.now() - start_time).total_seconds() * 1000)
+        await _track_operation("sy.src.list", project_id, {"source_type": source_type}, "error", duration_ms)
         logger.error(f"[DEBUG] backend.list_sources() failed: {e}")
         logger.error(f"[DEBUG] Traceback: {traceback.format_exc()}")
         # Return structured error instead of raising to prevent HTTP 500
@@ -166,15 +255,21 @@ async def get_context(
     Returns:
         Dict with context from each memory type
     """
+    start_time = datetime.now()
     try:
-        return await backend.get_context(
+        result = await backend.get_context(
             project_id=project_id,
             context_type=context_type,
             query=query,
             max_results=max_results
         )
+        duration_ms = int((datetime.now() - start_time).total_seconds() * 1000)
+        await _track_operation("sy.ctx.get", project_id, {"context_type": context_type, "query": query, "max_results": max_results}, "success", duration_ms)
+        return result
     except Exception as e:
         import traceback
+        duration_ms = int((datetime.now() - start_time).total_seconds() * 1000)
+        await _track_operation("sy.ctx.get", project_id, {"context_type": context_type, "query": query, "max_results": max_results}, "error", duration_ms)
         logger.error(f"[DEBUG] backend.get_context() failed: {e}")
         logger.error(f"[DEBUG] Traceback: {traceback.format_exc()}")
         # Return structured error instead of raising to prevent HTTP 500
@@ -207,6 +302,7 @@ async def search(
         Dict with search results
     """
     logger.debug(f"[DEBUG] search() called with project_id={project_id}, query={query}")
+    start_time = datetime.now()
     try:
         result = await backend.search(
             project_id=project_id,
@@ -214,10 +310,14 @@ async def search(
             memory_type=memory_type,
             top_k=top_k
         )
+        duration_ms = int((datetime.now() - start_time).total_seconds() * 1000)
         logger.debug(f"[DEBUG] backend.search() returned: {type(result)}")
+        await _track_operation("sy.mem.search", project_id, {"query": query, "memory_type": memory_type, "top_k": top_k}, "success", duration_ms)
         return result
     except Exception as e:
         import traceback
+        duration_ms = int((datetime.now() - start_time).total_seconds() * 1000)
+        await _track_operation("sy.mem.search", project_id, {"query": query, "memory_type": memory_type, "top_k": top_k}, "error", duration_ms)
         logger.error(f"[DEBUG] backend.search() failed: {e}")
         logger.error(f"[DEBUG] Traceback: {traceback.format_exc()}")
         # Return structured error instead of raising to prevent HTTP 500
@@ -243,51 +343,53 @@ async def ingest_file(
 
     Tool: sy.mem.ingest
 
-Current Configuration:
---------------------
-context_injection_enabled = false
+    Current Configuration:
+    --------------------
+    context_injection_enabled = false
 
-Available Ingestion Modes:
--------------------------------
+    Available Ingestion Modes:
+    -------------------------------
 
-MODE: HTTP Upload Flow (ONLY MODE AVAILABLE)
-------------------------------------------------
-Upload file via HTTP multipart form, then ingest with file_path.
+    MODE: HTTP Upload Flow (ONLY MODE AVAILABLE)
+    ------------------------------------------------
+    Upload file via HTTP multipart form, then ingest with file_path.
 
-Use case: Standard web uploads from any HTTP client
-Workflow:
-  1. Upload file via HTTP POST:
-     curl -X POST http://localhost:8002/v1/upload \\
-                -F "file=@document.txt"
+    Use case: Standard web uploads from any HTTP client
+    Workflow:
+      1. Upload file via HTTP POST:
+         curl -X POST http://localhost:8002/v1/upload \\
+                    -F "file=@document.txt"
 
-  2. Get file_path from response:
-     {"file_path": "/tmp/rag-uploads/abc123_document.txt", ...}
+      2. Get file_path from response:
+         {"file_path": "/tmp/rag-uploads/abc123_document.txt", ...}
 
-  3. Call this tool with file_path parameter:
-     sy.mem.ingest(
-          project_id="global",
-          file_path="/tmp/rag-uploads/abc123_document.txt"
-     )
+      3. Call this tool with file_path parameter:
+         sy.mem.ingest(
+              project_id="global",
+              file_path="/tmp/rag-uploads/abc123_document.txt"
+         )
 
-  4. File is auto-deleted after ingestion
+      4. File is auto-deleted after ingestion
 
-HTTP Endpoint: POST http://localhost:8002/v1/upload
-Config: remote_file_upload_enabled=true (always enabled)
+    HTTP Endpoint: POST http://localhost:8002/v1/upload
+    Config: remote_file_upload_enabled=true (always enabled)
 
-Args:
-    project_id: Project identifier
-    file_path: Path to file in upload directory (from HTTP upload response)
-    content: Not used in current configuration (content mode is disabled)
-    filename: Not used in current configuration (content mode is disabled)
-    source_type: Type of source (file, code, web)
-    metadata: Optional metadata to attach
+    Args:
+        project_id: Project identifier
+        file_path: Path to file in upload directory (from HTTP upload response)
+        content: Not used in current configuration (content mode is disabled)
+        filename: Not used in current configuration (content mode is disabled)
+        source_type: Type of source (file, code, web)
+        metadata: Optional metadata to attach
 
-Returns:
-    Dict with ingestion results
+    Returns:
+        Dict with ingestion results
 
-Note: Content mode and direct file_path access are disabled.
-Only HTTP upload flow is available.
+    Note: Content mode and direct file_path access are disabled.
+    Only HTTP upload flow is available.
     """
+    start_time = datetime.now()
+    
     # Mode 1: Content provided (disabled in current configuration)
     if content is not None:
         return {
@@ -300,14 +402,19 @@ Only HTTP upload flow is available.
     elif file_path is not None:
         # Use existing backend method - backend validates file_path is in upload directory
         try:
-            return await backend.ingest_file(
+            result = await backend.ingest_file(
                 project_id=project_id,
                 file_path=file_path,
                 source_type=source_type,
                 metadata=metadata
             )
+            duration_ms = int((datetime.now() - start_time).total_seconds() * 1000)
+            await _track_operation("sy.mem.ingest", project_id, {"file_path": file_path, "source_type": source_type}, "success", duration_ms)
+            return result
         except Exception as e:
             import traceback
+            duration_ms = int((datetime.now() - start_time).total_seconds() * 1000)
+            await _track_operation("sy.mem.ingest", project_id, {"file_path": file_path, "source_type": source_type}, "error", duration_ms)
             logger.error(f"[DEBUG] backend.ingest_file() failed: {e}")
             logger.error(f"[DEBUG] Traceback: {traceback.format_exc()}")
             # Return structured error instead of raising to prevent HTTP 500
@@ -349,16 +456,22 @@ async def add_fact(
     Returns:
         Dict with fact creation result
     """
+    start_time = datetime.now()
     try:
-        return await backend.add_fact(
+        result = await backend.add_fact(
             project_id=project_id,
             fact_key=fact_key,
             fact_value=fact_value,
             confidence=confidence,
             category=category
         )
+        duration_ms = int((datetime.now() - start_time).total_seconds() * 1000)
+        await _track_operation("sy.mem.fact.add", project_id, {"fact_key": fact_key, "confidence": confidence}, "success", duration_ms)
+        return result
     except Exception as e:
         import traceback
+        duration_ms = int((datetime.now() - start_time).total_seconds() * 1000)
+        await _track_operation("sy.mem.fact.add", project_id, {"fact_key": fact_key, "confidence": confidence}, "error", duration_ms)
         logger.error(f"[DEBUG] backend.add_fact() failed: {e}")
         logger.error(f"[DEBUG] Traceback: {traceback.format_exc()}")
         # Return structured error instead of raising to prevent HTTP 500
@@ -392,16 +505,22 @@ async def add_episode(
     Returns:
         Dict with episode creation result
     """
+    start_time = datetime.now()
     try:
-        return await backend.add_episode(
+        result = await backend.add_episode(
             project_id=project_id,
             title=title,
             content=content,
             lesson_type=lesson_type,
             quality=quality
         )
+        duration_ms = int((datetime.now() - start_time).total_seconds() * 1000)
+        await _track_operation("sy.mem.ep.add", project_id, {"title": title, "lesson_type": lesson_type}, "success", duration_ms)
+        return result
     except Exception as e:
         import traceback
+        duration_ms = int((datetime.now() - start_time).total_seconds() * 1000)
+        await _track_operation("sy.mem.ep.add", project_id, {"title": title, "lesson_type": lesson_type}, "error", duration_ms)
         logger.error(f"[DEBUG] backend.add_episode() failed: {e}")
         logger.error(f"[DEBUG] Traceback: {traceback.format_exc()}")
         # Return structured error instead of raising to prevent HTTP 500
