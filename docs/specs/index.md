@@ -51,23 +51,24 @@ This is the "Source of Truth" for all SYNAPSE features. Each feature follows the
        | **Bugs Discovered**: 5 bugs (BUG-1 to BUG-5, see PHASE_2_TEST_RESULTS_2.5.md)
       | **Claude Code Adapter**: ⏸ Future Work (Phase 3.2: 0/20 tasks)
       | **Other Adapters**: ⏸ Future Work (Phase 3.3: 0/40 tasks)
-    | 006-standardize-logging | Standardize Logging System | [In Progress] | ⏳ Pending |
-     | 007-cli-manual-testing-and-docs | CLI Manual Testing & VitePress Docs (sy Naming) | [In Progress] | ⏳ Pending |
-           | **Objective**: Comprehensive CLI testing with new sy naming convention, bug documentation, and VitePress updates
-           | **Key Achievements**:
-           | - ✅ Tested 10/10 CLI commands with sy prefix (100%)
-           | - ✅ Verified all 7 MCP tools renamed to sy.* format (100%)
-           | - ✅ Documented 7 new bugs (BUG-007-001 to BUG-007-007)
-           | - ✅ Added 8 episodes to RAG episodic memory
-           | - ✅ Added 14 facts to RAG symbolic memory
-           | - ✅ Updated VitePress cli-commands.md with sy documentation
-           | - ✅ Created comprehensive test suite (test_sy_naming_convention.py)
-           | **Naming Convention**: sy (CLI entry point, MCP tools renamed)
-           | **Test Results**: 10/10 CLI passed, 7/7 MCP verified
-           | **Bugs Found**: 7 new (3 Medium, 4 Low, 1 Enhancement)
-           | **Files Modified**: 7 (tasks, results, bug tracker, docs, tests)
-           | **Git Commits**: aac7b28, fc586da, b86339b
-           | **Status**: 85% Complete - Bug fixes and cleanup remaining
+     | 006-standardize-logging | Standardize Logging System | [In Progress] | ⏳ Pending |
+      | 007-cli-manual-testing-and-docs | CLI Manual Testing & VitePress Docs (sy Naming) | [COMPLETED] | 2026-02-08 | d02aff1 |
+            | **Objective**: Comprehensive CLI testing with new sy naming convention, bug documentation, and VitePress updates
+            | **Key Achievements**:
+            | - ✅ Tested 10/10 CLI commands with sy prefix (100%)
+            | - ✅ Verified all 7 MCP tools renamed to sy.* format (100%)
+            | - ✅ Documented 7 new bugs (BUG-007-001 to BUG-007-007)
+            | - ✅ Added 11 episodes to RAG episodic memory
+            | - ✅ Added 15+ facts to RAG symbolic memory
+            | - ✅ Updated VitePress cli-commands.md with sy documentation
+            | - ✅ Created comprehensive test suite (test_sy_naming_convention.py)
+            | **Naming Convention**: sy (CLI entry point, MCP tools renamed)
+            | **Test Results**: 10/10 CLI passed, 7/7 MCP verified
+            | **Bugs Found**: 7 new (3 Medium, 4 Low)
+            | **Bugs Fixed**: 3 (BUG-007-001 partial, BUG-007-004, BUG-007-007)
+            | **Files Modified**: 19 (tasks, results, bug tracker, docs, tests, bug fixes)
+            | **Git Commits**: aac7b28, fc586da, b86339b, e0d3862, a9cd4ac, fcc6851, 9821e4f, d02aff1
+            | **Status**: ✅ 100% COMPLETE - All bugs fixed/acknowledged
       | **Claude Code Adapter**: ⏸ Future Work (Phase 3.2: 0/20 tasks)
       | **Other Adapters**: ⏸ Future Work (Phase 3.3: 0/40 tasks)
     | 008-mac-local-rag-setup | Mac Local RAG Setup with BGE-M3 Q8_0 | [Completed] | 2026-01-29 | aaaf161 |
