@@ -164,7 +164,7 @@ mcp = FastMCP(
 # ============================================================================
 
 @mcp.tool(name="sy.proj.list")
-async def list_projects(scope_type: Optional[str] = None) -> dict:
+async def sy_proj_list(scope_type: Optional[str] = None) -> dict:
     """List all projects in RAG memory system.
 
     Tool: sy.proj.list
@@ -197,7 +197,7 @@ async def list_projects(scope_type: Optional[str] = None) -> dict:
 
 
 @mcp.tool(name="sy.src.list")
-async def list_sources(project_id: str, source_type: Optional[str] = None) -> dict:
+async def sy_src_list(project_id: str, source_type: Optional[str] = None) -> dict:
     """List document sources for a project in semantic memory.
 
     Tool: sy.src.list
@@ -231,7 +231,7 @@ async def list_sources(project_id: str, source_type: Optional[str] = None) -> di
 
 
 @mcp.tool(name="sy.ctx.get")
-async def get_context(
+async def sy_ctx_get(
     project_id: str,
     context_type: str = "all",
     query: Optional[str] = None,
@@ -282,7 +282,7 @@ async def get_context(
 
 
 @mcp.tool(name="sy.mem.search")
-async def search(
+async def sy_mem_search(
     project_id: str,
     query: str,
     memory_type: str = "all",
@@ -331,7 +331,7 @@ async def search(
 
 
 @mcp.tool(name="sy.mem.ingest")
-async def ingest_file(
+async def sy_mem_ingest(
     project_id: str,
     file_path: Optional[str] = None,
     content: Optional[str] = None,
@@ -435,7 +435,7 @@ async def ingest_file(
 
 
 @mcp.tool(name="sy.mem.fact.add")
-async def add_fact(
+async def sy_mem_fact_add(
     project_id: str,
     fact_key: str,
     fact_value: Any,
@@ -484,7 +484,7 @@ async def add_fact(
 
 
 @mcp.tool(name="sy.mem.ep.add")
-async def add_episode(
+async def sy_mem_ep_add(
     project_id: str,
     title: str,
     content: str,

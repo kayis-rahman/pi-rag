@@ -2,13 +2,13 @@
 Integration tests for MCP server.
 
 Tests cover all 7 MCP tools (compact hierarchical naming - Feature 016):
-- sy.proj.list (list_projects)
-- sy.src.list (list_sources)
-- sy.ctx.get (get_context)
-- sy.mem.search (search)
-- sy.mem.ingest (ingest_file)
-- sy.mem.fact.add (add_fact)
-- sy.mem.ep.add (add_episode)
+- sy.proj.list (sy_proj_list)
+- sy.src.list (sy_src_list)
+- sy.ctx.get (sy_ctx_get)
+- sy.mem.search (sy_mem_search)
+- sy.mem.ingest (sy_mem_ingest)
+- sy.mem.fact.add (sy_mem_fact_add)
+- sy.mem.ep.add (sy_mem_ep_add)
 """
 
 import pytest
@@ -18,9 +18,9 @@ import pytest
 class TestMCPServer:
     """Test MCP server integration."""
 
-    def test_list_projects_tool(self):
-        """Test list_projects MCP tool."""
-        # Test that list_projects tool is available
+    def test_sy_proj_list_tool(self):
+        """Test sy.proj.list MCP tool."""
+        # Test that sy.proj.list tool is available
         # (implementation dependent on MCP server)
         # Should return list of registered projects
 
@@ -28,20 +28,20 @@ class TestMCPServer:
         # The MCP server should have the tools defined
         # This test verifies the tool exists
 
-    def test_list_sources_tool(self):
-        """Test list_sources MCP tool."""
-        # Test that list_sources tool is available
+    def test_sy_src_list_tool(self):
+        """Test sy.src.list MCP tool."""
+        # Test that sy.src.list tool is available
         # (implementation dependent on MCP server)
         # Should return list of documents in a project
 
         # Basic structure test
         project_id = "test_project"
 
-        # The MCP server should handle list_sources for project
+        # The MCP server should handle sy_src_list for project
 
-    def test_get_context_tool(self):
-        """Test get_context MCP tool."""
-        # Test that get_context tool is available
+    def test_sy_ctx_get_tool(self):
+        """Test sy.ctx.get MCP tool."""
+        # Test that sy.ctx.get tool is available
         # (implementation dependent on MCP server)
         # Should return context from all 3 memory types
 
@@ -54,9 +54,9 @@ class TestMCPServer:
         # - Episodic memory (lessons)
         # - Semantic memory (documents)
 
-    def test_search_tool(self):
-        """Test search MCP tool."""
-        # Test that search tool is available for specific memory types
+    def test_sy_mem_search_tool(self):
+        """Test sy.mem.search MCP tool."""
+        # Test that sy.mem.search tool is available for specific memory types
         # (implementation dependent on MCP server)
         # Should search specific memory type
 
@@ -68,9 +68,9 @@ class TestMCPServer:
         # The MCP server should search the specified memory type
         # and return results with appropriate authority level
 
-    def test_ingest_file_tool(self, temp_dir):
-        """Test ingest_file MCP tool."""
-        # Test that ingest_file tool is available
+    def test_sy_mem_ingest_tool(self, temp_dir):
+        """Test sy.mem.ingest MCP tool."""
+        # Test that sy.mem.ingest tool is available
         # (implementation dependent on MCP server)
         # Should ingest file into semantic memory
 
@@ -88,9 +88,9 @@ class TestMCPServer:
         # 3. Generate embeddings
         # 4. Store in semantic memory
 
-    def test_add_fact_tool(self):
-        """Test add_fact MCP tool."""
-        # Test that add_fact tool is available
+    def test_sy_mem_fact_add_tool(self):
+        """Test sy.mem.fact.add MCP tool."""
+        # Test that sy.mem.fact.add tool is available
         # (implementation dependent on MCP server)
         # Should add fact to symbolic memory
 
@@ -108,9 +108,9 @@ class TestMCPServer:
         # The MCP server should validate the fact and add to symbolic memory
         # Symbolic facts have 100% authority
 
-    def test_add_episode_tool(self):
-        """Test add_episode MCP tool."""
-        # Test that add_episode tool is available
+    def test_sy_mem_ep_add_tool(self):
+        """Test sy.mem.ep.add MCP tool."""
+        # Test that sy.mem.ep.add tool is available
         # (implementation dependent on MCP server)
         # Should add episode to episodic memory
 

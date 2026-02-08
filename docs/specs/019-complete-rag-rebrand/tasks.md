@@ -144,8 +144,48 @@ The following fixes were applied on 2026-02-08 after initial merge:
 
 ---
 
+## Phase 10: MCP Tool Name Alignment (NEW - 2026-02-09)
+
+**Problem**: MCP tools are being exposed with auto-generated names (`synapse_sy_proj_list`) instead of AGENTS.md specification (`sy.proj.list`).
+
+**Root Cause**: FastMCP ignores `@mcp.tool(name="...")` parameter and uses function names.
+
+**Solution**: Rename Python functions to match desired tool names.
+
+### Tasks
+
+- [ ] **Task 10.1**: Rename `list_projects` → `sy_proj_list` in `mcp_server/http_wrapper.py`
+- [ ] **Task 10.2**: Rename `list_sources` → `sy_src_list` in `mcp_server/http_wrapper.py`
+- [ ] **Task 10.3**: Rename `get_context` → `sy_ctx_get` in `mcp_server/http_wrapper.py`
+- [ ] **Task 10.4**: Rename `search` → `sy_mem_search` in `mcp_server/http_wrapper.py`
+- [ ] **Task 10.5**: Rename `ingest_file` → `sy_mem_ingest` in `mcp_server/http_wrapper.py`
+- [ ] **Task 10.6**: Rename `add_fact` → `sy_mem_fact_add` in `mcp_server/http_wrapper.py`
+- [ ] **Task 10.7**: Rename `add_episode` → `sy_mem_ep_add` in `mcp_server/http_wrapper.py`
+- [ ] **Task 10.8**: Update `tests/integration/test_mcp_server.py` - test references
+- [ ] **Task 10.9**: Update `CHANGELOG.md` - document tool name fix
+- [ ] **Task 10.10**: Verify tool names match AGENTS.md: `grep -r "sy\.(proj|src|ctx|mem)" mcp_server/`
+
+**Expected Tool Names After Fix:**
+- `sy.proj.list` ✅
+- `sy.src.list` ✅
+- `sy.ctx.get` ✅
+- `sy.mem.search` ✅
+- `sy.mem.ingest` ✅
+- `sy.mem.fact.add` ✅
+- `sy.mem.ep.add` ✅
+
+### Progress Summary (Updated)
+
+| Phase | Tasks | Complete | Status |
+|-------|-------|----------|--------|
+| Phase 10: MCP Tool Names | 10 | 0 | 🔄 In Progress |
+| **Total with Phase 10** | **67** | **57** | **85%** |
+
+---
+
 **Notes:**
 - ✅ Feature fully merged to develop (commit 858e950)
 - ✅ All old references cleaned up
 - ✅ v2.0.0 breaking change documented
 - ✅ Migration guide available at MIGRATION_v2.0.md
+- 🔄 **Phase 10 in progress** - MCP tool name alignment

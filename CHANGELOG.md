@@ -114,3 +114,32 @@ See `MIGRATION_v2.0.md` for complete migration guide.
 
 **Version:** v2.0.0 (major breaking change)
 
+
+### Fixed
+
+#### MCP Tool Name Alignment (Feature 019 - Phase 10)
+
+**Fixed tool name mismatch between AGENTS.md and actual MCP server:**
+
+FastMCP was ignoring the `@mcp.tool(name="...")` decorator parameter and auto-generating tool names from Python function names. This caused tools to be exposed as `synapse_sy_proj_list` instead of `sy.proj.list`.
+
+**Solution**: Renamed all Python functions to match desired tool names:
+
+| Old Function Name | New Function Name | Tool Name |
+|------------------|-------------------|-----------|
+| `list_projects` | `sy_proj_list` | `sy.proj.list` |
+| `list_sources` | `sy_src_list` | `sy.src.list` |
+| `get_context` | `sy_ctx_get` | `sy.ctx.get` |
+| `search` | `sy_mem_search` | `sy.mem.search` |
+| `ingest_file` | `sy_mem_ingest` | `sy.mem.ingest` |
+| `add_fact` | `sy_mem_fact_add` | `sy.mem.fact.add` |
+| `add_episode` | `sy_mem_ep_add` | `sy.mem.ep.add` |
+
+**Files Changed**:
+- `mcp_server/http_wrapper.py` - All 7 MCP tool functions renamed
+- `tests/integration/test_mcp_server.py` - Test function names updated
+
+**Impact**: 
+- Tool functionality unchanged
+- Tool names now match AGENTS.md specification exactly
+- No breaking change for users (tool names were already broken)
