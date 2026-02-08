@@ -16,7 +16,7 @@ import logging
 import asyncio
 
 from .vectorstore_base import ISemanticStore
-from .embedding import get_parallel_embedding_service
+from .embedding import get_embedding_service
 from .query_cache import QueryCache
 
 
@@ -90,7 +90,7 @@ class ChromaSemanticStore:
         """
         self.collection_name = collection_name
         self.persist_directory = persist_directory
-        self.embedding_service = embedding_service or get_parallel_embedding_service()
+        self.embedding_service = embedding_service or get_embedding_service()
         self.project_id = project_id
         self.query_cache = query_cache or QueryCache(max_size=500, ttl_seconds=300)
 
@@ -323,6 +323,10 @@ class ChromaSemanticStore:
 
             return chunks[:top_k]
 
+        except Exception as e:
+            logger.error(f"Error searching ChromaDB: {e}")
+            return []
+
     def get_stats(self) -> Dict[str, Any]:
         """
         Get statistics about the semantic store.
@@ -391,7 +395,7 @@ class ChromaSemanticStore:
             if self.client:
                 self.client.persist()
                 logger.info(f"ChromaDB data persisted to {self._get_persist_path()}")
-        else:
+            else:
                 logger.warning("No ChromaDB client to persist (not initialized)")
         except Exception as e:
             logger.error(f"Failed to persist ChromaDB: {e}")

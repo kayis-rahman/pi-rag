@@ -1,36 +1,38 @@
-# pi-rag Requirements - llama.cpp based RAG system
+# Synapse Requirements - Latest Compatible Versions
+# Updated: 2026-02-09
+# Python: >=3.8
 # ================================================
 
 # LLM Backend - llama-cpp-python for multi-model support
-llama-cpp-python>=0.3.0
+llama-cpp-python>=0.3.16
 
 # RAG API
-fastapi>=0.115.0
-uvicorn[standard]>=0.30.0
-pydantic>=2.0.0
-pydantic-settings>=2.0.0
+fastapi>=0.128.5
+uvicorn[standard]>=0.40.0
+pydantic>=2.12.5
+pydantic-settings>=2.12.0
 
 # Vector store
-chromadb>=0.5.0
+chromadb>=1.4.1
 
 # HTTP client
-httpx>=0.27.0
-aiohttp>=3.9.0
+httpx>=0.28.1
+aiohttp>=3.13.3
 
 # Document processing
-python-dotenv>=1.0.0
-numpy>=1.24.0
+python-dotenv>=1.2.1
+numpy>=2.4.2
 
 # Model Context Protocol (MCP) Server
-mcp>=0.1.4
-mcp-server>=0.1.4
+mcp>=1.26.0
+# NOTE: mcp-server package deprecated and merged into mcp>=1.0.0
 
 # Testing
-pytest>=7.4.0
-pytest-asyncio>=0.21.0
+pytest>=9.0.2
+pytest-asyncio>=0.26.0
 
 # CLI Framework
-typer>=0.12.0
+typer>=0.21.1
 
 # Model Management
-huggingface_hub>=0.20.0
+huggingface_hub>=1.4.1
