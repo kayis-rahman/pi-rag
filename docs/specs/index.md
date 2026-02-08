@@ -218,9 +218,30 @@ This is the "Source of Truth" for all SYNAPSE features. Each feature follows the
               | - ✅ Shared memory bidirectional (dev ↔ prod ↔ host)
               | - ✅ Environment switching works (dev/prod/both)
               | - ✅ All scripts pass bash syntax check
-              | - ✅ release-notes.md created with migration guide
-              | - ✅ README.md updated with Docker deployment section
-              | - ✅ Old compose file deprecated at docs/examples/docker-compose.mcp.yml.deprecated
+               | - ✅ release-notes.md created with migration guide
+               | - ✅ README.md updated with Docker deployment section
+               | - ✅ Old compose file deprecated at docs/examples/docker-compose.mcp.yml.deprecated
+     | 019-complete-rag-rebrand | Complete RAG to Synapse Rebrand | [In Progress] | ⏳ Pending |
+               | **Objective**: Complete rebrand from RAG-centric naming to Synapse branding (v2.0.0)
+               | **Key Changes**:
+               | - Classes: `RAGOrchestrator` → `Orchestrator`, `RAGMemoryBackend` → `MemoryBackend`
+               | - Environment Variables: `RAG_*` → `SYNAPSE_*` (8 variables)
+               | - Total: 57 tasks across 9 phases
+               | **Breaking Changes** (v2.0.0):
+               | - All class names updated
+               | - All environment variables renamed
+               | - Migration guide required
+               | **Status**: ⏳ IN PROGRESS - 57 tasks to complete
+               | **Phases**:
+               | - **Phase 1**: Class Renames (8 tasks)
+               | - **Phase 2**: Class Reference Updates (8 tasks)
+               | - **Phase 3**: Env Vars - Core (8 tasks)
+               | - **Phase 4**: Env Vars - Upload (8 tasks)
+               | - **Phase 5**: Documentation (10 tasks)
+               | - **Phase 6**: Config Files (5 tasks)
+               | - **Phase 7**: Migration Guide (3 tasks)
+               | - **Phase 8**: Testing (5 tasks)
+               | - **Phase 9**: Finalization (2 tasks)
 
 - **[In Progress]** - Feature is currently being worked on
 - **[Completed]** - Feature is fully implemented and tested
