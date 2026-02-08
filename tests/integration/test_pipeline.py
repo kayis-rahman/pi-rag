@@ -1,5 +1,5 @@
 """
-Integration tests for RAG orchestrator.
+Integration tests for orchestrator.
 
 Tests cover ingest → retrieve → generate workflow.
 """
@@ -12,10 +12,10 @@ from core.orchestrator import Orchestrator
 
 @pytest.mark.integration
 class TestOrchestrator:
-    """Test RAG orchestrator integration."""
+    """Test orchestrator integration."""
 
     def test_orchestrator_initialization(self, temp_dir):
-        """Test RAG orchestrator initialization."""
+        """Test orchestrator initialization."""
         # Create test config
         config_path = temp_dir / "test_config.json"
         config = {
@@ -32,7 +32,7 @@ class TestOrchestrator:
         # Test initialization
         orchestrator = Orchestrator(config_path=str(config_path))
 
-        assert orchestrator is not None, "RAG orchestrator should be initialized"
+        assert orchestrator is not None, "Orchestrator should be initialized"
 
     def test_document_chunking(self):
         """Test document chunking."""

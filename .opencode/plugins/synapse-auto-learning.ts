@@ -81,7 +81,7 @@ const SynapseAutoLearningPlugin = async (ctx: PluginInput): Promise<Hooks> => {
           }
         }
 
-        // Try to call RAG tool if we have context
+        // Try to call Synapse tool if we have context
         try {
           if (userMessage.length > 0 || lastAgentResponse.length > 0) {
             await ctx.tools.call("rag.analyze_conversation", {
@@ -99,7 +99,7 @@ const SynapseAutoLearningPlugin = async (ctx: PluginInput): Promise<Hooks> => {
             });
           }
         } catch (ragError) {
-          // RAG tool call failed silently
+          // Synapse tool call failed silently
         }
 
         return;
@@ -130,15 +130,15 @@ const SynapseAutoLearningPlugin = async (ctx: PluginInput): Promise<Hooks> => {
 };
 
 /**
- * Helper function to call RAG tool
+ * Helper function to call Synapse tool
  * Note: This requires access to ctx.client which is provided by OpenCode
  */
-async function callRAGTool(client: any, toolName: string, args: any): Promise<any> {
+async function callSynapseTool(client: any, toolName: string, args: any): Promise<any> {
   try {
     const result = await client.tools.call(toolName, args);
     return result;
   } catch (error) {
-    // RAG tool call failed - throw to allow error handling
+    // Synapse tool call failed - throw to allow error handling
     throw error;
   }
 }

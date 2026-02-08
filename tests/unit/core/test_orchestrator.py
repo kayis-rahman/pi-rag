@@ -1,7 +1,7 @@
 """
 Unit tests for Orchestrator.
 
-Tests cover RAG orchestration, context injection, streaming, and multi-model support.
+Tests cover orchestration, context injection, streaming, and multi-model support.
 """
 
 import pytest
@@ -25,7 +25,9 @@ class TestOrchestratorInitialization:
         # Reset singleton
         from core.orchestrator import _orchestrator
         import importlib
-        importlib.reload(rag.orchestrator)
+        import sys
+        if 'core.orchestrator' in sys.modules:
+            importlib.reload(sys.modules['core.orchestrator'])
 
         # First call should create instance
         orchestrator1 = get_orchestrator()

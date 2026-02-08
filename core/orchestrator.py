@@ -1,9 +1,9 @@
 """
-RAG Orchestrator - Coordinates retrieval and LLM generation using llama-cpp-python.
+Orchestrator - Coordinates retrieval and LLM generation using llama-cpp-python.
 
 Features:
 - Automatic context injection from retrieved documents
-- Support for disabling RAG via system message keyword
+- Support for disabling retrieval via system message keyword
 - Multi-model support (separate embedding and chat models)
 - Streaming and non-streaming responses
 - Symbolic memory integration (deterministic, auditable)
@@ -18,8 +18,8 @@ logger = get_logger(__name__)
 
 class Orchestrator:
     """
-    Orchestrates RAG pipeline: retrieval + LLM generation.
-    
+    Orchestrates retrieval pipeline: retrieval + LLM generation.
+
     Usage:
         orchestrator = Orchestrator(config_path="./configs/rag_config.json")
         response = orchestrator.chat(
@@ -131,7 +131,7 @@ class Orchestrator:
             raise FileNotFoundError(f"Model file not found: {model_path}")
     
     def _should_use_rag(self, messages: List[Dict[str, str]]) -> bool:
-        """Check if RAG should be used based on messages."""
+        """Check if retrieval should be used based on messages."""
         if not self.rag_enabled:
             return False
         
@@ -229,17 +229,17 @@ class Orchestrator:
         metadata_filters: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
-        Generate a chat response with optional RAG and memory augmentation.
+        Generate a chat response with optional retrieval and memory augmentation.
 
         Args:
             messages: List of message dicts with 'role' and 'content'
             temperature: Sampling temperature
             max_tokens: Maximum tokens to generate
-            use_rag: Override RAG usage (None = auto-detect)
+            use_rag: Override retrieval usage (None = auto-detect)
             metadata_filters: Filters for document retrieval
 
         Returns:
-            Response dict with 'content', 'rag_context', 'sources', 'memory_used'
+            Response dict with 'content', 'context', 'sources', 'memory_used'
         """
         # Use specified model or default
         model_to_use = model_name or self.chat_model_name
@@ -348,10 +348,10 @@ class Orchestrator:
         if model_to_use not in self._manager._registry:
             raise ValueError(f"Model '{model_to_use}' not registered.")
 
-        # Determine if RAG should be used
+        # Determine if retrieval should be used
         should_rag = use_rag if use_rag is not None else self._should_use_rag(messages)
 
-        # Retrieve context if RAG is enabled
+        # Retrieve context if retrieval is enabled
         context = ""
 
         if should_rag:
