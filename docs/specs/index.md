@@ -185,7 +185,7 @@ This is the "Source of Truth" for all SYNAPSE features. Each feature follows the
              | **Total Tasks**: 83 across 7 phases
              | **Breaking Change**: No backward compatibility (old bare names will not work)
              | **Status**: ⏳ IN PROGRESS - SDD created, implementation pending
-     | 017-docker-release-flow | Docker Multi-Environment Release Flow | [In Progress] | ⏳ Pending |
+     | 017-docker-release-flow | Docker Multi-Environment Release Flow | [Completed] | 2026-02-08 | 4ef591c |
              | **Objective**: Create standardized development and release workflow with dual-environment Docker setup
              | **Key Features**:
              | - Development environment on port 8003 (synapse:latest)
@@ -193,6 +193,8 @@ This is the "Source of Truth" for all SYNAPSE features. Each feature follows the
              | - Shared memory volume (/opt/synapse/data)
              | - Mac + Pi opencode instances share same memory
              | - Version management scripts (release.sh, switch_env.sh)
+             | **Status**: ✅ COMPLETE - Merged to develop via PR #10
+             | **Commit**: 4ef591c - 20 files changed, 3,588 insertions
              | - Environment-specific configurations
              | **Phases**:
              | - **Phase 1**: SDD Setup - ⏳ IN PROGRESS (5 tasks)
