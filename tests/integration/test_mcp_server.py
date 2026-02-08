@@ -1,7 +1,14 @@
 """
 Integration tests for MCP server.
 
-Tests cover all 7 MCP tools: list_projects, list_sources, get_context, search, ingest_file, add_fact, add_episode.
+Tests cover all 7 MCP tools (compact hierarchical naming - Feature 016):
+- sy.proj.list (list_projects)
+- sy.src.list (list_sources)
+- sy.ctx.get (get_context)
+- sy.mem.search (search)
+- sy.mem.ingest (ingest_file)
+- sy.mem.fact.add (add_fact)
+- sy.mem.ep.add (add_episode)
 """
 
 import pytest
