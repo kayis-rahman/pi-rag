@@ -30,6 +30,7 @@ TIMEOUTS = {
     "query": 10,        # seconds (10 sec for query)
     "bulk": 600,       # seconds (10 min for bulk)
     "health_check": 5,   # seconds
+    "default": 30,      # seconds (fallback for unspecified commands)
 }
 
 # Environments to test

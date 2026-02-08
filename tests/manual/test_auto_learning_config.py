@@ -42,6 +42,7 @@ print(f"  track_code_changes: {tracker.track_code_changes}")
 print(f"\nTesting should_auto_track():")
 
 # Test 1: Disabled globally, no override
+tracker.enabled = False  # Force disable for test isolation
 operation = {"tool_name": "sy.mem.search", "arguments": {}}
 should_track = tracker.should_auto_track(operation)
 print(f"  Test 1 (enabled=False, no override): {should_track}  (expected: False)")
