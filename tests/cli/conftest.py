@@ -686,3 +686,264 @@ ERROR_MESSAGES = {
     "mcp_unavailable": "server|MCP",
     "invalid_project": "project",
 }
+
+
+# ============================================================================
+# Phase 4: Models Test Utilities
+# ============================================================================
+
+# Installed models for testing
+INSTALLED_MODELS = {
+    "bge-m3": {
+        "name": "BAAI/bge-m3",
+        "size": "605MB",
+        "path": "~/.synapse/models/bge-m3-q8_0.gguf",
+        "installed": True,
+    }
+}
+
+# Model test cases for Phase 4
+MODEL_TEST_CASES = [
+    {
+        "name": "List installed models",
+        "command": "synapse models list",
+        "expected_results": True,
+        "top_k": None,
+    },
+    {
+        "name": "List verbose",
+        "command": "synapse models list --verbose",
+        "expected_results": True,
+        "top_k": None,
+    },
+    {
+        "name": "Verify bge-m3",
+        "command": "synapse models verify bge-m3",
+        "expected_results": True,
+        "top_k": None,
+    },
+]
+
+# Timeout configurations for Phase 4
+MODELS_TIMEOUTS = {
+    "models_list": 30,
+    "models_download": 600,
+    "models_verify": 60,
+    "models_remove": 30,
+}
+
+# Performance thresholds for Phase 4
+MODELS_THRESHOLDS = {
+    "list_simple": 5.0,
+    "download_model": 300.0,
+    "verify_model": 60.0,
+    "remove_model": 30.0,
+}
+
+# Error messages for Phase 4
+MODELS_ERROR_MESSAGES = {
+    "invalid_model": "not found|unknown model",
+    "download_failed": "download failed|network error",
+    "verify_failed": "invalid|corrupted",
+    "remove_failed": "could not remove|in use",
+}
+
+
+def run_models_command(
+    subcommand: str,
+    args: List[str] = None,
+    environment: str = "native",
+    timeout: int = 30
+) -> Tuple[int, str, str, float]:
+    """
+    Run models command and return results.
+
+    Args:
+        subcommand: models subcommand (list, download, verify, remove)
+        args: Additional arguments for the command
+        environment: Test environment (docker, native, user_home)
+        timeout: Command timeout in seconds
+
+    Returns:
+        Tuple of (exit_code, stdout, stderr, duration_seconds)
+    """
+    cmd = []
+    if environment == "docker":
+        cmd.extend(["docker", "exec", "rag-mcp"])
+
+    cmd.extend(["synapse", "models", subcommand])
+
+    if args:
+        cmd.extend(args)
+
+    return run_command(cmd, timeout)
+
+
+def verify_models_list(
+    stdout: str,
+    stderr: str
+) -> Dict[str, any]:
+    """
+    Verify models list output and return results.
+
+    Args:
+        stdout: Command stdout
+        stderr: Command stderr
+
+    Returns:
+        Dictionary with models_count, format_valid, has_details
+    """
+    stats = {
+        "models_count": 0,
+        "format_valid": False,
+        "has_details": False,
+        "has_size": False,
+        "has_path": False,
+    }
+
+    # Check for installed models indication
+    if "bge" in stdout.lower() or "model" in stdout.lower():
+        stats["format_valid"] = True
+
+    # Count models mentioned
+    import re
+    model_matches = re.findall(r'[A-Za-z0-9\-_]+/[A-Za-z0-9\-_]+', stdout)
+    if model_matches:
+        stats["models_count"] = len(set(model_matches))
+
+    # Check for details
+    stats["has_details"] = any(x in stdout.lower() for x in ["size", "path", "mb", "gb"])
+    stats["has_size"] = any(x in stdout.lower() for x in ["mb", "gb", "kb"])
+
+    return stats
+
+
+def verify_models_download(
+    stdout: str,
+    stderr: str
+) -> Dict[str, any]:
+    """
+    Verify models download output and return results.
+
+    Args:
+        stdout: Command stdout
+        stderr: Command stderr
+
+    Returns:
+        Dictionary with download_started, progress_shown, completed, failed
+    """
+    stats = {
+        "download_started": False,
+        "progress_shown": False,
+        "completed": False,
+        "failed": False,
+        "already_installed": False,
+    }
+
+    stdout_lower = stdout.lower()
+    stderr_lower = stderr.lower()
+
+    # Check for download indicators
+    stats["download_started"] = any(
+        x in stdout_lower for x in ["download", "downloading", "fetching"]
+    )
+    stats["progress_shown"] = any(
+        x in stdout_lower for x in ["progress", "%", "completed", "100"]
+    )
+    stats["completed"] = "success" in stdout_lower or "complete" in stdout_lower
+    stats["failed"] = "error" in stderr_lower or "failed" in stdout_lower
+    stats["already_installed"] = "already" in stdout_lower and "install" in stdout_lower
+
+    return stats
+
+
+def verify_models_verify(
+    stdout: str,
+    stderr: str
+) -> Dict[str, any]:
+    """
+    Verify models verify output and return results.
+
+    Args:
+        stdout: Command stdout
+        stderr: Command stderr
+
+    Returns:
+        Dictionary with verification_passed, verification_failed, has_checksum
+    """
+    stats = {
+        "verification_passed": False,
+        "verification_failed": False,
+        "has_checksum": False,
+        "model_mentioned": False,
+    }
+
+    stdout_lower = stdout.lower()
+    stderr_lower = stderr.lower()
+
+    # Check verification status
+    stats["verification_passed"] = any(
+        x in stdout_lower for x in ["valid", "ok", "passed", "success", "verified"]
+    )
+    stats["verification_failed"] = any(
+        x in stdout_lower for x in ["invalid", "failed", "corrupt", "error"]
+    ) or "error" in stderr_lower
+
+    # Check for checksum
+    stats["has_checksum"] = any(
+        x in stdout_lower for x in ["checksum", "sha256", "md5", "hash"]
+    )
+
+    # Check model mentioned
+    stats["model_mentioned"] = "bge" in stdout_lower or "model" in stdout_lower
+
+    return stats
+
+
+def verify_models_remove(
+    stdout: str,
+    stderr: str
+) -> Dict[str, any]:
+    """
+    Verify models remove output and return results.
+
+    Args:
+        stdout: Command stdout
+        stderr: Command stderr
+
+    Returns:
+        Dictionary with removed, confirmation_required, failed, safety_warning
+    """
+    stats = {
+        "removed": False,
+        "confirmation_required": False,
+        "failed": False,
+        "safety_warning": False,
+        "dry_run": False,
+    }
+
+    stdout_lower = stdout.lower()
+    stderr_lower = stderr.lower()
+
+    # Check removal status
+    stats["removed"] = any(
+        x in stdout_lower for x in ["removed", "deleted", "cleaned"]
+    )
+    stats["failed"] = any(
+        x in stdout_lower for x in ["error", "failed", "could not"]
+    ) or "error" in stderr_lower
+
+    # Check for confirmation
+    stats["confirmation_required"] = any(
+        x in stdout_lower for x in ["confirm", "remove", "delete", "y/n"]
+    )
+
+    # Check for safety warning
+    stats["safety_warning"] = any(
+        x in stdout_lower for x in ["active", "in use", "cannot remove", "warning"]
+    )
+
+    # Check for dry run
+    stats["dry_run"] = "dry run" in stdout_lower or "would remove" in stdout_lower
+
+    return stats
