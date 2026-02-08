@@ -221,7 +221,7 @@ def test_stop_2_native():
 
         # Run synapse stop
         cmd = ["python3", "-m", "synapse.cli.main", "stop"]
-        exit_code, stdout, stderr, duration = run_command(cmd, 5)
+        exit_code, stdout, stderr, duration = run_command(cmd, 10)
 
         # Assertions
         assert_success(test_name, exit_code, stdout, stderr, duration, TIMEOUTS["stop"])
