@@ -497,27 +497,52 @@ This phase fixes critical bugs discovered during Phase 3 test execution.
 ## Phase 3.5: Documentation & Completion (3 tasks)
 
 ### 3.5.1 Create Test Results Document
-- [ ] Create `docs/specs/005-cli-priority-testing/PHASE_3_RESULTS.md`
-- [ ] Document all test results (P2-1, P2-2, P2-3)
-- [ ] Document pass/fail status for each test
-- [ ] Document performance metrics
-- [ ] Document any errors or issues
-- [ ] Calculate overall success rate
+- [x] Create `docs/specs/005-cli-priority-testing/PHASE_3_RESULTS.md`
+- [x] Document all test results (P2-1, P2-2, P2-3)
+- [x] Document pass/fail status for each test
+- [x] Document performance metrics
+- [x] Document any errors or issues
+- [x] Calculate overall success rate
 
 ### 3.5.2 Update Central Index
-- [ ] Update `docs/specs/index.md` with feature 005 entry
-- [ ] Set Phase 3 status to "[Completed]"
-- [ ] Add completion date
-- [ ] Add final commit hash
-- [ ] Update overall progress
+- [x] Update `docs/specs/index.md` with feature 005 entry
+- [x] Set Phase 3 status to "[Completed]"
+- [x] Add completion date
+- [x] Add final commit hash
+- [x] Update overall progress
 
 ### 3.5.3 Mark Tasks Complete
-- [ ] Mark all Phase 3.1 tasks as complete
-- [ ] Mark all Phase 3.2 tasks as complete
-- [ ] Mark all Phase 3.3 tasks as complete
-- [ ] Mark all Phase 3.4 tasks as complete
-- [ ] Mark all Phase 3.5 tasks as complete
-- [ ] Update this file with final commit hash
+- [x] Mark all Phase 3.1 tasks as complete
+- [x] Mark all Phase 3.2 tasks as complete
+- [x] Mark all Phase 3.3 tasks as complete
+- [x] Mark all Phase 3.4 tasks as complete
+- [x] Mark all Phase 3.5 tasks as complete
+- [x] Update this file with final commit hash: `4f11702`
+
+---
+
+## Phase 3 Completion Summary
+
+**Phase 3 Status**: ✅ COMPLETED
+
+**Test Results**:
+| Suite | Passing | Total | Rate |
+|-------|---------|-------|------|
+| **P2-1 Ingest** | 8 | 8 | 100% |
+| **P2-2 Query** | 7 | 8 | 87.5% |
+| **P2-3 Bulk** | 6 | 6 | 100% |
+| **Overall** | **21** | **22** | **95.5%** |
+
+**Bugs Fixed**:
+- BUG-005-3-01: MCP search async/await issue ✅
+- BUG-005-3-02: Missing bulk-ingest CLI command ✅
+- BUG-005-3-03: Query-3 Text Format test ✅
+- BUG-005-3-04: Bulk command arguments ✅
+- BUG-005-3-05: Ingest-4 Hidden Files test ✅
+- BUG-005-3-06: Ingest-5 Invalid Path test ✅
+- BUG-005-3-07: Ingest-6 Permission Error test ✅
+
+**Final Commit**: `4f11702`
 
 ---
 
