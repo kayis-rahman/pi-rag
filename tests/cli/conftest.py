@@ -947,3 +947,98 @@ def verify_models_remove(
     stats["dry_run"] = "dry run" in stdout_lower or "would remove" in stdout_lower
 
     return stats
+
+
+# ============================================================================
+# Phase 5: Onboard Test Utilities
+# ============================================================================
+
+# Timeout configurations for Phase 5
+ONBOARD_TIMEOUTS = {
+    "onboard_help": 30,
+    "onboard_quick": 120,
+    "onboard_silent": 60,
+    "onboard_skip": 60,
+    "onboard_offline": 60,
+}
+
+# Performance thresholds for Phase 5
+ONBOARD_THRESHOLDS = {
+    "help_display": 5.0,
+    "quick_mode": 120.0,
+    "silent_mode": 60.0,
+    "skip_mode": 30.0,
+}
+
+
+def run_onboard_command(
+    args: List[str],
+    environment: str = "native",
+    timeout: int = 120
+) -> Tuple[int, str, str, float]:
+    """
+    Run onboard command and return results.
+
+    Args:
+        args: Arguments for onboard command
+        environment: Test environment (native only for Phase 5)
+        timeout: Command timeout in seconds
+
+    Returns:
+        Tuple of (exit_code, stdout, stderr, duration_seconds)
+    """
+    cmd = ["python3", "-m", "synapse.cli.main", "onboard"]
+    cmd.extend(args)
+
+    return run_command(cmd, timeout)
+
+
+def verify_onboard_output(
+    stdout: str,
+    stderr: str
+) -> Dict[str, any]:
+    """
+    Verify onboard command output and return results.
+
+    Args:
+        stdout: Command stdout
+        stderr: Command stderr
+
+    Returns:
+        Dictionary with has_help, has_options, has_progress
+    """
+    stats = {
+        "has_help": False,
+        "has_options": False,
+        "has_progress": False,
+        "has_onboarding": False,
+        "has_wizard": False,
+    }
+
+    stdout_lower = stdout.lower()
+    stderr_lower = stderr.lower()
+    all_output = (stdout + stderr).lower()
+
+    # Check for help indicators
+    stats["has_help"] = any(
+        x in all_output for x in ["--help", "help", "usage", "options"]
+    )
+
+    # Check for options
+    stats["has_options"] = any(
+        x in all_output for x in ["--quick", "--silent", "--skip", "--offline"]
+    )
+
+    # Check for progress
+    stats["has_progress"] = any(
+        x in stdout_lower for x in ["progress", "processing", "configuring", "setup"]
+    )
+
+    # Check for onboarding
+    stats["has_onboarding"] = "onboard" in all_output or "setup" in all_output
+
+    # Check for wizard
+    stats["has_wizard"] = "wizard" in all_output or "welcome" in all_output
+
+    return stats
+

@@ -149,23 +149,43 @@ class SynapseConfig:
             "num_expansions": 3,
             "data_dir": "",  # Set below based on OS
             "models_dir": "",  # Set below based on OS
+            "docs_dir": "",  # Set below based on OS
+            "logs_dir": "",  # Set below based on OS
+            "index_dir": "",  # Set below based on OS
+            "rag_index_dir": "",  # Set below based on OS (alias for index_dir)
         }
 
         # OS-specific data directory
         if system == "Darwin":
             defaults["data_dir"] = str(Path.home() / ".synapse" / "data")
             defaults["models_dir"] = str(Path.home() / ".synapse" / "models")
+            defaults["docs_dir"] = str(Path.home() / ".synapse" / "docs")
+            defaults["logs_dir"] = str(Path.home() / ".synapse" / "logs")
+            defaults["index_dir"] = str(Path.home() / ".synapse" / "data" / "semantic_index")
+            defaults["rag_index_dir"] = str(Path.home() / ".synapse" / "data" / "semantic_index")
         elif system == "Linux":
             opt_path = Path("/opt/synapse/data")
             if opt_path.exists() and os.access(opt_path, os.W_OK):
                 defaults["data_dir"] = "/opt/synapse/data"
                 defaults["models_dir"] = "/opt/synapse/models"
+                defaults["docs_dir"] = "/opt/synapse/docs"
+                defaults["logs_dir"] = "/opt/synapse/data/logs"
+                defaults["index_dir"] = "/opt/synapse/data/semantic_index"
+                defaults["rag_index_dir"] = "/opt/synapse/data/semantic_index"
             else:
                 defaults["data_dir"] = str(Path.home() / ".synapse" / "data")
                 defaults["models_dir"] = str(Path.home() / ".synapse" / "models")
+                defaults["docs_dir"] = str(Path.home() / ".synapse" / "docs")
+                defaults["logs_dir"] = str(Path.home() / ".synapse" / "logs")
+                defaults["index_dir"] = str(Path.home() / ".synapse" / "data" / "semantic_index")
+                defaults["rag_index_dir"] = str(Path.home() / ".synapse" / "data" / "semantic_index")
         else:
             defaults["data_dir"] = str(Path.home() / ".synapse" / "data")
             defaults["models_dir"] = str(Path.home() / ".synapse" / "models")
+            defaults["docs_dir"] = str(Path.home() / ".synapse" / "docs")
+            defaults["logs_dir"] = str(Path.home() / ".synapse" / "logs")
+            defaults["index_dir"] = str(Path.home() / ".synapse" / "data" / "semantic_index")
+            defaults["rag_index_dir"] = str(Path.home() / ".synapse" / "data" / "semantic_index")
 
         self._config.update(defaults)
 

@@ -26,14 +26,21 @@ This is the "Source of Truth" for all SYNAPSE features. Each feature follows the
    | 002-auto-learning | Automatic Learning System | [In Progress] | ⏳ Pending |
     | 003-rag-quality-metrics | RAG Quality Metrics Dashboard | [Deferred] | ⏳ Pending |
     | 004-universal-hook-auto-learning | Universal Multi-Agent Hook Auto-Learning | [Production Ready] | 2026-01-07 | 298046e |
-    | 005-cli-priority-testing | CLI Command Priority Testing | [Completed] | 2026-02-08 | d2acea9 |
-        | **Phase 1 (Foundation)**: ✅ Complete (43/43 tasks, 100%)
-        | **Phase 2 (Server Operations)**: ✅ Complete (62/62 tasks, bug fixes complete)
-        | **Phase 3 (Data Operations)**: ✅ COMPLETED (21/22 tests, 95.5%)
-        |   - P2-1 Ingest: 8/8 (100%)
-        |   - P2-2 Query: 7/8 (87.5%, 1 skipped)
-        |   - P2-3 Bulk: 6/6 (100%)
-        | **Final Commit**: d2acea9
+    | 005-cli-priority-testing | CLI Command Priority Testing | [Completed] | 2026-02-08 | 7f0a892 |
+         | **Phase 1 (Foundation)**: ✅ Complete (43/43 tasks, 100%)
+         | **Phase 2 (Server Operations)**: ✅ Complete (62/62 tasks, bug fixes complete)
+         | **Phase 3 (Data Operations)**: ✅ COMPLETED (21/22 tests, 95.5%)
+         | **Phase 4 (Model Management)**: ✅ COMPLETED (18/18 tests, 100%)
+         | **Phase 5 (Advanced Features)**: ✅ COMPLETED (8/8 tests, 100%)
+         |   - Onboard-1 Help: PASSED
+         |   - Onboard-2 Quick Help: PASSED
+         |   - Onboard-3 Performance: PASSED (0.56s < 5.0s)
+         |   - Onboard-4 Offline Mode: PASSED
+         |   - Onboard-5 Skip Test: PASSED
+         |   - Onboard-6 Skip Ingest: PASSED
+         |   - Onboard-7 Project ID: PASSED
+         |   - Onboard-8 Silent Mode: PASSED
+         | **Final Commit**: 7f0a892
        | **Phase 2.1: Start Tests** | ✅ Complete (14/14 tasks, test_p1_start.py)
        | **Phase 2.2: Stop Tests** | ✅ Complete (12/12 tasks, test_p1_stop.py)
        | **Phase 2.3: Status Tests** | ✅ Complete (14/14 tasks, test_p1_status.py)
