@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Optional, List
 
 # Import CLI commands (use _cmd suffix to avoid function name conflicts)
-from synapse.cli.commands import start as start_cmd, stop as stop_cmd, status as status_cmd, ingest as ingest_cmd, query as query_cmd, models, onboard
+from synapse.cli.commands import start as start_cmd, stop as stop_cmd, status as status_cmd, ingest as ingest_cmd, query as query_cmd, models, onboard, bulk_ingest
 from synapse.cli.commands import setup as setup_cmd
 
 # Import configuration
@@ -454,6 +454,36 @@ def onboard_cmd(
         skip_ingest=skip_ingest,
         offline=offline,
         project_id=project_id
+    )
+
+
+@app.command("bulk-ingest")
+def bulk_ingest_cmd(
+    path: Path = typer.Argument(..., help="Directory path to ingest"),
+    project_id: str = typer.Option("synapse", "--project-id", "-p", help="Project ID for storage"),
+    chunk_size: int = typer.Option(500, "--chunk-size", "-c", help="Chunk size for document splitting"),
+    dry_run: bool = typer.Option(False, "--dry-run", "-n", help="Show files to ingest without actually ingesting"),
+    exclude_patterns: str = typer.Option("", "--exclude", "-e", help="Comma-separated patterns to exclude")
+):
+    """
+    Bulk ingest all documents from a directory into semantic memory.
+
+    Examples:
+        synapse bulk-ingest /path/to/docs
+        synapse bulk-ingest /path/to/docs --dry-run
+        synapse bulk-ingest /path/to/docs --project-id myproject
+    """
+    # Call the bulk_ingest function from the module
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).parent.parent / "commands"))
+    from synapse.cli.commands.bulk_ingest import bulk_ingest as bulk_ingest_func
+    bulk_ingest_func(
+        path=path,
+        project_id=project_id,
+        chunk_size=chunk_size,
+        dry_run=dry_run,
+        exclude_patterns=exclude_patterns
     )
 
 

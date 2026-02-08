@@ -42,7 +42,10 @@ if os.environ.get("RAG_ENV") != "docker":
 from mcp_server.rag_server import RAGMemoryBackend
 
 # Load RAG config once at module level for performance
-_config_path = os.environ.get("RAG_CONFIG_PATH", "/app/configs/rag_config.json")
+# Use local configs directory when available, fall back to /app/configs for Docker
+_config_path = os.environ.get("RAG_CONFIG_PATH", "/home/dietpi/synapse/configs/rag_config.json")
+if not os.path.exists(_config_path):
+    _config_path = "/app/configs/rag_config.json"
 with open(_config_path, 'r') as f:
     _rag_config = json.load(f)
 _context_injection_enabled = _rag_config.get("context_injection_enabled", False)
@@ -159,12 +162,21 @@ async def search(
     Returns:
         Dict with search results
     """
-    return await backend.search(
-        project_id=project_id,
-        query=query,
-        memory_type=memory_type,
-        top_k=top_k
-    )
+    logger.debug(f"[DEBUG] search() called with project_id={project_id}, query={query}")
+    try:
+        result = await backend.search(
+            project_id=project_id,
+            query=query,
+            memory_type=memory_type,
+            top_k=top_k
+        )
+        logger.debug(f"[DEBUG] backend.search() returned: {type(result)}")
+        return result
+    except Exception as e:
+        import traceback
+        logger.error(f"[DEBUG] backend.search() failed: {e}")
+        logger.error(f"[DEBUG] Traceback: {traceback.format_exc()}")
+        raise
 
 
 @mcp.tool()

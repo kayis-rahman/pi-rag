@@ -21,7 +21,7 @@ services:
     # - 8002: HTTP MCP wrapper for remote opencode access
     # - Note: stdio MCP (no ports) still available
     ports:
-      - "8002:8002"  # HTTP MCP endpoint for remote clients
+      - "8003:8002"  # HTTP MCP endpoint for remote clients
 
     # Environment configuration
     environment:

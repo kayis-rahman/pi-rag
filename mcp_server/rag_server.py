@@ -748,16 +748,16 @@ class RAGMemoryBackend:
             if self._auto_learning_tracker and self._should_auto_track(operation):
                 self._auto_learning_tracker.track_operation(operation)
                 self.operation_buffer.append(operation)
-
+                
                 # Check for task completion
                 task_completion = self._auto_learning_tracker.detect_task_completion()
                 if task_completion and self.auto_learning_config.get("track_tasks", True):
-                    await self._auto_store_episode(project_id, task_completion)
+                    self._auto_store_episode(project_id, task_completion)
 
                 # Check for patterns
                 pattern = self._auto_learning_tracker.detect_pattern()
                 if pattern and self.auto_learning_config.get("track_operations", True):
-                    await self._auto_store_episode(project_id, pattern)
+                    self._auto_store_episode(project_id, pattern)
 
     async def search(
         self,
@@ -907,12 +907,12 @@ class RAGMemoryBackend:
                 # Check for task completion
                 task_completion = self._auto_learning_tracker.detect_task_completion()
                 if task_completion and self.auto_learning_config.get("track_tasks", True):
-                    await self._auto_store_episode(project_id, task_completion)
+                    self._auto_store_episode(project_id, task_completion)
 
                 # Check for patterns
                 pattern = self._auto_learning_tracker.detect_pattern()
                 if pattern and self.auto_learning_config.get("track_operations", True):
-                    await self._auto_store_episode(project_id, pattern)
+                    self._auto_store_episode(project_id, pattern)
 
     async def ingest_file(
         self,
@@ -1048,12 +1048,12 @@ class RAGMemoryBackend:
                 # Check for task completion
                 task_completion = self._auto_learning_tracker.detect_task_completion()
                 if task_completion and self.auto_learning_config.get("track_tasks", True):
-                    await self._auto_store_episode(project_id, task_completion)
+                    self._auto_store_episode(project_id, task_completion)
 
                 # Check for patterns
                 pattern = self._auto_learning_tracker.detect_pattern()
                 if pattern and self.auto_learning_config.get("track_operations", True):
-                    await self._auto_store_episode(project_id, pattern)
+                    self._auto_store_episode(project_id, pattern)
 
     async def analyze_conversation(
         self,

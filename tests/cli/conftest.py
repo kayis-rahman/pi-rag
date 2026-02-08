@@ -1,12 +1,15 @@
 """
-Phase 1 Test Utilities (Shared)
+Phase 1 & 3 Test Utilities (Shared)
 
-Common test fixtures and utility functions for Phase 1 CLI tests.
+Common test fixtures and utility functions for CLI tests.
+Extended for Phase 3 (Data Operations: ingest, query, bulk).
 """
 
 import subprocess
 import sys
 import time
+import json
+import httpx
 from pathlib import Path
 from typing import Dict, Tuple, List, Optional
 
@@ -22,6 +25,11 @@ TIMEOUTS = {
     "stop": 5,         # seconds
     "status": 2,        # seconds
     "compose": 10,      # seconds (docker compose operations)
+    # Phase 3 timeouts
+    "ingest": 300,      # seconds (5 min for large directories)
+    "query": 10,        # seconds (10 sec for query)
+    "bulk": 600,       # seconds (10 min for bulk)
+    "health_check": 5,   # seconds
 }
 
 # Environments to test
@@ -329,9 +337,352 @@ def print_success_rate() -> int:
 
     if failed_count > 0:
         print(f"\n❌ {failed_count} test(s) failed")
-        print(f"Phase 1 incomplete - Fix failures and re-run")
+        print(f"Phase incomplete - Fix failures and re-run")
         return 1
     else:
         print(f"\n✅ All {len(test_results)} tests passed!")
-        print(f"Phase 1 complete - Ready for Phase 2")
         return 0
+
+
+# ============================================================================
+# PHASE 3 UTILITIES: Data Operations (Ingest, Query, Bulk)
+# ============================================================================
+
+def run_ingest_command(
+    path: str,
+    project_id: str = "synapse",
+    chunk_size: int = 500,
+    environment: str = "native",
+    timeout: int = 300
+) -> Tuple[int, str, str, float]:
+    """
+    Run ingest command and return results.
+
+    Args:
+        path: File or directory path to ingest
+        project_id: Project ID for storage
+        chunk_size: Chunk size for processing
+        environment: Test environment (docker, native, user_home)
+        timeout: Command timeout in seconds
+
+    Returns:
+        Tuple of (exit_code, stdout, stderr, duration_seconds)
+    """
+    cmd = []
+    if environment == "docker":
+        cmd.extend(["docker", "exec", "rag-mcp"])
+
+    cmd.extend([
+        "synapse", "ingest", str(path),
+        "--project-id", project_id,
+        "--chunk-size", str(chunk_size)
+    ])
+
+    return run_command(cmd, timeout)
+
+
+def run_query_command(
+    query: str,
+    top_k: int = 3,
+    output_format: str = "json",
+    environment: str = "native",
+    timeout: int = 10
+) -> Tuple[int, str, str, float]:
+    """
+    Run query command and return results.
+
+    Args:
+        query: Query text
+        top_k: Number of results to return
+        output_format: Output format (json, text)
+        environment: Test environment (docker, native, user_home)
+        timeout: Command timeout in seconds
+
+    Returns:
+        Tuple of (exit_code, stdout, stderr, duration_seconds)
+    """
+    cmd = []
+    if environment == "docker":
+        cmd.extend(["docker", "exec", "rag-mcp"])
+
+    cmd.extend([
+        "synapse", "query", query,
+        "--top-k", str(top_k),
+        "--format", output_format
+    ])
+
+    return run_command(cmd, timeout)
+
+
+def run_bulk_command(
+    path: str,
+    project_id: str = "synapse",
+    chunk_size: int = 500,
+    environment: str = "native",
+    timeout: int = 600
+) -> Tuple[int, str, str, float]:
+    """
+    Run bulk-ingest command and return results.
+
+    Args:
+        path: Directory path to ingest
+        project_id: Project ID for storage
+        chunk_size: Chunk size for processing
+        environment: Test environment (docker, native, user_home)
+        timeout: Command timeout in seconds
+
+    Returns:
+        Tuple of (exit_code, stdout, stderr, duration_seconds)
+    """
+    cmd = []
+    if environment == "docker":
+        cmd.extend(["docker", "exec", "rag-mcp"])
+
+    cmd.extend([
+        "synapse", "bulk-ingest", str(path),
+        "--project-id", project_id,
+        "--chunk-size", str(chunk_size)
+    ])
+
+    return run_command(cmd, timeout)
+
+
+def verify_ingestion(
+    stdout: str,
+    stderr: str
+) -> Dict[str, int]:
+    """
+    Verify ingestion output and return statistics.
+
+    Args:
+        stdout: Command stdout
+        stderr: Command stderr
+
+    Returns:
+        Dictionary with files_processed, chunks_created, errors
+    """
+    stats = {
+        "files_processed": 0,
+        "chunks_created": 0,
+        "errors": 0
+    }
+
+    # Look for file count
+    if "file" in stdout.lower():
+        # Try to extract number
+        import re
+        files_match = re.search(r'(\d+)\s*file', stdout, re.IGNORECASE)
+        if files_match:
+            stats["files_processed"] = int(files_match.group(1))
+
+    # Look for chunk count
+    if "chunk" in stdout.lower():
+        import re
+        chunks_match = re.search(r'(\d+)\s*chunk', stdout, re.IGNORECASE)
+        if chunks_match:
+            stats["chunks_created"] = int(chunks_match.group(1))
+
+    # Look for errors
+    if "error" in stderr.lower() or "Error" in stderr:
+        import re
+        error_count = len(re.findall(r'[Ee]rror', stderr))
+        stats["errors"] = max(1, error_count)
+
+    return stats
+
+
+def verify_query_results(
+    stdout: str,
+    format: str = "json"
+) -> Dict[str, any]:
+    """
+    Verify query output and return results.
+
+    Args:
+        stdout: Command stdout
+        format: Output format (json, text)
+
+    Returns:
+        Dictionary with results_count, has_citations, format_valid
+    """
+    results = {
+        "results_count": 0,
+        "has_citations": False,
+        "format_valid": False,
+        "similarity_scores": []
+    }
+
+    # Extract JSON from stdout (handle debug logs)
+    json_start = stdout.find('{')
+    json_end = stdout.rfind('}') + 1
+    if json_start == -1:
+        return results
+
+    json_str = stdout[json_start:json_end]
+
+    if format == "json":
+        try:
+            data = json.loads(json_str)
+            results["format_valid"] = True
+
+            # Handle MCP JSON-RPC response format
+            # Format: {"jsonrpc": "2.0", "id": 1, "result": {"results": [...], "total": N, "message": "..."}}
+            if "result" in data:
+                result_data = data["result"]
+                # Check if there's an error
+                if isinstance(result_data, dict) and "isError" in result_data and result_data["isError"]:
+                    # Error response
+                    results["format_valid"] = False
+                    return results
+                # Extract results from nested content
+                if isinstance(result_data, dict) and "content" in result_data:
+                    # Nested content
+                    content = result_data["content"]
+                    if isinstance(content, list) and len(content) > 0:
+                        # Parse nested JSON in text field
+                        for item in content:
+                            if isinstance(item, dict) and "text" in item:
+                                try:
+                                    inner = json.loads(item["text"])
+                                    if "results" in inner:
+                                        inner_results = inner["results"]
+                                        if isinstance(inner_results, list):
+                                            results["results_count"] = len(inner_results)
+                                            for r in inner_results:
+                                                if "similarity" in r:
+                                                    results["similarity_scores"].append(r["similarity"])
+                                except:
+                                    pass
+                elif isinstance(result_data, list):
+                    results["results_count"] = len(result_data)
+                elif isinstance(result_data, dict) and "results" in result_data:
+                    results["results_count"] = len(result_data["results"])
+
+            # Check for citations
+            if "citation" in json_str or "source:" in json_str:
+                results["has_citations"] = True
+
+        except json.JSONDecodeError:
+            pass
+
+    return results
+
+
+def server_health_check(port: int = 8002) -> bool:
+    """
+    Check if MCP server is healthy.
+
+    Args:
+        port: MCP server port
+
+    Returns:
+        True if server is healthy, False otherwise
+    """
+    try:
+        response = httpx.get(
+            f"http://localhost:{port}/health",
+            timeout=TIMEOUTS["health_check"]
+        )
+        return response.status_code == 200
+    except Exception:
+        return False
+
+
+def wait_for_server(
+    port: int = 8002,
+    max_wait: int = 30,
+    check_interval: int = 2
+) -> bool:
+    """
+    Wait for server to become available.
+
+    Args:
+        port: MCP server port
+        max_wait: Maximum wait time in seconds
+        check_interval: Check interval in seconds
+
+    Returns:
+        True if server became available, False if timed out
+    """
+    start_time = time.time()
+    while time.time() - start_time < max_wait:
+        if server_health_check(port):
+            return True
+        time.sleep(check_interval)
+    return False
+
+
+def ensure_server_running(
+    port: int = 8002,
+    timeout: int = 30
+) -> bool:
+    """
+    Ensure MCP server is running, start if needed.
+
+    Args:
+        port: MCP server port
+        timeout: Timeout for server start
+
+    Returns:
+        True if server is running, False otherwise
+    """
+    if server_health_check(port):
+        return True
+
+    print(f"⚠️  Server not running, attempting to start...")
+    result = run_command(
+        ["synapse", "start", "--port", str(port)],
+        timeout=timeout
+    )
+
+    if result[0] == 0:
+        return wait_for_server(port, max_wait=timeout)
+    return False
+
+
+# Test data directories for Phase 3
+TEST_DIRECTORIES = {
+    "small": "docs/specs/005-cli-priority-testing",  # ~10 files
+    "medium": "docs/specs",  # ~50 files
+    "large": "synapse",  # ~100 files
+    "code": "synapse/cli",  # Python files
+    "docs": "docs",  # Markdown files
+}
+
+# Query test cases for Phase 3
+QUERY_TEST_CASES = [
+    {
+        "name": "Simple query",
+        "query": "What is synapse?",
+        "expected_results": True,
+        "top_k": 3
+    },
+    {
+        "name": "Configuration query",
+        "query": "What are the configuration settings?",
+        "expected_results": True,
+        "top_k": 3
+    },
+    {
+        "name": "No results query",
+        "query": "xyznonexistent123",
+        "expected_results": False,
+        "top_k": 3
+    },
+]
+
+# Performance thresholds for Phase 3
+PERFORMANCE_THRESHOLDS = {
+    "ingest_single_file": 5.0,  # seconds
+    "ingest_directory_10": 30.0,  # seconds
+    "query_simple": 5.0,  # seconds
+    "bulk_100_files": 300.0,  # seconds (5 min)
+}
+
+# Error messages for Phase 3
+ERROR_MESSAGES = {
+    "invalid_path": "does not exist",
+    "permission_denied": "Permission",
+    "mcp_unavailable": "server|MCP",
+    "invalid_project": "project",
+}

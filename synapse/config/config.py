@@ -119,8 +119,21 @@ class SynapseConfig:
         """Load OS-specific default configuration."""
         system = platform.system()
 
+        # Determine environment
+        if system == "Darwin":
+            env = "user_home"
+        elif system == "Linux":
+            opt_path = Path("/opt/synapse/data")
+            if opt_path.exists() and os.access(opt_path, os.W_OK):
+                env = "native"
+            else:
+                env = "user_home"
+        else:
+            env = "user_home"
+
         defaults = {
             "shortname": SHORTNAME,
+            "environment": env,
             "chunk_size": 500,
             "chunk_overlap": 50,
             "top_k": 3,
@@ -134,19 +147,25 @@ class SynapseConfig:
             "symbolic_memory_enabled": True,
             "query_expansion_enabled": True,
             "num_expansions": 3,
+            "data_dir": "",  # Set below based on OS
+            "models_dir": "",  # Set below based on OS
         }
 
         # OS-specific data directory
         if system == "Darwin":
             defaults["data_dir"] = str(Path.home() / ".synapse" / "data")
+            defaults["models_dir"] = str(Path.home() / ".synapse" / "models")
         elif system == "Linux":
             opt_path = Path("/opt/synapse/data")
             if opt_path.exists() and os.access(opt_path, os.W_OK):
                 defaults["data_dir"] = "/opt/synapse/data"
+                defaults["models_dir"] = "/opt/synapse/models"
             else:
                 defaults["data_dir"] = str(Path.home() / ".synapse" / "data")
+                defaults["models_dir"] = str(Path.home() / ".synapse" / "models")
         else:
             defaults["data_dir"] = str(Path.home() / ".synapse" / "data")
+            defaults["models_dir"] = str(Path.home() / ".synapse" / "models")
 
         self._config.update(defaults)
 
@@ -198,6 +217,18 @@ class SynapseConfig:
     def set(self, key: str, value: Any) -> None:
         """Set configuration value."""
         self._config[key] = value
+
+    def __getitem__(self, key: str) -> Any:
+        """Enable dict-style subscript access (e.g., config['key'])."""
+        return self._config[key]
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        """Enable dict-style subscript assignment (e.g., config['key'] = value)."""
+        self._config[key] = value
+
+    def __contains__(self, key: str) -> bool:
+        """Enable 'in' operator (e.g., 'key' in config)."""
+        return key in self._config
 
     def is_loaded(self) -> bool:
         """Check if configuration has been loaded."""
