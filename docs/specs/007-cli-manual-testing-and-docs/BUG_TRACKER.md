@@ -26,20 +26,26 @@
 
 ---
 
-## Bugs Summary (February 8, 2026 Session)
+## Bugs Summary (February 8, 2026 Session - Updated)
 
-| Bug ID | Command | Severity | Description | Status |
-|--------|---------|----------|-------------|--------|
-| BUG-001 | start | High | TypeError in CalledProcessError | Fixed |
-| BUG-002 | start | High | Config path hardcoded | Fixed |
-| BUG-003 | models | Medium | Model name registry incomplete | Fixed |
-| BUG-007-001 | query | Medium | Intermittent HTTP 500 errors | Investigating |
-| BUG-007-002 | stop | Low | Permission warning | Acknowledged |
-| BUG-007-003 | status/config | Low | Verbose mode identical | Enhancement |
-| BUG-007-004 | ingest | Low | DeprecationWarning | Acknowledged |
-| BUG-007-005 | ingest | Low | Llama context overflow | Investigating |
-| BUG-007-006 | ingest | Low | Embedding override warnings | Investigating |
-| BUG-007-007 | ingest | Medium | Semantic store chunk load | Investigating |
+| Bug ID | Command | Severity | Status |
+|--------|---------|----------|--------|
+| BUG-001 | start | High | Fixed |
+| BUG-002 | start | High | Fixed |
+| BUG-003 | models | Medium | Fixed |
+| BUG-007-001 | query | Medium | Investigating |
+| BUG-007-002 | stop | Low | Acknowledged |
+| BUG-007-003 | status/config | Low | [ENHANCED] |
+| BUG-007-004 | ingest | Low | [FIXED] |
+| BUG-007-005 | ingest | Low | Investigating |
+| BUG-007-006 | ingest | Low | Investigating |
+| BUG-007-007 | ingest | Medium | Investigating |
+
+### Recently Fixed Bugs
+
+| Bug ID | Fix Date | Commit |
+|--------|----------|--------|
+| BUG-007-004 | Feb 8, 2026 | `a9cd4ac` |
 
 ---
 
@@ -144,21 +150,37 @@ Verbose mode should show additional details such as:
 | **Bug ID** | BUG-007-004 |
 | **Command** | `sy ingest` |
 | **Severity** | Low |
-| **Status** | [Acknowledged] |
+| **Status** | [FIXED] |
 | **Found Date** | February 8, 2026 |
+| **Fixed Date** | February 8, 2026 |
 | **Tester** | opencode |
 
 **Description**:
 Bulk ingest process shows DeprecationWarning for datetime.datetime.utcnow() usage.
 
-**Warning**:
-```
-/home/dietpi/synapse/scripts/bulk_ingest.py:767: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+**Fix Applied**:
+- Updated `scripts/bulk_ingest.py` (lines 455, 767)
+- Updated `mcp_server/project_manager.py` (lines 175-176)
+- Updated `rag/memory_store.py` (lines 67-68)
+- Updated `mcp_server/metrics.py` (line 136)
+- Updated `mcp_server/production_logger.py` (line 87)
+
+**Changes**:
+```python
+# Before
+datetime.utcnow().isoformat()
+
+# After
+datetime.now(timezone.utc).isoformat()
 ```
 
-**Fix Plan**:
-- Update bulk_ingest.py line 767
-- Replace datetime.utcnow() with datetime.now(UTC)
+**Verification**:
+```bash
+$ sy ingest /path/to/dir
+# No deprecation warnings
+```
+
+**Commit**: `a9cd4ac`
 
 ---
 
@@ -292,15 +314,15 @@ Model name `bge-m3` is not recognized by `models download/verify/remove` command
 
 ---
 
-## Bug Statistics
+## Bug Statistics (Updated)
 
-| Severity | Count | Fixed | Open | Acknowledged | Enhancement |
-|----------|-------|-------|------|--------------|-------------|
+| Severity | Count | Fixed | Open | Acknowledged | Enhanced |
+|----------|-------|-------|------|--------------|----------|
 | Critical | 0 | 0 | 0 | 0 | 0 |
 | High | 2 | 2 | 0 | 0 | 0 |
-| Medium | 3 | 1 | 1 | 0 | 0 |
-| Low | 5 | 0 | 0 | 2 | 1 |
-| **Total** | **10** | **3** | **1** | **2** | **1** |
+| Medium | 3 | 1 | 2 | 0 | 0 |
+| Low | 5 | 1 | 2 | 1 | 1 |
+| **Total** | **10** | **4** | **4** | **1** | **1** |
 
 ---
 
