@@ -38,7 +38,7 @@ import json
 import logging
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple, Any
 
@@ -452,7 +452,7 @@ class IncrementalIngestor:
         failure_record = {
             "file_path": file_path,
             "error": error,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
         self.failed_files.append(failure_record)
         self._save_failed_files()
@@ -764,7 +764,7 @@ class BulkInjector:
             "relative_path": relative_path,
             "extension": file_path.suffix.lower(),
             "project_id": self.config.project_id,
-            "ingested_at": datetime.utcnow().isoformat()
+            "ingested_at": datetime.now(timezone.utc).isoformat()
         }
 
         return metadata
