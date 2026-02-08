@@ -62,7 +62,7 @@ def ingest_directory(
     extensions: Optional[Set[str]] = None,
     metadata: Optional[Dict[str, Any]] = None,
     recursive: bool = True,
-    config_path: str = "./configs/rag_config.json"
+    config_path: str = "./configs/synapse_config.json"
 ) -> Dict[str, Any]:
     """
     Ingest all supported files from a directory.
@@ -189,7 +189,7 @@ def main():
     )
     parser.add_argument(
         "--config", "-f",
-        default="./configs/rag_config.json",
+        default="./configs/synapse_config.json",
         help="Path to RAG config file"
     )
     

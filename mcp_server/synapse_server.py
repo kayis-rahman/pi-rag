@@ -235,7 +235,7 @@ class MemoryBackend:
 
         # Load from config file (medium priority)
         try:
-            config_path = os.environ.get("SYNAPSE_CONFIG_PATH", "./configs/rag_config.json")
+            config_path = os.environ.get("SYNAPSE_CONFIG_PATH", "./configs/synapse_config.json")
             if os.path.exists(config_path):
                 with open(config_path, 'r') as f:
                     file_config = json.load(f)
@@ -257,7 +257,7 @@ class MemoryBackend:
 
     def _load_auto_learning_config(self) -> Dict[str, Any]:
         """
-        Load automatic learning configuration from rag_config.json.
+        Load automatic learning configuration from synapse_config.json.
 
         Returns:
             Auto-learning configuration dictionary
@@ -273,7 +273,7 @@ class MemoryBackend:
         }
 
         try:
-            config_path = os.environ.get("SYNAPSE_CONFIG_PATH", "./configs/rag_config.json")
+            config_path = os.environ.get("SYNAPSE_CONFIG_PATH", "./configs/synapse_config.json")
             if os.path.exists(config_path):
                 with open(config_path, 'r') as f:
                     file_config = json.load(f)
@@ -296,7 +296,7 @@ class MemoryBackend:
 
     def _load_universal_hooks_config(self) -> Dict[str, Any]:
         """
-        Load universal hooks configuration from rag_config.json.
+        Load universal hooks configuration from synapse_config.json.
 
         Returns:
             Universal hooks configuration dictionary
@@ -323,7 +323,7 @@ class MemoryBackend:
         }
 
         try:
-            config_path = os.environ.get("SYNAPSE_CONFIG_PATH", "./configs/rag_config.json")
+            config_path = os.environ.get("SYNAPSE_CONFIG_PATH", "./configs/synapse_config.json")
             if os.path.exists(config_path):
                 with open(config_path, 'r') as f:
                     file_config = json.load(f)

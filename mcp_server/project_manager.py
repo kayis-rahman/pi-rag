@@ -71,7 +71,7 @@ class ProjectManager:
         
         # Priority 2: Config file
         try:
-            config_path = os.environ.get("SYNAPSE_CONFIG_PATH", "./configs/rag_config.json")
+            config_path = os.environ.get("SYNAPSE_CONFIG_PATH", "./configs/synapse_config.json")
             if os.path.exists(config_path):
                 with open(config_path, 'r') as f:
                     config = json.load(f)

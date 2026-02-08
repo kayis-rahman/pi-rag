@@ -258,7 +258,7 @@ def setup_project(
             from core.semantic_ingest import get_semantic_ingestor
 
             ingestor = get_semantic_ingestor()
-            config_path = "./configs/rag_config.json"
+            config_path = "./configs/synapse_config.json"
 
             # Ingest with progress
             with Progress(

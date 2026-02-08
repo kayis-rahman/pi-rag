@@ -29,7 +29,7 @@ class EmbeddingService:
         embeddings = service.embed(["Hello world", "Another text"])
     """
 
-    def __init__(self, config_path: str = "./configs/rag_config.json"):
+    def __init__(self, config_path: str = "./configs/synapse_config.json"):
         self.config_path = config_path
         self._load_config()
 
@@ -305,7 +305,7 @@ class EmbeddingService:
 _embedding_service: Optional[EmbeddingService] = None
 
 
-def get_embedding_service(config_path: str = "./configs/rag_config.json") -> EmbeddingService:
+def get_embedding_service(config_path: str = "./configs/synapse_config.json") -> EmbeddingService:
     """Get or create the embedding service singleton."""
     global _embedding_service
     if _embedding_service is None:

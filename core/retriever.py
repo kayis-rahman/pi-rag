@@ -24,7 +24,7 @@ class Retriever:
     
     def __init__(
         self,
-        config_path: str = "./configs/rag_config.json",
+        config_path: str = "./configs/synapse_config.json",
         embedding_service: Optional[EmbeddingService] = None,
         vector_store: Optional[VectorStore] = None
     ):
@@ -263,7 +263,7 @@ class Retriever:
 _retriever: Optional[Retriever] = None
 
 
-def get_retriever(config_path: str = "./configs/rag_config.json") -> Retriever:
+def get_retriever(config_path: str = "./configs/synapse_config.json") -> Retriever:
     """Get or create the retriever singleton."""
     global _retriever
     if _retriever is None:

@@ -6,7 +6,7 @@ Automatically extracts facts and episodes from agent conversations and stores th
 
 ## Configuration
 
-Configure via `configs/rag_config.json` -> `universal_hooks` -> `adapters` -> `opencode`:
+Configure via `configs/synapse_config.json` -> `universal_hooks` -> `adapters` -> `opencode`:
 
 ```json
 {
@@ -98,7 +98,7 @@ Configure via `configs/rag_config.json` -> `universal_hooks` -> `adapters` -> `o
 
 - OpenCode CLI
 - Synapse MCP server running
-- Configured `rag_config.json`
+- Configured `synapse_config.json`
 
 ## Troubleshooting
 
@@ -184,7 +184,7 @@ sqlite3 /opt/synapse/data/memory.db "SELECT title, lesson_type FROM episodes ORD
 **No analysis happens**:
 1. Check `[Synapse] Plugin initialized` message appears
 2. Check Synapse server is running: `curl http://localhost:8002/health`
-3. Check configuration: `configs/rag_config.json` has `universal_hooks.enabled=true`
+3. Check configuration: `configs/synapse_config.json` has `universal_hooks.enabled=true`
 
 **Extractions are incorrect**:
 1. Check `extraction_mode` in config (heuristic/llm/hybrid)
@@ -203,7 +203,7 @@ sqlite3 /opt/synapse/data/memory.db "SELECT title, lesson_type FROM episodes ORD
 
 ### Debug Mode
 
-Enable verbose logging by updating `rag_config.json`:
+Enable verbose logging by updating `synapse_config.json`:
 ```json
 {
   "universal_hooks": {

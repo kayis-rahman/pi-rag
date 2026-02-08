@@ -47,9 +47,9 @@ from core.learning_extractor import LearningExtractor
 
 # Load RAG config once at module level for performance
 # Use local configs directory when available, fall back to /app/configs for Docker
-_config_path = os.environ.get("SYNAPSE_CONFIG_PATH", "/home/dietpi/synapse/configs/rag_config.json")
+_config_path = os.environ.get("SYNAPSE_CONFIG_PATH", "/home/dietpi/synapse/configs/synapse_config.json")
 if not os.path.exists(_config_path):
-    _config_path = "/app/configs/rag_config.json"
+    _config_path = "/app/configs/synapse_config.json"
 with open(_config_path, 'r') as f:
     _rag_config = json.load(f)
 _context_injection_enabled = _rag_config.get("context_injection_enabled", False)
@@ -668,8 +668,8 @@ async def upload_file(request) -> Response:
                 status_code=400
             )
 
-        # Load upload config from rag_config.json
-        config_path = os.environ.get("SYNAPSE_CONFIG_PATH", "/app/configs/rag_config.json")
+        # Load upload config from synapse_config.json
+        config_path = os.environ.get("SYNAPSE_CONFIG_PATH", "/app/configs/synapse_config.json")
         with open(config_path, 'r') as f:
             config = json.load(f)
 

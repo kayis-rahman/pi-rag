@@ -21,13 +21,13 @@ class Orchestrator:
     Orchestrates retrieval pipeline: retrieval + LLM generation.
 
     Usage:
-        orchestrator = Orchestrator(config_path="./configs/rag_config.json")
+        orchestrator = Orchestrator(config_path="./configs/synapse_config.json")
         response = orchestrator.chat(
             messages=[{"role": "user", "content": "How does auth work?"}]
         )
     """
     
-    def __init__(self, config_path: str = "./configs/rag_config.json"):
+    def __init__(self, config_path: str = "./configs/synapse_config.json"):
         self.config_path = config_path
         self._load_config()
         # Initialize components
@@ -433,7 +433,7 @@ class Orchestrator:
 _orchestrator: Optional[Orchestrator] = None
 
 
-def get_orchestrator(config_path: str = "./configs/rag_config.json") -> Orchestrator:
+def get_orchestrator(config_path: str = "./configs/synapse_config.json") -> Orchestrator:
     """Get or create the orchestrator singleton."""
     global _orchestrator
     if _orchestrator is None:

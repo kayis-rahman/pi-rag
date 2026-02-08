@@ -29,8 +29,8 @@ def get_data_dir():
     return "/opt/synapse/data"
 
 def get_config():
-    """Load RAG configuration."""
-    config_path = project_root / "configs" / "rag_config.json"
+    """Load Synapse configuration."""
+    config_path = project_root / "configs" / "synapse_config.json"
     if config_path.exists():
         with open(config_path, 'r') as f:
             return json.load(f)
@@ -111,20 +111,20 @@ def main():
         ("/home/dietpi/synapse/MEMORY_SYSTEM_QUICK_REFERENCE.md", "doc"),
         ("/home/dietpi/synapse/docs/STRUCTURE.md", "doc"),
         
-        # Core RAG Modules
-        ("/home/dietpi/synapse/rag/__init__.py", "code"),
-        ("/home/dietpi/synapse/rag/orchestrator.py", "code"),
-        ("/home/dietpi/synapse/rag/memory_store.py", "code"),
-        ("/home/dietpi/synapse/rag/semantic_store.py", "code"),
-        ("/home/dietpi/synapse/rag/ingest.py", "code"),
-        ("/home/dietpi/synapse/rag/bulk_ingest.py", "code"),
-        ("/home/dietpi/synapse/rag/embedding.py", "code"),
-        ("/home/dietpi/synapse/rag/vectorstore.py", "code"),
-        ("/home/dietpi/synapse/rag/retriever.py", "code"),
+        # Core Modules
+        ("/home/dietpi/synapse/core/__init__.py", "code"),
+        ("/home/dietpi/synapse/core/orchestrator.py", "code"),
+        ("/home/dietpi/synapse/core/memory_store.py", "code"),
+        ("/home/dietpi/synapse/core/semantic_store.py", "code"),
+        ("/home/dietpi/synapse/core/ingest.py", "code"),
+        ("/home/dietpi/synapse/core/bulk_ingest.py", "code"),
+        ("/home/dietpi/synapse/core/embedding.py", "code"),
+        ("/home/dietpi/synapse/core/vectorstore.py", "code"),
+        ("/home/dietpi/synapse/core/retriever.py", "code"),
         ("/home/dietpi/synapse/mcp_server/synapse_server.py", "code"),
         
         # Configuration
-        ("/home/dietpi/synapse/configs/rag_config.json", "code"),
+        ("/home/dietpi/synapse/configs/synapse_config.json", "code"),
     ]
     
     total_chunks = 0

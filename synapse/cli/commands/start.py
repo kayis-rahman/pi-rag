@@ -140,9 +140,9 @@ def start_native(port: int = 8002) -> bool:
     # Find the config file - search in multiple locations
     config_path = None
     possible_paths = [
-        Path(__file__).parent.parent.parent / "configs" / "rag_config.json",  # From synapse/cli/commands/ -> synapse/configs
-        Path.cwd() / "configs" / "rag_config.json",  # Current working directory
-        Path("/opt/synapse/configs/rag_config.json"),  # Installation path
+        Path(__file__).parent.parent.parent / "configs" / "synapse_config.json",  # From synapse/cli/commands/ -> synapse/configs
+        Path.cwd() / "configs" / "synapse_config.json",  # Current working directory
+        Path("/opt/synapse/configs/synapse_config.json"),  # Installation path
     ]
 
     for path in possible_paths:
@@ -151,7 +151,7 @@ def start_native(port: int = 8002) -> bool:
             break
 
     if config_path is None:
-        print(f"❌ Error: Cannot find rag_config.json")
+        print(f"❌ Error: Cannot find synapse_config.json")
         print(f"   Searched in:")
         for p in possible_paths:
             print(f"   - {p}")

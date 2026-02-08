@@ -106,7 +106,7 @@ def ingest_file(
     chunk_size: int = 500,
     chunk_overlap: int = 50,
     metadata: Optional[Dict[str, Any]] = None,
-    config_path: str = "./configs/rag_config.json"
+    config_path: str = "./configs/synapse_config.json"
 ) -> int:
     """
     Ingest a single file into the RAG index.
@@ -170,7 +170,7 @@ def ingest_text(
     chunk_size: int = 500,
     chunk_overlap: int = 50,
     metadata: Optional[Dict[str, Any]] = None,
-    config_path: str = "./configs/rag_config.json"
+    config_path: str = "./configs/synapse_config.json"
 ) -> int:
     """
     Ingest raw text into the RAG index.

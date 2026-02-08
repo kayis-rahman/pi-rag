@@ -86,7 +86,7 @@ class MetricsCollector:
     
     def __init__(
         self,
-        config_path: str = "./configs/rag_config.json",
+        config_path: str = "./configs/synapse_config.json",
         metrics_config_path: str = "./configs/metrics_config.json"
     ):
         """

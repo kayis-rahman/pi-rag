@@ -26,7 +26,13 @@ This guide helps you migrate from Synapse v1.x to v2.0. Version 2.0 includes a c
 | `RAG_UPLOAD_MAX_AGE` | `SYNAPSE_UPLOAD_MAX_AGE` |
 | `RAG_UPLOAD_MAX_SIZE` | `SYNAPSE_UPLOAD_MAX_SIZE` |
 
-## Migration Steps
+### 3. Configuration File Renamed (Breaking Change)
+
+| Old File | New File |
+|----------|----------|
+| `configs/rag_config.json` | `configs/synapse_config.json` |
+
+**All hardcoded references to `rag_config.json` must be updated.**
 
 ### Step 1: Update Environment Variables
 
@@ -75,11 +81,19 @@ from mcp_server.synapse_server import MemoryBackend
 
 ### Step 3: Update Configuration Files
 
-If you have custom config files:
+**If you have existing `rag_config.json` files:**
 
+1. Rename the file:
 ```bash
-# Replace all RAG_ with SYNAPSE_
-sed -i 's/RAG_/SYNAPSE_/g' your-config-file.json
+mv configs/rag_config.json configs/synapse_config.json
+```
+
+2. Update all hardcoded references in your code:
+```bash
+# Replace all occurrences of rag_config.json with synapse_config.json
+find . -type f -name "*.py" -exec sed -i 's/rag_config\.json/synapse_config\.json/g' {} +
+find . -type f -name "*.yaml" -exec sed -i 's/rag_config\.json/synapse_config\.json/g' {} +
+find . -type f -name "*.yml" -exec sed -i 's/rag_config\.json/synapse_config\.json/g' {} +
 ```
 
 ### Step 4: Update Shell Scripts

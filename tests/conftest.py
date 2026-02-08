@@ -177,7 +177,7 @@ def test_config_path(temp_dir: Path) -> Path:
         "memory_max_facts": 10,
     }
 
-    config_path = temp_dir / "rag_config.json"
+    config_path = temp_dir / "synapse_config.json"
     config_path.write_text(json.dumps(config, indent=2))
 
     return config_path
@@ -277,7 +277,7 @@ synapse start
 
 ## Configuration
 
-Edit `configs/rag_config.json` to customize settings.
+Edit `configs/synapse_config.json` to customize settings.
 """)
 
     # Create config.json

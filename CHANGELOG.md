@@ -40,7 +40,7 @@ All MCP tools have been renamed to use compact hierarchical naming for optimal c
 ### Files Changed
 
 - `mcp_server/http_wrapper.py` - All 7 tools renamed with `name=` parameter
-- `configs/rag_config.json` - universal_hooks section updated
+- `configs/synapse_config.json` - universal_hooks section updated
 - `synapse/cli/main.py` - CLI integration updated
 - `AGENTS.md` - All 40+ tool references updated
 - All documentation files updated with new names
@@ -104,6 +104,10 @@ import core
 - All Python files - Environment variables updated
 - All documentation - References updated
 - `docker-compose.yml` - Environment variables updated
+
+**Breaking Change:**
+- `configs/rag_config.json` renamed to `configs/synapse_config.json`
+- All hardcoded references to `rag_config.json` must be updated
 
 **Migration Required:**
 See `MIGRATION_v2.0.md` for complete migration guide.

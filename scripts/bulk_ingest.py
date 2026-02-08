@@ -86,7 +86,7 @@ class BulkInjectConfig:
         self.file_types: Optional[List[str]] = None
         self.dry_run: bool = False
         self.incremental: bool = True
-        self.config_path: str = "./configs/rag_config.json"
+        self.config_path: str = "./configs/synapse_config.json"
         self.verbose: bool = False
 
 
@@ -852,8 +852,8 @@ Examples:
     )
     parser.add_argument(
         "--config",
-        default="./configs/rag_config.json",
-        help="Path to RAG config file (default: ./configs/rag_config.json)"
+        default="./configs/synapse_config.json",
+        help="Path to RAG config file (default: ./configs/synapse_config.json)"
     )
     parser.add_argument(
         "--verbose",

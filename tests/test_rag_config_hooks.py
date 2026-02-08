@@ -10,14 +10,14 @@ class TestRagConfigUniversalHooks:
 
     def test_universal_hooks_section_exists(self):
         """Verify universal_hooks section exists in config."""
-        config_path = Path("configs/rag_config.json")
+        config_path = Path("configs/synapse_config.json")
         config = json.loads(config_path.read_text())
 
         assert "universal_hooks" in config
 
     def test_opencode_adapter_exists(self):
         """Verify opencode adapter configuration."""
-        config_path = Path("configs/rag_config.json")
+        config_path = Path("configs/synapse_config.json")
         config = json.loads(config_path.read_text())
 
         assert "adapters" in config["universal_hooks"]
@@ -25,7 +25,7 @@ class TestRagConfigUniversalHooks:
 
     def test_opencode_config_complete(self):
         """Verify opencode adapter has all required config."""
-        config_path = Path("configs/rag_config.json")
+        config_path = Path("configs/synapse_config.json")
         config = json.loads(config_path.read_text())
 
         opencode_config = config["universal_hooks"]["adapters"]["opencode"]
@@ -45,14 +45,14 @@ class TestRagConfigUniversalHooks:
 
     def test_conversation_analyzer_config_exists(self):
         """Verify conversation_analyzer configuration."""
-        config_path = Path("configs/rag_config.json")
+        config_path = Path("configs/synapse_config.json")
         config = json.loads(config_path.read_text())
 
         assert "conversation_analyzer" in config["universal_hooks"]
 
     def test_config_sensible_defaults(self):
         """Verify configuration has sensible defaults."""
-        config_path = Path("configs/rag_config.json")
+        config_path = Path("configs/synapse_config.json")
         config = json.loads(config_path.read_text())
 
         analyzer_config = config["universal_hooks"]["conversation_analyzer"]
@@ -69,7 +69,7 @@ class TestRagConfigUniversalHooks:
 
     def test_opencode_enabled(self):
         """Verify opencode adapter is enabled by default."""
-        config_path = Path("configs/rag_config.json")
+        config_path = Path("configs/synapse_config.json")
         config = json.loads(config_path.read_text())
 
         opencode_config = config["universal_hooks"]["adapters"]["opencode"]
@@ -77,7 +77,7 @@ class TestRagConfigUniversalHooks:
 
     def test_opencode_priority(self):
         """Verify opencode adapter has priority set."""
-        config_path = Path("configs/rag_config.json")
+        config_path = Path("configs/synapse_config.json")
         config = json.loads(config_path.read_text())
 
         opencode_config = config["universal_hooks"]["adapters"]["opencode"]

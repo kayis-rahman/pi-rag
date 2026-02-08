@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from core.auto_learning_tracker import AutoLearningTracker
 
 # Load config
-config_path = Path("configs/rag_config.json")
+config_path = Path("configs/synapse_config.json")
 with open(config_path, 'r') as f:
     config = json.load(f)
 

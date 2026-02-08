@@ -26,7 +26,7 @@ synapse start
 
 ## Configuration
 
-Edit `configs/rag_config.json` to customize:
+Edit `configs/synapse_config.json` to customize:
 - Chunk size and overlap
 - Top-K retrieval settings
 - Model paths
