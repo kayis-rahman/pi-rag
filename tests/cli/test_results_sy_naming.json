@@ -1,0 +1,104 @@
+{
+  "timestamp": "2026-02-08T16:36:31.358136",
+  "cli_tests": {
+    "total": 10,
+    "passed": 9,
+    "time": 12.706276416778564
+  },
+  "mcp_tests": {
+    "total": 2,
+    "passed": 0,
+    "time": 0.020835161209106445
+  },
+  "overall": {
+    "total": 12,
+    "passed": 9,
+    "success_rate": "75%"
+  },
+  "details": [
+    {
+      "test_id": "CLI-001",
+      "test_name": "sy --help",
+      "status": "passed",
+      "duration": 0.5921993255615234,
+      "timestamp": "2026-02-08T16:36:17.652694"
+    },
+    {
+      "test_id": "CLI-002",
+      "test_name": "sy start",
+      "status": "failed",
+      "duration": 0.5710527896881104,
+      "timestamp": "2026-02-08T16:36:18.223908"
+    },
+    {
+      "test_id": "CLI-003",
+      "test_name": "sy status",
+      "status": "passed",
+      "duration": 0.6400289535522461,
+      "timestamp": "2026-02-08T16:36:18.863976"
+    },
+    {
+      "test_id": "CLI-004",
+      "test_name": "sy config",
+      "status": "passed",
+      "duration": 0.5402379035949707,
+      "timestamp": "2026-02-08T16:36:19.404254"
+    },
+    {
+      "test_id": "CLI-005",
+      "test_name": "sy models list",
+      "status": "passed",
+      "duration": 0.582709550857544,
+      "timestamp": "2026-02-08T16:36:19.987003"
+    },
+    {
+      "test_id": "CLI-006",
+      "test_name": "sy ingest",
+      "status": "passed",
+      "duration": 1.1138360500335693,
+      "timestamp": "2026-02-08T16:36:21.100900"
+    },
+    {
+      "test_id": "CLI-007",
+      "test_name": "sy query",
+      "status": "passed",
+      "duration": 2.900625705718994,
+      "timestamp": "2026-02-08T16:36:24.001637"
+    },
+    {
+      "test_id": "CLI-008",
+      "test_name": "sy setup --help",
+      "status": "passed",
+      "duration": 0.5993714332580566,
+      "timestamp": "2026-02-08T16:36:24.601064"
+    },
+    {
+      "test_id": "CLI-009",
+      "test_name": "sy onboard --help",
+      "status": "passed",
+      "duration": 0.5817177295684814,
+      "timestamp": "2026-02-08T16:36:25.182846"
+    },
+    {
+      "test_id": "CLI-010",
+      "test_name": "sy stop",
+      "status": "passed",
+      "duration": 4.584496974945068,
+      "timestamp": "2026-02-08T16:36:29.767390"
+    },
+    {
+      "test_id": "MCP-001",
+      "test_name": "MCP tools verification",
+      "status": "failed",
+      "duration": 0.010627269744873047,
+      "timestamp": "2026-02-08T16:36:29.778058"
+    },
+    {
+      "test_id": "MCP-002",
+      "test_name": "MCP protocol",
+      "status": "failed",
+      "duration": 0.010207891464233398,
+      "timestamp": "2026-02-08T16:36:29.788309"
+    }
+  ]
+}
