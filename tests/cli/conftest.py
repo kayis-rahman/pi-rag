@@ -25,6 +25,7 @@ TIMEOUTS = {
     "stop": 5,         # seconds
     "status": 2,        # seconds
     "compose": 10,      # seconds (docker compose operations)
+    "docker": 60,       # seconds (docker operations)
     # Phase 3 timeouts
     "ingest": 300,      # seconds (5 min for large directories)
     "query": 10,        # seconds (10 sec for query)
