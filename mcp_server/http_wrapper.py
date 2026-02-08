@@ -98,7 +98,19 @@ async def list_projects(scope_type: Optional[str] = None) -> dict:
     Returns:
         Dict with projects list and metadata
     """
-    return await backend.list_projects(scope_type=scope_type)
+    try:
+        return await backend.list_projects(scope_type=scope_type)
+    except Exception as e:
+        import traceback
+        logger.error(f"[DEBUG] backend.list_projects() failed: {e}")
+        logger.error(f"[DEBUG] Traceback: {traceback.format_exc()}")
+        # Return structured error instead of raising to prevent HTTP 500
+        return {
+            "status": "error",
+            "error": str(e),
+            "message": "Failed to list projects, please retry",
+            "projects": []
+        }
 
 
 @mcp.tool(name="sy.src.list")
@@ -114,7 +126,19 @@ async def list_sources(project_id: str, source_type: Optional[str] = None) -> di
     Returns:
         Dict with sources list and metadata
     """
-    return await backend.list_sources(project_id=project_id, source_type=source_type)
+    try:
+        return await backend.list_sources(project_id=project_id, source_type=source_type)
+    except Exception as e:
+        import traceback
+        logger.error(f"[DEBUG] backend.list_sources() failed: {e}")
+        logger.error(f"[DEBUG] Traceback: {traceback.format_exc()}")
+        # Return structured error instead of raising to prevent HTTP 500
+        return {
+            "status": "error",
+            "error": str(e),
+            "message": "Failed to list sources, please retry",
+            "sources": []
+        }
 
 
 @mcp.tool(name="sy.ctx.get")
@@ -142,12 +166,24 @@ async def get_context(
     Returns:
         Dict with context from each memory type
     """
-    return await backend.get_context(
-        project_id=project_id,
-        context_type=context_type,
-        query=query,
-        max_results=max_results
-    )
+    try:
+        return await backend.get_context(
+            project_id=project_id,
+            context_type=context_type,
+            query=query,
+            max_results=max_results
+        )
+    except Exception as e:
+        import traceback
+        logger.error(f"[DEBUG] backend.get_context() failed: {e}")
+        logger.error(f"[DEBUG] Traceback: {traceback.format_exc()}")
+        # Return structured error instead of raising to prevent HTTP 500
+        return {
+            "status": "error",
+            "error": str(e),
+            "message": "Failed to get context, please retry",
+            "context": {}
+        }
 
 
 @mcp.tool(name="sy.mem.search")
@@ -184,7 +220,14 @@ async def search(
         import traceback
         logger.error(f"[DEBUG] backend.search() failed: {e}")
         logger.error(f"[DEBUG] Traceback: {traceback.format_exc()}")
-        raise
+        # Return structured error instead of raising to prevent HTTP 500
+        return {
+            "status": "error",
+            "error": str(e),
+            "message": "Search failed, please retry",
+            "results": [],
+            "total": 0
+        }
 
 
 @mcp.tool(name="sy.mem.ingest")
@@ -256,12 +299,24 @@ Only HTTP upload flow is available.
     # Mode 2: File path provided (original behavior, backward compatible)
     elif file_path is not None:
         # Use existing backend method - backend validates file_path is in upload directory
-        return await backend.ingest_file(
-            project_id=project_id,
-            file_path=file_path,
-            source_type=source_type,
-            metadata=metadata
-        )
+        try:
+            return await backend.ingest_file(
+                project_id=project_id,
+                file_path=file_path,
+                source_type=source_type,
+                metadata=metadata
+            )
+        except Exception as e:
+            import traceback
+            logger.error(f"[DEBUG] backend.ingest_file() failed: {e}")
+            logger.error(f"[DEBUG] Traceback: {traceback.format_exc()}")
+            # Return structured error instead of raising to prevent HTTP 500
+            return {
+                "status": "error",
+                "error": str(e),
+                "message": "Ingestion failed, please retry",
+                "file_path": file_path
+            }
 
     # Neither provided
     else:
@@ -294,13 +349,25 @@ async def add_fact(
     Returns:
         Dict with fact creation result
     """
-    return await backend.add_fact(
-        project_id=project_id,
-        fact_key=fact_key,
-        fact_value=fact_value,
-        confidence=confidence,
-        category=category
-    )
+    try:
+        return await backend.add_fact(
+            project_id=project_id,
+            fact_key=fact_key,
+            fact_value=fact_value,
+            confidence=confidence,
+            category=category
+        )
+    except Exception as e:
+        import traceback
+        logger.error(f"[DEBUG] backend.add_fact() failed: {e}")
+        logger.error(f"[DEBUG] Traceback: {traceback.format_exc()}")
+        # Return structured error instead of raising to prevent HTTP 500
+        return {
+            "status": "error",
+            "error": str(e),
+            "message": "Failed to add fact, please retry",
+            "fact_key": fact_key
+        }
 
 
 @mcp.tool(name="sy.mem.ep.add")
@@ -325,13 +392,25 @@ async def add_episode(
     Returns:
         Dict with episode creation result
     """
-    return await backend.add_episode(
-        project_id=project_id,
-        title=title,
-        content=content,
-        lesson_type=lesson_type,
-        quality=quality
-    )
+    try:
+        return await backend.add_episode(
+            project_id=project_id,
+            title=title,
+            content=content,
+            lesson_type=lesson_type,
+            quality=quality
+        )
+    except Exception as e:
+        import traceback
+        logger.error(f"[DEBUG] backend.add_episode() failed: {e}")
+        logger.error(f"[DEBUG] Traceback: {traceback.format_exc()}")
+        # Return structured error instead of raising to prevent HTTP 500
+        return {
+            "status": "error",
+            "error": str(e),
+            "message": "Failed to add episode, please retry",
+            "title": title
+        }
 
 
 # ============================================================================
