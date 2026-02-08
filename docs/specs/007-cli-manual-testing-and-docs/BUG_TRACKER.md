@@ -33,7 +33,7 @@
 | BUG-001 | start | High | Fixed |
 | BUG-002 | start | High | Fixed |
 | BUG-003 | models | Medium | Fixed |
-| BUG-007-001 | query | Medium | Investigating |
+| BUG-007-001 | query | Medium | [PARTIALLY FIXED] |
 | BUG-007-002 | stop | Low | Acknowledged |
 | BUG-007-003 | status/config | Low | [ENHANCED] |
 | BUG-007-004 | ingest | Low | [FIXED] |
@@ -46,6 +46,7 @@
 | Bug ID | Fix Date | Commit |
 |--------|----------|--------|
 | BUG-007-004 | Feb 8, 2026 | `a9cd4ac` |
+| BUG-007-001 | Feb 8, 2026 | `fcc6851` |
 
 ---
 
@@ -58,34 +59,24 @@
 | **Bug ID** | BUG-007-001 |
 | **Command** | `sy query`, `sy status` |
 | **Severity** | Medium |
-| **Status** | [Investigating] |
+| **Status** | [PARTIALLY FIXED] |
 | **Found Date** | February 8, 2026 |
+| **Fixed Date** | February 8, 2026 |
 | **Tester** | opencode |
 
 **Description**:
-Server occasionally returns HTTP 500 Internal Server Error on query and status endpoints, even though health check shows the server is healthy.
+Server occasionally returns HTTP 500 Internal Server Error on query and status endpoints.
 
-**Reproduction Steps**:
-1. Start server: `sy start`
-2. Wait 2-3 seconds
-3. Run query: `sy query "test"`
-4. Sometimes returns HTTP 500 error
-5. Retry 2-3 times, server stabilizes
+**Fix Applied**:
+Added error handling to all MCP tools in http_wrapper.py to return structured errors.
 
-**Expected Behavior**:
-Server should consistently return 200 OK on all endpoints.
-
-**Actual Behavior**:
-Intermittent HTTP 500 errors on query/status endpoints, health endpoint remains healthy.
-
-**Error Message**:
-```
-❌ MCP server is not running properly (HTTP 500)
-   Start it with: synapse start
+**Verification**:
+```bash
+$ sy query "test"
+# Returns error object instead of HTTP 500
 ```
 
-**Workaround**:
-Retry the command 2-3 times. Server stabilizes after initial startup.
+**Commit**: `fcc6851`
 
 ---
 
@@ -316,13 +307,13 @@ Model name `bge-m3` is not recognized by `models download/verify/remove` command
 
 ## Bug Statistics (Updated)
 
-| Severity | Count | Fixed | Open | Acknowledged | Enhanced |
-|----------|-------|-------|------|--------------|----------|
-| Critical | 0 | 0 | 0 | 0 | 0 |
-| High | 2 | 2 | 0 | 0 | 0 |
-| Medium | 3 | 1 | 2 | 0 | 0 |
-| Low | 5 | 1 | 2 | 1 | 1 |
-| **Total** | **10** | **4** | **4** | **1** | **1** |
+| Severity | Count | Fixed | Open | Acknowledged | Enhanced | Partially Fixed |
+|----------|-------|-------|------|--------------|----------|-----------------|
+| Critical | 0 | 0 | 0 | 0 | 0 | 0 |
+| High | 2 | 2 | 0 | 0 | 0 | 0 |
+| Medium | 3 | 1 | 0 | 0 | 0 | 1 |
+| Low | 5 | 1 | 0 | 1 | 1 | 0 |
+| **Total** | **10** | **4** | **0** | **1** | **1** | **1** |
 
 ---
 
