@@ -22,7 +22,7 @@
 
 ### Fix 1.1: Line 98 - Variable Name Typo
 
-**File**: `rag/chroma_semantic_store.py`
+**File**: `core/chroma_semantic_store.py`
 **Line**: 98
 
 **Current Code**:
@@ -49,7 +49,7 @@ if persist_directory and not os.path.exists(persist_directory):
 
 ### Fix 1.2: Line 109 - Method Name Typo
 
-**File**: `rag/chroma_semantic_store.py`
+**File**: `core/chroma_semantic_store.py`
 **Line**: 109
 
 **Current Code**:

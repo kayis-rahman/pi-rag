@@ -376,7 +376,7 @@ open htmlcov/index.html
 
 ### Test Execution Tips
 
-1. **Fast Tests**: Use `RAG_TEST_MODE=true` for mock embeddings
+1. **Fast Tests**: Use `SYNAPSE_TEST_MODE=true` for mock embeddings
 2. **Unit Only**: Run `pytest -m unit`
 3. **Skip Slow**: Run `pytest -m "not slow"`
 4. **Coverage First**: Run `pytest --cov` before refactoring
@@ -498,7 +498,7 @@ pytest --tb=long
 | API Mismatches | High | Tests created, verification needed | ⏳ Pending |
 | Low Coverage | Medium | Need more tests for some modules | ⏳ Pending |
 | Implementation Dependent | Medium | Some tests need actual implementations | ⏳ Pending |
-| Slow Tests | Low | Use `RAG_TEST_MODE=true` | ✅ Implemented |
+| Slow Tests | Low | Use `SYNAPSE_TEST_MODE=true` | ✅ Implemented |
 | Flaky Tests | Medium | Use fixtures, avoid delays | ⏳ To Verify |
 | CI/CD Failures | Low | Already implemented | ✅ Complete |
 

@@ -142,7 +142,7 @@ All MCP tools tested and working:
 
 ### Start MCP Server
 ```bash
-RAG_DATA_DIR=~/.synapse/data RAG_CONFIG_PATH=/Users/kayisrahman/Documents/workspace/ideas/synapse/configs/rag_config.json \
+SYNAPSE_DATA_DIR=~/.synapse/data SYNAPSE_CONFIG_PATH=/Users/kayisrahman/Documents/workspace/ideas/synapse/configs/rag_config.json \
 python3 -m mcp_server.http_wrapper > /tmp/synapse.log 2>&1 &
 ```
 
@@ -181,7 +181,7 @@ pytest tests/unit/test_server_management.py -v
 
 ### Server Config Path
 - **Issue**: Server looked for config at `/app/configs/rag_config.json`
-- **Fix**: Set `RAG_CONFIG_PATH` environment variable
+- **Fix**: Set `SYNAPSE_CONFIG_PATH` environment variable
 - **Status**: Resolved
 
 ---

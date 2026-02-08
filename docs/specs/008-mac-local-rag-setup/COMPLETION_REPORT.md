@@ -64,7 +64,7 @@ Successfully set up a complete local RAG system on macOS with BGE-M3 embedding m
 2. **pyproject.toml missing requires-python** - Added `requires-python = ">=3.8"`
 3. **Missing MCP server dependency** - Installed `mcp-server` package
 4. **Starlette version conflict** - Fixed to compatible version
-5. **Hardcoded Linux paths** - Set `RAG_DATA_DIR=~/.synapse/data`
+5. **Hardcoded Linux paths** - Set `SYNAPSE_DATA_DIR=~/.synapse/data`
 6. **Missing Python dependencies** - Installed `typer`, `requests`, `mcp-server`, `httpx` etc.
 
 ### Configuration Applied
@@ -143,7 +143,7 @@ Successfully set up a complete local RAG system on macOS with BGE-M3 embedding m
 ```bash
 cd /Users/kayisrahman/Documents/workspace/ideas/synapse
 source venv/bin/activate
-export RAG_DATA_DIR=~/.synapse/data
+export SYNAPSE_DATA_DIR=~/.synapse/data
 synapse start
 ```
 
@@ -163,7 +163,7 @@ synapse stop
 
 1. **Repository Discovery**: BAAI/bge-m3 doesn't have GGUF files; need to use community ports like `KimChen/bge-m3-GGUF`
 
-2. **Path Configuration**: The server uses `RAG_DATA_DIR` environment variable for macOS/Linux compatibility
+2. **Path Configuration**: The server uses `SYNAPSE_DATA_DIR` environment variable for macOS/Linux compatibility
 
 3. **Dependency Management**: MCP server requires separate installation and has starlette version conflicts
 

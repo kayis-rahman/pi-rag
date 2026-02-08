@@ -14,7 +14,7 @@ The universal hook-based auto-learning system consists of four main components:
 1. **Hook Interface Layer** - Standard interface for all agent adapters
 2. **Conversation Analyzer** - Extracts facts and episodes using heuristics
 3. **Agent Adapters** - Agent-specific implementations (OpenCode, Claude Code, etc.)
-4. **RAG MCP Server** - Provides `rag.analyze_conversation` tool for storage
+4. **RAG MCP Server** - Provides `core.analyze_conversation` tool for storage
 
 **Data Flow**:
 ```
@@ -64,7 +64,7 @@ Agent Conversation → Hook (tool.execute.before) → RAG Tool (rag.analyze_conv
 
 ### 1. Hook Interface Layer
 
-#### Python Interface (`rag/universal_hook.py`)
+#### Python Interface (`core/universal_hook.py`)
 
 ```python
 from typing import Dict, Any, Optional
@@ -149,7 +149,7 @@ export interface UniversalHookInterface {
 
 ### 2. Conversation Analyzer
 
-#### Class Definition (`rag/conversation_analyzer.py`)
+#### Class Definition (`core/conversation_analyzer.py`)
 
 ```python
 class ConversationAnalyzer:
@@ -282,7 +282,7 @@ export default SynapseAutoLearningPlugin;
 
 ### 4. RAG MCP Server Integration
 
-#### New Tool: `rag.analyze_conversation`
+#### New Tool: `core.analyze_conversation`
 
 ```python
 Tool(
@@ -496,7 +496,7 @@ async def handle_analyze_conversation(
 - ✅ Requirements and plan documentation
 
 ### Phase 2: MCP Server Integration
-- Add `rag.analyze_conversation` tool
+- Add `core.analyze_conversation` tool
 - Implement handler with ConversationAnalyzer
 - Load config from rag_config.json
 - Add to tool routing

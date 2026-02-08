@@ -16,12 +16,12 @@ from typing import List, Dict, Any, Optional, Generator
 from .logger import get_logger
 logger = get_logger(__name__)
 
-class RAGOrchestrator:
+class Orchestrator:
     """
     Orchestrates RAG pipeline: retrieval + LLM generation.
     
     Usage:
-        orchestrator = RAGOrchestrator(config_path="./configs/rag_config.json")
+        orchestrator = Orchestrator(config_path="./configs/rag_config.json")
         response = orchestrator.chat(
             messages=[{"role": "user", "content": "How does auth work?"}]
         )
@@ -430,12 +430,12 @@ class RAGOrchestrator:
         return stats
 
 # Singleton instance
-_orchestrator: Optional[RAGOrchestrator] = None
+_orchestrator: Optional[Orchestrator] = None
 
 
-def get_orchestrator(config_path: str = "./configs/rag_config.json") -> RAGOrchestrator:
+def get_orchestrator(config_path: str = "./configs/rag_config.json") -> Orchestrator:
     """Get or create the orchestrator singleton."""
     global _orchestrator
     if _orchestrator is None:
-        _orchestrator = RAGOrchestrator(config_path)
+        _orchestrator = Orchestrator(config_path)
     return _orchestrator

@@ -35,15 +35,15 @@ from mcp.server.transport_security import TransportSecuritySettings
 
 # Add parent directory to path for imports (only if not already in path)
 # In Docker, PYTHONPATH=/app so we don't need this
-if os.environ.get("RAG_ENV") != "docker":
+if os.environ.get("SYNAPSE_ENV") != "docker":
     sys.path.insert(0, '/home/dietpi/synapse')
 
 # Import RAG backend
-from mcp_server.rag_server import RAGMemoryBackend
+from mcp_server.synapse_server import MemoryBackend
 
 # Load RAG config once at module level for performance
 # Use local configs directory when available, fall back to /app/configs for Docker
-_config_path = os.environ.get("RAG_CONFIG_PATH", "/home/dietpi/synapse/configs/rag_config.json")
+_config_path = os.environ.get("SYNAPSE_CONFIG_PATH", "/home/dietpi/synapse/configs/rag_config.json")
 if not os.path.exists(_config_path):
     _config_path = "/app/configs/rag_config.json"
 with open(_config_path, 'r') as f:
@@ -62,7 +62,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Initialize RAG Backend
-backend = RAGMemoryBackend()
+backend = MemoryBackend()
 
 # Configure transport security to allow remote connections
 # This allows opencode to connect from Mac
@@ -471,7 +471,7 @@ async def upload_file(request) -> Response:
             )
 
         # Load upload config from rag_config.json
-        config_path = os.environ.get("RAG_CONFIG_PATH", "/app/configs/rag_config.json")
+        config_path = os.environ.get("SYNAPSE_CONFIG_PATH", "/app/configs/rag_config.json")
         with open(config_path, 'r') as f:
             config = json.load(f)
 

@@ -11,7 +11,7 @@ Tests cover:
 
 import pytest
 import asyncio
-from rag.conversation_analyzer import ConversationAnalyzer
+from core.conversation_analyzer import ConversationAnalyzer
 
 
 class TestConversationAnalyzer:
@@ -254,9 +254,9 @@ class TestMCPIntegration:
         """Test that rag.analyze_conversation tool can be called."""
         # This test requires the MCP server to be running
         # For now, we'll just check that the method exists
-        from mcp_server.rag_server import RAGMemoryBackend
+        from mcp_server.synapse_server import MemoryBackend
 
-        backend = RAGMemoryBackend()
+        backend = MemoryBackend()
 
         # Check that analyze_conversation method exists
         assert hasattr(backend, 'analyze_conversation')
@@ -284,9 +284,9 @@ class TestMCPIntegration:
     @pytest.mark.asyncio
     async def test_analyze_conversation_return_only(self):
         """Test return_only flag."""
-        from mcp_server.rag_server import RAGMemoryBackend
+        from mcp_server.synapse_server import MemoryBackend
 
-        backend = RAGMemoryBackend()
+        backend = MemoryBackend()
 
         try:
             result = await backend.analyze_conversation(

@@ -28,7 +28,7 @@ This plan details the technical implementation for fixing 4 critical bugs blocki
 def _get_data_dir(self) -> str:
     """Get data directory from config file."""
     try:
-        config_path = os.environ.get("RAG_CONFIG_PATH", "./configs/rag_config.json")
+        config_path = os.environ.get("SYNAPSE_CONFIG_PATH", "./configs/rag_config.json")
         if os.path.exists(config_path):
             with open(config_path, 'r') as f:
                 config = json.load(f)
@@ -39,7 +39,7 @@ def _get_data_dir(self) -> str:
         logger.warning(f"Failed to read data dir from config: {e}")
     
     # HARDCODED - fails on Mac!
-    return os.environ.get("RAG_DATA_DIR", "/opt/synapse/data")
+    return os.environ.get("SYNAPSE_DATA_DIR", "/opt/synapse/data")
 ```
 
 **Proposed Implementation:**
@@ -49,7 +49,7 @@ def _get_data_dir(self) -> str:
     Get data directory with OS-aware detection.
     
     Priority:
-    1. Environment variable (RAG_DATA_DIR)
+    1. Environment variable (SYNAPSE_DATA_DIR)
     2. Config file (data_dir or index_path)
     3. OS-specific defaults:
        - macOS: ~/.synapse/data
@@ -58,14 +58,14 @@ def _get_data_dir(self) -> str:
     """
     
     # Priority 1: Environment variable
-    if "RAG_DATA_DIR" in os.environ:
-        data_dir = os.environ["RAG_DATA_DIR"]
+    if "SYNAPSE_DATA_DIR" in os.environ:
+        data_dir = os.environ["SYNAPSE_DATA_DIR"]
         logger.info(f"Using data directory from environment: {data_dir}")
         return data_dir
     
     # Priority 2: Config file
     try:
-        config_path = os.environ.get("RAG_CONFIG_PATH", "./configs/rag_config.json")
+        config_path = os.environ.get("SYNAPSE_CONFIG_PATH", "./configs/rag_config.json")
         if os.path.exists(config_path):
             with open(config_path, 'r') as f:
                 config = json.load(f)
@@ -289,8 +289,8 @@ class TestMCPDataDirectory:
         mock_access.return_value = True
         
         # Import after patching
-        from mcp_server.rag_server import RAGMemoryBackend
-        backend = RAGMemoryBackend()
+        from mcp_server.rag_server import MemoryBackend
+        backend = MemoryBackend()
         
         data_dir = backend._get_data_dir()
         expected = os.path.expanduser("~/.synapse/data")
@@ -305,8 +305,8 @@ class TestMCPDataDirectory:
         mock_exists.return_value = True  # Config file exists
         mock_access.return_value = True  # Path is writable
         
-        from mcp_server.rag_server import RAGMemoryBackend
-        backend = RAGMemoryBackend()
+        from mcp_server.rag_server import MemoryBackend
+        backend = MemoryBackend()
         
         data_dir = backend._get_data_dir()
         assert data_dir == "/opt/synapse/data"
@@ -320,8 +320,8 @@ class TestMCPDataDirectory:
         mock_exists.return_value = True
         mock_access.return_value = False  # Path NOT writable
         
-        from mcp_server.rag_server import RAGMemoryBackend
-        backend = RAGMemoryBackend()
+        from mcp_server.rag_server import MemoryBackend
+        backend = MemoryBackend()
         
         data_dir = backend._get_data_dir()
         expected = os.path.expanduser("~/.synapse/data")
@@ -329,14 +329,14 @@ class TestMCPDataDirectory:
     
     @patch('mcp_server.rag_server.os.environ.get')
     def test_environment_variable_override(self, mock_env):
-        """Test that RAG_DATA_DIR environment variable takes priority"""
+        """Test that SYNAPSE_DATA_DIR environment variable takes priority"""
         # Set environment variable
         mock_env.side_effect = lambda key, default: {
-            "RAG_DATA_DIR": "/custom/test/path"
+            "SYNAPSE_DATA_DIR": "/custom/test/path"
         }.get(key, default)
         
-        from mcp_server.rag_server import RAGMemoryBackend
-        backend = RAGMemoryBackend()
+        from mcp_server.rag_server import MemoryBackend
+        backend = MemoryBackend()
         
         data_dir = backend._get_data_dir()
         assert data_dir == "/custom/test/path"
@@ -347,8 +347,8 @@ class TestMCPDataDirectory:
         """Test that config file takes priority over OS defaults"""
         mock_exists.return_value = True
         
-        from mcp_server.rag_server import RAGMemoryBackend
-        backend = RAGMemoryBackend()
+        from mcp_server.rag_server import MemoryBackend
+        backend = MemoryBackend()
         
         data_dir = backend._get_data_dir()
         assert data_dir == "/config/path"
@@ -516,7 +516,7 @@ After implementing fixes, test with OpenCode:
 
 1. **Fix MCP Data Directory** (highest priority, unblocks everything)
    - Modify `mcp_server/rag_server.py`
-   - Test with OpenCode (verify `rag.list_projects` works)
+   - Test with OpenCode (verify `core.list_projects` works)
    - Run pytest for data directory
 
 2. **Fix Server Management**

@@ -67,8 +67,8 @@ Phase 1 test infrastructure has been successfully implemented and verified. All 
 - Linting job (black, ruff, mypy)
 
 **Test Execution**:
-- Unit tests run with `RAG_TEST_MODE=true`
-- Integration tests run with `RAG_TEST_MODE=true`
+- Unit tests run with `SYNAPSE_TEST_MODE=true`
+- Integration tests run with `SYNAPSE_TEST_MODE=true`
 - Full coverage report generated
 - PRs blocked if tests fail
 
@@ -241,7 +241,7 @@ $ python3 -m pytest tests/ --collect-only -q
 ## Key Features Implemented
 
 ### 1. Fast Test Execution
-- `RAG_TEST_MODE=true` enables mock embeddings
+- `SYNAPSE_TEST_MODE=true` enables mock embeddings
 - Mock embeddings return `[0.1] * 768` consistently
 - No actual model loading required for unit tests
 
@@ -306,7 +306,7 @@ pytest -m e2e
 pytest --cov=rag --cov=synapse --cov=mcp_server --cov-report=html
 
 # Run with mock embeddings (fast)
-RAG_TEST_MODE=true pytest
+SYNAPSE_TEST_MODE=true pytest
 
 # Skip slow tests
 pytest -m "not slow"
@@ -384,7 +384,7 @@ pytest --markers
 
 | Risk | Impact | Mitigation | Status |
 |------|--------|------------|--------|
-| Slow tests due to model loading | High | Use `RAG_TEST_MODE=true` | ✅ Implemented |
+| Slow tests due to model loading | High | Use `SYNAPSE_TEST_MODE=true` | ✅ Implemented |
 | Flaky tests | Medium | Use fixtures, avoid delays | ✅ Implemented |
 | Coverage gaps | Medium | Focus on critical paths | ⏳ Pending (Phase 2) |
 | CI/CD failures | Medium | Use pinned dependencies | ✅ Implemented |
@@ -434,7 +434,7 @@ $ pytest --cov=rag --cov=synapse --cov-report=html
 
 Name                 Stmts   Miss  Cover   Missing
 --------------------------------------------------
-rag/memory_store        150      20    87%   23-45, 78-90
+core/memory_store        150      20    87%   23-45, 78-90
 synapse/config          80      10    88%   12-18, 45-50
 ...
 --------------------------------------------------

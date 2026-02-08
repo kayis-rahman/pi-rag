@@ -103,7 +103,7 @@ This is the "Source of Truth" for all SYNAPSE features. Each feature follows the
           | **Objective**: Fix memory ingestion bug with unified OS-aware config, rename MCP tools (rag.* → sy.*), rename CLI (rag → sy)
           | **Key Changes**:
           | - Created `synapse/config/config.py` with OS detection and `shortname = "sy"`
-          | - Renamed all 8 MCP tools: `rag.list_projects` → `sy.list_projects`, etc.
+          | - Renamed all 8 MCP tools: `core.list_projects` → `sy.list_projects`, etc.
           | - Updated CLI to use `get_shortname()` for command name
           | - Fixed MCP server to use new config for data directories
           | - Added path validation and logging for write operations
@@ -156,7 +156,7 @@ This is the "Source of Truth" for all SYNAPSE features. Each feature follows the
            | **Root Cause**: Singleton pattern in `get_semantic_store()` ignores index_path parameter - Data IS persisted but queried from wrong instance
            | **Phase 1: Diagnosis** ✅ COMPLETE (6/6 tasks, 100%)
            | **Phase 2: Fix** ✅ COMPLETE (3/8 tasks, 100%)
-           | - Fixed singleton pattern in rag/semantic_store.py (cache-by-path implementation)
+           | - Fixed singleton pattern in core/semantic_store.py (cache-by-path implementation)
            | **Phase 3: Testing** ✅ COMPLETE (4/4 tasks, 100%)
            | - Created tests/test_ingestion_persistence.py with 5 comprehensive tests
            | - All tests pass (singleton, persistence, search, isolation, path normalization)
@@ -165,7 +165,7 @@ This is the "Source of Truth" for all SYNAPSE features. Each feature follows the
            | - ✅ list_sources: Returns 106 sources (was 0)
            | - ✅ Server restart: Data persists after cache clear
            | **Results**: 22/22 tasks complete, 0 errors, all acceptance criteria met
-           | **Key Files**: rag/semantic_store.py, tests/test_ingestion_persistence.py
+           | **Key Files**: core/semantic_store.py, tests/test_ingestion_persistence.py
             | **Status**: ✅ COMPLETE - BUG-INGEST-01 FIXED
      | 016-mcp-tool-renaming | MCP Tool Renaming with Compact Names | [In Progress] | ⏳ Pending |
              | **Objective**: Rename all MCP tools to use compact hierarchical naming for optimal context usage
@@ -195,31 +195,62 @@ This is the "Source of Truth" for all SYNAPSE features. Each feature follows the
              | **Breaking Change**: No backward compatibility (old bare names will not work)
              | **Status**: ⏳ IN PROGRESS - SDD created, implementation pending
      | 017-docker-release-flow | Docker Multi-Environment Release Flow | [Completed] | 2026-02-08 | eb683ee |
-              | **Objective**: Create standardized development and release workflow with dual-environment Docker setup
-              | **Key Features**:
-              | - Development environment on port 8003 (synapse:latest)
-              | - Production environment on port 8002 (synapse:v1.0.0)
-              | - Shared memory volume (/opt/synapse/data)
-              | - Mac + Pi opencode instances share same memory
-              | - Version management scripts (release.sh, switch_env.sh, build_and_push.sh)
-              | **Status**: ✅ 100% COMPLETE - All 7 phases finished
-              | - **Phase 1**: SDD Setup - ✅ Complete (5/5 tasks, 100%)
-              | - **Phase 2**: Docker Configuration - ✅ Complete (6/6 tasks, 100%)
-              | - **Phase 3**: Environment Configs - ✅ Complete (3/3 tasks, 100%)
-              | - **Phase 4**: Release Scripts - ✅ Complete (4/4 tasks, 100%)
-              | - **Phase 5**: Documentation - ✅ Complete (2/2 tasks, 100%)
-              | - **Phase 6**: Testing - ✅ Complete (6/6 tasks, 100%)
-              | - **Phase 7**: Migration - ✅ Complete (3/3 tasks, 100%)
-              | **Testing Results**:
-              | - ✅ Docker Compose config validates successfully
+               | **Objective**: Create standardized development and release workflow with dual-environment Docker setup
+               | **Key Features**:
+               | - Development environment on port 8003 (synapse:latest)
+               | - Production environment on port 8002 (synapse:v1.0.0)
+               | - Shared memory volume (/opt/synapse/data)
+               | - Mac + Pi opencode instances share same memory
+               | - Version management scripts (release.sh, switch_env.sh, build_and_push.sh)
+               | **Status**: ✅ 100% COMPLETE - All 7 phases finished
+               | - **Phase 1**: SDD Setup - ✅ Complete (5/5 tasks, 100%)
+               | - **Phase 2**: Docker Configuration - ✅ Complete (6/6 tasks, 100%)
+               | - **Phase 3**: Environment Configs - ✅ Complete (3/3 tasks, 100%)
+               | - **Phase 4**: Release Scripts - ✅ Complete (4/4 tasks, 100%)
+               | - **Phase 5**: Documentation - ✅ Complete (2/2 tasks, 100%)
+               | - **Phase 6**: Testing - ✅ Complete (6/6 tasks, 100%)
+               | - **Phase 7**: Migration - ✅ Complete (3/3 tasks, 100%)
+               | **Testing Results**:
+               | - ✅ Docker Compose config validates successfully
+     | 018-rename-rag-to-core | Rename rag/ to core/ Package Restructure | [Completed] | 2026-02-08 | TBD |
+               | **Objective**: Rename rag/ directory to core/ for cleaner architecture aligning with sy.* MCP tools
+               | **Key Changes**:
+               | - rag/ directory → core/ directory (39 files)
+               | - rag_server.py → synapse_server.py
+               | - All imports: `from rag.X` → `from core.X`
+               | - 185 files modified, 901 insertions, 901 deletions
+               | **Breaking Change**: All imports must be updated
+               | **Migration**: `from rag.logger import get_logger` → `from core.logger import get_logger`
+               | **Status**: ✅ COMPLETE - All imports and documentation updated
               | - ✅ synapse-dev starts on port 8003 (healthy)
               | - ✅ synapse-prod starts on port 8002 (healthy)
               | - ✅ Shared memory bidirectional (dev ↔ prod ↔ host)
               | - ✅ Environment switching works (dev/prod/both)
               | - ✅ All scripts pass bash syntax check
-              | - ✅ release-notes.md created with migration guide
-              | - ✅ README.md updated with Docker deployment section
-              | - ✅ Old compose file deprecated at docs/examples/docker-compose.mcp.yml.deprecated
+               | - ✅ release-notes.md created with migration guide
+               | - ✅ README.md updated with Docker deployment section
+               | - ✅ Old compose file deprecated at docs/examples/docker-compose.mcp.yml.deprecated
+     | 019-complete-rag-rebrand | Complete RAG to Synapse Rebrand | [In Progress] | ⏳ Pending |
+               | **Objective**: Complete rebrand from RAG-centric naming to Synapse branding (v2.0.0)
+               | **Key Changes**:
+               | - Classes: `Orchestrator` → `Orchestrator`, `MemoryBackend` → `MemoryBackend`
+               | - Environment Variables: `SYNAPSE_*` → `SYNAPSE_*` (8 variables)
+               | - Total: 57 tasks across 9 phases
+               | **Breaking Changes** (v2.0.0):
+               | - All class names updated
+               | - All environment variables renamed
+               | - Migration guide required
+               | **Status**: ⏳ IN PROGRESS - 57 tasks to complete
+               | **Phases**:
+               | - **Phase 1**: Class Renames (8 tasks)
+               | - **Phase 2**: Class Reference Updates (8 tasks)
+               | - **Phase 3**: Env Vars - Core (8 tasks)
+               | - **Phase 4**: Env Vars - Upload (8 tasks)
+               | - **Phase 5**: Documentation (10 tasks)
+               | - **Phase 6**: Config Files (5 tasks)
+               | - **Phase 7**: Migration Guide (3 tasks)
+               | - **Phase 8**: Testing (5 tasks)
+               | - **Phase 9**: Finalization (2 tasks)
 
 - **[In Progress]** - Feature is currently being worked on
 - **[Completed]** - Feature is fully implemented and tested
@@ -320,8 +351,8 @@ This is the "Source of Truth" for all SYNAPSE features. Each feature follows the
 
 **Recent Progress**:
 - Configuration schema added to rag_config.json
-- AutoLearningTracker module created (rag/auto_learning_tracker.py)
-- LearningExtractor module created (rag/learning_extractor.py)
+- AutoLearningTracker module created (core/auto_learning_tracker.py)
+- LearningExtractor module created (core/learning_extractor.py)
 - All 7 MCP tools wrapped with operation tracking
 - Auto-store helper methods implemented
 - Integration tests created (tests/test_auto_learning_integration.py)

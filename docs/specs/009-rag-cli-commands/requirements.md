@@ -50,7 +50,7 @@ Implement CLI commands for local RAG ingestion and query operations. RAG server 
 | ID | Requirement | Priority | Status |
 |----|-------------|----------|--------|
 | FR-3.1 | Command: `synapse query "<question>"` | P0 | ⏳ |
-| FR-3.2 | MCP tool: `rag.get_context()` | P0 | ⏳ |
+| FR-3.2 | MCP tool: `core.get_context()` | P0 | ⏳ |
 | FR-3.3 | Flag: `--json` output | P1 | ⏳ |
 | FR-3.4 | Flag: `--memory-type <type>` | P2 | ⏳ |
 | FR-3.5 | Flag: `--top-k <n>` | P2 | ⏳ |

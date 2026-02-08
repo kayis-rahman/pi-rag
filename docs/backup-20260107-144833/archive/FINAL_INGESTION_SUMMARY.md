@@ -16,7 +16,7 @@
 | Intentionally Excluded | 1 (1.9%) |
 | Actual Failures | 0 (0%) |
 | Total Chunks Created | ~1,000+ |
-| Data Directory | `/opt/pi-rag/data/` |
+| Data Directory | `/opt/pi-core/data/` |
 | Total Data Size | 13MB |
 
 ---
@@ -26,36 +26,36 @@
 ### ✅ RAG Core Modules (27/28 files)
 Successfully ingested 27 of 28 core RAG module files:
 
-1. ✅ rag/__init__.py (7 chunks)
-2. ✅ rag/orchestrator.py (39 chunks)
-3. ✅ rag/semantic_store.py (46 chunks)
-4. ✅ rag/semantic_ingest.py (26 chunks)
-5. ✅ rag/semantic_retriever.py (27 chunks)
-6. ✅ rag/embedding.py (18 chunks)
-7. ✅ rag/retriever.py (8 chunks)
-8. ✅ rag/model_manager.py (23 chunks)
-9. ✅ rag/ingest.py (11 chunks)
-10. ✅ rag/bulk_ingest.py (10 chunks)
-11. ✅ rag/memory_store.py (52 chunks)
-12. ✅ rag/memory_reader.py (32 chunks)
-13. ✅ rag/memory_writer.py (36 chunks)
-14. ✅ rag/episodic_store.py (39 chunks)
-15. ✅ rag/episodic_reader.py (30 chunks)
-16. ✅ rag/semantic_injector.py (31 chunks)
-17. ✅ rag/vectorstore.py (14 chunks)
-18. ✅ rag/vectorstore_factory.py (6 chunks)
-19. ✅ rag/chroma_vectorstore.py (21 chunks)
-20. ✅ rag/chroma_semantic_store.py (39 chunks)
-21. ✅ rag/vectorstore_base.py (12 chunks)
-22. ✅ rag/prompt_builder.py (30 chunks)
-23. ✅ rag/query_cache.py (13 chunks)
-24. ✅ rag/memory_formatter.py (18 chunks)
-25. ✅ rag/memory_selector.py (46 chunks)
-26. ✅ rag/memory_selector_backup.py (1 chunk)
-27. ✅ rag/connection_pool.py (12 chunks)
+1. ✅ core/__init__.py (7 chunks)
+2. ✅ core/orchestrator.py (39 chunks)
+3. ✅ core/semantic_store.py (46 chunks)
+4. ✅ core/semantic_ingest.py (26 chunks)
+5. ✅ core/semantic_retriever.py (27 chunks)
+6. ✅ core/embedding.py (18 chunks)
+7. ✅ core/retriever.py (8 chunks)
+8. ✅ core/model_manager.py (23 chunks)
+9. ✅ core/ingest.py (11 chunks)
+10. ✅ core/bulk_ingest.py (10 chunks)
+11. ✅ core/memory_store.py (52 chunks)
+12. ✅ core/memory_reader.py (32 chunks)
+13. ✅ core/memory_writer.py (36 chunks)
+14. ✅ core/episodic_store.py (39 chunks)
+15. ✅ core/episodic_reader.py (30 chunks)
+16. ✅ core/semantic_injector.py (31 chunks)
+17. ✅ core/vectorstore.py (14 chunks)
+18. ✅ core/vectorstore_factory.py (6 chunks)
+19. ✅ core/chroma_vectorstore.py (21 chunks)
+20. ✅ core/chroma_semantic_store.py (39 chunks)
+21. ✅ core/vectorstore_base.py (12 chunks)
+22. ✅ core/prompt_builder.py (30 chunks)
+23. ✅ core/query_cache.py (13 chunks)
+24. ✅ core/memory_formatter.py (18 chunks)
+25. ✅ core/memory_selector.py (46 chunks)
+26. ✅ core/memory_selector_backup.py (1 chunk)
+27. ✅ core/connection_pool.py (12 chunks)
 
 **❌ Intentionally Excluded (1 file)**:
-- `rag/episode_extractor.py` - Documentation about episode extraction mechanism contains phrases like "agent learned from experience" which triggers semantic memory validation. This is a legitimate code file but contains technical documentation about the episodic memory system, which is correctly stored in episodic memory (not semantic memory). The validation is working as designed.
+- `core/episode_extractor.py` - Documentation about episode extraction mechanism contains phrases like "agent learned from experience" which triggers semantic memory validation. This is a legitimate code file but contains technical documentation about the episodic memory system, which is correctly stored in episodic memory (not semantic memory). The validation is working as designed.
 
 ### ✅ API & MCP Server (9/9 files)
 All API and MCP server files successfully ingested:
@@ -115,7 +115,7 @@ All scripts and utility files successfully ingested:
 ## Data Directory Structure (Final State)
 
 ```
-/opt/pi-rag/data/
+/opt/pi-core/data/
 ├── semantic_index/
 │   ├── chroma.sqlite3       # Chroma vector database (168KB)
 │   ├── chunks.json          # All document chunks (13MB)
@@ -134,13 +134,13 @@ All scripts and utility files successfully ingested:
 ## System Improvements Made
 
 ### 1. Data Migration ✅
-- Migrated from `/home/dietpi/pi-rag/data/` to `/opt/pi-rag/data/`
+- Migrated from `/home/dietpi/pi-core/data/` to `/opt/pi-core/data/`
 - Updated all configuration files
 - Cleaned project directory
 - Git ignore updated
 
 ### 2. Semantic Memory Validation Enhancement ✅
-Updated validation in `rag/semantic_store.py` to:
+Updated validation in `core/semantic_store.py` to:
 - Removed overly restrictive "episode" keyword blocking
 - Implemented context-aware phrase matching
 - Reduced false positives on technical documentation
@@ -166,12 +166,12 @@ learning_patterns = ["agent learned that", "the agent learned that", ...]
 ## Ingestion Method Details
 
 ### Tool: RAG MCP Server
-**Used**: `rag.ingest_file` tool via MCP protocol
+**Used**: `core.ingest_file` tool via MCP protocol
 
 **Process**:
 1. Connect to MCP server (running on stdio)
 2. For each file:
-   - Call `rag.ingest_file` with parameters:
+   - Call `core.ingest_file` with parameters:
      - `project_id`: "pi-rag"
      - `file_path`: Absolute path to file
      - `source_type`: "code" or "file"
@@ -207,7 +207,7 @@ learning_patterns = ["agent learned that", "the agent learned that", ...]
 ## Known Issues & Resolutions
 
 ### Issue 1: Episode Extractor Metadata Validation
-**Problem**: File `rag/episode_extractor.py` consistently rejected due to semantic memory validation.
+**Problem**: File `core/episode_extractor.py` consistently rejected due to semantic memory validation.
 
 **Root Cause**: Documentation contains phrases like:
 - "agent learned from experience"
@@ -281,7 +281,7 @@ results = rag_search(
 )
 
 # Returns chunks from:
-# - rag/orchestrator.py
+# - core/orchestrator.py
 # - README.md
 # - configs/rag_config.json
 ```
@@ -297,9 +297,9 @@ context = rag_get_context(
 )
 
 # Returns explanation from:
-# - rag/semantic_store.py
-# - rag/semantic_ingest.py
-# - rag/semantic_retriever.py
+# - core/semantic_store.py
+# - core/semantic_ingest.py
+# - core/semantic_retriever.py
 ```
 
 ### List All Sources
@@ -321,9 +321,9 @@ sources = rag_list_sources(
 ### Memory Systems
 | Memory Type | Status | Records | Location |
 |-------------|--------|---------|----------|
-| Symbolic | ✅ Ready | 0+ (config defaults) | `/opt/pi-rag/data/memory.db` |
-| Episodic | ✅ Ready | 0+ (no episodes yet) | `/opt/pi-rag/data/episodic.db` |
-| Semantic | ✅ Ready | ~960+ chunks | `/opt/pi-rag/data/semantic_index/` |
+| Symbolic | ✅ Ready | 0+ (config defaults) | `/opt/pi-core/data/memory.db` |
+| Episodic | ✅ Ready | 0+ (no episodes yet) | `/opt/pi-core/data/episodic.db` |
+| Semantic | ✅ Ready | ~960+ chunks | `/opt/pi-core/data/semantic_index/` |
 
 ### MCP Server
 - ✅ Running and accepting connections
@@ -389,9 +389,9 @@ Database error - Check disk space and permissions
 
 ## Validation Fixes Applied
 
-### Updated: `rag/semantic_store.py`
+### Updated: `core/semantic_store.py`
 
-**File**: `/home/dietpi/pi-rag/rag/semantic_store.py`
+**File**: `/home/dietpi/pi-core/core/semantic_store.py`
 **Function**: `validate_metadata()`
 
 **Changes**:
@@ -428,7 +428,7 @@ Database error - Check disk space and permissions
 - ✅ **1 file intentionally excluded** (correct memory type routing)
 - ✅ **0 actual failures** (0% failure rate)
 - ✅ **~960+ chunks created** from all source files
-- ✅ **Data migrated to standard location** (`/opt/pi-rag/data/`)
+- ✅ **Data migrated to standard location** (`/opt/pi-core/data/`)
 - ✅ **Project directory cleaned** (separation of concerns)
 - ✅ **Validation improved** (reduced false positives)
 - ✅ **System ready for production** (RAG augmentation operational)
@@ -449,5 +449,5 @@ Database error - Check disk space and permissions
 **Ingestion Duration**: ~15 minutes
 **Files Processed**: 52
 **Chunks Created**: ~960+
-**Data Directory**: `/opt/pi-rag/data/`
+**Data Directory**: `/opt/pi-core/data/`
 **Status**: ✅ COMPLETE

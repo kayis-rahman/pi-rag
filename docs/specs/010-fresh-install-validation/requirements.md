@@ -449,8 +449,8 @@ The system must:
 ```
 synapse/cli/main.py
 synapse/cli/commands/*.py (11 files)
-synapse/rag/*.py (15 files)
-synapse/rag/**/*.py (10+ files)
+synapse/core/*.py (15 files)
+synapse/core/**/*.py (10+ files)
 synapse/mcp_server/*.py (10 files)
 scripts/*.py (5 files)
 ```

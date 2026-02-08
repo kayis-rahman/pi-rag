@@ -4,7 +4,7 @@
 
 ```bash
 # Set environment variable for Pi
-export RAG_DATA_DIR=/opt/synapse/data
+export SYNAPSE_DATA_DIR=/opt/synapse/data
 ```
 
 ---
@@ -149,7 +149,7 @@ ssh dietpi@<pi-ip> "cd /home/dietpi/synapse && python3 test_remote_ingestion.py"
 ### Custom Upload Directory
 ```bash
 # Set different directory for project A
-export RAG_UPLOAD_DIR=/tmp/rag-uploads/project-a
+export SYNAPSE_UPLOAD_DIR=/tmp/rag-uploads/project-a
 
 # Upload files
 scp project-a/* dietpi@<pi-ip>:/tmp/rag-uploads/project-a/
@@ -161,7 +161,7 @@ mcp_call "rag.ingest_file" "{\"project_id\":\"project-a\",\"file_path\":\"/tmp/r
 ### Increase File Size Limit
 ```bash
 # Increase to 100MB
-export RAG_UPLOAD_MAX_SIZE=100
+export SYNAPSE_UPLOAD_MAX_SIZE=100
 
 # Now ingest large files
 scp large-file.pdf dietpi@<pi-ip>:/tmp/rag-uploads/
@@ -171,10 +171,10 @@ mcp_call "rag.ingest_file" "{\"project_id\":\"my\",\"file_path\":\"/tmp/rag-uplo
 ### Disable Auto-Cleanup
 ```bash
 # Set to 24 hours (1 day)
-export RAG_UPLOAD_MAX_AGE=86400
+export SYNAPSE_UPLOAD_MAX_AGE=86400
 
 # Or disable cleanup (set to very high value)
-export RAG_UPLOAD_MAX_AGE=31536000  # 1 year
+export SYNAPSE_UPLOAD_MAX_AGE=31536000  # 1 year
 ```
 
 ---
@@ -280,11 +280,11 @@ rsync -av docs/ dietpi@pi:/tmp/rag-uploads/
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `RAG_DATA_DIR` | `/opt/synapse/data` | Data directory |
-| `RAG_UPLOAD_DIR` | `/tmp/rag-uploads` | Upload directory |
-| `RAG_REMOTE_UPLOAD_ENABLED` | `true` | Enable remote uploads |
-| `RAG_UPLOAD_MAX_AGE` | `3600` | Auto-cleanup age (1 hour) |
-| `RAG_UPLOAD_MAX_SIZE` | `50` | Max file size (MB) |
+| `SYNAPSE_DATA_DIR` | `/opt/synapse/data` | Data directory |
+| `SYNAPSE_UPLOAD_DIR` | `/tmp/rag-uploads` | Upload directory |
+| `SYNAPSE_REMOTE_UPLOAD_ENABLED` | `true` | Enable remote uploads |
+| `SYNAPSE_UPLOAD_MAX_AGE` | `3600` | Auto-cleanup age (1 hour) |
+| `SYNAPSE_UPLOAD_MAX_SIZE` | `50` | Max file size (MB) |
 
 ### Configuration File
 

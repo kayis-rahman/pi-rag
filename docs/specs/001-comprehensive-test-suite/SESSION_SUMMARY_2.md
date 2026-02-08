@@ -80,7 +80,7 @@ The following production code errors remain (do NOT block CLI tests):
 2. `synapse/cli/commands/setup.py`: Import error for `synapse.cli.commands.models`
 3. `synapse/utils/json_formatter.py`: 20+ syntax errors
 4. `scripts/bulk_ingest.py`: Type annotation error
-5. `rag/ingest.py`: Type annotation errors (int assigned to str)
+5. `core/ingest.py`: Type annotation errors (int assigned to str)
 
 **Impact**: CLI tests still pass because they test the CLI layer, not underlying implementation
 

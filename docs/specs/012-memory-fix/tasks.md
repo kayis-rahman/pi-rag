@@ -52,14 +52,14 @@
 - [x] 2.1.2 Identify all 8 tool definitions (Linked to FR-2)
 
 ### 2.2 Rename tools
-- [x] 2.2.1 Rename `rag.list_projects` → `sy.list_projects` (Linked to FR-2.1)
-- [x] 2.2.2 Rename `rag.list_sources` → `sy.list_sources` (Linked to FR-2.2)
-- [x] 2.2.3 Rename `rag.search` → `sy.search` (Linked to FR-2.3)
-- [x] 2.2.4 Rename `rag.get_context` → `sy.get_context` (Linked to FR-2.4)
-- [x] 2.2.5 Rename `rag.ingest_file` → `sy.ingest_file` (Linked to FR-2.5)
-- [x] 2.2.6 Rename `rag.add_fact` → `sy.add_fact` (Linked to FR-2.6)
-- [x] 2.2.7 Rename `rag.add_episode` → `sy.add_episode` (Linked to FR-2.7)
-- [x] 2.2.8 Rename `rag.analyze_conversation` → `sy.analyze_conversation` (Linked to FR-2.8)
+- [x] 2.2.1 Rename `core.list_projects` → `sy.list_projects` (Linked to FR-2.1)
+- [x] 2.2.2 Rename `core.list_sources` → `sy.list_sources` (Linked to FR-2.2)
+- [x] 2.2.3 Rename `core.search` → `sy.search` (Linked to FR-2.3)
+- [x] 2.2.4 Rename `core.get_context` → `sy.get_context` (Linked to FR-2.4)
+- [x] 2.2.5 Rename `core.ingest_file` → `sy.ingest_file` (Linked to FR-2.5)
+- [x] 2.2.6 Rename `core.add_fact` → `sy.add_fact` (Linked to FR-2.6)
+- [x] 2.2.7 Rename `core.add_episode` → `sy.add_episode` (Linked to FR-2.7)
+- [x] 2.2.8 Rename `core.analyze_conversation` → `sy.analyze_conversation` (Linked to FR-2.8)
 
 **Phase 2 Exit Criteria:** All MCP tools use `sy.*` prefix
 
@@ -95,7 +95,7 @@
 - [x] 4.2.3 Add logging for database path resolution (Linked to FR-4.6)
 
 ### 4.3 Fix semantic store
-- [x] 4.3.1 Verify `rag/semantic_store.py` search method signature (Linked to FR-4.4)
+- [x] 4.3.1 Verify `core/semantic_store.py` search method signature (Linked to FR-4.4)
 - [x] 4.3.2 Fix any API compatibility issues (Linked to FR-4.4)
 - [x] 4.3.3 Add type hints to search method (Linked to FR-4.4)
 

@@ -16,7 +16,7 @@
   - Configuration schema
 
 - **Phase 2 (MCP Server)**: 5/5 tasks (100%)
-  - `rag.analyze_conversation` tool added
+  - `core.analyze_conversation` tool added
   - Config loading for universal_hooks
   - Backend integration with ConversationAnalyzer
   - Parallel storage support
@@ -171,10 +171,10 @@ Summary: 5/5 tests passed
 
 | File | Lines | Status | Description |
 |-------|--------|--------|-------------|
-| `rag/universal_hook.py` | 108 | ✅ Existing | Python hook interface |
+| `core/universal_hook.py` | 108 | ✅ Existing | Python hook interface |
 | `interfaces/hook-interface.ts` | 76 | ✅ Existing | TypeScript hook interface |
-| `rag/conversation_analyzer.py` | 457 | ✅ Existing | Async analyzer with heuristics |
-| `rag/adapters/__init__.py` | 15 | ✅ Existing | Adapters package |
+| `core/conversation_analyzer.py` | 457 | ✅ Existing | Async analyzer with heuristics |
+| `core/adapters/__init__.py` | 15 | ✅ Existing | Adapters package |
 | `.opencode/plugins/synapse-auto-learning.ts` | 1,279 | ✅ Created | OpenCode plugin |
 | `.opencode/plugins/README.md` | 1,139 | ✅ Created | Plugin documentation |
 | `tests/test_conversation_analyzer.py` | 367 | ✅ Created | Unit tests |

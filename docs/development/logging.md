@@ -9,7 +9,7 @@ Synapse uses Python's standard `logging` module with a unified logger system. Al
 ### Basic Usage
 
 ```python
-from rag.logger import get_logger
+from core.logger import get_logger
 
 logger = get_logger(__name__)
 logger.info("Application started")
@@ -22,7 +22,7 @@ logger.error("An error occurred")
 ```python
 import os
 import argparse
-from rag.logger import setup_logging, get_logger
+from core.logger import setup_logging, get_logger
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--debug', '-d', action='store_true',
@@ -141,7 +141,7 @@ File logging is controlled by `configs/logging_config.json`:
 
 - **Max size**: 10MB per file
 - **Backups**: Up to 5 rotated files
-- **Naming**: `rag.log`, `rag.log.1`, `rag.log.2`, etc.
+- **Naming**: `core.log`, `core.log.1`, `core.log.2`, etc.
 - **Automatic**: Rotates when reaching max size
 
 ### Log File Location
@@ -152,7 +152,7 @@ File logging is controlled by `configs/logging_config.json`:
 ### File Logging in Code
 
 ```python
-from rag.logger import setup_logging, get_logger
+from core.logger import setup_logging, get_logger
 
 # Setup with file logging
 setup_logging(
@@ -338,7 +338,7 @@ LOG_LEVEL=INFO python script.py
 **Solution**: Check module name
 ```python
 # Should be __name__ (not hardcoded)
-from rag.logger import get_logger
+from core.logger import get_logger
 logger = get_logger(__name__)  # ✅ Correct
 logger = get_logger("rag.module")  # ✅ Also correct
 logger = get_logger("custom_name")  # ⚠️ Might not match expected
@@ -349,7 +349,7 @@ logger = get_logger("custom_name")  # ⚠️ Might not match expected
 ### Custom Formatter
 
 ```python
-from rag.logger import setup_logging
+from core.logger import setup_logging
 import logging
 
 class CustomFormatter(logging.Formatter):
@@ -369,7 +369,7 @@ for handler in root_logger.handlers:
 
 ```python
 # Setup for different components
-from rag.logger import LoggerManager
+from core.logger import LoggerManager
 
 manager = LoggerManager()
 manager.setup_logging(log_file="/opt/synapse/logs/rag.log")

@@ -14,43 +14,43 @@
 - **Successfully Ingested**: 51
 - **Failed to Ingest**: 1
 - **Total Chunks Created**: ~1,000+
-- **Data Directory**: `/opt/pi-rag/data/`
+- **Data Directory**: `/opt/pi-core/data/`
 - **Total Data Size**: ~8-10MB
 
 ### Files by Category
 
 #### RAG Core Modules (28 files)
 ✅ Successfully ingested:
-1. rag/__init__.py (7 chunks)
-2. rag/orchestrator.py (39 chunks)
-3. rag/semantic_store.py (46 chunks)
-4. rag/semantic_ingest.py (26 chunks)
-5. rag/semantic_retriever.py (27 chunks)
-6. rag/embedding.py (18 chunks)
-7. rag/retriever.py (8 chunks)
-8. rag/model_manager.py (23 chunks)
-9. rag/ingest.py (11 chunks)
-10. rag/bulk_ingest.py (10 chunks)
-11. rag/memory_store.py (52 chunks)
-12. rag/memory_reader.py (32 chunks)
-13. rag/memory_writer.py (36 chunks)
-14. rag/episodic_store.py (39 chunks)
-15. rag/episodic_reader.py (30 chunks)
-16. rag/semantic_injector.py (31 chunks)
-17. rag/vectorstore.py (14 chunks)
-18. rag/vectorstore_factory.py (6 chunks)
-19. rag/chroma_vectorstore.py (21 chunks)
-20. rag/chroma_semantic_store.py (39 chunks)
-21. rag/vectorstore_base.py (12 chunks)
-22. rag/prompt_builder.py (30 chunks)
-23. rag/query_cache.py (13 chunks)
-24. rag/memory_formatter.py (18 chunks)
-25. rag/memory_selector.py (46 chunks)
-26. rag/memory_selector_backup.py (1 chunk)
-27. rag/connection_pool.py (12 chunks)
+1. core/__init__.py (7 chunks)
+2. core/orchestrator.py (39 chunks)
+3. core/semantic_store.py (46 chunks)
+4. core/semantic_ingest.py (26 chunks)
+5. core/semantic_retriever.py (27 chunks)
+6. core/embedding.py (18 chunks)
+7. core/retriever.py (8 chunks)
+8. core/model_manager.py (23 chunks)
+9. core/ingest.py (11 chunks)
+10. core/bulk_ingest.py (10 chunks)
+11. core/memory_store.py (52 chunks)
+12. core/memory_reader.py (32 chunks)
+13. core/memory_writer.py (36 chunks)
+14. core/episodic_store.py (39 chunks)
+15. core/episodic_reader.py (30 chunks)
+16. core/semantic_injector.py (31 chunks)
+17. core/vectorstore.py (14 chunks)
+18. core/vectorstore_factory.py (6 chunks)
+19. core/chroma_vectorstore.py (21 chunks)
+20. core/chroma_semantic_store.py (39 chunks)
+21. core/vectorstore_base.py (12 chunks)
+22. core/prompt_builder.py (30 chunks)
+23. core/query_cache.py (13 chunks)
+24. core/memory_formatter.py (18 chunks)
+25. core/memory_selector.py (46 chunks)
+26. core/memory_selector_backup.py (1 chunk)
+27. core/connection_pool.py (12 chunks)
 
 ❌ Failed (metadata validation):
-- rag/episode_extractor.py - Contains forbidden keywords in file name
+- core/episode_extractor.py - Contains forbidden keywords in file name
 
 #### API & MCP Server (8 files)
 ✅ Successfully ingested:
@@ -106,7 +106,7 @@
 ## Data Directory Structure
 
 ```
-/opt/pi-rag/data/
+/opt/pi-core/data/
 ├── semantic_index/
 │   ├── chroma.sqlite3       # Chroma vector database (168KB)
 │   ├── chunks.json          # Document chunks (growing with ingestion)
@@ -126,12 +126,12 @@
 
 ### Tool: RAG MCP Server
 
-**Used**: `rag.ingest_file` tool
+**Used**: `core.ingest_file` tool
 
 **Process**:
 1. Connect to MCP server
 2. For each file:
-   - Call `rag.ingest_file` with project_id, file_path, source_type, metadata
+   - Call `core.ingest_file` with project_id, file_path, source_type, metadata
    - Server chunks file (500 chars, 50 overlap)
    - Server generates embeddings using BGE model
    - Server stores chunks in semantic index
@@ -200,7 +200,7 @@ results = rag_search(
 )
 
 # Returns relevant chunks from:
-# - rag/orchestrator.py
+# - core/orchestrator.py
 # - configs/rag_config.json
 # - README.md
 ```
@@ -238,7 +238,7 @@ sources = rag_list_sources(
 ## Verification
 
 ### Data Directory
-✅ All data stored in `/opt/pi-rag/data/` (standard location)
+✅ All data stored in `/opt/pi-core/data/` (standard location)
 ✅ Project directory clean (no data files)
 ✅ Git ignores data/ directory
 ✅ Databases created and initialized
@@ -304,7 +304,7 @@ sources = rag_list_sources(
 - ✅ All configuration files indexed
 - ✅ All documentation indexed
 - ✅ All scripts and utilities indexed
-- ✅ Data stored in standard location (`/opt/pi-rag/data/`)
+- ✅ Data stored in standard location (`/opt/pi-core/data/`)
 - ✅ Project directory clean (separation of concerns)
 - ✅ Semantic memory ready for search and retrieval
 

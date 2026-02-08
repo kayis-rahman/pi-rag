@@ -39,17 +39,17 @@ from mcp.server import Server
 from mcp.types import Tool, TextContent, ImageContent, EmbeddedResource
 
 # RAG system imports
-from rag import (
+from core import (
     MemoryStore, MemoryFact, get_memory_store,
     EpisodicStore, Episode, get_episodic_store,
     SemanticStore, get_semantic_store,
     SemanticIngestor, get_semantic_ingestor,
     SemanticRetriever, get_semantic_retriever
 )
-from rag.auto_learning_tracker import AutoLearningTracker
-from rag.learning_extractor import LearningExtractor
-from rag.model_manager import get_model_manager
-from rag.conversation_analyzer import ConversationAnalyzer
+from core.auto_learning_tracker import AutoLearningTracker
+from core.learning_extractor import LearningExtractor
+from core.model_manager import get_model_manager
+from core.conversation_analyzer import ConversationAnalyzer
 
 # Local imports
 from .metrics import Metrics, get_metrics
@@ -67,15 +67,15 @@ logger = logging.getLogger(__name__)
 # Deprecation warning
 import warnings
 warnings.warn(
-    "rag_server.py is deprecated. Use mcp_server.http_wrapper instead. "
+    "synapse_server.py is deprecated. Use mcp_server.http_wrapper instead. "
     "This module will be removed in a future version.",
     DeprecationWarning,
     stacklevel=2
 )
-logger.warning("DEPRECATED: rag_server.py is deprecated. Use mcp_server.http_wrapper instead.")
+logger.warning("DEPRECATED: synapse_server.py is deprecated. Use mcp_server.http_wrapper instead.")
 
 
-class RAGMemoryBackend:
+class MemoryBackend:
     """
     Thin, stateless wrapper for RAG memory operations.
 
@@ -228,14 +228,14 @@ class RAGMemoryBackend:
         }
 
         # Load from environment variables (highest priority)
-        config["enabled"] = os.environ.get("RAG_REMOTE_UPLOAD_ENABLED", "true").lower() == "true"
-        config["directory"] = os.environ.get("RAG_UPLOAD_DIR", config["directory"])
-        config["max_age"] = int(os.environ.get("RAG_UPLOAD_MAX_AGE", str(config["max_age"])))
-        config["max_size_mb"] = int(os.environ.get("RAG_UPLOAD_MAX_SIZE", str(config["max_size_mb"])))
+        config["enabled"] = os.environ.get("SYNAPSE_REMOTE_UPLOAD_ENABLED", "true").lower() == "true"
+        config["directory"] = os.environ.get("SYNAPSE_UPLOAD_DIR", config["directory"])
+        config["max_age"] = int(os.environ.get("SYNAPSE_UPLOAD_MAX_AGE", str(config["max_age"])))
+        config["max_size_mb"] = int(os.environ.get("SYNAPSE_UPLOAD_MAX_SIZE", str(config["max_size_mb"])))
 
         # Load from config file (medium priority)
         try:
-            config_path = os.environ.get("RAG_CONFIG_PATH", "./configs/rag_config.json")
+            config_path = os.environ.get("SYNAPSE_CONFIG_PATH", "./configs/rag_config.json")
             if os.path.exists(config_path):
                 with open(config_path, 'r') as f:
                     file_config = json.load(f)
@@ -273,7 +273,7 @@ class RAGMemoryBackend:
         }
 
         try:
-            config_path = os.environ.get("RAG_CONFIG_PATH", "./configs/rag_config.json")
+            config_path = os.environ.get("SYNAPSE_CONFIG_PATH", "./configs/rag_config.json")
             if os.path.exists(config_path):
                 with open(config_path, 'r') as f:
                     file_config = json.load(f)
@@ -323,7 +323,7 @@ class RAGMemoryBackend:
         }
 
         try:
-            config_path = os.environ.get("RAG_CONFIG_PATH", "./configs/rag_config.json")
+            config_path = os.environ.get("SYNAPSE_CONFIG_PATH", "./configs/rag_config.json")
             if os.path.exists(config_path):
                 with open(config_path, 'r') as f:
                     file_config = json.load(f)
@@ -1597,7 +1597,7 @@ class RAGMemoryBackend:
 
 # Create MCP server
 server = Server("rag-memory-server")
-backend = RAGMemoryBackend()
+backend = MemoryBackend()
 
 
 # Define tools
@@ -2046,7 +2046,7 @@ async def main():
 
 if __name__ == "__main__":
     logger.info("Starting RAG MCP Server...")
-    logger.info(f"Data directory: {os.environ.get('RAG_DATA_DIR', '/app/data')}")
+    logger.info(f"Data directory: {os.environ.get('SYNAPSE_DATA_DIR', '/app/data')}")
     logger.info(f"Log level: {os.environ.get('LOG_LEVEL', 'INFO')}")
     logger.info(f"Available tools: {len(tools)}")
 

@@ -111,7 +111,7 @@ def get_model_path():
 |------|--------|
 | `synapse/cli/main.py` | Implement `ingest()` and `query()` functions |
 | `synapse/config.py` | Ensure model path matches MCP server |
-| `rag/embedding.py` | Fix hardcoded model path |
+| `core/embedding.py` | Fix hardcoded model path |
 
 ---
 
@@ -171,7 +171,7 @@ def get_model_path():
 
 ### Phase 4: Fix Model Path (30 min)
 10. Update `synapse/config.py` model path
-11. Update `rag/ingestion.py` if needed
+11. Update `core/ingestion.py` if needed
 12. Verify no mock warnings
 
 ### Phase 5: Validation (15 min)

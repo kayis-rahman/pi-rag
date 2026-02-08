@@ -7,7 +7,7 @@ This script tests the new MCP tool directly via Python API.
 
 import asyncio
 import json
-from rag.conversation_analyzer import ConversationAnalyzer
+from core.conversation_analyzer import ConversationAnalyzer
 
 
 async def test_analyze_conversation():

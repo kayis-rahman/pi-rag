@@ -61,7 +61,7 @@
 **1. Metrics Collection Daemon**
 - **Language**: Python 3.13+
 - **Framework**: Asyncio + APScheduler for periodic tasks
-- **Module**: `rag/metrics_collector.py`
+- **Module**: `core/metrics_collector.py`
 - **Integration**:
   - Instrument RAG operations (orchestrator, retriever, vectorstore)
   - Hook into MCP tool handlers in `mcp_server/rag_server.py`
@@ -78,7 +78,7 @@
   - No additional dependencies
   - Simpler deployment
   - ~3GB for 90 days (less efficient)
-- **Module**: `rag/metrics_db.py`
+- **Module**: `core/metrics_db.py`
 
 **3. Dashboard API (FastAPI)**
 - **Framework**: FastAPI (existing Synapse stack)
@@ -182,7 +182,7 @@ CREATE TABLE alert_history (
 
 ### 1. Instrumenting RAG Operations
 
-**Orchestrator Integration** (`rag/orchestrator.py`):
+**Orchestrator Integration** (`core/orchestrator.py`):
 ```python
 # Wrap orchestrator methods
 class MetricsInstrumentedOrchestrator:
@@ -244,7 +244,7 @@ async def search(self, project_id: str, query: str, ...):
 
 ### 2. Monitoring Auto-Learning
 
-**AutoLearningTracker Integration** (`rag/auto_learning_tracker.py`):
+**AutoLearningTracker Integration** (`core/auto_learning_tracker.py`):
 ```python
 class AutoLearningTracker:
     def __init__(self, config, model_manager, metrics_collector=None):
@@ -268,7 +268,7 @@ class AutoLearningTracker:
 
 ### 3. System Resource Monitoring
 
-**Resource Collector** (`rag/resource_monitor.py`):
+**Resource Collector** (`core/resource_monitor.py`):
 ```python
 import psutil
 
@@ -359,7 +359,7 @@ services:
       - rag-metrics-net
     environment:
       - METRICS_DB_PATH=/app/data/metrics.db
-      - RAG_MCP_URL=http://rag-mcp:8002
+      - SYNAPSE_MCP_URL=http://rag-mcp:8002
 
   influxdb:
     image: influxdb:1.8
@@ -384,7 +384,7 @@ networks:
 ### Directory Structure
 
 ```
-rag/
+core/
 ├── metrics_collector.py       # NEW: Main metrics collection daemon
 ├── metrics_db.py             # NEW: Time-series database abstraction
 ├── resource_monitor.py        # NEW: System resource monitoring

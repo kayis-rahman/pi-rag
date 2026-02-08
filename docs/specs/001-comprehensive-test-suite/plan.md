@@ -21,7 +21,7 @@ tests/
 ├── README.md                    # Test suite documentation
 │
 ├── unit/                       # Unit tests - isolated module testing
-│   ├── rag/                    # RAG module tests (24 files)
+│   ├── core/                    # RAG module tests (24 files)
 │   │   ├── test_orchestrator.py
 │   │   ├── test_vectorstore_factory.py
 │   │   ├── test_memory_selector.py
@@ -315,7 +315,7 @@ class QueryGenerator:
 @pytest.fixture(scope="session")
 def test_environment():
     """Set up test environment variables."""
-    os.environ["RAG_TEST_MODE"] = "true"
+    os.environ["SYNAPSE_TEST_MODE"] = "true"
     os.environ["TEST_MODE"] = "true"
     yield
     # Cleanup
@@ -342,7 +342,7 @@ def mock_embedding_service():
 @pytest.fixture
 def memory_store(temp_db_path):
     """Provide memory store instance."""
-    from rag.memory_store import MemoryStore
+    from core.memory_store import MemoryStore
     store = MemoryStore(str(temp_db_path))
     yield store
     # Cleanup
@@ -350,7 +350,7 @@ def memory_store(temp_db_path):
 @pytest.fixture
 def episodic_store(temp_db_path):
     """Provide episodic store instance."""
-    from rag.episodic_store import EpisodicStore
+    from core.episodic_store import EpisodicStore
     store = EpisodicStore(str(temp_db_path))
     yield store
     # Cleanup
@@ -358,7 +358,7 @@ def episodic_store(temp_db_path):
 @pytest.fixture
 def semantic_store(temp_dir, mock_embedding_service):
     """Provide semantic store instance."""
-    from rag.semantic_store import SemanticStore
+    from core.semantic_store import SemanticStore
     store = SemanticStore(
         index_path=str(temp_dir / "semantic_index"),
         embedding_service=mock_embedding_service
@@ -376,20 +376,20 @@ def cli_runner():
 ### Module-Specific Fixtures
 
 ```python
-# tests/unit/rag/conftest.py
+# tests/unit/core/conftest.py
 @pytest.fixture
 def orchestrator(temp_dir, mock_embedding_service):
     """Provide RAG orchestrator instance."""
-    from rag.orchestrator import RAGOrchestrator
+    from core.orchestrator import Orchestrator
     config_path = temp_dir / "test_config.json"
     # Create test config
-    yield RAGOrchestrator(config_path=str(config_path))
+    yield Orchestrator(config_path=str(config_path))
     # Cleanup
 
 @pytest.fixture
 def vectorstore_factory():
     """Provide vector store factory."""
-    from rag.vectorstore_factory import get_vector_store
+    from core.vectorstore_factory import get_vector_store
     return get_vector_store
 ```
 
@@ -401,7 +401,7 @@ def vectorstore_factory():
 
 ```python
 import pytest
-from rag.memory_store import MemoryStore, MemoryFact
+from core.memory_store import MemoryStore, MemoryFact
 
 @pytest.mark.unit
 class TestMemoryStore:
@@ -447,8 +447,8 @@ class TestMemoryStore:
 
 ```python
 import pytest
-from rag.orchestrator import RAGOrchestrator
-from rag.memory_store import MemoryStore
+from core.orchestrator import Orchestrator
+from core.memory_store import MemoryStore
 
 @pytest.mark.integration
 class TestRAGPipeline:
@@ -457,7 +457,7 @@ class TestRAGPipeline:
     def test_ingest_retrieve_generate(self, temp_dir, mock_embedding_service):
         """Test full RAG workflow."""
         # Arrange
-        orchestrator = RAGOrchestrator(config_path=str(temp_dir / "config.json"))
+        orchestrator = Orchestrator(config_path=str(temp_dir / "config.json"))
         test_doc = "This is a test document about authentication."
 
         # Act

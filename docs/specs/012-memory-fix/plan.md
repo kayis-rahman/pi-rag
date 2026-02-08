@@ -32,7 +32,7 @@ Configuration Priority (lowest to highest):
 1. OS-specific defaults
 2. Project config (.synapse/config.json)
 3. User config (~/.synapse/config.json)
-4. Environment variables (RAG_*)
+4. Environment variables (SYNAPSE_*)
 5. CLI arguments
 
 Config Values:
@@ -175,12 +175,12 @@ class SynapseConfig:
     def _load_env_overrides(self) -> None:
         """Apply environment variable overrides."""
         env_mappings = {
-            "RAG_DATA_DIR": "data_dir",
-            "RAG_INDEX_DIR": "index_path",
-            "RAG_PORT": "mcp_port",
-            "RAG_HOST": "mcp_host",
-            "RAG_CHUNK_SIZE": "chunk_size",
-            "RAG_TOP_K": "top_k",
+            "SYNAPSE_DATA_DIR": "data_dir",
+            "SYNAPSE_INDEX_DIR": "index_path",
+            "SYNAPSE_PORT": "mcp_port",
+            "SYNAPSE_HOST": "mcp_host",
+            "SYNAPSE_CHUNK_SIZE": "chunk_size",
+            "SYNAPSE_TOP_K": "top_k",
             "LOG_LEVEL": "log_level",
         }
         
@@ -260,7 +260,7 @@ __all__ = [
 
 **Changes:**
 1. Import `get_shortname` from synapse.config
-2. Update tool names from `rag.*` to `sy.*`
+2. Update tool names from `core.*` to `sy.*`
 
 ```python
 # Add to imports
@@ -282,14 +282,14 @@ Tool(
 ```
 
 **All 8 tools to rename:**
-- `rag.list_projects` → `sy.list_projects`
-- `rag.list_sources` → `sy.list_sources`
-- `rag.search` → `sy.search`
-- `rag.get_context` → `sy.get_context`
-- `rag.ingest_file` → `sy.ingest_file`
-- `rag.add_fact` → `sy.add_fact`
-- `rag.add_episode` → `sy.add_episode`
-- `rag.analyze_conversation` → `sy.analyze_conversation`
+- `core.list_projects` → `sy.list_projects`
+- `core.list_sources` → `sy.list_sources`
+- `core.search` → `sy.search`
+- `core.get_context` → `sy.get_context`
+- `core.ingest_file` → `sy.ingest_file`
+- `core.add_fact` → `sy.add_fact`
+- `core.add_episode` → `sy.add_episode`
+- `core.analyze_conversation` → `sy.analyze_conversation`
 
 ---
 
@@ -327,7 +327,7 @@ app = typer.Typer(
 # FROM:
 def _get_data_dir(self) -> str:
     # Hardcoded path that may not exist
-    return os.environ.get("RAG_DATA_DIR", "/opt/synapse/data")
+    return os.environ.get("SYNAPSE_DATA_DIR", "/opt/synapse/data")
 
 # TO:
 from synapse.config import get_data_dir
@@ -358,7 +358,7 @@ def _ensure_data_dir(self) -> None:
 
 ## Plan 5: Semantic Store API Fix
 
-### File: `rag/semantic_store.py`
+### File: `core/semantic_store.py`
 
 **Ensure search method signature is correct:**
 
@@ -428,7 +428,7 @@ class TestSemanticAPI:
     """Test semantic store API signatures."""
     
     def test_search_method_signature(self):
-        from rag.semantic_store import SemanticStore
+        from core.semantic_store import SemanticStore
         import inspect
         sig = inspect.signature(SemanticStore.search)
         params = list(sig.parameters.keys())

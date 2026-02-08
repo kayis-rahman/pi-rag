@@ -9,7 +9,7 @@
 
 ```
 synapse/
-├── rag/                    # Core RAG system (30+ Python modules)
+├── core/                    # Core RAG system (30+ Python modules)
 ├── mcp_server/            # MCP server implementation (7 modules)
 ├── synapse/               # CLI application (Typer-based)
 ├── tests/                 # Comprehensive test suite (30+ test files)
@@ -26,7 +26,7 @@ synapse/
 
 ### Core Directories Breakdown
 
-#### **rag/** - Main RAG System
+#### **core/** - Main RAG System
 - `orchestrator.py` - Main coordinator (442 lines)
 - `memory_store.py` - Symbolic memory (SQLite)
 - `episodic_store.py` - Episodic memory (SQLite)
@@ -287,7 +287,7 @@ asyncio.create_task(self._delete_upload_file_async(real_path))
 |------|------------|----------|
 | Python Modules | snake_case | `orchestrator.py`, `memory_reader.py` |
 | Shell Scripts | kebab-case | `rag_status.sh` |
-| Directories | snake_case | `mcp_server/`, `rag/`, `tests/` |
+| Directories | snake_case | `mcp_server/`, `core/`, `tests/` |
 | Configuration | snake_case | `rag_config.json` |
 
 ### Class Naming Conventions
@@ -296,7 +296,7 @@ asyncio.create_task(self._delete_upload_file_async(real_path))
 - Descriptive names with business domain terms
 
 ```python
-class RAGOrchestrator:
+class Orchestrator:
 class MemoryStore:
 class EpisodicStore:
 class SemanticStore:
@@ -316,7 +316,7 @@ def _load_config(self) -> None:
 def _get_symbolic_store(self) -> MemoryStore:
 def _register_chat_model(self) -> None:
 def set_chat_model(self, model_path: str, model_name: str = "chat") -> None:
-def get_orchestrator(config_path: str = "./configs/rag_config.json") -> RAGOrchestrator:
+def get_orchestrator(config_path: str = "./configs/rag_config.json") -> Orchestrator:
 def store_memory(self, fact: MemoryFact) -> MemoryFact:
 def analyze_conversation(self, user_message: str, agent_response: str):
 ```
@@ -396,12 +396,12 @@ Features:
 
 ### Class Docstring Pattern
 ```python
-class RAGOrchestrator:
+class Orchestrator:
     """
     Orchestrates RAG pipeline: retrieval + LLM generation.
     
     Usage:
-        orchestrator = RAGOrchestrator(config_path="./configs/rag_config.json")
+        orchestrator = Orchestrator(config_path="./configs/rag_config.json")
         response = orchestrator.chat(
             messages=[{"role": "user", "content": "How does auth work?"}]
         )
@@ -509,7 +509,7 @@ LOG_LEVEL
 ## 8. TESTING PATTERNS
 
 ### Test File Naming
-- Unit tests: `tests/unit/rag/test_retriever.py`
+- Unit tests: `tests/unit/core/test_retriever.py`
 - Integration tests: `tests/integration/test_*.py`
 - Fixtures: `tests/fixtures/`
 - Global config: `tests/conftest.py`
@@ -519,7 +519,7 @@ LOG_LEVEL
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_environment():
     """Global test environment setup."""
-    os.environ["RAG_TEST_MODE"] = "true"
+    os.environ["SYNAPSE_TEST_MODE"] = "true"
     yield
     # Cleanup
     pass

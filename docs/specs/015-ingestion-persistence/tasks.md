@@ -31,9 +31,9 @@
 
 ### 1.2 Trace Code Flow
 - [x] 1.2.1 Read `scripts/bulk_ingest.py` (Linked to FR-2.1)
-- [x] 1.2.2 Read `rag/semantic_ingestor.py` (Linked to FR-2.1)
-- [x] 1.2.3 Read `rag/semantic_store.py` (Linked to FR-2.1)
-- [x] 1.2.4 Read `rag/vectorstore.py` (Linked to FR-2.1)
+- [x] 1.2.2 Read `core/semantic_ingestor.py` (Linked to FR-2.1)
+- [x] 1.2.3 Read `core/semantic_store.py` (Linked to FR-2.1)
+- [x] 1.2.4 Read `core/vectorstore.py` (Linked to FR-2.1)
 
 ### 1.3 Identify Root Cause
 - [x] 1.3.1 Check if save/commit is called (Linked to FR-2.2)
@@ -41,7 +41,7 @@
 
 **ROOT CAUSE IDENTIFIED**:
 - **Issue**: Singleton pattern in `get_semantic_store()` ignores `index_path` parameter after first initialization
-- **Location**: `rag/semantic_store.py` lines 571-584
+- **Location**: `core/semantic_store.py` lines 571-584
 - **Impact**: Different components use different data directories, but singleton returns first-created instance
 - **Evidence**: Data IS persisted (12MB at `/home/dietpi/synapse/data/semantic_index/`) but `list_sources` may query wrong instance
 
@@ -57,7 +57,7 @@
 - [ ] 2.1.3 Add transaction support for atomic writes (Linked to FR-2.3) - Future enhancement
 
 **Phase 2.1 Status**: ✅ COMPLETE
-- Singleton bug fixed in rag/semantic_store.py (lines 567-615)
+- Singleton bug fixed in core/semantic_store.py (lines 567-615)
 - Cache-by-path implementation working correctly
 - Tested: 3 files ingested, 36 chunks created, list_sources returns 3 sources
 - Data persists and is retrievable after fix

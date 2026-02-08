@@ -114,7 +114,7 @@ warnings.warn(
 | File | Changes | Details |
 |------|---------|---------|
 | `synapse/cli/main.py` | Line 305 | `"search"` → `"sy.mem.search"` |
-| `configs/rag_config.json` | universal_hooks section | `rag.*` → `sy.mem.*` |
+| `configs/rag_config.json` | universal_hooks section | `core.*` → `sy.mem.*` |
 
 #### P3 - Deprecation
 
@@ -154,7 +154,7 @@ OpenCode → MCP Request → http_wrapper.py
 - Starlette (already installed)
 
 ### Internal
-- `mcp_server.rag_server.RAGMemoryBackend`
+- `mcp_server.rag_server.MemoryBackend`
 - `synapse.config.config.get_shortname()`
 
 ---

@@ -4,7 +4,7 @@ import json
 import sys
 sys.path.insert(0, '.')
 
-from rag.conversation_analyzer import ConversationAnalyzer
+from core.conversation_analyzer import ConversationAnalyzer
 
 def test_fact_accuracy(dataset_path):
     """Test fact extraction accuracy."""

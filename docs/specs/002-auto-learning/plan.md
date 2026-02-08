@@ -73,7 +73,7 @@ User Request → opencode → MCP Tool Call → Operation Tracked
 
 ### Module 1: AutoLearningTracker (NEW)
 
-**File**: `rag/auto_learning_tracker.py`
+**File**: `core/auto_learning_tracker.py`
 **Purpose**: Track operations and trigger automatic learning
 
 **Class Interface**:
@@ -200,7 +200,7 @@ def detect_pattern(self, operations: List[dict]) -> Optional[dict]:
 
 ### Module 2: LearningExtractor (NEW)
 
-**File**: `rag/learning_extractor.py`
+**File**: `core/learning_extractor.py`
 **Purpose**: Use LLM to extract episodes/facts from operations
 
 **Class Interface**:
@@ -340,7 +340,7 @@ def extract_facts_from_code(self, file_path: str, file_content: str) -> List[dic
 ```python
 def _load_auto_learning_config(self) -> dict:
     """Load automatic learning configuration from rag_config.json."""
-    config_path = os.environ.get("RAG_CONFIG_PATH", "./configs/rag_config.json")
+    config_path = os.environ.get("SYNAPSE_CONFIG_PATH", "./configs/rag_config.json")
     
     try:
         with open(config_path, 'r') as f:
@@ -474,8 +474,8 @@ def _should_auto_track(self, operation: dict) -> bool:
 ## Implementation Strategy
 
 ### Phase 1: Foundation (1-2 hours)
-- [ ] Create `rag/auto_learning_tracker.py` module
-- [ ] Create `rag/learning_extractor.py` module
+- [ ] Create `core/auto_learning_tracker.py` module
+- [ ] Create `core/learning_extractor.py` module
 - [ ] Add configuration schema to `rag_config.json`
 - [ ] Write unit tests for tracking logic
 - [ ] Write unit tests for extraction logic
@@ -507,8 +507,8 @@ def _should_auto_track(self, operation: dict) -> bool:
 ## Dependencies
 
 ### New Files to Create
-1. `rag/auto_learning_tracker.py` - Operation tracking and pattern detection
-2. `rag/learning_extractor.py` - LLM-based learning extraction
+1. `core/auto_learning_tracker.py` - Operation tracking and pattern detection
+2. `core/learning_extractor.py` - LLM-based learning extraction
 3. `tests/test_auto_learning_tracker.py` - Unit tests
 4. `tests/test_learning_extractor.py` - Unit tests
 

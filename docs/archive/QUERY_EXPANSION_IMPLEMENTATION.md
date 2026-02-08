@@ -14,7 +14,7 @@
 
 ## What Was Implemented
 
-### 1. New Module: `rag/query_expander.py`
+### 1. New Module: `core/query_expander.py`
 - Multi-query expansion strategy
 - Synonym augmentation
 - Query rewriting (e.g., "how do I" → "how to")
@@ -38,7 +38,7 @@ expand_and_search(query: str, search_func: Callable) -> List[Dict]
 
 ---
 
-### 2. Updated: `rag/retriever.py`
+### 2. Updated: `core/retriever.py`
 - Added `query_expansion_enabled` configuration
 - Added `num_expansions` configuration
 - Added `search_with_expansion()` method
@@ -60,7 +60,7 @@ results = retriever.search_with_expansion(query, top_k=3)
 
 ---
 
-### 3. Updated: `rag/semantic_retriever.py`
+### 3. Updated: `core/semantic_retriever.py`
 - Added `query_expansion_enabled` parameter to constructor
 - Added `num_expansions` parameter to constructor
 - Added `retrieve_with_expansion()` method
@@ -89,7 +89,7 @@ Added configuration for query expansion:
   "query_expansion_enabled": true,
   "num_expansions": 3,
 
-  "index_path": "/opt/pi-rag/data/rag_index",
+  "index_path": "/opt/pi-core/data/rag_index",
   ...
 }
 ```
@@ -216,7 +216,7 @@ Summary:
 ## Files Modified/Created
 
 ### Created Files
-1. `rag/query_expander.py` (270 lines)
+1. `core/query_expander.py` (270 lines)
    - QueryExpander class
    - Multi-query expansion
    - Synonym augmentation
@@ -233,12 +233,12 @@ Summary:
    - Improvement metrics
 
 ### Modified Files
-1. `rag/retriever.py`
+1. `core/retriever.py`
    - Added query expansion configuration
    - Added `search_with_expansion()` method
    - Updated `search_with_context()` to support expansion
 
-2. `rag/semantic_retriever.py`
+2. `core/semantic_retriever.py`
    - Added query expansion configuration
    - Added `retrieve_with_expansion()` method
    - Added result merging helper
@@ -253,7 +253,7 @@ Summary:
 
 ### Option 1: SemanticRetriever (Recommended)
 ```python
-from rag.semantic_retriever import SemanticRetriever
+from core.semantic_retriever import SemanticRetriever
 
 retriever = SemanticRetriever(query_expansion_enabled=True)
 
@@ -267,7 +267,7 @@ results = retriever.retrieve_with_expansion(
 
 ### Option 2: Direct QueryExpander
 ```python
-from rag.query_expander import get_query_expander
+from core.query_expander import get_query_expander
 
 expander = get_query_expander(num_expansions=3)
 
@@ -369,7 +369,7 @@ results = expander.expand_and_search(
 context, sources = self._retriever.search_with_context(query, ...)
 
 # With:
-from rag.semantic_retriever import SemanticRetriever
+from core.semantic_retriever import SemanticRetriever
 semantic_retriever = SemanticRetriever(query_expansion_enabled=True)
 results = semantic_retriever.retrieve_with_expansion(query, ...)
 ```

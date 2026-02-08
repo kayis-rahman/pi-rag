@@ -474,7 +474,7 @@ The script creates/updates the following files:
 - `json` (built-in)
 - `argparse` (built-in)
 - `tqdm` (optional, for progress bar)
-- SYNAPSE modules: `rag`, `rag.semantic_store`, `rag.semantic_ingest`
+- SYNAPSE modules: `rag`, `core.semantic_store`, `core.semantic_ingest`
 
 ### System Requirements
 - Write access to semantic store directory

@@ -154,7 +154,7 @@ Config path was hardcoded to `Path.cwd() / "configs" / "rag_config.json"` which 
 **Root Cause**:
 Line 105 in `synapse/cli/commands/start.py`:
 ```python
-env["RAG_CONFIG_PATH"] = str(Path.cwd() / "configs" / "rag_config.json")
+env["SYNAPSE_CONFIG_PATH"] = str(Path.cwd() / "configs" / "rag_config.json")
 ```
 
 **Fix**:
@@ -176,7 +176,7 @@ if config_path is None:
     print(f"❌ Error: Cannot find rag_config.json")
     return False
 
-env["RAG_CONFIG_PATH"] = config_path
+env["SYNAPSE_CONFIG_PATH"] = config_path
 ```
 
 **Testing**:

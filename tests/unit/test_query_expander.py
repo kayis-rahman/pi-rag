@@ -5,7 +5,7 @@ Tests cover query expansion, expansion count, expansion methods, and uniqueness.
 """
 
 import pytest
-from rag.query_expander import QueryExpander, get_query_expander
+from core.query_expander import QueryExpander, get_query_expander
 
 
 @pytest.mark.unit

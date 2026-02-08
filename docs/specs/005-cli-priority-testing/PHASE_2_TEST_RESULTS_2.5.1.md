@@ -118,7 +118,7 @@
 
 ### Fix-4: Environment Config for Native Mode
 **File**: `synapse/cli/commands/start.py` (line 98-101)
-**Change**: Added `env["RAG_ENV"] = "native"` and `env["RAG_CONFIG_PATH"]` for native mode
+**Change**: Added `env["SYNAPSE_ENV"] = "native"` and `env["SYNAPSE_CONFIG_PATH"]` for native mode
 **Status**: ✅ Applied
 
 ---

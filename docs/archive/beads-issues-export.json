@@ -63,7 +63,7 @@
   {
     "id": "synapse-29h",
     "title": "Phase 1.1: Delete Empty and Backup Files",
-    "description": "Delete api/main_new.py (0 bytes), mcp_server/minimal_server.py (0 bytes), start_http_server.sh.bak (13KB), rag/memory_selector_backup.py (1 line). These files serve no purpose and confuse code navigation. Verify no imports/references exist before deletion. Commands: rm -f api/main_new.py mcp_server/minimal_server.py start_http_server.sh.bak rag/memory_selector_backup.py. Estimated: 5 min. Validation: Verify files deleted, check for broken imports.",
+    "description": "Delete api/main_new.py (0 bytes), mcp_server/minimal_server.py (0 bytes), start_http_server.sh.bak (13KB), core/memory_selector_backup.py (1 line). These files serve no purpose and confuse code navigation. Verify no imports/references exist before deletion. Commands: rm -f api/main_new.py mcp_server/minimal_server.py start_http_server.sh.bak core/memory_selector_backup.py. Estimated: 5 min. Validation: Verify files deleted, check for broken imports.",
     "status": "closed",
     "priority": 2,
     "issue_type": "task",
@@ -204,7 +204,7 @@
   {
     "id": "synapse-50r",
     "title": "Phase 2.4: Update Core Source Files",
-    "description": "Update scripts/bulk_ingest.py (727 lines), start_http_server.sh (13KB), scripts/rag_status.sh. Changes: bulk_ingest.py - update docstring, default project_id (pi-rag → synapse), error messages, help text (line 806-807). start_http_server.sh - update error log directory (/var/log/pi-rag/ → /var/log/synapse/), config path (/home/dietpi/pi-rag/configs/ → /home/dietpi/synapse/configs/), comments, help text. rag_status.sh - update pi-rag references, data paths. Commands: Search/replace user-facing strings, keep technical logic. Estimated: 20 min. Validation: All SYNAPSE references updated, scripts work correctly.",
+    "description": "Update scripts/bulk_ingest.py (727 lines), start_http_server.sh (13KB), scripts/rag_status.sh. Changes: bulk_ingest.py - update docstring, default project_id (pi-rag → synapse), error messages, help text (line 806-807). start_http_server.sh - update error log directory (/var/log/pi-core/ → /var/log/synapse/), config path (/home/dietpi/pi-core/configs/ → /home/dietpi/synapse/configs/), comments, help text. rag_status.sh - update pi-rag references, data paths. Commands: Search/replace user-facing strings, keep technical logic. Estimated: 20 min. Validation: All SYNAPSE references updated, scripts work correctly.",
     "status": "closed",
     "priority": 2,
     "issue_type": "task",
@@ -340,7 +340,7 @@
   {
     "id": "synapse-7fo.10",
     "title": "Create rag_config_synapse.json with /opt/synapse/data paths",
-    "description": "Copy rag_config.json to rag_config_synapse.json and update all /opt/pi-rag/data path references to /opt/synapse/data",
+    "description": "Copy rag_config.json to rag_config_synapse.json and update all /opt/pi-core/data path references to /opt/synapse/data",
     "status": "closed",
     "priority": 1,
     "issue_type": "task",
@@ -384,7 +384,7 @@
   {
     "id": "synapse-7fo.12",
     "title": "Update Python source code - replace pi-rag references with synapse",
-    "description": "Search and replace all 'pi-rag' string references in Python files (mcp_server/, rag/) with 'synapse' including docstrings, comments, and fallback paths",
+    "description": "Search and replace all 'pi-rag' string references in Python files (mcp_server/, core/) with 'synapse' including docstrings, comments, and fallback paths",
     "status": "closed",
     "priority": 1,
     "issue_type": "task",
@@ -603,7 +603,7 @@
   {
     "id": "synapse-7fo.21",
     "title": "Verify backward compatibility symlink works",
-    "description": "Test that both /opt/synapse/data and /opt/pi-rag/data paths work correctly and symlink points to correct target",
+    "description": "Test that both /opt/synapse/data and /opt/pi-core/data paths work correctly and symlink points to correct target",
     "status": "closed",
     "priority": 1,
     "issue_type": "task",
@@ -1192,7 +1192,7 @@
   {
     "id": "synapse-i7v",
     "title": "Phase 2.3: Update Core Documentation Files",
-    "description": "Rebrand scripts/BULK_INJECT_README.md and scripts/BULK_INJECT_IMPLEMENTATION.md. Changes: Replace pi-rag with SYNAPSE throughout, update project_id from pi-rag to synapse, update data directory paths (/opt/pi-rag/data → /opt/synapse/data), update dates to current. Keep all technical documentation intact. Search/replace: pi-rag → SYNAPSE, /opt/pi-rag/ → /opt/synapse/. Estimated: 20 min. Validation: No pi-rag references, paths updated, technical details preserved.",
+    "description": "Rebrand scripts/BULK_INJECT_README.md and scripts/BULK_INJECT_IMPLEMENTATION.md. Changes: Replace pi-rag with SYNAPSE throughout, update project_id from pi-rag to synapse, update data directory paths (/opt/pi-core/data → /opt/synapse/data), update dates to current. Keep all technical documentation intact. Search/replace: pi-rag → SYNAPSE, /opt/pi-core/ → /opt/synapse/. Estimated: 20 min. Validation: No pi-rag references, paths updated, technical details preserved.",
     "status": "closed",
     "priority": 2,
     "issue_type": "task",

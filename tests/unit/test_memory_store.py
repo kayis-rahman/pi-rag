@@ -5,7 +5,7 @@ Tests cover CRUD operations, querying, validation, and authority levels.
 """
 
 import pytest
-from rag.memory_store import MemoryStore, MemoryFact
+from core.memory_store import MemoryStore, MemoryFact
 
 
 @pytest.mark.unit

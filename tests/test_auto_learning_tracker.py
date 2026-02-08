@@ -6,7 +6,7 @@ pattern detection, and manual override functionality.
 """
 
 import pytest
-from rag.auto_learning_tracker import AutoLearningTracker
+from core.auto_learning_tracker import AutoLearningTracker
 from datetime import datetime
 
 

@@ -9,7 +9,7 @@ from pathlib import Path
 # Add rag module to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from rag.auto_learning_tracker import AutoLearningTracker
+from core.auto_learning_tracker import AutoLearningTracker
 
 # Load config
 config_path = Path("configs/rag_config.json")

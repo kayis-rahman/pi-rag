@@ -18,14 +18,14 @@
 - Client configuration examples
 
 ### 3. ✅ Critical Errors Fixed
-- `rag/orchestrator.py` - Streaming response handling
-- `rag/prompt_builder.py` - Type errors and json import
-- `rag/model_manager.py` - Llama null check and embed method
+- `core/orchestrator.py` - Streaming response handling
+- `core/prompt_builder.py` - Type errors and json import
+- `core/model_manager.py` - Llama null check and embed method
 - `tests/test_memory_integration_comprehensive.py` - 4 unterminated strings
 - All Python syntax validated
 
 ### 4. ✅ rag-env Investigation
-- File: `RAG_ENV_INVESTIGATION_REPORT.md`
+- File: `SYNAPSE_ENV_INVESTIGATION_REPORT.md`
 - Conclusion: rag-env does NOT exist and is NOT needed
 - Verified no code references to rag-env
 
@@ -183,7 +183,7 @@ docker run -i --rm rag-mcp-server
 
 **Current State**:
 - We have 15+ scattered .md files
-- We have `AGENTIC_RAG_COMPLETE_GUIDE.md` as main guide
+- We have `AGENTIC_SYNAPSE_COMPLETE_GUIDE.md` as main guide
 - But we haven't cleaned up the scattered docs
 
 **Required Actions**:
@@ -225,7 +225,7 @@ docker run -i --rm rag-mcp-server
 cd /home/dietpi/pi-rag
 
 # Set environment
-export RAG_DATA_DIR=/home/dietpi/pi-rag/data
+export SYNAPSE_DATA_DIR=/home/dietpi/pi-core/data
 
 # Test server startup
 timeout 10 python -m mcp_server.rag_server || echo "Server started"
@@ -258,8 +258,8 @@ docker build -t rag-mcp-server .
 
 # Test container
 docker run -i --rm \
-  -e RAG_DATA_DIR=/app/data \
-  -v /home/dietpi/pi-rag/data:/app/data \
+  -e SYNAPSE_DATA_DIR=/app/data \
+  -v /home/dietpi/pi-core/data:/app/data \
   rag-mcp-server
 ```
 

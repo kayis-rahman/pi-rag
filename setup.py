@@ -56,10 +56,10 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "synapse-mcp-server=synapse.rag_server:main",
-            "synapse-bulk-ingest=synapse.scripts.bulk_ingest:main",
-            "synapse-system-status=synapse.scripts.rag_status:main",
-            "synapse-start=synapse.scripts.start_server:main",
+            "synapse-mcp-server=mcp_server.synapse_server:main",
+            "synapse-bulk-ingest=scripts.bulk_ingest:main",
+            "synapse-system-status=scripts.rag_status:main",
+            "synapse-start=scripts.start_server:main",
         ],
     },
     python_requires=">=3.8",

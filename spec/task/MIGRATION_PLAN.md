@@ -17,7 +17,7 @@
 
 ❌ **Issues Found:**
 - **Semantic Index**: 1,096 chunks with `project_id: "pi-rag"`
-- **Chunk source paths**: 50 files with `/home/dietpi/pi-rag/...` paths
+- **Chunk source paths**: 50 files with `/home/dietpi/pi-core/...` paths
 - **6 Code files** with hardcoded pi-rag paths
 - **5 Active documentation files** with pi-rag references
 - **Archive documentation** with historical pi-rag references
@@ -28,7 +28,7 @@
 
 ### 1.1 Update Core Code Files (6 files)
 
-- `rag/__init__.py` - Update description
+- `core/__init__.py` - Update description
 - `mcp_server/rag_server.py` - Change default path to `/opt/synapse/data`
 - `mcp_server/chroma_manager.py` - Change default path to `/opt/synapse/data`
 - `mcp_server/production_logger.py` - Change log path to `/opt/synapse/logs/rag-mcp.log`
@@ -44,9 +44,9 @@
 ### 2.1 Update Active Documentation (5 files)
 
 - `AGENTS.md` - Update all `project_id: "pi-rag"` to `project_id: "synapse"` (9+ instances)
-- `AGENTS.md` - Update `/opt/pi-rag/data` to `/opt/synapse/data`
+- `AGENTS.md` - Update `/opt/pi-core/data` to `/opt/synapse/data`
 - `AGENTS.md` - Update project name references
-- `MEMORY_SYSTEM_QUICK_REFERENCE.md` - Update all `/opt/pi-rag/data` and `/home/dietpi/pi-rag` paths
+- `MEMORY_SYSTEM_QUICK_REFERENCE.md` - Update all `/opt/pi-core/data` and `/home/dietpi/pi-rag` paths
 - `MAC_QUICK_START.md` - Update path references
 - `README-DOCKER.md` - Update container naming (pi-rag → synapse)
 - `spec/problems_and_gaps.md` - Update path reference
@@ -77,7 +77,7 @@ cp /opt/synapse/data/semantic_index/chunks.json /opt/synapse/data/backup/pi-rag-
 ### 3.2 Update chunks.json
 **Action**: Create Python script to update:
 1. All `project_id: "pi-rag"` → `project_id: "synapse"`
-2. All `source: "/home/dietpi/pi-rag/..."` → `source: "/home/dietpi/synapse/..."`
+2. All `source: "/home/dietpi/pi-core/..."` → `source: "/home/dietpi/synapse/..."`
 3. All `project: "pi-rag"` in metadata → `project: "synapse"`
 
 **Scope**: Update 1,096 chunks across 50 files

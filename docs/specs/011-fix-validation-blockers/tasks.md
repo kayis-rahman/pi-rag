@@ -30,7 +30,7 @@
 
 ### 1.2: Implement OS-Aware Data Directory
 - [x] 1.2.1 Modify `_get_data_dir()` in `rag_server.py` (Linked to FR-1.1)
-  - Add environment variable check (RAG_DATA_DIR)
+  - Add environment variable check (SYNAPSE_DATA_DIR)
 - [x] 1.2.2 Add config file parsing (Linked to FR-1.2)
 - [x] 1.2.3 Add OS detection (Darwin/Linux/Windows) (Linked to FR-1.3-1.5)
 - [x] 1.2.4 Implement Mac logic: `~/.synapse/data` (Linked to FR-1.3)

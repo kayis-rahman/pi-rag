@@ -255,7 +255,7 @@ def setup_project(
 
         # Import ingest functions
         try:
-            from rag.semantic_ingest import get_semantic_ingestor
+            from core.semantic_ingest import get_semantic_ingestor
 
             ingestor = get_semantic_ingestor()
             config_path = "./configs/rag_config.json"

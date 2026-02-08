@@ -225,8 +225,8 @@ Implement Phase 0 (ChromaDB audit) + Phase 1 (Test Utilities) + Phase 2 (CLI Tes
 ## Known Issues in Project
 
 ### Production Code Issues (Not in Scope for This Feature):
-1. `rag/chroma_semantic_store.py` - 17+ critical errors (documented)
-2. `rag/chroma_vectorstore.py` - 1-2 typos (documented)
+1. `core/chroma_semantic_store.py` - 17+ critical errors (documented)
+2. `core/chroma_vectorstore.py` - 1-2 typos (documented)
 3. `synapse/cli/commands/ingest.py` - Import error (scripts.bulk_ingest not resolved)
 4. `synapse/cli/commands/status.py` - Missing `os` import
 5. `synapse/cli/commands/setup.py` - Import error (models module)

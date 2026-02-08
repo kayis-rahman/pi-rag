@@ -11,7 +11,7 @@ except ImportError:
     TRACEMALLOC_AVAILABLE = False
     tracemalloc = None
 
-from rag.conversation_analyzer import ConversationAnalyzer
+from core.conversation_analyzer import ConversationAnalyzer
 
 def test_memory_leaks(iterations=1000):
     """Test for memory leaks."""

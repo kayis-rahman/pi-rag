@@ -157,7 +157,7 @@ All MCP tools fail with the same error:
 
 **Recommended Fix**:
 - Configure MCP server to use `~/.synapse/data` on Mac
-- OR set environment variable `RAG_DATA_DIR` to user home path
+- OR set environment variable `SYNAPSE_DATA_DIR` to user home path
 - OR detect OS and use appropriate data directory
 
 ---

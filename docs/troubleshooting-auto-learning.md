@@ -232,12 +232,12 @@ python3 -m json.tool configs/rag_config.json
 
 **Step 2: Check config path**
 ```bash
-echo $RAG_CONFIG_PATH  # Should be ./configs/rag_config.json
+echo $SYNAPSE_CONFIG_PATH  # Should be ./configs/rag_config.json
 ```
 
 **Fix**: Set environment variable if missing:
 ```bash
-export RAG_CONFIG_PATH=/home/dietpi/synapse/configs/rag_config.json
+export SYNAPSE_CONFIG_PATH=/home/dietpi/synapse/configs/rag_config.json
 ```
 
 **Step 3: Verify auto-learning section exists**
@@ -338,10 +338,10 @@ result = await mcp_tool(
 
 ```python
 import asyncio
-from mcp_server.rag_server import RAGMemoryBackend
+from mcp_server.rag_server import MemoryBackend
 
 async def test_auto_learning():
-    backend = RAGMemoryBackend()
+    backend = MemoryBackend()
 
     # Test 1: Task completion (3+ operations)
     print("Test 1: Task completion detection...")
@@ -385,7 +385,7 @@ python3 -m pytest tests/test_auto_learning_integration.py -v
 If you still have issues:
 
 1. **Check logs**: `journalctl -u synapse-mcp -n 100`
-2. **Enable debug logging**: Set `RAG_LOG_LEVEL=DEBUG`
+2. **Enable debug logging**: Set `SYNAPSE_LOG_LEVEL=DEBUG`
 3. **Report issues**: Include:
    - Configuration (`configs/rag_config.json`)
    - Relevant logs (last 100 lines)

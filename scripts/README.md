@@ -32,7 +32,7 @@ This directory contains utility scripts for the pi-rag project.
     - `--clear-errors` - Clear error log file
     - `--help` - Show help message
   - Features:
-    - Error logging to `/var/log/pi-rag/error.log` (persistent)
+    - Error logging to `/var/log/pi-core/error.log` (persistent)
     - Main logging to `/tmp/mcp_server.log` (temporary)
     - PID file at `/tmp/mcp_server.pid`
     - Auto-creation of error log directory
@@ -141,6 +141,6 @@ For issues or questions about the scripts:
 
 1. Check documentation: `scripts/BULK_INJECT_README.md`
 2. Check logs:
-   - Error log: `tail -f /var/log/pi-rag/error.log`
+   - Error log: `tail -f /var/log/pi-core/error.log`
    - Server log: `tail -f /tmp/mcp_server.log`
 3. Review implementation details: `scripts/BULK_INJECT_IMPLEMENTATION.md`

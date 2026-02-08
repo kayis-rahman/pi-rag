@@ -189,7 +189,7 @@ sqlite3 /opt/synapse/data/memory.db "SELECT title, lesson_type FROM episodes ORD
 **Extractions are incorrect**:
 1. Check `extraction_mode` in config (heuristic/llm/hybrid)
 2. Review test logs: `python3 scripts/test_accuracy.py`
-3. Adjust patterns in `rag/conversation_analyzer.py` if needed
+3. Adjust patterns in `core/conversation_analyzer.py` if needed
 
 **Performance issues**:
 1. Check execution time logs (should be <50ms)

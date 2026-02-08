@@ -7,7 +7,7 @@ Tests cover directory ingestion, file discovery, extension filtering, and parall
 import pytest
 import tempfile
 from pathlib import Path
-from rag.bulk_ingest import (
+from core.bulk_ingest import (
     SUPPORTED_EXTENSIONS,
     SKIP_DIRS,
     should_process_file,

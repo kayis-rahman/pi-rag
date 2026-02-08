@@ -36,7 +36,7 @@ Phase 7 focused on finalizing the OpenCode adapter implementation, fixing critic
   - All 13 plugin tests still pass after fix
 
 **Reviewed Components:**
-- ✅ `rag/conversation_analyzer.py` - 458 lines, solid error handling
+- ✅ `core/conversation_analyzer.py` - 458 lines, solid error handling
 - ✅ `.opencode/plugins/synapse-auto-learning.ts` - 227 lines (after fix)
 - ✅ `mcp_server/rag_server.py` - `analyze_conversation` tool implemented
 - ✅ `configs/rag_config.json` - universal_hooks section complete
@@ -49,14 +49,14 @@ Phase 7 focused on finalizing the OpenCode adapter implementation, fixing critic
 - ✅ Performance timing present in OpenCode plugin
 
 ### 7.3 Update AGENTS.md ✅
-- ✅ Documented new RAG tool: `rag.analyze_conversation`
+- ✅ Documented new RAG tool: `core.analyze_conversation`
 - ✅ Added tool description and parameters
 - ✅ Marked as used by universal hook adapters
 - ✅ Verified all documentation is consistent
 
 **New Tool Entry:**
 ```
-8. **`rag.analyze_conversation`** (NEW - Universal Hook Auto-Learning)
+8. **`core.analyze_conversation`** (NEW - Universal Hook Auto-Learning)
    - Use: Extract facts and episodes from agent conversations automatically
    - Priority: Called by agent hooks (OpenCode, Claude Code, etc.)
    - Parameters: project_id="synapse", user_message="<msg>", agent_response="<resp>", context={}, auto_store=true, extraction_mode="heuristic"
@@ -72,7 +72,7 @@ Phase 7 focused on finalizing the OpenCode adapter implementation, fixing critic
 
 **RAG Server Verification:**
 - ✅ Server starts without errors
-- ✅ 9 tools loaded (including new `rag.analyze_conversation`)
+- ✅ 9 tools loaded (including new `core.analyze_conversation`)
 - ✅ Universal hooks config loaded: enabled=True, extraction_mode=heuristic
 - ✅ Auto-learning config loaded: enabled=True, mode=aggressive
 - ✅ AutoLearningTracker initialized successfully
@@ -100,7 +100,7 @@ Phase 7 focused on finalizing the OpenCode adapter implementation, fixing critic
 
 ### Updated Files:
 2. **`AGENTS.md`**
-   - Added `rag.analyze_conversation` tool documentation (8th RAG tool)
+   - Added `core.analyze_conversation` tool documentation (8th RAG tool)
    - Added tool description, usage, parameters, and notes
 
 3. **`docs/specs/004-universal-hook-auto-learning/tasks.md`**

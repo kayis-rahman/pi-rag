@@ -163,7 +163,7 @@ def get_logger(name: str) -> logging.Logger:
     This is the main entry point for logging in Synapse modules.
 
     Usage:
-        from rag.logger import get_logger
+        from core.logger import get_logger
         logger = get_logger(__name__)
         logger.info("Hello, world!")
         logger.warning("Something unusual happened")
@@ -193,7 +193,7 @@ def setup_logging(
     This can be called explicitly to configure logging before using get_logger().
 
     Usage in CLI scripts:
-        from rag.logger import setup_logging
+        from core.logger import setup_logging
         import argparse
 
         parser = argparse.ArgumentParser()

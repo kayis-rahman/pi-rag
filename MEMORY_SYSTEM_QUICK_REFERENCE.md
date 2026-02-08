@@ -19,10 +19,10 @@
 ## 🎯 Quick Wins (Next 30 Minutes)
 
 ### 1. Fix Validation Logic ✅ COMPLETED
-**Issue**: `rag/episode_extractor.py` excluded due to overly strict validation
+**Issue**: `core/episode_extractor.py` excluded due to overly strict validation
 
 **What Was Done**:
-- Updated `rag/semantic_store.py` validation logic
+- Updated `core/semantic_store.py` validation logic
 - Removed restrictive `episode` keyword blocking
 - Implemented context-aware phrase matching
 - Reduced false positives
@@ -261,13 +261,13 @@ cat /opt/synapse/data/metrics.json
 ## 🚀 Quick Reference - MCP Tools
 
 ### Available Tools
-1. `rag.list_projects` - List all projects
-2. `rag.list_sources` - List document sources
-3. `rag.get_context` - Get project context
-4. `rag.search` - Search across all memory types
-5. `rag.ingest_file` - Ingest a file
-6. `rag.add_fact` - Add symbolic memory fact
-7. `rag.add_episode` - Add episodic memory episode
+1. `core.list_projects` - List all projects
+2. `core.list_sources` - List document sources
+3. `core.get_context` - Get project context
+4. `core.search` - Search across all memory types
+5. `core.ingest_file` - Ingest a file
+6. `core.add_fact` - Add symbolic memory fact
+7. `core.add_episode` - Add episodic memory episode
 
 ### Tool Usage Examples
 

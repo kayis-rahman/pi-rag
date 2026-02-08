@@ -5,7 +5,7 @@ Tests cover embedding generation, caching, thread safety, and test mode.
 """
 
 import pytest
-from rag.embedding import EmbeddingService, get_embedding_service
+from core.embedding import EmbeddingService, get_embedding_service
 
 
 @pytest.mark.unit
@@ -79,7 +79,7 @@ class TestEmbeddingService:
         import os
 
         # Enable test mode
-        monkeypatch.setenv("RAG_TEST_MODE", "true")
+        monkeypatch.setenv("SYNAPSE_TEST_MODE", "true")
 
         # Create service
         service = EmbeddingService()

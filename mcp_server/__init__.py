@@ -5,6 +5,6 @@ This package provides a production-grade MCP server for RAG memory system.
 """
 
 # Import the main module (this is the standard way to import submodules)
-from .rag_server import server, RAGMemoryBackend
+from .synapse_server import server, MemoryBackend
 
-__all__ = ['server', 'RAGMemoryBackend']
+__all__ = ['server', 'MemoryBackend']

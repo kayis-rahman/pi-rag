@@ -13,7 +13,7 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from rag.logger import LoggerManager, get_logger, setup_logging
+from core.logger import LoggerManager, get_logger, setup_logging
 
 
 def test_logger_manager_initialization():

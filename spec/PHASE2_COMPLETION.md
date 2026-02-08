@@ -102,8 +102,8 @@ $ python3 -m pytest tests/unit/ --collect-only -q
 **Root Cause**: MemoryStore and EpisodicStore methods may have different signatures than expected
 
 **Resolution Required**:
-- [ ] Review actual `rag/memory_store.py` implementation
-- [ ] Review actual `rag/episodic_store.py` implementation
+- [ ] Review actual `core/memory_store.py` implementation
+- [ ] Review actual `core/episodic_store.py` implementation
 - [ ] Update tests to match actual API
 - [ ] Or update implementations to match planned API
 
@@ -112,7 +112,7 @@ $ python3 -m pytest tests/unit/ --collect-only -q
 
 **Impact**: Missing tests for core RAG orchestration functionality
 
-**Root Cause**: RAGOrchestrator has complex dependencies requiring more setup
+**Root Cause**: Orchestrator has complex dependencies requiring more setup
 
 **Resolution Required**:
 - [ ] Create `test_orchestrator.py` with 9 tests
@@ -346,7 +346,7 @@ pytest tests/unit/ --tb=no -q | grep FAILED
 | API mismatch in memory tests | High | Review implementations, update tests | 🔴 Pending |
 | Missing orchestrator tests | Medium | Create missing test file | 🟡 Next Up |
 | Low coverage for critical modules | Medium | API fixes + more tests | 🔴 Pending |
-| Slow test execution | Low | Use `RAG_TEST_MODE=true` | ✅ Implemented |
+| Slow test execution | Low | Use `SYNAPSE_TEST_MODE=true` | ✅ Implemented |
 | Flaky tests | Medium | Use fixtures, avoid delays | ⏳ To Verify |
 
 ---

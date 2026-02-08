@@ -44,9 +44,9 @@ class EmbeddingService:
 
         # Test mode: use mock embeddings to avoid model loading issues
         import os
-        self._test_mode = os.environ.get("RAG_TEST_MODE", "false").lower() == "true"
+        self._test_mode = os.environ.get("SYNAPSE_TEST_MODE", "false").lower() == "true"
         if self._test_mode:
-            logger.warning("RAG_TEST_MODE enabled: Using mock embeddings")
+            logger.warning("SYNAPSE_TEST_MODE enabled: Using mock embeddings")
 
         # Register embedding model if path is set (not in test mode)
         if self.model_path and not self._test_mode:

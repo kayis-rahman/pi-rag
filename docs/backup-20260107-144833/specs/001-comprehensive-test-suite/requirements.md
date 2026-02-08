@@ -15,7 +15,7 @@
 ### Current State
 - **Test Infrastructure**: ✅ Established (conftest.py, pytest.ini)
 - **Test Coverage**: 149 tests collected (56 passing, 57 failed, 5 errors)
-- **Source Code**: 15,444 lines across rag/, synapse/, mcp_server/, scripts/
+- **Source Code**: 15,444 lines across core/, synapse/, mcp_server/, scripts/
 - **Test Code**: 5,281 lines
 
 ### Critical Gaps Identified

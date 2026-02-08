@@ -2,12 +2,12 @@
 
 ## Overview
 
-The `rag.ingest_file` MCP tool now supports **remote file uploads** from any machine (Mac, Windows, Linux).
+The `core.ingest_file` MCP tool now supports **remote file uploads** from any machine (Mac, Windows, Linux).
 
 ## How It Works
 
 1. **Upload Phase**: Upload file to server's upload directory
-2. **Ingestion Phase**: Call `rag.ingest_file` with full absolute path
+2. **Ingestion Phase**: Call `core.ingest_file` with full absolute path
 3. **Validation Phase**: Server validates path and reads file
 4. **Processing Phase**: File is ingested into semantic memory
 5. **Cleanup Phase**: Old files automatically removed (after 1 hour)
@@ -17,7 +17,7 @@ The `rag.ingest_file` MCP tool now supports **remote file uploads** from any mac
 **Default**: `/tmp/rag-uploads`
 
 **Configurable via**:
-- Environment variable: `RAG_UPLOAD_DIR`
+- Environment variable: `SYNAPSE_UPLOAD_DIR`
 - Config file: `configs/rag_config.json` → `remote_upload_directory`
 
 ## Configuration
@@ -37,16 +37,16 @@ The `rag.ingest_file` MCP tool now supports **remote file uploads** from any mac
 
 ```bash
 # Enable/disable remote uploads
-export RAG_REMOTE_UPLOAD_ENABLED=true
+export SYNAPSE_REMOTE_UPLOAD_ENABLED=true
 
 # Set upload directory
-export RAG_UPLOAD_DIR=/tmp/rag-uploads
+export SYNAPSE_UPLOAD_DIR=/tmp/rag-uploads
 
 # Set maximum file age before cleanup (seconds)
-export RAG_UPLOAD_MAX_AGE=3600
+export SYNAPSE_UPLOAD_MAX_AGE=3600
 
 # Set maximum file size (MB)
-export RAG_UPLOAD_MAX_SIZE=50
+export SYNAPSE_UPLOAD_MAX_SIZE=50
 ```
 
 ## Usage Examples
@@ -127,13 +127,13 @@ scp /path/to/anywhere/file.py dietpi@pi-ip:/tmp/rag-uploads/
 ### File Size Limits
 
 - **Default**: 50 MB maximum
-- **Configurable**: Via `RAG_UPLOAD_MAX_SIZE` environment variable
+- **Configurable**: Via `SYNAPSE_UPLOAD_MAX_SIZE` environment variable
 - **Error**: "File too large: {size}MB (max: {limit}MB)"
 
 ### File Age Limits
 
 - **Default**: Files older than 1 hour are automatically deleted
-- **Configurable**: Via `RAG_UPLOAD_MAX_AGE` environment variable
+- **Configurable**: Via `SYNAPSE_UPLOAD_MAX_AGE` environment variable
 - **Purpose**: Prevent disk bloat
 
 ## Security Features
@@ -194,7 +194,7 @@ scp /path/to/anywhere/file.py dietpi@pi-ip:/tmp/rag-uploads/
 }
 ```
 
-**Solution**: Use smaller file or increase `RAG_UPLOAD_MAX_SIZE`.
+**Solution**: Use smaller file or increase `SYNAPSE_UPLOAD_MAX_SIZE`.
 
 ### Remote Upload Disabled
 
@@ -206,7 +206,7 @@ scp /path/to/anywhere/file.py dietpi@pi-ip:/tmp/rag-uploads/
 }
 ```
 
-**Solution**: Set `RAG_REMOTE_UPLOAD_ENABLED=true` in environment.
+**Solution**: Set `SYNAPSE_REMOTE_UPLOAD_ENABLED=true` in environment.
 
 ## Token Optimization
 
@@ -326,7 +326,7 @@ realpath /tmp/rag-uploads/file.md
 
 ### 1. Upload Files First
 
-Always upload files before calling `rag.ingest_file`:
+Always upload files before calling `core.ingest_file`:
 ```bash
 # ✅ Good
 scp file.md pi:/tmp/rag-uploads/ && call_mcp_tool
@@ -394,11 +394,11 @@ done
 Change upload directory for different projects:
 ```bash
 # For project A
-export RAG_UPLOAD_DIR=/tmp/rag-uploads/project-a
+export SYNAPSE_UPLOAD_DIR=/tmp/rag-uploads/project-a
 scp project-a/* pi:/tmp/rag-uploads/project-a/
 
 # For project B
-export RAG_UPLOAD_DIR=/tmp/rag-uploads/project-b
+export SYNAPSE_UPLOAD_DIR=/tmp/rag-uploads/project-b
 scp project-b/* pi:/tmp/rag-uploads/project-b/
 ```
 
@@ -464,10 +464,10 @@ scp <local-file> <user>@<host>:/tmp/rag-uploads/
 ### Environment Variables
 
 ```bash
-export RAG_UPLOAD_DIR=/tmp/rag-uploads
-export RAG_REMOTE_UPLOAD_ENABLED=true
-export RAG_UPLOAD_MAX_AGE=3600
-export RAG_UPLOAD_MAX_SIZE=50
+export SYNAPSE_UPLOAD_DIR=/tmp/rag-uploads
+export SYNAPSE_REMOTE_UPLOAD_ENABLED=true
+export SYNAPSE_UPLOAD_MAX_AGE=3600
+export SYNAPSE_UPLOAD_MAX_SIZE=50
 ```
 
 ---

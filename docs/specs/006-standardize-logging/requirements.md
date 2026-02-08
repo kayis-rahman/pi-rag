@@ -56,7 +56,7 @@
 ## Functional Requirements
 
 ### FR1: Logging Utility Module
-- Create `rag/logger.py` with unified logging setup
+- Create `core/logger.py` with unified logging setup
 - Functions: `setup_logging()`, `get_logger()`
 - Singleton pattern for logger instances
 

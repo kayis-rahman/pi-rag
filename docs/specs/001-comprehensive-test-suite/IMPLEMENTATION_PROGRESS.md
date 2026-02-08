@@ -10,7 +10,7 @@
 
 ### ChromaDB Production Code: SKIPPED
 
-**Rationale**: After detailed audit, ChromaDB files (`rag/chroma_semantic_store.py`, `rag/chroma_vectorstore.py`) have:
+**Rationale**: After detailed audit, ChromaDB files (`core/chroma_semantic_store.py`, `core/chroma_vectorstore.py`) have:
 - 17+ critical syntax and structural errors
 - 9+ typos in method names and variable references
 - Missing exception handling blocks

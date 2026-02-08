@@ -23,7 +23,7 @@ The system exposes these capabilities via the **Model Context Protocol (MCP)**, 
 ## Directory Structure
 
 *   `mcp_server/`: Implementation of the MCP server and HTTP wrappers.
-*   `rag/`: Core RAG logic, including memory stores, ingestion, and retrieval.
+*   `core/`: Core RAG logic, including memory stores, ingestion, and retrieval.
 *   `configs/`: Configuration files for RAG parameters and models.
 *   `docs/`: Documentation website source code (Next.js).
 *   `scripts/`: Utility scripts for ingestion and status checks.

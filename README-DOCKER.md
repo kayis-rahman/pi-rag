@@ -66,7 +66,7 @@ This guide walks you through deploying the synapse system on a Raspberry Pi 5 us
 │  │   └────────────────────────────────────────────┘    │  │
 │  │                                                    │  │
 │  │   ┌────────────────────────────────────────────┐    │  │
-│  │   │   RAGOrchestrator                        │    │  │
+│  │   │   Orchestrator                        │    │  │
 │  │   │   ├─ Retriever                         │    │  │
 │  │   │   ├─ Model Manager                   │    │  │
 │  │   │   └─ External API Client             │    │  │

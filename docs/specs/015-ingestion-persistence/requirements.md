@@ -77,8 +77,8 @@ Fix BUG-INGEST-01: Ingestion completes but data is not persisted to semantic mem
 | File | Change | Priority |
 |------|--------|----------|
 | `scripts/bulk_ingest.py` | Add persistence verification | CRITICAL |
-| `rag/semantic_store.py` | Fix commit logic | CRITICAL |
-| `rag/vectorstore.py` | Verify write operations | HIGH |
+| `core/semantic_store.py` | Fix commit logic | CRITICAL |
+| `core/vectorstore.py` | Verify write operations | HIGH |
 | `tests/test_ingestion_persistence.py` | NEW - Persistence tests | REQUIRED |
 
 ---

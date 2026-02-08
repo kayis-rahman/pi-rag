@@ -30,7 +30,7 @@
 **Linked to**: Requirement DR-1, DR-2
 
 ### 1.3 MetricsCollector Class Skeleton
-- [x] Create `rag/metrics_collector.py` module
+- [x] Create `core/metrics_collector.py` module
 - [x] Implement `__init__()` with configuration loading
 - [x] Implement `record_retrieval_quality()` method
 - [x] Implement `record_tool_performance()` method
@@ -42,7 +42,7 @@
 **Linked to**: Requirement FR-1
 
 ### 1.4 Background Collection Thread
-- [ ] Create `rag/metrics_thread.py` module
+- [ ] Create `core/metrics_thread.py` module
 - [ ] Implement `__init__()` with APScheduler setup
 - [ ] Implement `start()` method
 - [ ] Implement `stop()` method for graceful shutdown
@@ -55,7 +55,7 @@
 **Linked to**: Requirement FR-1
 
 ### 1.4 Background Collection Thread
-- [x] Create `rag/metrics_thread.py` module
+- [x] Create `core/metrics_thread.py` module
 - [x] Implement `__init__()` with configuration loading
 - [x] Implement `record_retrieval_quality()` method
 - [x] Implement `record_tool_performance()` method
@@ -79,7 +79,7 @@
 **Linked to**: Requirement FR-1, NFR-2
 
 ### 4.3 Auto-Learning Metrics Integration
-- [ ] Modify `rag/auto_learning_tracker.py` to emit metrics
+- [ ] Modify `core/auto_learning_tracker.py` to emit metrics
 - [ ] Record episode creation events
 - [ ] Record fact extraction events
 - [ ] Record confidence scores
@@ -88,7 +88,7 @@
 **Linked to**: Requirement US-5
 
 ### 4.4 System Resource Monitoring
-- [ ] Create `rag/resource_monitor.py` module
+- [ ] Create `core/resource_monitor.py` module
 - [ ] Implement CPU monitoring via psutil
 - [ ] Implement memory monitoring via psutil
 - [ ] Implement disk monitoring via psutil
@@ -102,7 +102,7 @@
 ## Phase 5: Testing (2-3 hours)
 
 ### 5.1 Unit Tests
-- [ ] Create `tests/unit/rag/test_metrics_collector.py`
+- [ ] Create `tests/unit/core/test_metrics_collector.py`
 - [ ] Test all MetricsCollector methods
 - [ ] Test thread-safe operations
 - [ ] Test database schema operations

@@ -88,7 +88,7 @@ While BGE-M3 offers higher dimensionality (1024 vs 384), the bge-small-en-v1.5 m
 ## Related Files
 
 - `configs/rag_config.json` - Model path configuration
-- `rag/semantic_store.py` - Embedding generation with sanitization
+- `core/semantic_store.py` - Embedding generation with sanitization
 - `docs/specs/015-ingestion-persistence/` - Original bug fix documentation
 
 ## Future Work

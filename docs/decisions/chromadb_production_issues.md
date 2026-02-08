@@ -3,8 +3,8 @@
 **Date**: January 4, 2026
 **Feature**: 001-comprehensive-test-suite
 **Files Audited**:
-- `rag/chroma_semantic_store.py` (435 lines)
-- `rag/chroma_vectorstore.py` (263 lines)
+- `core/chroma_semantic_store.py` (435 lines)
+- `core/chroma_vectorstore.py` (263 lines)
 
 ---
 
@@ -12,7 +12,7 @@
 
 ### 1. Typos in Method Names (High Priority)
 
-#### File: `rag/chroma_semantic_store.py`
+#### File: `core/chroma_semantic_store.py`
 
 **Issue 1.1**: Line 98 - `pexist_directory` should be `persist_directory`
 ```python
@@ -57,7 +57,7 @@ if self._client is None:
 
 ### 2. F-String Syntax Errors (High Priority)
 
-#### File: `rag/chroma_semantic_store.py`
+#### File: `core/chroma_semantic_store.py`
 
 **Issue 2.1**: Lines 100, 118, 403 - Missing quotes in f-strings
 ```python
@@ -93,7 +93,7 @@ logger.info(f"ChromaSemanticStore initialized for project {project_id}, "
 
 ### 3. String Interpolation Errors (Medium Priority)
 
-#### File: `rag/chroma_semantic_store.py`
+#### File: `core/chroma_semantic_store.py`
 
 **Issue 3.1**: Lines 154, 284, 316, 376, 403 - Missing closing brackets in string formatting
 ```python
@@ -116,7 +116,7 @@ logger.info(f"Adding document: {document_id}, content_length={len(content)}")
 
 ### 4. Missing Commas (High Priority)
 
-#### File: `rag/chroma_semantic_store.py`
+#### File: `core/chroma_semantic_store.py`
 
 **Issue 4.1**: Line 24 - Missing comma in import
 ```python
@@ -133,7 +133,7 @@ metadata: Optional[Dict[str, Any]] = None,  # Note the comma
 
 ### 5. Incorrect String Formatting (Medium Priority)
 
-#### File: `rag/chroma_semantic_store.py`
+#### File: `core/chroma_semantic_store.py`
 
 **Issue 5.1**: Line 40 - Missing quotes in parameter value
 ```python
@@ -163,7 +163,7 @@ where_document_metadata={"$ne": {"type": "text", "content": query.lower()}}
 
 ### 6. Type Hint Issues (Low Priority)
 
-#### File: `rag/chroma_semantic_store.py`
+#### File: `core/chroma_semantic_store.py`
 
 **Issue 6.1**: Line 35 - Missing space in Optional type hint
 ```python
@@ -180,7 +180,7 @@ chunk_id: Optional[str] = None,
 
 ### 7. Variable Name Inconsistency (Medium Priority)
 
-#### File: `rag/chroma_vectorstore.py`
+#### File: `core/chroma_vectorstore.py`
 
 **Issue 7.1**: Line 67 - Typo in metadata key
 ```python
@@ -221,8 +221,8 @@ metadata={"hnsw:space": "cosine"}
 
 | File | Critical | High | Medium | Low | Total |
 |------|----------|-------|---------|-----|-------|
-| `rag/chroma_semantic_store.py` | 9 | 1 | 5 | 1 | 16 |
-| `rag/chroma_vectorstore.py` | 0 | 1 | 0 | 0 | 1 |
+| `core/chroma_semantic_store.py` | 9 | 1 | 5 | 1 | 16 |
+| `core/chroma_vectorstore.py` | 0 | 1 | 0 | 0 | 1 |
 | **Total** | **9** | **2** | **5** | **1** | **17** |
 
 ---

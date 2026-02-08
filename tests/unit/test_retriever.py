@@ -5,8 +5,8 @@ Tests cover search, query expansion, result formatting, and min score filtering.
 """
 
 import pytest
-from rag.retriever import Retriever, get_retriever
-from rag.embedding import EmbeddingService, get_embedding_service
+from core.retriever import Retriever, get_retriever
+from core.embedding import EmbeddingService, get_embedding_service
 
 
 @pytest.mark.unit
@@ -85,7 +85,7 @@ class TestRetriever:
 
     def test_vector_store_integration(self, test_config_path, mock_embedding_service):
         """Test integration with vector store."""
-        from rag.vectorstore import VectorStore
+        from core.vectorstore import VectorStore
 
         vector_store = VectorStore(str(test_config_path))
 

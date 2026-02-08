@@ -14,7 +14,7 @@ import logging
 try:
     from .vectorstore_base import IVectorStore
 except ImportError:
-    from rag.vectorstore_base import IVectorStore
+    from core.vectorstore_base import IVectorStore
 from .embedding import get_embedding_service
 
 
