@@ -12,7 +12,7 @@ This is the "Source of Truth" for all SYNAPSE features. Each feature follows the
   |-------------|--------|---------|-----------------|
 # SYNAPSE Specs - Central Progress Index
 
-**Last Updated**: January 29, 2026
+**Last Updated**: February 8, 2026
 
 This is the "Source of Truth" for all SYNAPSE features. Each feature follows the Spec-Driven Development (SDD) protocol.
 
@@ -150,7 +150,34 @@ This is the "Source of Truth" for all SYNAPSE features. Each feature follows the
            | - ✅ Server restart: Data persists after cache clear
            | **Results**: 22/22 tasks complete, 0 errors, all acceptance criteria met
            | **Key Files**: rag/semantic_store.py, tests/test_ingestion_persistence.py
-           | **Status**: ✅ COMPLETE - BUG-INGEST-01 FIXED
+            | **Status**: ✅ COMPLETE - BUG-INGEST-01 FIXED
+        | 016-mcp-tool-renaming | MCP Tool Renaming with Compact Names | [In Progress] | ⏳ Pending |
+            | **Objective**: Rename all MCP tools to use compact hierarchical naming for optimal context usage
+            | **New Tool Names**:
+            | - `sy.proj.list` (was: list_projects)
+            | - `sy.src.list` (was: list_sources)
+            | - `sy.ctx.get` (was: get_context)
+            | - `sy.mem.search` (was: search)
+            | - `sy.mem.ingest` (was: ingest_file)
+            | - `sy.mem.fact.add` (was: add_fact)
+            | - `sy.mem.ep.add` (was: add_episode)
+            | **Key Changes**:
+            | - Deprecate mcp_server/rag_server.py (mark as deprecated)
+            | - Update mcp_server/http_wrapper.py with name= parameters
+            | - Update AGENTS.md with all new tool references (40+ refs)
+            | - Update CLI integration (synapse/cli/main.py)
+            | - Update configs/rag_config.json universal_hooks
+            | **Phases**:
+            | - **Phase 1**: Core Server Changes (P0) - ⏳ PENDING (18 tasks)
+            | - **Phase 2**: AGENTS.md Documentation (P1) - ⏳ PENDING (24 tasks)
+            | - **Phase 3**: Integration Updates (P2) - ⏳ PENDING (5 tasks)
+            | - **Phase 4**: Deprecation (P3) - ⏳ PENDING (4 tasks)
+            | - **Phase 5**: Testing (P0) - ⏳ PENDING (13 tasks)
+            | - **Phase 6**: Documentation Cleanup (P4) - ⏳ PENDING (14 tasks)
+            | - **Phase 7**: Verification & Completion (P0) - ⏳ PENDING (5 tasks)
+            | **Total Tasks**: 83 across 7 phases
+            | **Breaking Change**: No backward compatibility (old bare names will not work)
+            | **Status**: ⏳ IN PROGRESS - SDD created, implementation pending
 
 - **[In Progress]** - Feature is currently being worked on
 - **[Completed]** - Feature is fully implemented and tested
@@ -381,6 +408,65 @@ This is the "Source of Truth" for all SYNAPSE features. Each feature follows the
 
 ---
 
+### 016-mcp-tool-renaming
+
+**Objective**: Rename all MCP tools to use compact hierarchical naming (Option C) for optimal context usage while maintaining clarity.
+
+**Status**: [In Progress]
+
+**Progress**:
+- ✅ SDD Structure Created (requirements.md, plan.md, tasks.md)
+- ⏳ Phase 1: Core Server Changes (0/18 tasks)
+- ⏳ Phase 2: AGENTS.md Documentation (0/24 tasks)
+- ⏳ Phase 3: Integration Updates (0/5 tasks)
+- ⏳ Phase 4: Deprecation (0/4 tasks)
+- ⏳ Phase 5: Testing (0/13 tasks)
+- ⏳ Phase 6: Documentation Cleanup (0/14 tasks)
+- ⏳ Phase 7: Verification & Completion (0/5 tasks)
+
+**Key Metrics**:
+- Target: Rename 7 MCP tools to compact format
+- Token Reduction: ~15% (avg 12 chars vs 18 chars)
+- Documentation Updates: 40+ references in AGENTS.md
+- Breaking Change: No backward compatibility
+
+**Tool Name Mapping**:
+| Old Name | New Name | Change |
+|----------|----------|--------|
+| `list_projects` | `sy.proj.list` | -5 chars |
+| `list_sources` | `sy.src.list` | -4 chars |
+| `get_context` | `sy.ctx.get` | -5 chars |
+| `search` | `sy.mem.search` | +7 chars (category clarity) |
+| `ingest_file` | `sy.mem.ingest` | +2 chars (category clarity) |
+| `add_fact` | `sy.mem.fact.add` | +6 chars (subcategory) |
+| `add_episode` | `sy.mem.ep.add` | +2 chars (subcategory) |
+
+**Benefits**:
+1. **Token Efficiency**: 15% less context usage
+2. **Categorical Structure**: Clear grouping (proj, src, ctx, mem)
+3. **LLM-Friendly**: Helps with tool selection reasoning
+4. **Self-Documenting**: Hierarchy embedded in names
+
+**Documents**:
+- `docs/specs/016-mcp-tool-renaming/requirements.md`
+- `docs/specs/016-mcp-tool-renaming/plan.md`
+- `docs/specs/016-mcp-tool-renaming/tasks.md`
+
+**Files to Modify**:
+- `mcp_server/http_wrapper.py` - Add name= to 7 @mcp.tool() decorators
+- `mcp_server/rag_server.py` - Add deprecation warnings
+- `AGENTS.md` - Update 40+ tool references
+- `synapse/cli/main.py` - Update CLI integration
+- `configs/rag_config.json` - Update universal_hooks
+
+**Timeline**:
+- Phase 1: Core Changes (2-3 hours)
+- Phase 2: Documentation (3-4 hours)
+- Phase 3-7: Integration, Testing, Completion (3-4 hours)
+- **Total**: ~8-11 hours across 83 tasks
+
+---
+
 ## How to Use This Index
 
 ### Adding a New Feature
@@ -418,4 +504,4 @@ For full details, see `AGENTS.md` - Spec-Driven Development (SDD) Protocol secti
 ---
 
 **Index Maintainer**: Synapse Development Team
-**Last Review**: January 4, 2026
+**Last Review**: February 8, 2026
