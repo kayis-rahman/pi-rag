@@ -15,7 +15,7 @@ import sqlite3
 import json
 import uuid
 from typing import List, Dict, Any, Optional, Tuple
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 
@@ -64,8 +64,8 @@ class MemoryFact:
             self.value = json.dumps(value)
         self.confidence = max(0.0, min(1.0, confidence))  # Clamp to 0-1
         self.source = source
-        self.created_at = created_at or datetime.utcnow().isoformat()
-        self.updated_at = updated_at or datetime.utcnow().isoformat()
+        self.created_at = created_at or datetime.now(timezone.utc).isoformat()
+        self.updated_at = updated_at or datetime.now(timezone.utc).isoformat()
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary representation."""

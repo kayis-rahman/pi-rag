@@ -13,7 +13,7 @@ import shutil
 import sqlite3
 import uuid
 from typing import Dict, List, Any, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 import logging
 
@@ -172,8 +172,8 @@ class ProjectManager:
             "name": name,
             "short_uuid": short_uuid,
             "chroma_path": chroma_dir,
-            "created_at": datetime.utcnow().isoformat(),
-            "updated_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
             "status": "active"
         }
 

@@ -16,7 +16,7 @@ import os
 import json
 import sys
 from typing import Optional, Dict, Any, IO
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 
@@ -84,7 +84,7 @@ class ProductionLogger:
         
         try:
             # Create JSON line
-            timestamp = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
+            timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
             
             metric_line = {
                 "timestamp": timestamp,

@@ -8,7 +8,7 @@ import json
 import time
 import logging
 from typing import Dict, List, Any, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 
@@ -133,7 +133,7 @@ class Metrics:
                 "project_id": project_id,
                 "error": error_message,
                 "latency_ms": latency_ms,
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
             self._error_log[project_id].append(error_entry)
             logger.error(f"Tool error: {tool_name} - {error_message}")
