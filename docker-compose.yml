@@ -49,10 +49,10 @@ services:
         source: /opt/synapse/data
         target: /app/data
 
-      # Models directory
-      - type: volume
-        source: synapse-models
-        target: /app/models
+      # Models directory - bind mount from host to /root/.synapse/models (matches ~ expansion)
+      - type: bind
+        source: /home/dietpi/.synapse/models
+        target: /root/.synapse/models
 
       # Configs - development overrides
       - type: bind
@@ -120,10 +120,10 @@ services:
         source: /opt/synapse/data
         target: /app/data
 
-      # Models directory
-      - type: volume
-        source: synapse-models
-        target: /app/models
+      # Models directory - bind mount from host to /root/.synapse/models (matches ~ expansion)
+      - type: bind
+        source: /home/dietpi/.synapse/models
+        target: /root/.synapse/models
 
       # Configs - production overrides
       - type: bind

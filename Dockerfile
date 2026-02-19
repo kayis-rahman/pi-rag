@@ -63,7 +63,7 @@ COPY --from=builder /usr/local/lib/python3.11 /usr/local/lib/python3.11
 COPY --from=builder /app /app
 
 # Create data directories
-RUN mkdir -p /app/data /app/data/semantic_index /app/data/episodic
+RUN mkdir -p /app/data /app/data/semantic_index /app/data/episodic /app/models
 
 # Set environment variables
 ENV PYTHONPATH=/app
