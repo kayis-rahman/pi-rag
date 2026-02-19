@@ -70,47 +70,102 @@ def run_sy_command(
 
 def test_sy_start_help():
     """P1-1.1: Test sy start --help"""
-    record_test_result("P1-1.1", "sy start --help", "new")
+    # record_test_result("P1-1.1", "sy start --help", "new") - Simplified test, result tracked in test runner
     exit_code, stdout, stderr, duration = run_sy_command("start --help")
     success = exit_code == 0 and "start" in stdout.lower()
-    record_test_result("P1-1.1", "sy start --help", "passed" if success else "failed")
+    record_test_result(
+        test_id="P1-1.1",
+        name="sy start --help",
+        command="sy start --help",
+        environment="native",
+        exit_code=exit_code,
+        stdout=stdout,
+        stderr=stderr,
+        duration=duration,
+        timeout=TIMEOUTS["default"],
+        passed=success
+    )
     return success, duration
 
 
 def test_sy_start_native():
     """P1-1.2: Test sy start (native mode)"""
-    record_test_result("P1-1.2", "sy start", "new")
+    # record_test_result("P1-1.2", "sy start", "new") - Simplified test, result tracked in test runner
     exit_code, stdout, stderr, duration = run_sy_command("start", timeout=TIMEOUTS["start"])
     success = exit_code == 0 and "started" in stdout.lower()
-    record_test_result("P1-1.2", "sy start", "passed" if success else "failed")
+    record_test_result(
+        test_id="P1-1.2",
+        name="sy start",
+        command="sy start",
+        environment="native",
+        exit_code=exit_code,
+        stdout=stdout,
+        stderr=stderr,
+        duration=duration,
+        timeout=TIMEOUTS["start"],
+        passed=success
+    )
     return success, duration
 
 
 def test_sy_start_port():
     """P1-1.3: Test sy start --port"""
-    record_test_result("P1-1.3", "sy start --port", "new")
+    # record_test_result("P1-1.3", "sy start --port", "new") - Simplified test, result tracked in test runner
     exit_code, stdout, stderr, duration = run_sy_command("start --port 8080", timeout=TIMEOUTS["start"])
     success = exit_code == 0 and "8002" in stdout
-    record_test_result("P1-1.3", "sy start --port", "passed" if success else "failed")
+    record_test_result(
+        test_id="P1-1.3",
+        name="sy start --port",
+        command="sy start --port 8080",
+        environment="native",
+        exit_code=exit_code,
+        stdout=stdout,
+        stderr=stderr,
+        duration=duration,
+        timeout=TIMEOUTS["start"],
+        passed=success
+    )
     return success, duration
 
 
 def test_sy_start_docker():
     """P1-1.4: Test sy start --docker"""
-    record_test_result("P1-1.4", "sy start --docker", "new")
+    # record_test_result("P1-1.4", "sy start --docker", "new") - Simplified test, result tracked in test runner
     exit_code, stdout, stderr, duration = run_sy_command("start --docker", timeout=TIMEOUTS["docker"])
     success = exit_code == 0 and "docker" in stdout.lower()
-    record_test_result("P1-1.4", "sy start --docker", "passed" if success else "failed")
+    record_test_result(
+        test_id="P1-1.4",
+        name="sy start --docker",
+        command="sy start --docker",
+        environment="docker",
+        exit_code=exit_code,
+        stdout=stdout,
+        stderr=stderr,
+        duration=duration,
+        timeout=TIMEOUTS.get("docker", 60),
+        passed=success
+    )
     return success, duration
 
 
 def test_sy_start_health():
     """P1-1.5: Test sy start and verify health"""
-    record_test_result("P1-1.5", "sy start health check", "new")
+    # record_test_result("P1-1.5", "sy start health check", "new") - Simplified test, result tracked in test runner
     # First start the server
     exit_code, stdout, stderr, duration = run_sy_command("start", timeout=TIMEOUTS["start"])
     if exit_code != 0:
-        record_test_result("P1-1.5", "sy start health check", "failed")
+        record_test_result(
+            test_id="P1-1.5",
+            name="sy start health check",
+            command="sy start",
+            environment="native",
+            exit_code=exit_code,
+            stdout=stdout,
+            stderr=stderr,
+            duration=duration,
+            timeout=TIMEOUTS["start"],
+            passed=False
+        )
         return False, duration
     
     # Check health endpoint
@@ -122,7 +177,18 @@ def test_sy_start_health():
         timeout=10
     )
     success = result.returncode == 0 and "ok" in result.stdout.lower()
-    record_test_result("P1-1.5", "sy start health check", "passed" if success else "failed")
+    record_test_result(
+        test_id="P1-1.5",
+        name="sy start health check",
+        command="sy start + health check",
+        environment="native",
+        exit_code=0 if success else 1,
+        stdout=result.stdout if success else stdout,
+        stderr=result.stderr if success else stderr,
+        duration=duration + (time.time() - start_time if 'start_time' in locals() else 0),
+        timeout=TIMEOUTS["start"] + 10,
+        passed=success
+    )
     return success, duration
 
 
