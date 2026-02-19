@@ -330,13 +330,14 @@ def test_config_3_native():
             )
         assertions.append({"name": "timeout", "expected": f"<{TIMEOUTS['config']}s", "actual": f"{duration:.2f}s", "passed": True})
 
-        # Output displays correct data directory
-        if "/opt/synapse/data" not in stdout:
+        # Output displays correct data directory (supports both Docker/native /opt/synapse and user_home ~/.synapse)
+        if "/opt/synapse/data" not in stdout and ".synapse/data" not in stdout:
             raise AssertionError(
-                f"Output doesn't contain '/opt/synapse/data'\n"
+                f"Output doesn't contain data directory path\n"
                 f"STDOUT:\n{stdout}"
             )
-        assertions.append({"name": "correct_data_dir", "expected": "/opt/synapse/data", "actual": "Found", "passed": True})
+        data_dir = "/opt/synapse/data" if "/opt/synapse/data" in stdout else "~/.synapse/data"
+        assertions.append({"name": "correct_data_dir", "expected": data_dir, "actual": "Found", "passed": True})
 
         # Output displays correct models directory
         if "Models Directory" not in stdout:
@@ -347,7 +348,7 @@ def test_config_3_native():
         assertions.append({"name": "contains_models_dir", "expected": "Models Directory", "actual": "Found", "passed": True})
 
         print(f"✅ {test_name}: PASSED (duration: {duration:.2f}s)")
-        print(f"  Data directory: /opt/synapse/data")
+        print(f"  Data directory: {data_dir}")
         print(f"  Models directory displayed: Yes")
 
         # Record result
