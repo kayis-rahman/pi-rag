@@ -168,7 +168,8 @@ This is the "Source of Truth" for all SYNAPSE features. Each feature follows the
            | **Results**: 22/22 tasks complete, 0 errors, all acceptance criteria met
            | **Key Files**: core/semantic_store.py, tests/test_ingestion_persistence.py
             | **Status**: ✅ COMPLETE - BUG-INGEST-01 FIXED
-     | 016-mcp-tool-renaming | MCP Tool Renaming with Compact Names | [In Progress] | ⏳ Pending |
+     | 016-mcp-tool-renaming | MCP Tool Renaming with Compact Names | [Completed] | 2026-02-08 | eb683ee |
+| 019-claude-code-integration | Claude Code Integration for SYNAPSE MCP Tools | [In Progress] | ⏳ Pending |
              | **Objective**: Rename all MCP tools to use compact hierarchical naming for optimal context usage
              | **New Tool Names**:
              | - `sy.proj.list` (was: list_projects)

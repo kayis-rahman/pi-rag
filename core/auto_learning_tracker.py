@@ -65,24 +65,16 @@ class AutoLearningTracker:
         """
         Normalize tool names for backward compatibility.
         Maps old 'rag.*' names to new 'sy.*' names.
-        
+
         Args:
             tool_name: Original tool name
-            
+
         Returns:
             Normalized tool name
         """
-        # Map old rag.* names to new sy.* names
-        name_mapping = {
-            "rag.search": "sy.mem.search",
-            "rag.get_context": "sy.ctx.get",
-            "rag.ingest_file": "sy.mem.ingest",
-            "rag.add_fact": "sy.mem.fact.add",
-            "rag.add_episode": "sy.mem.ep.add",
-            "rag.proj_list": "sy.proj.list",
-            "rag.src_list": "sy.src.list",
-        }
-        return name_mapping.get(tool_name, tool_name)
+        # For now, we only support the new sy.* names directly
+        # In a future version, we might add backward compatibility
+        return tool_name
     
     def _get_normalized_tool_names(self, operations: List[Dict[str, Any]]) -> List[str]:
         """
