@@ -1,0 +1,50 @@
+plugins {
+    id 'org.springframework.boot' version '4.0.3'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'java'
+}
+
+group = 'com.synapse'
+version = '1.0.0'
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven { url 'https://jitpack.io' } // For potential Qdrant client if needed
+    maven { url 'https://repo.spring.io/milestone' } // For Spring AI dependencies
+    maven { url 'https://repo.spring.io/snapshot' } // For Spring AI dependencies
+}
+
+dependencies {
+    // Spring Boot Dependencies
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    // For gRPC communication
+    implementation 'io.grpc:grpc-netty-shaded:1.75.0'
+    implementation 'io.grpc:grpc-protobuf:1.58.0'
+    implementation 'io.grpc:grpc-stub:1.58.0'
+
+    // For Redis integration
+    implementation 'redis.clients:jedis:4.4.6'
+    implementation 'org.springframework.data:spring-data-redis:3.2.0'
+
+    // For Qdrant integration
+    implementation 'io.qdrant:qdrant-client:1.8.0'
+
+    // For SQLite database
+    implementation 'org.xerial:sqlite-jdbc:3.42.0.0'
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+
+    // Testing
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+test {
+    useJUnitPlatform()
+}

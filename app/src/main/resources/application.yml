@@ -1,0 +1,41 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/synapse_memory
+    username: synapse_user
+    password: synapse_password
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      connection-timeout: 30000
+
+  redis:
+    host: localhost
+    port: 6379
+    timeout: 2000ms
+    lettuce:
+      pool:
+        max-active: 20
+        max-idle: 10
+        min-idle: 5
+
+memory:
+  episodic:
+    redis:
+      host: localhost
+      port: 6379
+      ttl: 3600  # 1 hour
+  semantic:
+    qdrant:
+      host: localhost
+      port: 6334
+      api-key: ""
+  knowledge:
+    sqlite:
+      path: /var/lib/synapse/knowledge.db
+
+logging:
+  level:
+    com.synapse.memory: DEBUG
