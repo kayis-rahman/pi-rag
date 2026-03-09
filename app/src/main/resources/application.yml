@@ -1,27 +1,124 @@
 server:
   port: 8080
+  # Reactor Netty configuration to suppress TCP_NODELAY warning on macOS
+  netty:
+    pool:
+      max-idle-time: 30000
 
 spring:
-  config:
-    import: optional:file:llm-models.yml
-  datasource:
-    url: jdbc:postgresql://localhost:5432/synapse_memory
-    username: synapse_user
-    password: synapse_password
-    driver-class-name: org.postgresql.Driver
-    hikari:
-      maximum-pool-size: 10
-      connection-timeout: 30000
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration
+  ai:
+    anthropic:
+      api-key: ${ANTHROPIC_API_KEY:your-api-key-here}
 
-  redis:
-    host: localhost
-    port: 6379
-    timeout: 2000ms
-    lettuce:
-      pool:
-        max-active: 20
-        max-idle: 10
-        min-idle: 5
+llm:
+  model_list:
+    - model_name: claude-sonnet-4-6
+      api_key: ${GPUHUB_API_KEY:"test-key"}
+      instances:
+        - instance_id: vllm-primary
+          api_base: https://u425-twwp-6d5643db.singapore-b.gpuhub.com:8443/v1
+          enabled: true
+          is_primary: true
+        - instance_id: vllm-backup
+          api_base: https://u425-u70w-e4420dcd.singapore-b.gpuhub.com:8443/v1
+          enabled: true
+          is_primary: false
+    - model_name: claude-sonnet-4-5-20251022
+      api_key: ${GPUHUB_API_KEY:"test-key"}
+      instances:
+        - instance_id: vllm-primary
+          api_base: https://u425-twwp-6d5643db.singapore-b.gpuhub.com:8443/v1
+          enabled: true
+          is_primary: true
+        - instance_id: vllm-backup
+          api_base: https://u425-u70w-e4420dcd.singapore-b.gpuhub.com:8443/v1
+          enabled: true
+          is_primary: false
+    - model_name: claude-sonnet-4-5
+      api_key: ${GPUHUB_API_KEY:"test-key"}
+      instances:
+        - instance_id: vllm-primary
+          api_base: https://u425-twwp-6d5643db.singapore-b.gpuhub.com:8443/v1
+          enabled: true
+          is_primary: true
+        - instance_id: vllm-backup
+          api_base: https://u425-u70w-e4420dcd.singapore-b.gpuhub.com:8443/v1
+          enabled: true
+          is_primary: false
+    - model_name: claude-haiku-4-5-20251001
+      api_key: ${GPUHUB_API_KEY:"test-key"}
+      instances:
+        - instance_id: vllm-primary
+          api_base: https://u425-twwp-6d5643db.singapore-b.gpuhub.com:8443/v1
+          enabled: true
+          is_primary: true
+        - instance_id: vllm-backup
+          api_base: https://u425-u70w-e4420dcd.singapore-b.gpuhub.com:8443/v1
+          enabled: true
+          is_primary: false
+    - model_name: claude-haiku-4-5
+      api_key: ${GPUHUB_API_KEY:"test-key"}
+      instances:
+        - instance_id: vllm-primary
+          api_base: https://u425-twwp-6d5643db.singapore-b.gpuhub.com:8443/v1
+          enabled: true
+          is_primary: true
+        - instance_id: vllm-backup
+          api_base: https://u425-u70w-e4420dcd.singapore-b.gpuhub.com:8443/v1
+          enabled: true
+          is_primary: false
+  litellm_settings:
+    drop_params: true
+    set_verbose: false
+  general_settings:
+    disable_cooldowns: true
+  settings:
+    default-model: claude-sonnet-4-6
+  routing:
+    enabled: true
+    servers:
+      small:
+        instance-id: g139-9b
+        api-base: https://u425-twwp-6d5643db.singapore-b.gpuhub.com:8443/v1
+        api-key: ${GPUHUB_API_KEY:"test-key"}
+        served-model-name: Qwen3.5-9B
+      large:
+        instance-id: g145-35b
+        api-base: https://u425-u70w-e4420dcd.singapore-b.gpuhub.com:8443/v1
+        api-key: ${GPUHUB_API_KEY:"test-key"}
+        served-model-name: Qwen3.5-35B
+    model-tier-map:
+      claude-sonnet-4-6: LARGE
+      claude-sonnet-4-5-20251022: LARGE
+      claude-sonnet-4-5: LARGE
+      claude-haiku-4-5-20251001: SMALL
+      claude-haiku-4-5: SMALL
+    rules:
+      max-small-tokens: 500
+      max-small-words: 30
+#  datasource:
+#    url: jdbc:postgresql://localhost:5432/synapse_memory
+#    username: synapse_user
+#    password: synapse_password
+#    driver-class-name: org.postgresql.Driver
+#    hikari:
+#      maximum-pool-size: 10
+#      connection-timeout: 30000
+#
+#  redis:
+#    host: localhost
+#    port: 6379
+#    timeout: 2000ms
+#    lettuce:
+#      pool:
+#        max-active: 20
+#        max-idle: 10
+#        min-idle: 5
 
 memory:
   episodic:
@@ -41,3 +138,4 @@ memory:
 logging:
   level:
     com.synapse.memory: DEBUG
+    reactor.netty.transport.TransportConnector: ERROR
