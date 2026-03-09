@@ -1,8 +1,9 @@
 package com.synapse.llm.routing;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.stereotype.Component;
-import lombok.extern.slf4j.Slf4j;
 import com.synapse.llm.routing.Tool;
 import com.synapse.llm.routing.RoutingDecision;
 import com.synapse.llm.routing.ModelTier;
@@ -13,8 +14,8 @@ import java.util.regex.Pattern;
 import java.util.Objects;
 
 @Component
-@Slf4j
 public class RequestRouter {
+    private static final Logger log = LoggerFactory.getLogger(RequestRouter.class);
 
     private static final Pattern CODE_BLOCK_PATTERN = Pattern.compile("```");
     private static final Pattern CODE_KEYWORD_PATTERN = Pattern.compile(
@@ -32,7 +33,7 @@ public class RequestRouter {
 
     public RoutingDecision route(String modelName, List<Message> messages, List<Tool> tools) {
         String combinedText = messages.stream()
-            .map(Message::getContent)
+            .map(Message::getText)
             .filter(Objects::nonNull)
             .collect(Collectors.joining(" "));
 
