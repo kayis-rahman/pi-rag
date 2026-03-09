@@ -83,15 +83,15 @@ llm:
     enabled: true
     servers:
       small:
-        instance-id: g139-9b
-        api-base: https://u425-twwp-6d5643db.singapore-b.gpuhub.com:8443/v1
-        api-key: ${GPUHUB_API_KEY:"test-key"}
-        served-model-name: Qwen3.5-9B
+        instance-id: local-mlx-qwen
+        api-base: http://127.0.0.1:8888/v1
+        api-key: local-test-key
+        served-model-name: Qwen/Qwen3-1.7B-MLX-4bit
       large:
-        instance-id: g145-35b
-        api-base: https://u425-u70w-e4420dcd.singapore-b.gpuhub.com:8443/v1
-        api-key: ${GPUHUB_API_KEY:"test-key"}
-        served-model-name: Qwen3.5-35B
+        instance-id: local-mlx-qwen
+        api-base: http://127.0.0.1:8888/v1
+        api-key: local-test-key
+        served-model-name: Qwen/Qwen3-1.7B-MLX-4bit
     model-tier-map:
       claude-sonnet-4-6: LARGE
       claude-sonnet-4-5-20251022: LARGE
