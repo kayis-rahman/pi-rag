@@ -22,7 +22,8 @@ class LlmAutoConfigurationTest {
         Map<String, ChatModel> chatModels =
             applicationContext.getBeansOfType(ChatModel.class);
 
-        assertEquals(5, chatModels.size());
+        // 5 individual model beans + RoutingAwareChatModel (@Component) + routingAwareChatModel (@Bean @Primary)
+        assertEquals(7, chatModels.size());
         assertTrue(chatModels.containsKey("claude-sonnet-4-6"));
         assertTrue(chatModels.containsKey("claude-sonnet-4-5-20251022"));
         assertTrue(chatModels.containsKey("claude-sonnet-4-5"));
@@ -34,12 +35,14 @@ class LlmAutoConfigurationTest {
     void testIndividualModelBeansCreated() {
         String[] beanNames = applicationContext.getBeanNamesForType(ChatModel.class);
 
-        assertEquals(5, beanNames.length);
+        // 5 individual model beans + RoutingAwareChatModel (@Component) + routingAwareChatModel (@Bean @Primary)
+        assertEquals(7, beanNames.length);
         assertTrue(Arrays.asList(beanNames).contains("claudeSonnet46ChatModel"));
         assertTrue(Arrays.asList(beanNames).contains("claudeSonnet4520251022ChatModel"));
         assertTrue(Arrays.asList(beanNames).contains("claudeSonnet45ChatModel"));
         assertTrue(Arrays.asList(beanNames).contains("claudeHaiku4520251001ChatModel"));
         assertTrue(Arrays.asList(beanNames).contains("claudeHaiku45ChatModel"));
+        assertTrue(Arrays.asList(beanNames).contains("routingAwareChatModel"));
     }
 
     @Test

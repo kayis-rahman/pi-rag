@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.synapse.llm.service.LlmModelRouterTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-03-09T19:05:19.646Z" hostname="Kayiss-MacBook-Pro.local" time="0.103">
+  <properties/>
+  <testcase name="rule10_defaultFallback_routesToLarge()" classname="com.synapse.llm.service.LlmModelRouterTest" time="0.077"/>
+  <testcase name="rule7_complexKeyword_implement_routesToLarge()" classname="com.synapse.llm.service.LlmModelRouterTest" time="0.002"/>
+  <testcase name="rule2_routingDisabled_routesToLarge()" classname="com.synapse.llm.service.LlmModelRouterTest" time="0.001"/>
+  <testcase name="rule8_simplePhrase_whatIs_routesToSmall()" classname="com.synapse.llm.service.LlmModelRouterTest" time="0.001"/>
+  <testcase name="rule3_modelTierMapSmall_routesToSmall()" classname="com.synapse.llm.service.LlmModelRouterTest" time="0.001"/>
+  <testcase name="rule6_codeKeyword_routesToLarge()" classname="com.synapse.llm.service.LlmModelRouterTest" time="0.001"/>
+  <testcase name="rule4_modelTierMapLarge_routesToLarge()" classname="com.synapse.llm.service.LlmModelRouterTest" time="0.001"/>
+  <testcase name="rule7_complexKeyword_refactor_routesToLarge()" classname="com.synapse.llm.service.LlmModelRouterTest" time="0.001"/>
+  <testcase name="rule9_shortQuery_routesToSmall()" classname="com.synapse.llm.service.LlmModelRouterTest" time="0.001"/>
+  <testcase name="rule6_codeBlock_routesToLarge()" classname="com.synapse.llm.service.LlmModelRouterTest" time="0.001"/>
+  <testcase name="rule1_hasTools_routesToLarge()" classname="com.synapse.llm.service.LlmModelRouterTest" time="0.001"/>
+  <testcase name="rule8_simplePhrase_explain_routesToSmall()" classname="com.synapse.llm.service.LlmModelRouterTest" time="0.001"/>
+  <testcase name="priority_rule1_beatsModelTierMap()" classname="com.synapse.llm.service.LlmModelRouterTest" time="0.001"/>
+  <testcase name="rule5_longContext_routesToLarge()" classname="com.synapse.llm.service.LlmModelRouterTest" time="0.001"/>
+  <system-out><![CDATA[19:05:19.721 [Test worker] INFO com.synapse.llm.routing.RequestRouter -- → Routing [unknown-model] to LARGE (default_fallback) — server: Qwen3.5-35B
+19:05:19.736 [Test worker] INFO com.synapse.llm.routing.RequestRouter -- → Routing [unknown-model] to LARGE (complex_keywords) — server: Qwen3.5-35B
+19:05:19.738 [Test worker] INFO com.synapse.llm.routing.RequestRouter -- → Routing [claude-haiku-4-5] to LARGE (routing_disabled) — server: Qwen3.5-35B
+19:05:19.739 [Test worker] INFO com.synapse.llm.routing.RequestRouter -- → Routing [unknown-model] to SMALL (simple_keywords) — server: Qwen3.5-9B
+19:05:19.740 [Test worker] INFO com.synapse.llm.routing.RequestRouter -- → Routing [claude-haiku-4-5] to SMALL (model_tier_map) — server: Qwen3.5-9B
+19:05:19.741 [Test worker] INFO com.synapse.llm.routing.RequestRouter -- → Routing [unknown-model] to LARGE (contains_code) — server: Qwen3.5-35B
+19:05:19.742 [Test worker] INFO com.synapse.llm.routing.RequestRouter -- → Routing [claude-sonnet-4-6] to LARGE (model_tier_map) — server: Qwen3.5-35B
+19:05:19.743 [Test worker] INFO com.synapse.llm.routing.RequestRouter -- → Routing [unknown-model] to LARGE (complex_keywords) — server: Qwen3.5-35B
+19:05:19.744 [Test worker] INFO com.synapse.llm.routing.RequestRouter -- → Routing [unknown-model] to SMALL (short_query) — server: Qwen3.5-9B
+19:05:19.745 [Test worker] INFO com.synapse.llm.routing.RequestRouter -- → Routing [unknown-model] to LARGE (contains_code) — server: Qwen3.5-35B
+19:05:19.746 [Test worker] INFO com.synapse.llm.routing.RequestRouter -- → Routing [claude-haiku-4-5] to LARGE (tool_use) — server: Qwen3.5-35B
+19:05:19.747 [Test worker] INFO com.synapse.llm.routing.RequestRouter -- → Routing [unknown-model] to SMALL (simple_keywords) — server: Qwen3.5-9B
+19:05:19.748 [Test worker] INFO com.synapse.llm.routing.RequestRouter -- → Routing [claude-haiku-4-5] to LARGE (tool_use) — server: Qwen3.5-35B
+19:05:19.749 [Test worker] INFO com.synapse.llm.routing.RequestRouter -- → Routing [unknown-model] to LARGE (long_context) — server: Qwen3.5-35B
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
