@@ -5,6 +5,9 @@ import com.synapse.llm.logging.ModelUsageLogger;
 import com.synapse.llm.routing.AdaptiveRoutingStrategy;
 import com.synapse.llm.routing.RouterChatLanguageModel;
 import com.synapse.llm.routing.RoutingStrategy;
+import com.synapse.llm.routing.StrategyRegistry;
+import com.synapse.llm.routing.TieredClaudeRoutingStrategy;
+import java.util.Map;
 import dev.langchain4j.model.anthropic.AnthropicChatModel;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
@@ -19,8 +22,11 @@ import org.springframework.context.annotation.Primary;
  *
  * Produces:
  * - OpenAiChatModel (Qwen via vLLM OpenAI-compatible API)
- * - AnthropicChatModel (Claude)
- * - RoutingStrategy (AdaptiveRoutingStrategy)
+ * - AnthropicChatModel (Claude Sonnet)
+ * - AnthropicChatModel (Claude Haiku)
+ * - AdaptiveRoutingStrategy (heuristic-based routing)
+ * - TieredClaudeRoutingStrategy (Sonnet/Haiku tiering)
+ * - StrategyRegistry (runtime strategy switching)
  * - VllmCircuitBreaker (Resilience4j wrapper)
  * - ModelUsageLogger (MDC integration)
  * - RouterChatLanguageModel (@Primary ChatLanguageModel for injection)
@@ -47,7 +53,7 @@ public class LlmAutoConfiguration {
     }
 
     /**
-     * Create AnthropicChatModel for Claude API.
+     * Create AnthropicChatModel for Claude API (Sonnet).
      */
     @Bean(name = "claudeChatModel")
     public ChatLanguageModel claudeChatModel(LlmConfigurationProperties props) {
@@ -60,11 +66,51 @@ public class LlmAutoConfiguration {
     }
 
     /**
-     * Create routing strategy with heuristics.
+     * Create AnthropicChatModel for Claude Haiku (fast, cost-effective).
+     */
+    @Bean(name = "claudeHaikuChatModel")
+    public ChatLanguageModel claudeHaikuChatModel(LlmConfigurationProperties props) {
+        LlmConfigurationProperties.ClaudeHaikuConfig claudeHaiku = props.getClaudeHaiku();
+        // Use the same API key as Sonnet if not explicitly configured
+        String apiKey = claudeHaiku.getApiKey() != null ? claudeHaiku.getApiKey() : props.getClaude().getApiKey();
+        return AnthropicChatModel.builder()
+                .apiKey(apiKey)
+                .modelName(claudeHaiku.getModelName())
+                .timeout(Duration.ofSeconds(claudeHaiku.getTimeoutSeconds()))
+                .build();
+    }
+
+    /**
+     * Create adaptive routing strategy with heuristics.
      */
     @Bean
-    public RoutingStrategy routingStrategy(LlmConfigurationProperties props) {
+    public AdaptiveRoutingStrategy adaptiveRoutingStrategy(LlmConfigurationProperties props) {
         return new AdaptiveRoutingStrategy(props.getRouting());
+    }
+
+    /**
+     * Create tiered Claude routing strategy.
+     */
+    @Bean
+    public TieredClaudeRoutingStrategy tieredClaudeRoutingStrategy(LlmConfigurationProperties props) {
+        return new TieredClaudeRoutingStrategy(props.getRouting());
+    }
+
+    /**
+     * Create strategy registry for runtime strategy switching.
+     */
+    @Bean
+    public StrategyRegistry strategyRegistry(
+            AdaptiveRoutingStrategy adaptiveRoutingStrategy,
+            TieredClaudeRoutingStrategy tieredClaudeRoutingStrategy
+    ) {
+        return new StrategyRegistry(
+                Map.of(
+                        "adaptive", adaptiveRoutingStrategy,
+                        "tiered-claude", tieredClaudeRoutingStrategy
+                ),
+                "adaptive"  // Default to adaptive strategy
+        );
     }
 
     /**
@@ -90,7 +136,7 @@ public class LlmAutoConfiguration {
     @Bean
     @Primary
     public ChatLanguageModel routerChatLanguageModel(
-            RoutingStrategy routingStrategy,
+            StrategyRegistry strategyRegistry,
             LlmAutoConfiguration config,
             VllmCircuitBreaker circuitBreaker,
             ModelUsageLogger usageLogger,
@@ -100,7 +146,7 @@ public class LlmAutoConfiguration {
         ChatLanguageModel claudeModel = claudeChatModel(props);
 
         return new RouterChatLanguageModel(
-                routingStrategy,
+                strategyRegistry,
                 qwenModel,
                 claudeModel,
                 circuitBreaker,

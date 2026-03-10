@@ -5,7 +5,8 @@ package com.synapse.llm.routing;
  */
 public enum ModelChoice {
     QWEN_LOCAL("Qwen3.5 35B Local"),
-    CLAUDE_API("Claude 3.5 Sonnet API");
+    CLAUDE_API("Claude 3.5 Sonnet API"),
+    CLAUDE_HAIKU("Claude 3.5 Haiku API");
 
     private final String displayName;
 
