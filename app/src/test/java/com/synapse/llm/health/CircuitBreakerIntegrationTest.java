@@ -3,7 +3,6 @@ package com.synapse.llm.health;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.synapse.llm.config.LlmConfigurationProperties;
-import dev.langchain4j.model.chat.ChatResponse;
 import dev.langchain4j.data.message.AiMessage;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import java.util.concurrent.atomic.AtomicInteger;
