@@ -15,6 +15,32 @@ spring:
     anthropic:
       api-key: ${ANTHROPIC_API_KEY:your-api-key-here}
 
+# LangChain4j Router Configuration
+synapse:
+  llm:
+    qwen:
+      base-url: http://localhost:8000/v1
+      model-name: Qwen/Qwen3.5-35B-Instruct
+      api-key: "not-needed"                    # vLLM doesn't require auth
+      timeout-seconds: 60
+    claude:
+      api-key: ${ANTHROPIC_API_KEY}
+      model-name: claude-3-5-sonnet-20241022
+      timeout-seconds: 120
+    routing:
+      max-local-tokens: 4096
+      short-query-threshold: 20
+      code-keywords: [class, def, public, function, interface, return, import, async, await]
+      complex-keywords: [implement, refactor, debug, architect, design, analyze, migrate, optimize, review, build]
+      simple-keywords: [what is, define, list the, explain, summarize, how many, is this, yes or no]
+    circuit-breaker:
+      enabled: true
+      failure-rate-threshold: 50                # Open circuit at 50% failure rate
+      slow-call-duration-threshold-ms: 5000    # Call > 5s counts as slow
+      wait-duration-in-open-state-ms: 30000    # Wait 30s before half-open probe
+      permitted-calls-in-half-open: 3          # Allow 3 calls in half-open state
+      min-calls-before-evaluation: 5            # Need 5 calls before threshold check
+
 llm:
   model_list:
     - model_name: claude-sonnet-4-6
