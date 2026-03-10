@@ -72,6 +72,7 @@ public class LlmConfigurationProperties {
      */
     public static class QwenConfig {
         private String baseUrl = "http://localhost:8000/v1";
+        private String serverUrl = "http://localhost:8000";
         private String modelName = "Qwen/Qwen3.5-35B-Instruct";
         private String apiKey = "not-needed";
         private long timeoutSeconds = 60;
@@ -82,6 +83,14 @@ public class LlmConfigurationProperties {
 
         public void setBaseUrl(String baseUrl) {
             this.baseUrl = baseUrl;
+        }
+
+        public String getServerUrl() {
+            return serverUrl;
+        }
+
+        public void setServerUrl(String serverUrl) {
+            this.serverUrl = serverUrl;
         }
 
         public String getModelName() {

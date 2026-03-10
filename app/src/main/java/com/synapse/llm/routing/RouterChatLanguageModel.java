@@ -34,6 +34,7 @@ public class RouterChatLanguageModel implements ChatLanguageModel {
     private final ChatLanguageModel claudeModel;
     private final VllmCircuitBreaker circuitBreaker;
     private final ModelUsageLogger usageLogger;
+    private volatile RoutingDecision lastDecision;
 
     public RouterChatLanguageModel(
             StrategyRegistry strategyRegistry,
@@ -50,6 +51,13 @@ public class RouterChatLanguageModel implements ChatLanguageModel {
     }
 
     /**
+     * Get the last routing decision made.
+     */
+    public RoutingDecision getLastDecision() {
+        return lastDecision;
+    }
+
+    /**
      * Simple generate method that routes based on message content.
      * This is a basic implementation that can be extended.
      */
@@ -60,6 +68,7 @@ public class RouterChatLanguageModel implements ChatLanguageModel {
         try {
             // Step 1: Decide which model to use (no tools in this simple version)
             RoutingDecision decision = strategyRegistry.getActive().decide(messages, false);
+            this.lastDecision = decision;  // Store for introspection
             logger.debug(
                     "Routing decision: model={}, reason={}, tokens={}",
                     decision.modelChoice(),

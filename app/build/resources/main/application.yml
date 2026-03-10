@@ -14,13 +14,17 @@ spring:
   ai:
     anthropic:
       api-key: ${ANTHROPIC_API_KEY:your-api-key-here}
+  web:
+    resources:
+      add-mappings: false
 
 # LangChain4j Router Configuration
 synapse:
   llm:
     qwen:
-      base-url: http://localhost:8000/v1
-      model-name: Qwen/Qwen3.5-35B-Instruct
+      base-url: https://u425-c9xl-2793be5c.singapore-b.gpuhub.com:8443/v1
+      server-url: https://u425-c9xl-2793be5c.singapore-b.gpuhub.com:8443
+      model-name: claude-haiku-4-5-20251001
       api-key: "not-needed"                    # vLLM doesn't require auth
       timeout-seconds: 60
     claude:

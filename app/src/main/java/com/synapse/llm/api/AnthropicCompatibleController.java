@@ -5,9 +5,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.synapse.llm.config.LlmConfigurationProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -40,6 +44,12 @@ public class AnthropicCompatibleController {
 
             // Parse Anthropic request
             Map<String, Object> anthropicRequest = objectMapper.readValue(rawBody, Map.class);
+
+            // Check if client wants streaming
+            boolean wantsStream = Boolean.TRUE.equals(anthropicRequest.get("stream"));
+            if (wantsStream) {
+                return streamMessages(anthropicRequest);
+            }
 
             // Build OpenAI chat/completions request
             Map<String, Object> openaiRequest = translateAnthropicToOpenAI(anthropicRequest);
@@ -119,8 +129,11 @@ public class AnthropicCompatibleController {
             openaiRequest.put("stop", anthropicRequest.get("stop_sequences"));
         }
 
-        // Ensure non-streaming responses (this controller handles sync only)
-        openaiRequest.put("stream", false);
+        // For sync path, ensure non-streaming (streaming is handled separately)
+        // Default to false unless caller explicitly sets stream=true
+        if (!anthropicRequest.containsKey("stream")) {
+            openaiRequest.put("stream", false);
+        }
 
         log.debug("Translated Anthropic request to OpenAI format: {} messages, model: {}",
                   openaiMessages.size(), config.getQwen().getModelName());
@@ -192,7 +205,7 @@ public class AnthropicCompatibleController {
         Map<String, Object> firstChoice = choices.get(0);
         @SuppressWarnings("unchecked")
         Map<String, Object> message = (Map<String, Object>) firstChoice.get("message");
-        String content = (String) message.get("content");
+        String content = message.get("content") != null ? (String) message.get("content") : "";
 
         // Wrap content in Anthropic format
         List<Map<String, Object>> contentBlocks = new ArrayList<>();
@@ -238,6 +251,122 @@ public class AnthropicCompatibleController {
             case "length" -> "max_tokens";
             default -> openaiFinishReason;
         };
+    }
+
+    /**
+     * Handle streaming requests by forwarding to vLLM and converting to Anthropic SSE format.
+     */
+    private ResponseEntity<?> streamMessages(Map<String, Object> anthropicRequest) throws Exception {
+        Map<String, Object> openaiRequest = translateAnthropicToOpenAI(anthropicRequest);
+        openaiRequest.put("stream", true);
+
+        String vllmUrl = config.getQwen().getBaseUrl() + "/chat/completions";
+        String requestBody = objectMapper.writeValueAsString(openaiRequest);
+        String clientModel = (String) anthropicRequest.get("model");
+        String modelName = clientModel != null ? clientModel : config.getQwen().getModelName();
+
+        log.info("🌊 Streaming to vLLM: {} with {} messages", vllmUrl,
+                 ((List<?>) openaiRequest.get("messages")).size());
+
+        HttpClient httpClient = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(config.getQwen().getTimeoutSeconds()))
+                .build();
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(vllmUrl))
+                .timeout(Duration.ofSeconds(config.getQwen().getTimeoutSeconds()))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+                .build();
+
+        HttpResponse<java.io.InputStream> response = httpClient.send(
+                request, HttpResponse.BodyHandlers.ofInputStream());
+
+        if (response.statusCode() != 200) {
+            String errorBody = new String(response.body().readAllBytes());
+            throw new RuntimeException("vLLM streaming error: " + response.statusCode() + " - " + errorBody);
+        }
+
+        String messageId = "msg-" + UUID.randomUUID().toString().substring(0, 8);
+
+        // Build the SSE Flux that reads from vLLM and converts to Anthropic SSE format
+        Flux<String> sseFlux = Flux.create(sink -> {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(response.body()))) {
+                // Send Anthropic message_start event
+                Map<String, Object> messageStartEvent = new LinkedHashMap<>();
+                messageStartEvent.put("type", "message_start");
+                Map<String, Object> msgMeta = new LinkedHashMap<>();
+                msgMeta.put("id", messageId);
+                msgMeta.put("type", "message");
+                msgMeta.put("role", "assistant");
+                msgMeta.put("content", List.of());
+                msgMeta.put("model", modelName);
+                msgMeta.put("stop_reason", null);
+                msgMeta.put("usage", Map.of("input_tokens", 0, "output_tokens", 0));
+                messageStartEvent.put("message", msgMeta);
+                sink.next("event: message_start\ndata: " + objectMapper.writeValueAsString(messageStartEvent) + "\n\n");
+
+                // Send content_block_start
+                Map<String, Object> blockStart = Map.of("type", "content_block_start",
+                        "index", 0, "content_block", Map.of("type", "text", "text", ""));
+                sink.next("event: content_block_start\ndata: " + objectMapper.writeValueAsString(blockStart) + "\n\n");
+
+                String finalFinishReason = "end_turn";
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (!line.startsWith("data: ")) continue;
+                    String data = line.substring(6).trim();
+                    if ("[DONE]".equals(data)) break;
+
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> chunk = objectMapper.readValue(data, Map.class);
+                    @SuppressWarnings("unchecked")
+                    List<Map<String, Object>> choices = (List<Map<String, Object>>) chunk.get("choices");
+                    if (choices == null || choices.isEmpty()) continue;
+
+                    Map<String, Object> choice = choices.get(0);
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> delta = (Map<String, Object>) choice.get("delta");
+                    String finishReason = (String) choice.get("finish_reason");
+
+                    if (finishReason != null) {
+                        finalFinishReason = mapFinishReason(finishReason);
+                    }
+
+                    if (delta != null && delta.get("content") != null) {
+                        String textDelta = (String) delta.get("content");
+                        Map<String, Object> blockDelta = Map.of("type", "content_block_delta",
+                                "index", 0, "delta", Map.of("type", "text_delta", "text", textDelta));
+                        sink.next("event: content_block_delta\ndata: " + objectMapper.writeValueAsString(blockDelta) + "\n\n");
+                    }
+                }
+
+                // Send content_block_stop
+                sink.next("event: content_block_stop\ndata: " + objectMapper.writeValueAsString(Map.of("type", "content_block_stop", "index", 0)) + "\n\n");
+
+                // Send message_delta with stop_reason
+                Map<String, Object> msgDelta = new LinkedHashMap<>();
+                msgDelta.put("type", "message_delta");
+                Map<String, Object> delta = new LinkedHashMap<>();
+                delta.put("stop_reason", finalFinishReason);
+                delta.put("stop_sequence", null);
+                msgDelta.put("delta", delta);
+                msgDelta.put("usage", Map.of("output_tokens", 0));
+                sink.next("event: message_delta\ndata: " + objectMapper.writeValueAsString(msgDelta) + "\n\n");
+
+                // Send message_stop
+                sink.next("event: message_stop\ndata: " + objectMapper.writeValueAsString(Map.of("type", "message_stop")) + "\n\n");
+
+                sink.complete();
+            } catch (Exception e) {
+                log.error("Streaming error", e);
+                sink.error(e);
+            }
+        });
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.TEXT_EVENT_STREAM)
+                .body(sseFlux);
     }
 
     // ========== Request/Response Classes for documentation ==========

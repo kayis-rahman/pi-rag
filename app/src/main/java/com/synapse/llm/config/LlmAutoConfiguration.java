@@ -3,6 +3,7 @@ package com.synapse.llm.config;
 import com.synapse.llm.health.VllmCircuitBreaker;
 import com.synapse.llm.logging.ModelUsageLogger;
 import com.synapse.llm.routing.AdaptiveRoutingStrategy;
+import com.synapse.llm.routing.LocalRoutingStrategy;
 import com.synapse.llm.routing.RouterChatLanguageModel;
 import com.synapse.llm.routing.RoutingStrategy;
 import com.synapse.llm.routing.StrategyRegistry;
@@ -97,19 +98,29 @@ public class LlmAutoConfiguration {
     }
 
     /**
+     * Create local routing strategy (always QWEN_LOCAL).
+     */
+    @Bean
+    public LocalRoutingStrategy localRoutingStrategy() {
+        return new LocalRoutingStrategy();
+    }
+
+    /**
      * Create strategy registry for runtime strategy switching.
      */
     @Bean
     public StrategyRegistry strategyRegistry(
             AdaptiveRoutingStrategy adaptiveRoutingStrategy,
-            TieredClaudeRoutingStrategy tieredClaudeRoutingStrategy
+            TieredClaudeRoutingStrategy tieredClaudeRoutingStrategy,
+            LocalRoutingStrategy localRoutingStrategy
     ) {
         return new StrategyRegistry(
                 Map.of(
                         "adaptive", adaptiveRoutingStrategy,
-                        "tiered-claude", tieredClaudeRoutingStrategy
+                        "tiered-claude", tieredClaudeRoutingStrategy,
+                        "local", localRoutingStrategy
                 ),
-                "adaptive"  // Default to adaptive strategy
+                "local"  // Default to local strategy (always QWEN_LOCAL)
         );
     }
 
@@ -130,12 +141,10 @@ public class LlmAutoConfiguration {
     }
 
     /**
-     * Create the primary ChatLanguageModel that routes requests intelligently.
-     * This is marked @Primary so it will be injected when ChatLanguageModel is requested.
+     * Create RouterChatLanguageModel for dependency injection.
      */
-    @Bean
-    @Primary
-    public ChatLanguageModel routerChatLanguageModel(
+    @Bean(name = "routerChatLanguageModel")
+    public RouterChatLanguageModel routerChatLanguageModel(
             StrategyRegistry strategyRegistry,
             LlmAutoConfiguration config,
             VllmCircuitBreaker circuitBreaker,
@@ -152,5 +161,15 @@ public class LlmAutoConfiguration {
                 circuitBreaker,
                 usageLogger
         );
+    }
+
+    /**
+     * Create the primary ChatLanguageModel that routes requests intelligently.
+     * This is marked @Primary so it will be injected when ChatLanguageModel is requested.
+     */
+    @Bean
+    @Primary
+    public ChatLanguageModel chatLanguageModel(RouterChatLanguageModel routerModel) {
+        return routerModel;
     }
 }
