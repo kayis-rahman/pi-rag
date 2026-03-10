@@ -119,10 +119,8 @@ public class AnthropicCompatibleController {
             openaiRequest.put("stop", anthropicRequest.get("stop_sequences"));
         }
 
-        // Handle stream parameter
-        if (anthropicRequest.containsKey("stream")) {
-            openaiRequest.put("stream", anthropicRequest.get("stream"));
-        }
+        // Ensure non-streaming responses (this controller handles sync only)
+        openaiRequest.put("stream", false);
 
         log.debug("Translated Anthropic request to OpenAI format: {} messages, model: {}",
                   openaiMessages.size(), config.getQwen().getModelName());
@@ -156,6 +154,7 @@ public class AnthropicCompatibleController {
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
         log.info("📥 vLLM response status: {}", response.statusCode());
+        log.debug("📄 vLLM response body: {}", response.body().substring(0, Math.min(500, response.body().length())));
 
         if (response.statusCode() != 200) {
             log.error("vLLM error status {}: {}", response.statusCode(), response.body());
