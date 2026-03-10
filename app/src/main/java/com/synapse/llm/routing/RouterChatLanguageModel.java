@@ -22,8 +22,9 @@ import org.slf4j.LoggerFactory;
  *
  * Note: This is a decorator that wraps the ChatLanguageModel interface.
  * Implementations should delegate to the underlying model after routing logic.
+ *
+ * Created as a bean by LlmAutoConfiguration.
  */
-@org.springframework.stereotype.Component
 public class RouterChatLanguageModel implements ChatLanguageModel {
 
     private static final Logger logger = LoggerFactory.getLogger(RouterChatLanguageModel.class);
