@@ -5,37 +5,70 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6c528b43-a8ab-4f78-8ed3-ee0af08aded5" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/PHASE_1_SUMMARY.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/synapse/llm/api/ChatController.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/synapse/llm/config/InstanceLoadBalancer.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/synapse/llm/config/LlmAutoConfiguration.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/synapse/llm/config/LlmConfigurationProperties.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/synapse/llm/config/LlmSettings.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/synapse/llm/config/ModelConfiguration.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/synapse/llm/config/ModelInstance.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/synapse/llm/config/ModelInstanceConfiguration.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/synapse/llm/config/MultiInstanceChatModel.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/synapse/llm/config/OpenAICompatibleChatModel.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/synapse/llm/routing/ModelTier.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/synapse/llm/routing/RequestRouter.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/synapse/llm/routing/RoutingAwareChatModel.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/synapse/llm/routing/RoutingConfigProperties.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/synapse/llm/routing/RoutingDecision.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/synapse/llm/routing/ServerConfig.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/synapse/llm/routing/Tool.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/synapse/llm/service/LlmModelRouter.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/synapse/llm/service/ModelSelectionStrategy.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/synapse/llm/service/impl/RoundRobinModelSelector.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/synapse/memory/MemoryManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/synapse/memory/MemoryManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/synapse/memory/episodic/EpisodicMemoryService.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/synapse/memory/episodic/EpisodicMemoryService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/synapse/memory/knowledgegraph/KnowledgeGraphService.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/synapse/memory/knowledgegraph/KnowledgeGraphService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/synapse/memory/semantic/SemanticMemoryService.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/synapse/memory/semantic/SemanticMemoryService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/test/java/com/synapse/llm/config/LlmAutoConfigurationTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/test/java/com/synapse/llm/config/LlmAutoConfigurationTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/test/java/com/synapse/llm/config/LlmConfigurationPropertiesTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/test/java/com/synapse/llm/config/LlmConfigurationPropertiesTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/llm/bootstrap.sh" beforeDir="false" afterPath="$PROJECT_DIR$/config/llm/bootstrap.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/ngnix/setup.sh" beforeDir="false" afterPath="$PROJECT_DIR$/config/ngnix/setup.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/worktrees/feature/cleanups" beforeDir="false" afterPath="$PROJECT_DIR$/.claude/worktrees/feature/cleanups" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/.gradle/9.3.1/checksums/checksums.lock" beforeDir="false" afterPath="$PROJECT_DIR$/app/.gradle/9.3.1/checksums/checksums.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/.gradle/9.3.1/checksums/sha1-checksums.bin" beforeDir="false" afterPath="$PROJECT_DIR$/app/.gradle/9.3.1/checksums/sha1-checksums.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/.gradle/9.3.1/executionHistory/executionHistory.bin" beforeDir="false" afterPath="$PROJECT_DIR$/app/.gradle/9.3.1/executionHistory/executionHistory.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/.gradle/9.3.1/executionHistory/executionHistory.lock" beforeDir="false" afterPath="$PROJECT_DIR$/app/.gradle/9.3.1/executionHistory/executionHistory.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/.gradle/9.3.1/fileHashes/fileHashes.bin" beforeDir="false" afterPath="$PROJECT_DIR$/app/.gradle/9.3.1/fileHashes/fileHashes.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/.gradle/9.3.1/fileHashes/fileHashes.lock" beforeDir="false" afterPath="$PROJECT_DIR$/app/.gradle/9.3.1/fileHashes/fileHashes.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/.gradle/9.3.1/fileHashes/resourceHashesCache.bin" beforeDir="false" afterPath="$PROJECT_DIR$/app/.gradle/9.3.1/fileHashes/resourceHashesCache.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/.gradle/buildOutputCleanup/buildOutputCleanup.lock" beforeDir="false" afterPath="$PROJECT_DIR$/app/.gradle/buildOutputCleanup/buildOutputCleanup.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/.gradle/file-system.probe" beforeDir="false" afterPath="$PROJECT_DIR$/app/.gradle/file-system.probe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/app/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/classes/java/main/com/synapse/llm/config/LlmAutoConfiguration.class" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/classes/java/main/com/synapse/llm/config/LlmAutoConfiguration.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/classes/java/main/com/synapse/llm/config/LlmConfigurationProperties$CircuitBreakerConfig.class" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/classes/java/main/com/synapse/llm/config/LlmConfigurationProperties$CircuitBreakerConfig.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/classes/java/main/com/synapse/llm/config/LlmConfigurationProperties$ClaudeConfig.class" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/classes/java/main/com/synapse/llm/config/LlmConfigurationProperties$ClaudeConfig.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/classes/java/main/com/synapse/llm/config/LlmConfigurationProperties$ClaudeHaikuConfig.class" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/classes/java/main/com/synapse/llm/config/LlmConfigurationProperties$ClaudeHaikuConfig.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/classes/java/main/com/synapse/llm/config/LlmConfigurationProperties$QwenConfig.class" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/classes/java/main/com/synapse/llm/config/LlmConfigurationProperties$QwenConfig.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/classes/java/main/com/synapse/llm/config/LlmConfigurationProperties$RoutingConfig.class" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/classes/java/main/com/synapse/llm/config/LlmConfigurationProperties$RoutingConfig.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/classes/java/main/com/synapse/llm/routing/RouterChatLanguageModel.class" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/classes/java/main/com/synapse/llm/routing/RouterChatLanguageModel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/libs/synapse-1.0.0-plain.jar" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/libs/synapse-1.0.0-plain.jar" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/libs/synapse-1.0.0.jar" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/libs/synapse-1.0.0.jar" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/reports/problems/problems-report.html" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/reports/problems/problems-report.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/reports/tests/test/com.synapse.llm.service.LlmModelRouterTest/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/reports/tests/test/com.synapse.llm.service.LlmModelRouterTest/priority_rule1_beatsModelTierMap().html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/reports/tests/test/com.synapse.llm.service.LlmModelRouterTest/rule10_defaultFallback_routesToLarge().html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/reports/tests/test/com.synapse.llm.service.LlmModelRouterTest/rule1_hasTools_routesToLarge().html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/reports/tests/test/com.synapse.llm.service.LlmModelRouterTest/rule2_routingDisabled_routesToLarge().html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/reports/tests/test/com.synapse.llm.service.LlmModelRouterTest/rule3_modelTierMapSmall_routesToSmall().html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/reports/tests/test/com.synapse.llm.service.LlmModelRouterTest/rule4_modelTierMapLarge_routesToLarge().html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/reports/tests/test/com.synapse.llm.service.LlmModelRouterTest/rule5_longContext_routesToLarge().html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/reports/tests/test/com.synapse.llm.service.LlmModelRouterTest/rule6_codeBlock_routesToLarge().html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/reports/tests/test/com.synapse.llm.service.LlmModelRouterTest/rule6_codeKeyword_routesToLarge().html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/reports/tests/test/com.synapse.llm.service.LlmModelRouterTest/rule7_complexKeyword_implement_routesToLarge().html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/reports/tests/test/com.synapse.llm.service.LlmModelRouterTest/rule7_complexKeyword_refactor_routesToLarge().html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/reports/tests/test/com.synapse.llm.service.LlmModelRouterTest/rule8_simplePhrase_explain_routesToSmall().html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/reports/tests/test/com.synapse.llm.service.LlmModelRouterTest/rule8_simplePhrase_whatIs_routesToSmall().html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/reports/tests/test/com.synapse.llm.service.LlmModelRouterTest/rule9_shortQuery_routesToSmall().html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/reports/tests/test/css/base-style.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/reports/tests/test/css/style.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/reports/tests/test/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/reports/tests/test/js/report.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/resources/main/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/resources/main/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/test-results/test/TEST-com.synapse.llm.service.LlmModelRouterTest.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/test-results/test/binary/output-events.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/test-results/test/binary/results-generic.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/tmp/compileJava/compileTransaction/stash-dir/AdaptiveRoutingStrategy.class.uniqueId0" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/tmp/compileJava/compileTransaction/stash-dir/LlmAutoConfiguration.class.uniqueId10" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/tmp/compileJava/compileTransaction/stash-dir/LlmConfigurationProperties$CircuitBreakerConfig.class.uniqueId9" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/tmp/compileJava/compileTransaction/stash-dir/LlmConfigurationProperties$ClaudeConfig.class.uniqueId6" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/tmp/compileJava/compileTransaction/stash-dir/LlmConfigurationProperties$QwenConfig.class.uniqueId5" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/tmp/compileJava/compileTransaction/stash-dir/LlmConfigurationProperties$RoutingConfig.class.uniqueId2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/tmp/compileJava/compileTransaction/stash-dir/LlmConfigurationProperties.class.uniqueId1" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/tmp/compileJava/compileTransaction/stash-dir/ModelChoice.class.uniqueId4" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/tmp/compileJava/compileTransaction/stash-dir/ModelUsageLogger.class.uniqueId3" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/tmp/compileJava/compileTransaction/stash-dir/RouterChatLanguageModel.class.uniqueId7" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/tmp/compileJava/compileTransaction/stash-dir/RoutingDecision.class.uniqueId12" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/tmp/compileJava/compileTransaction/stash-dir/RoutingStrategy.class.uniqueId8" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/tmp/compileJava/compileTransaction/stash-dir/VllmCircuitBreaker.class.uniqueId11" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/tmp/compileJava/previous-compilation-data.bin" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/tmp/compileJava/previous-compilation-data.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/synapse/llm/api/AnthropicCompatibleController.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/synapse/llm/api/AnthropicCompatibleController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/synapse/llm/config/LlmAutoConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/synapse/llm/config/LlmAutoConfiguration.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/synapse/llm/config/LlmConfigurationProperties.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/synapse/llm/config/LlmConfigurationProperties.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/synapse/llm/routing/RouterChatLanguageModel.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/synapse/llm/routing/RouterChatLanguageModel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/resources/application.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -55,7 +88,23 @@
         </task>
         <projects_view>
           <tree_state>
-            <expand />
+            <expand>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="synapse" type="f1a62948:ProjectNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="synapse" type="f1a62948:ProjectNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="synapse" type="f1a62948:ProjectNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+                <item name="build" type="c8890929:TasksNode$1" />
+              </path>
+            </expand>
             <select />
           </tree_state>
         </projects_view>
@@ -76,31 +125,32 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ASKED_SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;Gradle.Build app.executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.Tests in 'synapse.test'.executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.app [clean build].executor&quot;: &quot;Run&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
-    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
-    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
-    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;SHELLCHECK.PATH&quot;: &quot;/Users/kayisrahman/Library/Application Support/JetBrains/IntelliJIdea2025.3/plugins/Shell Script/shellcheck&quot;,
-    &quot;Spring Boot.SynapseApplication.executor&quot;: &quot;Run&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;develop&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/kayisrahman/Documents/workspace/ideas/synapse/.claude/worktrees/feature/cleanups&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;SDKs&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settingsdialog.project.gradle&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "Gradle.Build app.executor": "Run",
+    "Gradle.Download Sources.executor": "Run",
+    "Gradle.Tests in 'synapse.test'.executor": "Run",
+    "Gradle.app [clean build].executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "SHELLCHECK.PATH": "/Users/kayisrahman/Library/Application Support/JetBrains/IntelliJIdea2025.3/plugins/Shell Script/shellcheck",
+    "Spring Boot.SynapseApplication.executor": "Run",
+    "git-widget-placeholder": "develop",
+    "last_opened_file_path": "/Users/kayisrahman/Documents/workspace/ideas/synapse/.claude/worktrees/feature/cleanups",
+    "project.structure.last.edited": "SDKs",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "reference.settingsdialog.project.gradle"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/.claude/worktrees/feature/cleanups" />
@@ -204,6 +254,7 @@
       <workItem from="1772904531938" duration="624000" />
       <workItem from="1773005992877" duration="22401000" />
       <workItem from="1773066077697" duration="18216000" />
+      <workItem from="1773154542008" duration="7585000" />
     </task>
     <servers />
   </component>
@@ -221,5 +272,15 @@
     <option featureType="dependencySupport" implementationName="java:io.grpc:grpc-api" />
     <option featureType="dependencySupport" implementationName="java:org.springframework:spring-messaging" />
     <option featureType="dependencySupport" implementationName="java:org.springframework.boot:spring-boot" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <breakpoint enabled="true" type="java-exception">
+          <properties class="java.lang.NullPointerException" package="java.lang" />
+          <option name="timeStamp" value="1" />
+        </breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>
