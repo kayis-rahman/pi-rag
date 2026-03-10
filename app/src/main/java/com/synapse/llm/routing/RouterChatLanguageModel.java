@@ -29,20 +29,20 @@ public class RouterChatLanguageModel implements ChatLanguageModel {
 
     private static final Logger logger = LoggerFactory.getLogger(RouterChatLanguageModel.class);
 
-    private final RoutingStrategy routingStrategy;
+    private final StrategyRegistry strategyRegistry;
     private final ChatLanguageModel qwenModel;
     private final ChatLanguageModel claudeModel;
     private final VllmCircuitBreaker circuitBreaker;
     private final ModelUsageLogger usageLogger;
 
     public RouterChatLanguageModel(
-            RoutingStrategy routingStrategy,
+            StrategyRegistry strategyRegistry,
             ChatLanguageModel qwenModel,
             ChatLanguageModel claudeModel,
             VllmCircuitBreaker circuitBreaker,
             ModelUsageLogger usageLogger
     ) {
-        this.routingStrategy = routingStrategy;
+        this.strategyRegistry = strategyRegistry;
         this.qwenModel = qwenModel;
         this.claudeModel = claudeModel;
         this.circuitBreaker = circuitBreaker;
@@ -59,7 +59,7 @@ public class RouterChatLanguageModel implements ChatLanguageModel {
 
         try {
             // Step 1: Decide which model to use (no tools in this simple version)
-            RoutingDecision decision = routingStrategy.decide(messages, false);
+            RoutingDecision decision = strategyRegistry.getActive().decide(messages, false);
             logger.debug(
                     "Routing decision: model={}, reason={}, tokens={}",
                     decision.modelChoice(),
@@ -80,7 +80,11 @@ public class RouterChatLanguageModel implements ChatLanguageModel {
                         () -> claudeModel.generate(messages)
                 );
             } else {
-                // Direct Claude execution (bypass circuit breaker)
+                // Direct Claude execution (Sonnet or Haiku, bypass circuit breaker)
+                // Note: In the current implementation, both CLAUDE_API and CLAUDE_HAIKU
+                // use the same claudeModel bean. The difference in routing is semantic
+                // (explaining the reason for the choice) and can be refined in future
+                // to use separate bean instances if needed.
                 response = claudeModel.generate(messages);
             }
 

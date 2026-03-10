@@ -18,6 +18,9 @@ public class LlmConfigurationProperties {
     private ClaudeConfig claude = new ClaudeConfig();
 
     @NestedConfigurationProperty
+    private ClaudeHaikuConfig claudeHaiku = new ClaudeHaikuConfig();
+
+    @NestedConfigurationProperty
     private RoutingConfig routing = new RoutingConfig();
 
     @NestedConfigurationProperty
@@ -38,6 +41,14 @@ public class LlmConfigurationProperties {
 
     public void setClaude(ClaudeConfig claude) {
         this.claude = claude;
+    }
+
+    public ClaudeHaikuConfig getClaudeHaiku() {
+        return claudeHaiku;
+    }
+
+    public void setClaudeHaiku(ClaudeHaikuConfig claudeHaiku) {
+        this.claudeHaiku = claudeHaiku;
     }
 
     public RoutingConfig getRouting() {
@@ -105,6 +116,39 @@ public class LlmConfigurationProperties {
         private String apiKey;
         private String modelName = "claude-3-5-sonnet-20241022";
         private long timeoutSeconds = 120;
+
+        public String getApiKey() {
+            return apiKey;
+        }
+
+        public void setApiKey(String apiKey) {
+            this.apiKey = apiKey;
+        }
+
+        public String getModelName() {
+            return modelName;
+        }
+
+        public void setModelName(String modelName) {
+            this.modelName = modelName;
+        }
+
+        public long getTimeoutSeconds() {
+            return timeoutSeconds;
+        }
+
+        public void setTimeoutSeconds(long timeoutSeconds) {
+            this.timeoutSeconds = timeoutSeconds;
+        }
+    }
+
+    /**
+     * Claude Haiku model configuration for Anthropic API (fast, cost-effective).
+     */
+    public static class ClaudeHaikuConfig {
+        private String apiKey;
+        private String modelName = "claude-haiku-4-5-20251001";
+        private long timeoutSeconds = 60;
 
         public String getApiKey() {
             return apiKey;
