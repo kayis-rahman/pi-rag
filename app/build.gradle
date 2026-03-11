@@ -32,6 +32,12 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter'
 //    implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+    // Actuator for metrics
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+    // Prometheus metrics
+    implementation 'io.micrometer:micrometer-registry-prometheus'
     compileOnly 'org.projectlombok:lombok:1.18.34'
     annotationProcessor 'org.projectlombok:lombok:1.18.34'
 //    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
@@ -75,138 +81,22 @@ dependencies {
 
 test {
     useJUnitPlatform()
+    filter {
+        includeTestsMatching '*Test'
+        excludeTestsMatching '*E2E*'
+    }
 }
 
 // ============================================================================
 // End-to-End Testing Task
 // ============================================================================
-task e2e {
-    description = 'Run end-to-end integration tests for the routing system'
+task e2e(type: Test) {
+    description = 'Run E2E tests'
     group = 'verification'
-    dependsOn 'build'
-    doLast {
-        println """
-╔════════════════════════════════════════════════════════════════╗
-║     Synapse Intelligent Routing System - E2E Tests             ║
-╚════════════════════════════════════════════════════════════════╝
-
-Running E2E test suite...
-        """
-
-        // Run all integration tests
-        test.testClassesDirs.each { dir ->
-            def testFiles = fileTree(dir).include('**/*IntegrationTest.class', '**/*E2E*Test.class')
-            println "📋 Found ${testFiles.size()} test classes:"
-            testFiles.each { println "   ✓ ${it.name}" }
-        }
-
-        test {
-            useJUnitPlatform()
-            filter {
-                includeTestsMatching '*IntegrationTest'
-                includeTestsMatching '*E2E*'
-            }
-        }
-    }
-}
-
-// E2E test with curl validation
-task e2eValidation {
-    description = 'Run E2E tests with HTTP endpoint validation'
-    group = 'verification'
-    dependsOn 'build'
-    doLast {
-        println """
-╔════════════════════════════════════════════════════════════════╗
-║          E2E Endpoint Validation (requires running app)        ║
-╚════════════════════════════════════════════════════════════════╝
-
-Test 1: Code Detection (should route to QWEN_LOCAL)
-        """
-        def cmd1 = 'curl -s http://localhost:8080/api/chat/sync -X POST -H "Content-Type: application/json" -d \'{"model":"auto","content":"How do I write python code?"}\' | jq \'.routing_decision\''
-        def result1 = cmd1.execute().text
-        println result1
-
-        println """
-Test 2: Complex Query (should route to CLAUDE_API)
-        """
-        def cmd2 = 'curl -s http://localhost:8080/api/chat/sync -X POST -H "Content-Type: application/json" -d \'{"model":"auto","content":"Explain quantum mechanics"}\' | jq \'.routing_decision\''
-        def result2 = cmd2.execute().text
-        println result2
-
-        println """
-Test 3: Anthropic API Format - content as string (/v1/messages)
-        """
-        def cmd3 = '''curl -s http://localhost:8080/v1/messages -X POST -H "Content-Type: application/json" -d '{"model":"claude-3-5-sonnet-20241022","messages":[{"role":"user","content":"Hello"}],"max_tokens":1024}' | jq '.content[0].text' '''
-        def result3 = cmd3.execute().text
-        println result3
-
-        println """
-Test 4: Anthropic API Format - content as array (Claude Code format) (/v1/messages)
-        """
-        def cmd4 = '''curl -s http://localhost:8080/v1/messages -X POST -H "Content-Type: application/json" -d '{"model":"claude-3-5-sonnet-20241022","messages":[{"role":"user","content":[{"type":"text","text":"Hello from Claude Code"}]}],"max_tokens":1024}' | jq '.content[0].text' '''
-        def result4 = cmd4.execute().text
-        println result4
-
-        println """
-Test 5: Anthropic API Format - multi-turn with array content (/v1/messages)
-        """
-        def cmd5 = '''curl -s http://localhost:8080/v1/messages -X POST -H "Content-Type: application/json" -d '{"model":"claude-3-5-sonnet-20241022","messages":[{"role":"user","content":[{"type":"text","text":"Write a Python function"}]}],"max_tokens":1024}' | jq '.stop_reason' '''
-        def result5 = cmd5.execute().text
-        println result5
-
-        println """
-✅ E2E validation complete!
-Make sure app is running with: ./gradlew bootRun
-        """
-    }
-}
-
-// Quick smoke test
-task e2eSmoke {
-    description = 'Quick smoke test of routing endpoints'
-    group = 'verification'
-    doLast {
-        println """
-╔════════════════════════════════════════════════════════════════╗
-║               Synapse E2E Smoke Test                           ║
-╚════════════════════════════════════════════════════════════════╝
-        """
-
-        def testCases = [
-            [name: 'Short Query', query: 'hello', expect: 'short_query'],
-            [name: 'Code Task', query: 'How do I write python code for a function', expect: 'code_task'],
-            [name: 'Simple Retrieval', query: 'What is the capital of France', expect: 'simple_retrieval']
-        ]
-
-        def passed = 0
-        def failed = 0
-
-        testCases.each { test ->
-            print "Testing ${test.name}... "
-            try {
-                def json = new groovy.json.JsonOutput().toJson([model: 'auto', content: test.query])
-                def cmd = ["bash", "-c", "curl -s http://localhost:8080/api/chat/sync -X POST -H 'Content-Type: application/json' -d '${json}' | jq -r '.routing_decision.reason'"]
-                def result = cmd.execute().text.trim()
-
-                if (result == test.expect) {
-                    println "✅ PASS (${result})"
-                    passed++
-                } else {
-                    println "❌ FAIL (expected: ${test.expect}, got: ${result})"
-                    failed++
-                }
-            } catch (Exception e) {
-                println "❌ ERROR: ${e.message}"
-                failed++
-            }
-        }
-
-        println ""
-        println "Results: ${passed} passed, ${failed} failed"
-        if (failed > 0) {
-            println "⚠️  Make sure app is running: ./gradlew bootRun"
-        }
+    useJUnitPlatform()
+    filter {
+        includeTestsMatching '*E2E*'
+        includeTestsWithTag('e2e')
     }
 }
 
