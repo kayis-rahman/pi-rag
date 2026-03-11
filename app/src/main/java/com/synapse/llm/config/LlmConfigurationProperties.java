@@ -75,8 +75,10 @@ public class LlmConfigurationProperties {
         private String serverUrl = "http://localhost:8000";
         private String secondaryServerUrl = "http://localhost:8001";
         private String modelName = "Qwen/Qwen3.5-35B-Instruct";
+        private String secondaryModelName = "claude-sonnet-4-6";
         private String apiKey = "not-needed";
         private long timeoutSeconds = 60;
+        private int maxOutputTokens = 8192;
 
         public String getBaseUrl() {
             return baseUrl;
@@ -124,6 +126,22 @@ public class LlmConfigurationProperties {
 
         public void setTimeoutSeconds(long timeoutSeconds) {
             this.timeoutSeconds = timeoutSeconds;
+        }
+
+        public String getSecondaryModelName() {
+            return secondaryModelName;
+        }
+
+        public void setSecondaryModelName(String secondaryModelName) {
+            this.secondaryModelName = secondaryModelName;
+        }
+
+        public int getMaxOutputTokens() {
+            return maxOutputTokens;
+        }
+
+        public void setMaxOutputTokens(int maxOutputTokens) {
+            this.maxOutputTokens = maxOutputTokens;
         }
     }
 
