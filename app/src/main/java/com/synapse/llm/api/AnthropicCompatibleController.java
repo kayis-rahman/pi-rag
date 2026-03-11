@@ -627,15 +627,17 @@ public class AnthropicCompatibleController {
             deltaFlux,
             trailingFlux
         )
+        .onErrorResume(e -> {
+            long latencyMs = System.currentTimeMillis() - startTimeRef;
+            int statusCode = (e instanceof VllmHttpException ve) ? ve.getStatus() : 500;
+            traceLogger.logResponse(modelName, statusCode, latencyMs, e.getMessage());
+            log.error("❌ Stream error for model [{}]: {}", modelName, e.getMessage());
+            return Flux.just(buildSseErrorEvent(e.getMessage()));  // emit Anthropic error event, then stream closes cleanly
+        })
         .doOnComplete(() -> {
             long latencyMs = System.currentTimeMillis() - startTimeRef;
             traceLogger.logResponse(modelName, 200, latencyMs, null);
             log.info("✅ Stream completed for model [{}] in {}ms", modelName, latencyMs);
-        })
-        .doOnError(e -> {
-            long latencyMs = System.currentTimeMillis() - startTimeRef;
-            traceLogger.logResponse(modelName, 500, latencyMs, e.getMessage());
-            log.error("❌ Stream error for model [{}]: {}", modelName, e.getMessage());
         });
 
         return ResponseEntity.ok()
@@ -775,6 +777,25 @@ public class AnthropicCompatibleController {
         } catch (Exception e) {
             log.error("Error building message_stop event", e);
             throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Build Anthropic error SSE event (graceful error handling in streams).
+     * Emitted when an error occurs mid-stream instead of crashing the connection.
+     */
+    private String buildSseErrorEvent(String message) {
+        try {
+            Map<String, Object> errorEvent = new LinkedHashMap<>();
+            errorEvent.put("type", "error");
+            Map<String, Object> error = new LinkedHashMap<>();
+            error.put("type", "api_error");
+            error.put("message", message != null ? message : "Unknown error");
+            errorEvent.put("error", error);
+            return "event: error\ndata: " + objectMapper.writeValueAsString(errorEvent) + "\n\n";
+        } catch (Exception e) {
+            // Fallback to hardcoded JSON if serialization fails
+            return "event: error\ndata: {\"type\":\"error\",\"error\":{\"type\":\"api_error\",\"message\":\"Internal error\"}}\n\n";
         }
     }
 
