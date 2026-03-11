@@ -8,19 +8,19 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
+import reactor.netty.resources.ConnectionProvider;
 import java.time.Duration;
 
 @Configuration
 @RequiredArgsConstructor
 public class WebClientConfig {
     private final LlmConfigurationProperties llmProps;
+    private final ConnectionProvider connectionProvider;
 
     @Bean(name = "vllmWebClient")
     public WebClient vllmWebClient() {
-        HttpClient httpClient = HttpClient.create()
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS,
-                        (int) Duration.ofSeconds(llmProps.getQwen().getTimeoutSeconds()).toMillis())
-                .responseTimeout(Duration.ofSeconds(llmProps.getQwen().getTimeoutSeconds()));
+        HttpClient httpClient = HttpClient.create(connectionProvider)
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10_000);
 
         ExchangeStrategies strategies = ExchangeStrategies.builder()
                 .codecs(config -> config.defaultCodecs().maxInMemorySize(-1))

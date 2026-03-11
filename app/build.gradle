@@ -209,3 +209,12 @@ task e2eSmoke {
         }
     }
 }
+
+// SSE multi-turn streaming test
+task e2eSseConversation(type: JavaExec) {
+    description = 'Run E2E SSE multi-turn conversation test (requires running app)'
+    group = 'verification'
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.synapse.llm.api.E2eSseConversationTest'
+    environment 'API_BASE_URL', System.getenv('API_BASE_URL') ?: 'http://localhost:8080'
+}
