@@ -83,7 +83,9 @@ public class AnthropicCompatibleController {
             log.info("📨 /v1/messages - Received Anthropic format request");
 
             if (rawBody == null || rawBody.isEmpty()) {
-                return Mono.just(ResponseEntity.badRequest().body(Map.of("error", "Request body required")));
+                return Mono.just(ResponseEntity.badRequest().body(
+                    anthropicError("invalid_request_error", "Request body required")
+                ));
             }
 
             // Parse Anthropic request
@@ -126,10 +128,9 @@ public class AnthropicCompatibleController {
                             log.error("Error parsing/translating vLLM response", e);
                             long latencyMs = System.currentTimeMillis() - startTime;
                             traceLogger.logResponse(model, 400, latencyMs, e.getMessage());
-                            return (ResponseEntity<?>) ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
-                                "error", e.getMessage(),
-                                "type", e.getClass().getSimpleName()
-                            ));
+                            return (ResponseEntity<?>) ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                                anthropicError("api_error", "Response translation failed: " + e.getMessage())
+                            );
                         }
                     })
                     .onErrorResume(e -> {
@@ -137,19 +138,18 @@ public class AnthropicCompatibleController {
                         long latencyMs = System.currentTimeMillis() - startTime;
                         // Use original HTTP status code if available, otherwise 502
                         int statusCode = (e instanceof VllmHttpException ve) ? ve.getStatus() : 502;
+                        String errType = statusCode >= 500 ? "api_error" : "invalid_request_error";
                         traceLogger.logResponse(model, statusCode, latencyMs, e.getMessage());
-                        return Mono.just((ResponseEntity<?>) ResponseEntity.status(statusCode).body(Map.of(
-                            "error", e.getMessage(),
-                            "type", e.getClass().getSimpleName()
-                        )));
+                        return Mono.just((ResponseEntity<?>) ResponseEntity.status(statusCode).body(
+                            anthropicError(errType, e.getMessage())
+                        ));
                     });
 
         } catch (Exception e) {
             log.error("Error processing Anthropic API request", e);
-            return Mono.just(ResponseEntity.status(400).body(Map.of(
-                "error", e.getMessage(),
-                "type", e.getClass().getSimpleName()
-            )));
+            return Mono.just(ResponseEntity.status(400).body(
+                anthropicError("invalid_request_error", "Invalid request body: " + e.getMessage())
+            ));
         }
     }
 
@@ -257,11 +257,14 @@ public class AnthropicCompatibleController {
 
         // Prepend system prompt if provided
         Object systemPrompt = anthropicRequest.get("system");
-        if (systemPrompt != null && !systemPrompt.toString().isEmpty()) {
-            Map<String, Object> systemMessage = new LinkedHashMap<>();
-            systemMessage.put("role", "system");
-            systemMessage.put("content", systemPrompt.toString());
-            openaiMessages.add(0, systemMessage);
+        if (systemPrompt != null) {
+            String systemText = extractSystemText(systemPrompt);
+            if (!systemText.isEmpty()) {
+                Map<String, Object> systemMessage = new LinkedHashMap<>();
+                systemMessage.put("role", "system");
+                systemMessage.put("content", systemText);
+                openaiMessages.add(0, systemMessage);
+            }
         }
 
         openaiRequest.put("messages", openaiMessages);
@@ -477,6 +480,25 @@ public class AnthropicCompatibleController {
     }
 
     /**
+     * Extract text from system prompt, handling both String and Array formats.
+     * Anthropic allows: "system": "string" OR "system": [{"type": "text", "text": "..."}]
+     */
+    @SuppressWarnings("unchecked")
+    private String extractSystemText(Object system) {
+        if (system instanceof String s) {
+            return s;
+        }
+        if (system instanceof List<?> blocks) {
+            List<Map<String, Object>> typedBlocks = (List<Map<String, Object>>) (List<?>) blocks;
+            return typedBlocks.stream()
+                .filter(b -> "text".equals(b.get("type")))
+                .map(b -> String.valueOf(b.getOrDefault("text", "")))
+                .collect(Collectors.joining(""));
+        }
+        return "";
+    }
+
+    /**
      * Handle streaming requests by forwarding to vLLM and converting to Anthropic SSE format.
      * Uses reactive WebClient with ServerSentEvent deserialization to avoid blocking I/O.
      */
@@ -486,6 +508,7 @@ public class AnthropicCompatibleController {
 
         Map<String, Object> openaiRequest = translateAnthropicToOpenAI(anthropicRequest);
         openaiRequest.put("stream", true);
+        openaiRequest.put("stream_options", Map.of("include_usage", true));
 
         // Model name is already resolved in translateAnthropicToOpenAI
         final String modelName = (String) openaiRequest.get("model");
@@ -528,6 +551,8 @@ public class AnthropicCompatibleController {
         AtomicInteger nextBlockIndex = new AtomicInteger(0);
         AtomicInteger textBlockIndex = new AtomicInteger(-1);       // -1 = not started
         AtomicReference<Map<Integer, Integer>> toolBlockIndexMap = new AtomicReference<>(new LinkedHashMap<>());
+        AtomicReference<Integer> inputTokensRef = new AtomicReference<>(0);
+        AtomicReference<Integer> outputTokensRef = new AtomicReference<>(0);
 
         Flux<String> deltaFlux = upstream
                 .takeWhile(event -> event.data() == null || !"[DONE]".equals(event.data()))
@@ -548,6 +573,12 @@ public class AnthropicCompatibleController {
 
                         Map<String, Object> delta = (Map<String, Object>) choice.get("delta");
                         if (delta == null) {
+                            // This is the final usage-only chunk from vLLM (choices is empty)
+                            Map<String, Object> usageChunk = (Map<String, Object>) chunk.get("usage");
+                            if (usageChunk != null) {
+                                inputTokensRef.set(((Number) usageChunk.getOrDefault("prompt_tokens", 0)).intValue());
+                                outputTokensRef.set(((Number) usageChunk.getOrDefault("completion_tokens", 0)).intValue());
+                            }
                             return Flux.empty();
                         }
 
@@ -609,7 +640,7 @@ public class AnthropicCompatibleController {
             List<String> trailingEvents = new ArrayList<>();
             if (textBlockIndex.get() != -1) trailingEvents.add(buildContentBlockStopEvent(textBlockIndex.get()));
             toolBlockIndexMap.get().values().forEach(idx -> trailingEvents.add(buildContentBlockStopEvent(idx)));
-            trailingEvents.add(buildMessageDeltaEvent(finalFinishReason.get()));
+            trailingEvents.add(buildMessageDeltaEvent(finalFinishReason.get(), inputTokensRef.get(), outputTokensRef.get()));
             trailingEvents.add(buildMessageStopEvent());
             return Flux.fromIterable(trailingEvents);
         });
@@ -626,7 +657,7 @@ public class AnthropicCompatibleController {
             int statusCode = (e instanceof VllmHttpException ve) ? ve.getStatus() : 500;
             traceLogger.logResponse(modelName, statusCode, latencyMs, e.getMessage());
             log.error("❌ Stream error for model [{}]: {}", modelName, e.getMessage());
-            return Flux.just(buildSseErrorEvent(e.getMessage()));  // emit Anthropic error event, then stream closes cleanly
+            return Flux.just(buildSseErrorEvent(e.getMessage(), statusCode));  // emit Anthropic error event, then stream closes cleanly
         })
         .doOnComplete(() -> {
             long latencyMs = System.currentTimeMillis() - startTimeRef;
@@ -744,7 +775,7 @@ public class AnthropicCompatibleController {
     /**
      * Build Anthropic message_delta SSE event.
      */
-    private String buildMessageDeltaEvent(String finishReason) {
+    private String buildMessageDeltaEvent(String finishReason, int inputTokens, int outputTokens) {
         try {
             Map<String, Object> msgDelta = new LinkedHashMap<>();
             msgDelta.put("type", "message_delta");
@@ -752,7 +783,7 @@ public class AnthropicCompatibleController {
             delta.put("stop_reason", finishReason);
             delta.put("stop_sequence", null);
             msgDelta.put("delta", delta);
-            msgDelta.put("usage", Map.of("output_tokens", 0));
+            msgDelta.put("usage", Map.of("input_tokens", inputTokens, "output_tokens", outputTokens));
             return "event: message_delta\ndata: " + objectMapper.writeValueAsString(msgDelta) + "\n\n";
         } catch (Exception e) {
             log.error("Error building message_delta event", e);
@@ -778,12 +809,13 @@ public class AnthropicCompatibleController {
      * Build Anthropic error SSE event (graceful error handling in streams).
      * Emitted when an error occurs mid-stream instead of crashing the connection.
      */
-    private String buildSseErrorEvent(String message) {
+    private String buildSseErrorEvent(String message, int statusCode) {
         try {
             Map<String, Object> errorEvent = new LinkedHashMap<>();
             errorEvent.put("type", "error");
             Map<String, Object> error = new LinkedHashMap<>();
-            error.put("type", "api_error");
+            String errType = statusCode >= 500 ? "api_error" : "invalid_request_error";
+            error.put("type", errType);
             error.put("message", message != null ? message : "Unknown error");
             errorEvent.put("error", error);
             return "event: error\ndata: " + objectMapper.writeValueAsString(errorEvent) + "\n\n";
@@ -791,6 +823,20 @@ public class AnthropicCompatibleController {
             // Fallback to hardcoded JSON if serialization fails
             return "event: error\ndata: {\"type\":\"error\",\"error\":{\"type\":\"api_error\",\"message\":\"Internal error\"}}\n\n";
         }
+    }
+
+    /**
+     * Build Anthropic-conforming error response body.
+     * Schema: {"type": "error", "error": {"type": "...", "message": "..."}}
+     */
+    private Map<String, Object> anthropicError(String type, String message) {
+        Map<String, Object> error = new LinkedHashMap<>();
+        error.put("type", type);
+        error.put("message", message);
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("type", "error");
+        body.put("error", error);
+        return body;
     }
 
     // ========== Request/Response Classes for documentation ==========
