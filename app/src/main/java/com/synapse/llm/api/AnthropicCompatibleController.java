@@ -272,15 +272,9 @@ public class AnthropicCompatibleController {
         openaiRequest.put("model", vllmModelName);
         log.debug("🔀 Resolved model [{}] → [{}]", clientModel, vllmModelName);
 
-        // Map Anthropic parameters to OpenAI, capping max_tokens to avoid context overflow
+        // Map Anthropic parameters to OpenAI, forwarding max_tokens directly
         if (anthropicRequest.containsKey("max_tokens")) {
-            int requested = ((Number) anthropicRequest.get("max_tokens")).intValue();
-            int capped = Math.min(requested, config.getQwen().getMaxOutputTokens());
-            openaiRequest.put("max_tokens", capped);
-            if (requested != capped) {
-                log.info("⚠️  Capped max_tokens: {} → {} (limit: {})",
-                    requested, capped, config.getQwen().getMaxOutputTokens());
-            }
+            openaiRequest.put("max_tokens", anthropicRequest.get("max_tokens"));
         }
 
         if (anthropicRequest.containsKey("temperature")) {

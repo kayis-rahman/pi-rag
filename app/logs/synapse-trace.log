@@ -356,3 +356,18 @@
 </body>
 </html>
 
+2026-03-11 20:32:46.058 | REQUEST | model=claude-sonnet-4-6 | messages=1 | stream=true
+2026-03-11 20:32:58.769 | RESPONSE | model=claude-haiku-4-5-20251001 | status=200 | latency=12699ms | error=null
+2026-03-11 20:32:58.784 | REQUEST | model=claude-sonnet-4-6 | messages=1 | stream=false
+2026-03-11 20:33:06.764 | RESPONSE | model=claude-sonnet-4-6 | status=200 | latency=7983ms | error=null
+2026-03-11 20:33:08.356 | REQUEST | model=claude-sonnet-4-6 | messages=3 | stream=true
+2026-03-11 20:33:20.610 | RESPONSE | model=claude-haiku-4-5-20251001 | status=200 | latency=12253ms | error=null
+2026-03-11 20:33:20.652 | REQUEST | model=claude-sonnet-4-6 | messages=3 | stream=false
+2026-03-11 20:33:30.123 | RESPONSE | model=claude-sonnet-4-6 | status=200 | latency=9474ms | error=null
+2026-03-11 20:33:31.667 | REQUEST | model=claude-sonnet-4-6 | messages=5 | stream=true
+2026-03-11 20:33:39.313 | RESPONSE | model=claude-haiku-4-5-20251001 | status=200 | latency=7646ms | error=null
+2026-03-11 20:33:39.338 | REQUEST | model=claude-sonnet-4-6 | messages=5 | stream=false
+2026-03-11 20:33:48.246 | RESPONSE | model=claude-sonnet-4-6 | status=200 | latency=8913ms | error=null
+2026-03-11 20:33:49.387 | REQUEST | model=claude-sonnet-4-6 | messages=7 | stream=true
+2026-03-11 20:34:04.620 | RESPONSE | model=claude-haiku-4-5-20251001 | status=200 | latency=15232ms | error=null
+2026-03-11 20:34:04.648 | REQUEST | model=claude-sonnet-4-6 | messages=7 | stream=false
