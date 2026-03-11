@@ -264,3 +264,95 @@
 </body>
 </html>
 
+2026-03-11 19:57:17.778 | REQUEST | model=claude-sonnet-4-6 | messages=1 | stream=true
+2026-03-11 19:57:25.451 | RESPONSE | model=claude-sonnet-4-6 | status=200 | latency=7664ms | error=null
+2026-03-11 19:57:25.468 | REQUEST | model=claude-sonnet-4-6 | messages=1 | stream=false
+2026-03-11 19:57:30.954 | RESPONSE | model=claude-sonnet-4-6 | status=200 | latency=5489ms | error=null
+2026-03-11 19:57:32.576 | REQUEST | model=claude-sonnet-4-6 | messages=3 | stream=true
+2026-03-11 19:57:38.681 | RESPONSE | model=claude-sonnet-4-6 | status=200 | latency=6105ms | error=null
+2026-03-11 19:57:38.694 | REQUEST | model=claude-sonnet-4-6 | messages=3 | stream=false
+2026-03-11 19:57:45.118 | RESPONSE | model=claude-sonnet-4-6 | status=200 | latency=6428ms | error=null
+2026-03-11 19:58:24.185 | REQUEST | model=claude-sonnet-4-6 | messages=5 | stream=true
+2026-03-11 19:58:31.389 | RESPONSE | model=claude-sonnet-4-6 | status=200 | latency=7203ms | error=null
+2026-03-11 19:58:31.412 | REQUEST | model=claude-sonnet-4-6 | messages=5 | stream=false
+2026-03-11 19:58:38.725 | RESPONSE | model=claude-sonnet-4-6 | status=200 | latency=7316ms | error=null
+2026-03-11 19:58:40.371 | REQUEST | model=claude-sonnet-4-6 | messages=7 | stream=true
+2026-03-11 19:58:50.400 | RESPONSE | model=claude-sonnet-4-6 | status=200 | latency=10028ms | error=null
+2026-03-11 19:58:50.415 | REQUEST | model=claude-sonnet-4-6 | messages=7 | stream=false
+2026-03-11 19:58:57.565 | RESPONSE | model=claude-sonnet-4-6 | status=200 | latency=7153ms | error=null
+2026-03-11 20:21:19.838 | REQUEST | model=claude-sonnet-4-6 | messages=9 | stream=true
+2026-03-11 20:21:21.291 | RESPONSE | model=claude-sonnet-4-6 | status=500 | latency=1447ms | error=vLLM error (404): <!DOCTYPE html>
+<html>
+<head>
+<title>Not Found</title>
+<style>
+    body {
+        width: 35em;
+        margin: 0 auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+    }
+</style>
+</head>
+<body>
+<h1>404 Not Found</h1>
+<p><a href="https://docs.gpuhub.com/best-practices/open-ports#open-ports/">Read the docs: Open Ports.</a>.</p>
+</body>
+</html>
+
+2026-03-11 20:21:21.457 | REQUEST | model=claude-sonnet-4-6 | messages=9 | stream=false
+2026-03-11 20:21:21.863 | RESPONSE | model=claude-sonnet-4-6 | status=404 | latency=414ms | error=vLLM error (404): <!DOCTYPE html>
+<html>
+<head>
+<title>Not Found</title>
+<style>
+    body {
+        width: 35em;
+        margin: 0 auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+    }
+</style>
+</head>
+<body>
+<h1>404 Not Found</h1>
+<p><a href="https://docs.gpuhub.com/best-practices/open-ports#open-ports/">Read the docs: Open Ports.</a>.</p>
+</body>
+</html>
+
+2026-03-11 20:22:40.400 | REQUEST | model=claude-sonnet-4-6 | messages=1 | stream=true
+2026-03-11 20:22:41.909 | RESPONSE | model=claude-sonnet-4-6 | status=500 | latency=1500ms | error=vLLM error (404): <!DOCTYPE html>
+<html>
+<head>
+<title>Not Found</title>
+<style>
+    body {
+        width: 35em;
+        margin: 0 auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+    }
+</style>
+</head>
+<body>
+<h1>404 Not Found</h1>
+<p><a href="https://docs.gpuhub.com/best-practices/open-ports#open-ports/">Read the docs: Open Ports.</a>.</p>
+</body>
+</html>
+
+2026-03-11 20:22:41.943 | REQUEST | model=claude-sonnet-4-6 | messages=1 | stream=false
+2026-03-11 20:22:42.251 | RESPONSE | model=claude-sonnet-4-6 | status=404 | latency=309ms | error=vLLM error (404): <!DOCTYPE html>
+<html>
+<head>
+<title>Not Found</title>
+<style>
+    body {
+        width: 35em;
+        margin: 0 auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+    }
+</style>
+</head>
+<body>
+<h1>404 Not Found</h1>
+<p><a href="https://docs.gpuhub.com/best-practices/open-ports#open-ports/">Read the docs: Open Ports.</a>.</p>
+</body>
+</html>
+
