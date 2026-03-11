@@ -52,15 +52,27 @@ public class AnthropicCompatibleController {
 
     /**
      * Select WebClient based on model name.
-     * Routes "haiku" models to Server B, all others to Server A.
+     * Routes "haiku" models to Server A, all others to Server B.
      */
     private WebClient selectClient(String model) {
         if (model != null && model.toLowerCase().contains("haiku")) {
-            log.info("🔀 Routing model [{}] → Server B", model);
-            return vllmWebClientB;
+            log.info("🔀 Routing model [{}] → Server A (haiku)", model);
+            return vllmWebClientA;
         }
-        log.debug("🔀 Routing model [{}] → Server A", model);
-        return vllmWebClientA;
+        log.debug("🔀 Routing model [{}] → Server B (sonnet)", model);
+        return vllmWebClientB;
+    }
+
+    /**
+     * Resolve the correct vLLM model name based on client-requested model.
+     * Haiku requests → Server A (claude-haiku-4-5-20251001)
+     * Non-haiku requests → Server B (claude-sonnet-4-6)
+     */
+    private String resolveVllmModelName(String clientModel) {
+        if (clientModel != null && clientModel.toLowerCase().contains("haiku")) {
+            return config.getQwen().getModelName();           // claude-haiku-4-5-20251001
+        }
+        return config.getQwen().getSecondaryModelName();      // claude-sonnet-4-6
     }
 
     @PostMapping("/messages")
@@ -123,8 +135,10 @@ public class AnthropicCompatibleController {
                     .onErrorResume(e -> {
                         log.error("Error forwarding to vLLM", e);
                         long latencyMs = System.currentTimeMillis() - startTime;
-                        traceLogger.logResponse(model, 502, latencyMs, e.getMessage());
-                        return Mono.just((ResponseEntity<?>) ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(Map.of(
+                        // Use original HTTP status code if available, otherwise 502
+                        int statusCode = (e instanceof VllmHttpException ve) ? ve.getStatus() : 502;
+                        traceLogger.logResponse(model, statusCode, latencyMs, e.getMessage());
+                        return Mono.just((ResponseEntity<?>) ResponseEntity.status(statusCode).body(Map.of(
                             "error", e.getMessage(),
                             "type", e.getClass().getSimpleName()
                         )));
@@ -143,8 +157,9 @@ public class AnthropicCompatibleController {
      * Translate Anthropic request format to OpenAI format.
      * - Prepend system prompt to messages if present
      * - Map stop_sequences → stop
-     * - Use configured model name (override client model)
-     * - Pass through max_tokens, temperature, top_p, stream
+     * - Route model name based on client request (haiku vs. sonnet)
+     * - Cap max_tokens to avoid context overflow
+     * - Pass through temperature, top_p, stream
      */
     private Map<String, Object> translateAnthropicToOpenAI(Map<String, Object> anthropicRequest) {
         Map<String, Object> openaiRequest = new LinkedHashMap<>();
@@ -251,12 +266,21 @@ public class AnthropicCompatibleController {
 
         openaiRequest.put("messages", openaiMessages);
 
-        // Use configured model name (ignore client-sent model)
-        openaiRequest.put("model", config.getQwen().getModelName());
+        // Resolve model name based on client request (haiku → Server A, sonnet → Server B)
+        String clientModel = (String) anthropicRequest.get("model");
+        String vllmModelName = resolveVllmModelName(clientModel);
+        openaiRequest.put("model", vllmModelName);
+        log.debug("🔀 Resolved model [{}] → [{}]", clientModel, vllmModelName);
 
-        // Map Anthropic parameters to OpenAI
+        // Map Anthropic parameters to OpenAI, capping max_tokens to avoid context overflow
         if (anthropicRequest.containsKey("max_tokens")) {
-            openaiRequest.put("max_tokens", anthropicRequest.get("max_tokens"));
+            int requested = ((Number) anthropicRequest.get("max_tokens")).intValue();
+            int capped = Math.min(requested, config.getQwen().getMaxOutputTokens());
+            openaiRequest.put("max_tokens", capped);
+            if (requested != capped) {
+                log.info("⚠️  Capped max_tokens: {} → {} (limit: {})",
+                    requested, capped, config.getQwen().getMaxOutputTokens());
+            }
         }
 
         if (anthropicRequest.containsKey("temperature")) {
@@ -344,8 +368,9 @@ public class AnthropicCompatibleController {
                 .onStatus(status -> !status.is2xxSuccessful(), resp ->
                     resp.bodyToMono(String.class)
                         .flatMap(body -> {
-                            log.error("vLLM error: {}", body);
-                            return Mono.error(new RuntimeException("vLLM error: " + body));
+                            int statusCode = resp.statusCode().value();
+                            log.error("vLLM error ({}): {}", statusCode, body);
+                            return Mono.error(new VllmHttpException(statusCode, body));
                         }))
                 .bodyToMono(String.class)
                 .doOnNext(response -> {
@@ -464,10 +489,12 @@ public class AnthropicCompatibleController {
     private ResponseEntity<?> streamMessages(Map<String, Object> anthropicRequest) {
         long startTime = System.currentTimeMillis();
         String modelNameParam = (String) anthropicRequest.get("model");
-        final String modelName = modelNameParam != null ? modelNameParam : config.getQwen().getModelName();
 
         Map<String, Object> openaiRequest = translateAnthropicToOpenAI(anthropicRequest);
         openaiRequest.put("stream", true);
+
+        // Model name is already resolved in translateAnthropicToOpenAI
+        final String modelName = (String) openaiRequest.get("model");
 
         String requestBody;
         try {
@@ -494,7 +521,11 @@ public class AnthropicCompatibleController {
                 .retrieve()
                 .onStatus(status -> !status.is2xxSuccessful(), resp ->
                     resp.bodyToMono(String.class)
-                        .flatMap(b -> Mono.error(new RuntimeException("vLLM streaming error: " + b))))
+                        .flatMap(b -> {
+                            int statusCode = resp.statusCode().value();
+                            log.error("vLLM streaming error ({}): {}", statusCode, b);
+                            return Mono.error(new VllmHttpException(statusCode, b));
+                        }))
                 .bodyToFlux(new ParameterizedTypeReference<ServerSentEvent<String>>() {});
 
         // translate vLLM delta events → Anthropic content_block_delta events
