@@ -17,8 +17,8 @@ public class WebClientConfig {
     private final LlmConfigurationProperties llmProps;
     private final ConnectionProvider connectionProvider;
 
-    @Bean(name = "vllmWebClient")
-    public WebClient vllmWebClient() {
+    @Bean(name = "vllmWebClientA")
+    public WebClient vllmWebClientA() {
         HttpClient httpClient = HttpClient.create(connectionProvider)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10_000);
 
@@ -28,6 +28,22 @@ public class WebClientConfig {
 
         return WebClient.builder()
                 .baseUrl(llmProps.getQwen().getServerUrl())
+                .clientConnector(new ReactorClientHttpConnector(httpClient))
+                .exchangeStrategies(strategies)
+                .build();
+    }
+
+    @Bean(name = "vllmWebClientB")
+    public WebClient vllmWebClientB() {
+        HttpClient httpClient = HttpClient.create(connectionProvider)
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10_000);
+
+        ExchangeStrategies strategies = ExchangeStrategies.builder()
+                .codecs(config -> config.defaultCodecs().maxInMemorySize(-1))
+                .build();
+
+        return WebClient.builder()
+                .baseUrl(llmProps.getQwen().getSecondaryServerUrl())
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .exchangeStrategies(strategies)
                 .build();

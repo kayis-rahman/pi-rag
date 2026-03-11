@@ -24,10 +24,10 @@ public class VllmPassthroughController {
         "upgrade", "proxy-authenticate", "proxy-authorization", "te", "trailer"
     );
 
-    private final WebClient vllmWebClient;
+    private final WebClient vllmWebClientA;
 
-    public VllmPassthroughController(@Qualifier("vllmWebClient") WebClient vllmWebClient) {
-        this.vllmWebClient = vllmWebClient;
+    public VllmPassthroughController(@Qualifier("vllmWebClientA") WebClient vllmWebClientA) {
+        this.vllmWebClientA = vllmWebClientA;
     }
 
     @GetMapping
@@ -58,7 +58,7 @@ public class VllmPassthroughController {
             }
         });
 
-        return vllmWebClient
+        return vllmWebClientA
                 .method(method)
                 .uri(fullPath)
                 .headers(h -> h.addAll(upstreamHeaders))
