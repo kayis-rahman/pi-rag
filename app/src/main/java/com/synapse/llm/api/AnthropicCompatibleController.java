@@ -3,6 +3,7 @@ package com.synapse.llm.api;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.synapse.llm.config.LlmConfigurationProperties;
+import com.synapse.llm.logging.RequestTraceLogger;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
@@ -17,6 +18,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -31,19 +33,40 @@ import java.util.stream.Collectors;
 public class AnthropicCompatibleController {
 
     private final LlmConfigurationProperties config;
-    private final WebClient vllmWebClient;
+    private final WebClient vllmWebClientA;
+    private final WebClient vllmWebClientB;
+    private final RequestTraceLogger traceLogger;
     private final ObjectMapper objectMapper;
 
     public AnthropicCompatibleController(
             LlmConfigurationProperties config,
-            @Qualifier("vllmWebClient") WebClient vllmWebClient) {
+            @Qualifier("vllmWebClientA") WebClient vllmWebClientA,
+            @Qualifier("vllmWebClientB") WebClient vllmWebClientB,
+            RequestTraceLogger traceLogger) {
         this.config = config;
-        this.vllmWebClient = vllmWebClient;
+        this.vllmWebClientA = vllmWebClientA;
+        this.vllmWebClientB = vllmWebClientB;
+        this.traceLogger = traceLogger;
         this.objectMapper = new ObjectMapper();
+    }
+
+    /**
+     * Select WebClient based on model name.
+     * Routes "haiku" models to Server B, all others to Server A.
+     */
+    private WebClient selectClient(String model) {
+        if (model != null && model.toLowerCase().contains("haiku")) {
+            log.info("🔀 Routing model [{}] → Server B", model);
+            return vllmWebClientB;
+        }
+        log.debug("🔀 Routing model [{}] → Server A", model);
+        return vllmWebClientA;
     }
 
     @PostMapping("/messages")
     public Mono<ResponseEntity<?>> messages(@RequestBody String rawBody) {
+        long startTime = System.currentTimeMillis();
+
         try {
             log.info("📨 /v1/messages - Received Anthropic format request");
 
@@ -53,9 +76,17 @@ public class AnthropicCompatibleController {
 
             // Parse Anthropic request
             Map<String, Object> anthropicRequest = objectMapper.readValue(rawBody, Map.class);
+            String model = (String) anthropicRequest.get("model");
+            @SuppressWarnings("unchecked")
+            List<Object> messages = (List<Object>) anthropicRequest.get("messages");
+            int messageCount = messages != null ? messages.size() : 0;
 
             // Check if client wants streaming
             boolean wantsStream = Boolean.TRUE.equals(anthropicRequest.get("stream"));
+
+            // Log request
+            traceLogger.logRequest(model, messageCount, wantsStream);
+
             if (wantsStream) {
                 return Mono.just(streamMessages(anthropicRequest));
             }
@@ -64,7 +95,7 @@ public class AnthropicCompatibleController {
             Map<String, Object> openaiRequest = translateAnthropicToOpenAI(anthropicRequest);
 
             // Forward to vLLM asynchronously
-            return forwardToVllm(openaiRequest)
+            return forwardToVllm(openaiRequest, model, messageCount, startTime)
                     .map(openaiResponse -> {
                         try {
                             // Parse OpenAI response
@@ -73,12 +104,16 @@ public class AnthropicCompatibleController {
                             // Translate to Anthropic format
                             Map<String, Object> anthropicResponse = translateOpenAIToAnthropic(
                                 openaiResponseMap,
-                                (String) anthropicRequest.get("model")
+                                model
                             );
 
+                            long latencyMs = System.currentTimeMillis() - startTime;
+                            traceLogger.logResponse(model, 200, latencyMs, null);
                             return (ResponseEntity<?>) ResponseEntity.ok(anthropicResponse);
                         } catch (Exception e) {
                             log.error("Error parsing/translating vLLM response", e);
+                            long latencyMs = System.currentTimeMillis() - startTime;
+                            traceLogger.logResponse(model, 400, latencyMs, e.getMessage());
                             return (ResponseEntity<?>) ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
                                 "error", e.getMessage(),
                                 "type", e.getClass().getSimpleName()
@@ -87,6 +122,8 @@ public class AnthropicCompatibleController {
                     })
                     .onErrorResume(e -> {
                         log.error("Error forwarding to vLLM", e);
+                        long latencyMs = System.currentTimeMillis() - startTime;
+                        traceLogger.logResponse(model, 502, latencyMs, e.getMessage());
                         return Mono.just((ResponseEntity<?>) ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(Map.of(
                             "error", e.getMessage(),
                             "type", e.getClass().getSimpleName()
@@ -284,9 +321,9 @@ public class AnthropicCompatibleController {
     }
 
     /**
-     * Forward request to vLLM using reactive WebClient.
+     * Forward request to vLLM using reactive WebClient with model-based routing.
      */
-    private Mono<String> forwardToVllm(Map<String, Object> openaiRequest) {
+    private Mono<String> forwardToVllm(Map<String, Object> openaiRequest, String model, int messageCount, long startTime) {
         String requestBody;
         try {
             requestBody = objectMapper.writeValueAsString(openaiRequest);
@@ -297,7 +334,8 @@ public class AnthropicCompatibleController {
         log.info("🚀 Forwarding to vLLM with {} messages",
                  ((List<?>) openaiRequest.get("messages")).size());
 
-        return vllmWebClient
+        WebClient client = selectClient(model);
+        return client
                 .post()
                 .uri("/v1/chat/completions")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -424,6 +462,10 @@ public class AnthropicCompatibleController {
      * Uses reactive WebClient with ServerSentEvent deserialization to avoid blocking I/O.
      */
     private ResponseEntity<?> streamMessages(Map<String, Object> anthropicRequest) {
+        long startTime = System.currentTimeMillis();
+        String modelNameParam = (String) anthropicRequest.get("model");
+        final String modelName = modelNameParam != null ? modelNameParam : config.getQwen().getModelName();
+
         Map<String, Object> openaiRequest = translateAnthropicToOpenAI(anthropicRequest);
         openaiRequest.put("stream", true);
 
@@ -437,16 +479,13 @@ public class AnthropicCompatibleController {
         }
 
         String messageId = "msg-" + UUID.randomUUID().toString().substring(0, 8);
-        String modelName = (String) anthropicRequest.get("model");
-        if (modelName == null) {
-            modelName = config.getQwen().getModelName();
-        }
 
         log.info("🌊 Streaming to vLLM with {} messages",
                  ((List<?>) openaiRequest.get("messages")).size());
 
         // upstream SSE from vLLM
-        Flux<ServerSentEvent<String>> upstream = vllmWebClient
+        WebClient client = selectClient(modelName);
+        Flux<ServerSentEvent<String>> upstream = client
                 .post()
                 .uri("/v1/chat/completions")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -551,11 +590,22 @@ public class AnthropicCompatibleController {
         });
 
         // assemble the complete Anthropic SSE sequence
+        final long startTimeRef = startTime;
         Flux<String> sseFlux = Flux.concat(
             Flux.just(buildMessageStartEvent(messageId, modelName)),
             deltaFlux,
             trailingFlux
-        );
+        )
+        .doOnComplete(() -> {
+            long latencyMs = System.currentTimeMillis() - startTimeRef;
+            traceLogger.logResponse(modelName, 200, latencyMs, null);
+            log.info("✅ Stream completed for model [{}] in {}ms", modelName, latencyMs);
+        })
+        .doOnError(e -> {
+            long latencyMs = System.currentTimeMillis() - startTimeRef;
+            traceLogger.logResponse(modelName, 500, latencyMs, e.getMessage());
+            log.error("❌ Stream error for model [{}]: {}", modelName, e.getMessage());
+        });
 
         return ResponseEntity.ok()
                 .contentType(MediaType.TEXT_EVENT_STREAM)
