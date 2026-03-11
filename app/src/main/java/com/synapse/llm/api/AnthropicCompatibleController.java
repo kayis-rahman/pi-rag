@@ -3,21 +3,22 @@ package com.synapse.llm.api;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.synapse.llm.config.LlmConfigurationProperties;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 /**
  * Anthropic API compatible endpoint with true LiteLLM-style format translation.
@@ -27,19 +28,27 @@ import java.util.*;
 @RestController
 @RequestMapping("/v1")
 @Slf4j
-@RequiredArgsConstructor
 public class AnthropicCompatibleController {
 
     private final LlmConfigurationProperties config;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final WebClient vllmWebClient;
+    private final ObjectMapper objectMapper;
+
+    public AnthropicCompatibleController(
+            LlmConfigurationProperties config,
+            @Qualifier("vllmWebClient") WebClient vllmWebClient) {
+        this.config = config;
+        this.vllmWebClient = vllmWebClient;
+        this.objectMapper = new ObjectMapper();
+    }
 
     @PostMapping("/messages")
-    public ResponseEntity<?> messages(@RequestBody String rawBody) {
+    public Mono<ResponseEntity<?>> messages(@RequestBody String rawBody) {
         try {
             log.info("📨 /v1/messages - Received Anthropic format request");
 
             if (rawBody == null || rawBody.isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("error", "Request body required"));
+                return Mono.just(ResponseEntity.badRequest().body(Map.of("error", "Request body required")));
             }
 
             // Parse Anthropic request
@@ -48,32 +57,48 @@ public class AnthropicCompatibleController {
             // Check if client wants streaming
             boolean wantsStream = Boolean.TRUE.equals(anthropicRequest.get("stream"));
             if (wantsStream) {
-                return streamMessages(anthropicRequest);
+                return Mono.just(streamMessages(anthropicRequest));
             }
 
             // Build OpenAI chat/completions request
             Map<String, Object> openaiRequest = translateAnthropicToOpenAI(anthropicRequest);
 
-            // Forward to vLLM
-            String openaiResponse = forwardToVllm(openaiRequest);
+            // Forward to vLLM asynchronously
+            return forwardToVllm(openaiRequest)
+                    .map(openaiResponse -> {
+                        try {
+                            // Parse OpenAI response
+                            Map<String, Object> openaiResponseMap = objectMapper.readValue(openaiResponse, Map.class);
 
-            // Parse OpenAI response
-            Map<String, Object> openaiResponseMap = objectMapper.readValue(openaiResponse, Map.class);
+                            // Translate to Anthropic format
+                            Map<String, Object> anthropicResponse = translateOpenAIToAnthropic(
+                                openaiResponseMap,
+                                (String) anthropicRequest.get("model")
+                            );
 
-            // Translate to Anthropic format
-            Map<String, Object> anthropicResponse = translateOpenAIToAnthropic(
-                openaiResponseMap,
-                (String) anthropicRequest.get("model")
-            );
-
-            return ResponseEntity.ok(anthropicResponse);
+                            return (ResponseEntity<?>) ResponseEntity.ok(anthropicResponse);
+                        } catch (Exception e) {
+                            log.error("Error parsing/translating vLLM response", e);
+                            return (ResponseEntity<?>) ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                                "error", e.getMessage(),
+                                "type", e.getClass().getSimpleName()
+                            ));
+                        }
+                    })
+                    .onErrorResume(e -> {
+                        log.error("Error forwarding to vLLM", e);
+                        return Mono.just((ResponseEntity<?>) ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(Map.of(
+                            "error", e.getMessage(),
+                            "type", e.getClass().getSimpleName()
+                        )));
+                    });
 
         } catch (Exception e) {
             log.error("Error processing Anthropic API request", e);
-            return ResponseEntity.status(400).body(Map.of(
+            return Mono.just(ResponseEntity.status(400).body(Map.of(
                 "error", e.getMessage(),
                 "type", e.getClass().getSimpleName()
-            ));
+            )));
         }
     }
 
@@ -94,8 +119,89 @@ public class AnthropicCompatibleController {
             throw new IllegalArgumentException("No messages provided");
         }
 
-        // Create mutable messages list
-        List<Object> openaiMessages = new ArrayList<>(messages);
+        // Convert messages with tool_use/tool_result blocks
+        List<Object> openaiMessages = new ArrayList<>();
+        for (Object rawMsg : messages) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> msg = (Map<String, Object>) rawMsg;
+            String role = (String) msg.get("role");
+            Object content = msg.get("content");
+
+            if (!(content instanceof List)) {
+                // Simple string content — pass through unchanged
+                openaiMessages.add(msg);
+                continue;
+            }
+
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> blocks = (List<Map<String, Object>>) content;
+            boolean hasToolUse    = blocks.stream().anyMatch(b -> "tool_use".equals(b.get("type")));
+            boolean hasToolResult = blocks.stream().anyMatch(b -> "tool_result".equals(b.get("type")));
+
+            if ("assistant".equals(role) && hasToolUse) {
+                // Build OpenAI assistant message: {role, content (text|null), tool_calls}
+                String textContent = blocks.stream()
+                    .filter(b -> "text".equals(b.get("type")))
+                    .map(b -> (String) b.getOrDefault("text", ""))
+                    .collect(Collectors.joining(""));
+
+                List<Map<String, Object>> toolCalls = blocks.stream()
+                    .filter(b -> "tool_use".equals(b.get("type")))
+                    .map(b -> {
+                        Map<String, Object> fn = new LinkedHashMap<>();
+                        fn.put("name", b.get("name"));
+                        try { fn.put("arguments", objectMapper.writeValueAsString(b.get("input"))); }
+                        catch (Exception e) { fn.put("arguments", "{}"); }
+                        Map<String, Object> tc2 = new LinkedHashMap<>();
+                        tc2.put("id", b.get("id"));
+                        tc2.put("type", "function");
+                        tc2.put("function", fn);
+                        return tc2;
+                    }).collect(Collectors.toList());
+
+                Map<String, Object> openaiMsg = new LinkedHashMap<>();
+                openaiMsg.put("role", "assistant");
+                openaiMsg.put("content", textContent.isEmpty() ? null : textContent);
+                openaiMsg.put("tool_calls", toolCalls);
+                openaiMessages.add(openaiMsg);
+
+            } else if ("user".equals(role) && hasToolResult) {
+                // Each tool_result block → separate {"role":"tool"} message
+                for (Map<String, Object> block : blocks) {
+                    if (!"tool_result".equals(block.get("type"))) continue;
+                    Object toolContent = block.get("content");
+                    String resultText;
+                    if (toolContent instanceof String) {
+                        resultText = (String) toolContent;
+                    } else if (toolContent instanceof List) {
+                        @SuppressWarnings("unchecked")
+                        List<Map<String, Object>> cbs = (List<Map<String, Object>>) toolContent;
+                        resultText = cbs.stream()
+                            .filter(b -> "text".equals(b.get("type")))
+                            .map(b -> (String) b.getOrDefault("text", ""))
+                            .collect(Collectors.joining(""));
+                    } else {
+                        resultText = "";
+                    }
+                    Map<String, Object> toolMsg = new LinkedHashMap<>();
+                    toolMsg.put("role", "tool");
+                    toolMsg.put("tool_call_id", block.get("tool_use_id"));
+                    toolMsg.put("content", resultText);
+                    openaiMessages.add(toolMsg);
+                }
+
+            } else {
+                // Regular content array (text only) — extract text and pass as string
+                String textContent = blocks.stream()
+                    .filter(b -> "text".equals(b.get("type")))
+                    .map(b -> (String) b.getOrDefault("text", ""))
+                    .collect(Collectors.joining(""));
+                Map<String, Object> openaiMsg = new LinkedHashMap<>();
+                openaiMsg.put("role", role);
+                openaiMsg.put("content", textContent);
+                openaiMessages.add(openaiMsg);
+            }
+        }
 
         // Prepend system prompt if provided
         Object systemPrompt = anthropicRequest.get("system");
@@ -129,6 +235,42 @@ public class AnthropicCompatibleController {
             openaiRequest.put("stop", anthropicRequest.get("stop_sequences"));
         }
 
+        // Translate tools: Anthropic {name, description, input_schema} → OpenAI {type, function:{name, description, parameters}}
+        if (anthropicRequest.containsKey("tools")) {
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> anthropicTools = (List<Map<String, Object>>) anthropicRequest.get("tools");
+            List<Map<String, Object>> openaiTools = anthropicTools.stream().map(t -> {
+                Map<String, Object> fn = new LinkedHashMap<>();
+                fn.put("name", t.get("name"));
+                if (t.containsKey("description")) fn.put("description", t.get("description"));
+                fn.put("parameters", t.getOrDefault("input_schema", new LinkedHashMap<>()));
+                Map<String, Object> tool = new LinkedHashMap<>();
+                tool.put("type", "function");
+                tool.put("function", fn);
+                return tool;
+            }).collect(Collectors.toList());
+            openaiRequest.put("tools", openaiTools);
+        }
+
+        // Translate tool_choice
+        if (anthropicRequest.containsKey("tool_choice")) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> tc = (Map<String, Object>) anthropicRequest.get("tool_choice");
+            String tcType = (String) tc.get("type");
+            if (tcType != null) {
+                switch (tcType) {
+                    case "auto" -> openaiRequest.put("tool_choice", "auto");
+                    case "any"  -> openaiRequest.put("tool_choice", "required");
+                    case "tool" -> {
+                        Map<String, Object> specific = new LinkedHashMap<>();
+                        specific.put("type", "function");
+                        specific.put("function", Map.of("name", tc.get("name")));
+                        openaiRequest.put("tool_choice", specific);
+                    }
+                }
+            }
+        }
+
         // For sync path, ensure non-streaming (streaming is handled separately)
         // Default to false unless caller explicitly sets stream=true
         if (!anthropicRequest.containsKey("stream")) {
@@ -142,39 +284,36 @@ public class AnthropicCompatibleController {
     }
 
     /**
-     * Forward request to vLLM using HttpClient.
+     * Forward request to vLLM using reactive WebClient.
      */
-    private String forwardToVllm(Map<String, Object> openaiRequest) throws Exception {
-        String vllmUrl = config.getQwen().getBaseUrl() + "/chat/completions";
-        long timeoutSeconds = config.getQwen().getTimeoutSeconds();
-
-        String requestBody = objectMapper.writeValueAsString(openaiRequest);
-
-        log.info("🚀 Forwarding to vLLM: {} with {} messages", vllmUrl,
-                 ((List<?>) openaiRequest.get("messages")).size());
-
-        HttpClient client = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(timeoutSeconds))
-                .build();
-
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(vllmUrl))
-                .timeout(Duration.ofSeconds(timeoutSeconds))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(requestBody))
-                .build();
-
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-        log.info("📥 vLLM response status: {}", response.statusCode());
-        log.debug("📄 vLLM response body: {}", response.body().substring(0, Math.min(500, response.body().length())));
-
-        if (response.statusCode() != 200) {
-            log.error("vLLM error status {}: {}", response.statusCode(), response.body());
-            throw new RuntimeException("vLLM error: " + response.statusCode() + " - " + response.body());
+    private Mono<String> forwardToVllm(Map<String, Object> openaiRequest) {
+        String requestBody;
+        try {
+            requestBody = objectMapper.writeValueAsString(openaiRequest);
+        } catch (Exception e) {
+            return Mono.error(e);
         }
 
-        return response.body();
+        log.info("🚀 Forwarding to vLLM with {} messages",
+                 ((List<?>) openaiRequest.get("messages")).size());
+
+        return vllmWebClient
+                .post()
+                .uri("/v1/chat/completions")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(requestBody)
+                .retrieve()
+                .onStatus(status -> !status.is2xxSuccessful(), resp ->
+                    resp.bodyToMono(String.class)
+                        .flatMap(body -> {
+                            log.error("vLLM error: {}", body);
+                            return Mono.error(new RuntimeException("vLLM error: " + body));
+                        }))
+                .bodyToMono(String.class)
+                .doOnNext(response -> {
+                    log.info("📥 vLLM response received");
+                    log.debug("📄 vLLM response body: {}", response.substring(0, Math.min(500, response.length())));
+                });
     }
 
     /**
@@ -205,14 +344,40 @@ public class AnthropicCompatibleController {
         Map<String, Object> firstChoice = choices.get(0);
         @SuppressWarnings("unchecked")
         Map<String, Object> message = (Map<String, Object>) firstChoice.get("message");
-        String content = message.get("content") != null ? (String) message.get("content") : "";
 
-        // Wrap content in Anthropic format
+        // Build content blocks — handle both text and tool_calls
         List<Map<String, Object>> contentBlocks = new ArrayList<>();
-        Map<String, Object> textBlock = new LinkedHashMap<>();
-        textBlock.put("type", "text");
-        textBlock.put("text", content);
-        contentBlocks.add(textBlock);
+
+        // Text content (may be null when tool calls are present)
+        String content = message.get("content") != null ? (String) message.get("content") : "";
+        if (!content.isEmpty()) {
+            Map<String, Object> textBlock = new LinkedHashMap<>();
+            textBlock.put("type", "text");
+            textBlock.put("text", content);
+            contentBlocks.add(textBlock);
+        }
+
+        // Tool calls
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> toolCalls = (List<Map<String, Object>>) message.get("tool_calls");
+        if (toolCalls != null) {
+            for (Map<String, Object> tc : toolCalls) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> fn = (Map<String, Object>) tc.get("function");
+                Map<String, Object> toolUseBlock = new LinkedHashMap<>();
+                toolUseBlock.put("type", "tool_use");
+                toolUseBlock.put("id", tc.get("id"));
+                toolUseBlock.put("name", fn.get("name"));
+                try {
+                    String argsJson = (String) fn.get("arguments");
+                    Object input = objectMapper.readValue(argsJson, Object.class);
+                    toolUseBlock.put("input", input);
+                } catch (Exception e) {
+                    toolUseBlock.put("input", new LinkedHashMap<>());
+                }
+                contentBlocks.add(toolUseBlock);
+            }
+        }
 
         anthropicResponse.put("content", contentBlocks);
 
@@ -249,124 +414,287 @@ public class AnthropicCompatibleController {
         return switch (openaiFinishReason) {
             case "stop" -> "end_turn";
             case "length" -> "max_tokens";
+            case "tool_calls" -> "tool_use";
             default -> openaiFinishReason;
         };
     }
 
     /**
      * Handle streaming requests by forwarding to vLLM and converting to Anthropic SSE format.
+     * Uses reactive WebClient with ServerSentEvent deserialization to avoid blocking I/O.
      */
-    private ResponseEntity<?> streamMessages(Map<String, Object> anthropicRequest) throws Exception {
+    private ResponseEntity<?> streamMessages(Map<String, Object> anthropicRequest) {
         Map<String, Object> openaiRequest = translateAnthropicToOpenAI(anthropicRequest);
         openaiRequest.put("stream", true);
 
-        String vllmUrl = config.getQwen().getBaseUrl() + "/chat/completions";
-        String requestBody = objectMapper.writeValueAsString(openaiRequest);
-        String clientModel = (String) anthropicRequest.get("model");
-        String modelName = clientModel != null ? clientModel : config.getQwen().getModelName();
-
-        log.info("🌊 Streaming to vLLM: {} with {} messages", vllmUrl,
-                 ((List<?>) openaiRequest.get("messages")).size());
-
-        HttpClient httpClient = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(config.getQwen().getTimeoutSeconds()))
-                .build();
-
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(vllmUrl))
-                .timeout(Duration.ofSeconds(config.getQwen().getTimeoutSeconds()))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(requestBody))
-                .build();
-
-        HttpResponse<java.io.InputStream> response = httpClient.send(
-                request, HttpResponse.BodyHandlers.ofInputStream());
-
-        if (response.statusCode() != 200) {
-            String errorBody = new String(response.body().readAllBytes());
-            throw new RuntimeException("vLLM streaming error: " + response.statusCode() + " - " + errorBody);
+        String requestBody;
+        try {
+            requestBody = objectMapper.writeValueAsString(openaiRequest);
+        } catch (Exception e) {
+            log.error("Error serializing OpenAI request", e);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "Request serialization failed"));
         }
 
         String messageId = "msg-" + UUID.randomUUID().toString().substring(0, 8);
+        String modelName = (String) anthropicRequest.get("model");
+        if (modelName == null) {
+            modelName = config.getQwen().getModelName();
+        }
 
-        // Build the SSE Flux that reads from vLLM and converts to Anthropic SSE format
-        Flux<String> sseFlux = Flux.create(sink -> {
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(response.body()))) {
-                // Send Anthropic message_start event
-                Map<String, Object> messageStartEvent = new LinkedHashMap<>();
-                messageStartEvent.put("type", "message_start");
-                Map<String, Object> msgMeta = new LinkedHashMap<>();
-                msgMeta.put("id", messageId);
-                msgMeta.put("type", "message");
-                msgMeta.put("role", "assistant");
-                msgMeta.put("content", List.of());
-                msgMeta.put("model", modelName);
-                msgMeta.put("stop_reason", null);
-                msgMeta.put("usage", Map.of("input_tokens", 0, "output_tokens", 0));
-                messageStartEvent.put("message", msgMeta);
-                sink.next("event: message_start\ndata: " + objectMapper.writeValueAsString(messageStartEvent) + "\n\n");
+        log.info("🌊 Streaming to vLLM with {} messages",
+                 ((List<?>) openaiRequest.get("messages")).size());
 
-                // Send content_block_start
-                Map<String, Object> blockStart = Map.of("type", "content_block_start",
-                        "index", 0, "content_block", Map.of("type", "text", "text", ""));
-                sink.next("event: content_block_start\ndata: " + objectMapper.writeValueAsString(blockStart) + "\n\n");
+        // upstream SSE from vLLM
+        Flux<ServerSentEvent<String>> upstream = vllmWebClient
+                .post()
+                .uri("/v1/chat/completions")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.TEXT_EVENT_STREAM)
+                .bodyValue(requestBody)
+                .retrieve()
+                .onStatus(status -> !status.is2xxSuccessful(), resp ->
+                    resp.bodyToMono(String.class)
+                        .flatMap(b -> Mono.error(new RuntimeException("vLLM streaming error: " + b))))
+                .bodyToFlux(new ParameterizedTypeReference<ServerSentEvent<String>>() {});
 
-                String finalFinishReason = "end_turn";
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    if (!line.startsWith("data: ")) continue;
-                    String data = line.substring(6).trim();
-                    if ("[DONE]".equals(data)) break;
+        // translate vLLM delta events → Anthropic content_block_delta events
+        // State for tracking content blocks
+        AtomicReference<String> finalFinishReason = new AtomicReference<>("end_turn");
+        AtomicInteger nextBlockIndex = new AtomicInteger(0);
+        AtomicInteger textBlockIndex = new AtomicInteger(-1);       // -1 = not started
+        AtomicReference<Map<Integer, Integer>> toolBlockIndexMap = new AtomicReference<>(new LinkedHashMap<>());
 
-                    @SuppressWarnings("unchecked")
-                    Map<String, Object> chunk = objectMapper.readValue(data, Map.class);
-                    @SuppressWarnings("unchecked")
-                    List<Map<String, Object>> choices = (List<Map<String, Object>>) chunk.get("choices");
-                    if (choices == null || choices.isEmpty()) continue;
+        Flux<String> deltaFlux = upstream
+                .takeWhile(event -> event.data() == null || !"[DONE]".equals(event.data()))
+                .filter(event -> event.data() != null)
+                .concatMap(event -> {
+                    try {
+                        Map<String, Object> chunk = objectMapper.readValue(event.data(), Map.class);
+                        List<Map<String, Object>> choices = (List<Map<String, Object>>) chunk.get("choices");
+                        if (choices == null || choices.isEmpty()) {
+                            return Flux.empty();
+                        }
+                        Map<String, Object> choice = choices.get(0);
 
-                    Map<String, Object> choice = choices.get(0);
-                    @SuppressWarnings("unchecked")
-                    Map<String, Object> delta = (Map<String, Object>) choice.get("delta");
-                    String finishReason = (String) choice.get("finish_reason");
+                        // Capture finish_reason if present
+                        if (choice.get("finish_reason") != null) {
+                            finalFinishReason.set(mapFinishReason((String) choice.get("finish_reason")));
+                        }
 
-                    if (finishReason != null) {
-                        finalFinishReason = mapFinishReason(finishReason);
+                        Map<String, Object> delta = (Map<String, Object>) choice.get("delta");
+                        if (delta == null) {
+                            return Flux.empty();
+                        }
+
+                        List<String> outEvents = new ArrayList<>();
+
+                        // Text delta
+                        if (delta.get("content") instanceof String text && !text.isEmpty()) {
+                            if (textBlockIndex.get() == -1) {
+                                int idx = nextBlockIndex.getAndIncrement();
+                                textBlockIndex.set(idx);
+                                outEvents.add(buildTextBlockStartEvent(idx));
+                            }
+                            outEvents.add(buildTextDeltaEvent(textBlockIndex.get(), text));
+                        }
+
+                        // Tool call deltas
+                        @SuppressWarnings("unchecked")
+                        List<Map<String, Object>> toolCalls = (List<Map<String, Object>>) delta.get("tool_calls");
+                        if (toolCalls != null) {
+                            for (Map<String, Object> tc : toolCalls) {
+                                int toolCallIdx = ((Number) tc.get("index")).intValue();
+                                Map<Integer, Integer> indexMap = toolBlockIndexMap.get();
+
+                                if (!indexMap.containsKey(toolCallIdx)) {
+                                    // First chunk for this tool call — emit content_block_start
+                                    int blockIdx = nextBlockIndex.getAndIncrement();
+                                    indexMap.put(toolCallIdx, blockIdx);
+                                    toolBlockIndexMap.set(indexMap);
+                                    @SuppressWarnings("unchecked")
+                                    Map<String, Object> fn = (Map<String, Object>) tc.get("function");
+                                    String toolId = (String) tc.get("id");
+                                    String toolName = fn != null ? (String) fn.get("name") : "";
+                                    outEvents.add(buildToolUseBlockStartEvent(blockIdx, toolId, toolName));
+                                    // Also emit initial arguments if present
+                                    if (fn != null && fn.get("arguments") instanceof String args && !args.isEmpty()) {
+                                        outEvents.add(buildInputJsonDeltaEvent(blockIdx, args));
+                                    }
+                                } else {
+                                    // Subsequent chunk — emit input_json_delta
+                                    int blockIdx = indexMap.get(toolCallIdx);
+                                    @SuppressWarnings("unchecked")
+                                    Map<String, Object> fn = (Map<String, Object>) tc.get("function");
+                                    if (fn != null && fn.get("arguments") instanceof String args && !args.isEmpty()) {
+                                        outEvents.add(buildInputJsonDeltaEvent(blockIdx, args));
+                                    }
+                                }
+                            }
+                        }
+
+                        return Flux.fromIterable(outEvents);
+                    } catch (Exception e) {
+                        log.error("Error parsing SSE event", e);
+                        return Flux.error(e);
                     }
+                });
 
-                    if (delta != null && delta.get("content") != null) {
-                        String textDelta = (String) delta.get("content");
-                        Map<String, Object> blockDelta = Map.of("type", "content_block_delta",
-                                "index", 0, "delta", Map.of("type", "text_delta", "text", textDelta));
-                        sink.next("event: content_block_delta\ndata: " + objectMapper.writeValueAsString(blockDelta) + "\n\n");
-                    }
-                }
-
-                // Send content_block_stop
-                sink.next("event: content_block_stop\ndata: " + objectMapper.writeValueAsString(Map.of("type", "content_block_stop", "index", 0)) + "\n\n");
-
-                // Send message_delta with stop_reason
-                Map<String, Object> msgDelta = new LinkedHashMap<>();
-                msgDelta.put("type", "message_delta");
-                Map<String, Object> delta = new LinkedHashMap<>();
-                delta.put("stop_reason", finalFinishReason);
-                delta.put("stop_sequence", null);
-                msgDelta.put("delta", delta);
-                msgDelta.put("usage", Map.of("output_tokens", 0));
-                sink.next("event: message_delta\ndata: " + objectMapper.writeValueAsString(msgDelta) + "\n\n");
-
-                // Send message_stop
-                sink.next("event: message_stop\ndata: " + objectMapper.writeValueAsString(Map.of("type", "message_stop")) + "\n\n");
-
-                sink.complete();
-            } catch (Exception e) {
-                log.error("Streaming error", e);
-                sink.error(e);
-            }
+        // Trailing events — close all open blocks, then message_delta/stop
+        Flux<String> trailingFlux = Flux.defer(() -> {
+            List<String> trailingEvents = new ArrayList<>();
+            if (textBlockIndex.get() != -1) trailingEvents.add(buildContentBlockStopEvent(textBlockIndex.get()));
+            toolBlockIndexMap.get().values().forEach(idx -> trailingEvents.add(buildContentBlockStopEvent(idx)));
+            trailingEvents.add(buildMessageDeltaEvent(finalFinishReason.get()));
+            trailingEvents.add(buildMessageStopEvent());
+            return Flux.fromIterable(trailingEvents);
         });
+
+        // assemble the complete Anthropic SSE sequence
+        Flux<String> sseFlux = Flux.concat(
+            Flux.just(buildMessageStartEvent(messageId, modelName)),
+            deltaFlux,
+            trailingFlux
+        );
 
         return ResponseEntity.ok()
                 .contentType(MediaType.TEXT_EVENT_STREAM)
                 .body(sseFlux);
+    }
+
+    /**
+     * Build Anthropic message_start SSE event.
+     */
+    private String buildMessageStartEvent(String messageId, String modelName) {
+        try {
+            Map<String, Object> messageStartEvent = new LinkedHashMap<>();
+            messageStartEvent.put("type", "message_start");
+            Map<String, Object> msgMeta = new LinkedHashMap<>();
+            msgMeta.put("id", messageId);
+            msgMeta.put("type", "message");
+            msgMeta.put("role", "assistant");
+            msgMeta.put("content", List.of());
+            msgMeta.put("model", modelName);
+            msgMeta.put("stop_reason", null);
+            msgMeta.put("usage", Map.of("input_tokens", 0, "output_tokens", 0));
+            messageStartEvent.put("message", msgMeta);
+            return "event: message_start\ndata: " + objectMapper.writeValueAsString(messageStartEvent) + "\n\n";
+        } catch (Exception e) {
+            log.error("Error building message_start event", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Build Anthropic content_block_start SSE event for text block.
+     */
+    private String buildTextBlockStartEvent(int index) {
+        try {
+            Map<String, Object> blockStart = new LinkedHashMap<>();
+            blockStart.put("type", "content_block_start");
+            blockStart.put("index", index);
+            blockStart.put("content_block", Map.of("type", "text", "text", ""));
+            return "event: content_block_start\ndata: " + objectMapper.writeValueAsString(blockStart) + "\n\n";
+        } catch (Exception e) {
+            log.error("Error building text_block_start event", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Build Anthropic content_block_start SSE event for tool_use block.
+     */
+    private String buildToolUseBlockStartEvent(int index, String id, String name) {
+        try {
+            Map<String, Object> blockStart = new LinkedHashMap<>();
+            blockStart.put("type", "content_block_start");
+            blockStart.put("index", index);
+            blockStart.put("content_block", Map.of("type", "tool_use", "id", id, "name", name, "input", new LinkedHashMap<>()));
+            return "event: content_block_start\ndata: " + objectMapper.writeValueAsString(blockStart) + "\n\n";
+        } catch (Exception e) {
+            log.error("Error building tool_use_block_start event", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Build Anthropic content_block_delta SSE event for text delta.
+     */
+    private String buildTextDeltaEvent(int index, String text) {
+        try {
+            Map<String, Object> blockDelta = new LinkedHashMap<>();
+            blockDelta.put("type", "content_block_delta");
+            blockDelta.put("index", index);
+            blockDelta.put("delta", Map.of("type", "text_delta", "text", text));
+            return "event: content_block_delta\ndata: " + objectMapper.writeValueAsString(blockDelta) + "\n\n";
+        } catch (Exception e) {
+            log.error("Error building text_delta event", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Build Anthropic content_block_delta SSE event for input_json_delta (tool arguments).
+     */
+    private String buildInputJsonDeltaEvent(int index, String partialJson) {
+        try {
+            Map<String, Object> blockDelta = new LinkedHashMap<>();
+            blockDelta.put("type", "content_block_delta");
+            blockDelta.put("index", index);
+            blockDelta.put("delta", Map.of("type", "input_json_delta", "partial_json", partialJson));
+            return "event: content_block_delta\ndata: " + objectMapper.writeValueAsString(blockDelta) + "\n\n";
+        } catch (Exception e) {
+            log.error("Error building input_json_delta event", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Build Anthropic content_block_stop SSE event.
+     */
+    private String buildContentBlockStopEvent(int index) {
+        try {
+            Map<String, Object> blockStop = new LinkedHashMap<>();
+            blockStop.put("type", "content_block_stop");
+            blockStop.put("index", index);
+            return "event: content_block_stop\ndata: " + objectMapper.writeValueAsString(blockStop) + "\n\n";
+        } catch (Exception e) {
+            log.error("Error building content_block_stop event", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Build Anthropic message_delta SSE event.
+     */
+    private String buildMessageDeltaEvent(String finishReason) {
+        try {
+            Map<String, Object> msgDelta = new LinkedHashMap<>();
+            msgDelta.put("type", "message_delta");
+            Map<String, Object> delta = new LinkedHashMap<>();
+            delta.put("stop_reason", finishReason);
+            delta.put("stop_sequence", null);
+            msgDelta.put("delta", delta);
+            msgDelta.put("usage", Map.of("output_tokens", 0));
+            return "event: message_delta\ndata: " + objectMapper.writeValueAsString(msgDelta) + "\n\n";
+        } catch (Exception e) {
+            log.error("Error building message_delta event", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Build Anthropic message_stop SSE event.
+     */
+    private String buildMessageStopEvent() {
+        try {
+            Map<String, Object> msgStop = new LinkedHashMap<>();
+            msgStop.put("type", "message_stop");
+            return "event: message_stop\ndata: " + objectMapper.writeValueAsString(msgStop) + "\n\n";
+        } catch (Exception e) {
+            log.error("Error building message_stop event", e);
+            throw new RuntimeException(e);
+        }
     }
 
     // ========== Request/Response Classes for documentation ==========
