@@ -1,0 +1,24 @@
+llm:
+  models:
+    claude-sonnet-4-6:
+      api-base: https://u425-u70w-e4420dcd.singapore-b.gpuhub.com:8443
+      api-key: local-key
+      model: claude-sonnet-4-6
+    claude-sonnet-4-5-20251022:
+      api-base: https://u425-u70w-e4420dcd.singapore-b.gpuhub.com:8443
+      api-key: local-key
+      model: claude-sonnet-4-5-20251022
+    claude-sonnet-4-5:
+      api-base: https://u425-u70w-e4420dcd.singapore-b.gpuhub.com:8443
+      api-key: local-key
+      model: claude-sonnet-4-5
+    claude-haiku-4-5-20251001:
+      api-base: https://u425-twwp-6d5643db.singapore-b.gpuhub.com:8443
+      api-key: local-key
+      model: claude-haiku-4-5-20251001
+    claude-haiku-4-5:
+      api-base: https://u425-twwp-6d5643db.singapore-b.gpuhub.com:8443
+      api-key: local-key
+      model: claude-haiku-4-5
+  default-model: claude-sonnet-4-6
+  selection-strategy: round-robin

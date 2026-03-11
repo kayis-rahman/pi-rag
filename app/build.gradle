@@ -1,0 +1,110 @@
+plugins {
+    id 'org.springframework.boot' version '3.3.5'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'java'
+}
+
+group = 'com.synapse'
+version = '1.0.0'
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+ext {
+    springAiVersion = '1.0.0'
+}
+
+repositories {
+    mavenCentral()
+    maven { url 'https://jitpack.io' } // For potential Qdrant client if needed
+    maven { url 'https://repo.spring.io/milestone' }
+    maven { url 'https://repo.spring.io/snapshot' }
+    maven {
+        name = 'Central Portal Snapshots'
+        url = 'https://central.sonatype.com/repository/maven-snapshots/'
+    }
+}
+
+dependencies {
+    // Spring Boot Dependencies
+    implementation 'org.springframework.boot:spring-boot-starter'
+//    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+    // Actuator for metrics
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+    // Prometheus metrics
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+    compileOnly 'org.projectlombok:lombok:1.18.34'
+    annotationProcessor 'org.projectlombok:lombok:1.18.34'
+//    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    // For gRPC communication
+    implementation 'io.grpc:grpc-netty-shaded:1.75.0'
+    implementation 'io.grpc:grpc-protobuf:1.58.0'
+    implementation 'io.grpc:grpc-stub:1.58.0'
+
+    // Netty DNS native library for macOS
+    implementation 'io.netty:netty-resolver-dns-native-macos:4.1.118.Final:osx-aarch_64'
+
+    // For Redis integration
+//    implementation 'redis.clients:jedis:4.4.6'
+//    implementation 'org.springframework.data:spring-data-redis:3.2.0'
+
+    implementation 'io.qdrant:client:1.17.0'
+
+    // For SQLite database
+//    implementation 'org.xerial:sqlite-jdbc:3.42.0.0'
+//    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+
+    // Spring AI Dependencies
+    implementation platform("org.springframework.ai:spring-ai-bom:${springAiVersion}")
+    implementation 'org.springframework.ai:spring-ai-openai'
+    implementation 'org.springframework.ai:spring-ai-starter-model-anthropic'
+
+    // LangChain4j Dependencies
+    implementation 'dev.langchain4j:langchain4j-core:0.36.2'
+    implementation 'dev.langchain4j:langchain4j-open-ai:0.36.2'          // For OpenAI-compatible vLLM (Qwen)
+    implementation 'dev.langchain4j:langchain4j-anthropic:0.36.2'        // For Claude API
+
+    // Resilience4j Circuit Breaker
+    implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.2.0'
+    implementation 'io.github.resilience4j:resilience4j-circuitbreaker:2.2.0'
+
+    // Testing
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test {
+    useJUnitPlatform()
+    filter {
+        includeTestsMatching '*Test'
+        excludeTestsMatching '*E2E*'
+    }
+}
+
+// ============================================================================
+// End-to-End Testing Task
+// ============================================================================
+task e2e(type: Test) {
+    description = 'Run E2E tests'
+    group = 'verification'
+    useJUnitPlatform()
+    filter {
+        includeTestsMatching '*E2E*'
+        includeTestsWithTag('e2e')
+    }
+}
+
+// SSE multi-turn streaming test
+task e2eSseConversation(type: JavaExec) {
+    description = 'Run E2E SSE multi-turn conversation test (requires running app)'
+    group = 'verification'
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.synapse.llm.api.E2eSseConversationTest'
+    environment 'API_BASE_URL', System.getenv('API_BASE_URL') ?: 'http://localhost:8080'
+}

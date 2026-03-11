@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if echo \"$CLAUDE_TOOL_INPUT\" | grep -q 'application\\.yml'; then echo 'WARNING: Modifying application.yml which contains API keys and service endpoints (GPUHUB_API_KEY, ANTHROPIC_API_KEY, Redis, Qdrant, SQLite). Verify this change is intentional.'; fi"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if echo \"$CLAUDE_TOOL_INPUT\" | grep -q 'app/src/main/java'; then cd /Users/kayisrahman/Documents/workspace/ideas/synapse/app && ./gradlew compileJava --quiet 2>&1 | tail -20 && echo 'compileJava: OK' || echo 'compileJava: FAILED - fix compilation errors above'; fi"
+          }
+        ]
+      }
+    ]
+  }
+}
