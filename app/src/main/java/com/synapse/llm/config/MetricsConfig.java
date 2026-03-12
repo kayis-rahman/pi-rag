@@ -1,9 +1,6 @@
 package com.synapse.llm.config;
 
-import io.micrometer.core.aop.TimedAspect;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Tag;
-import io.micrometer.core.instrument.Tags;
 import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,13 +20,5 @@ public class MetricsConfig {
         return registry -> registry.config()
             .commonTags("service", "synapse")
             .commonTags("environment", "development");
-    }
-
-    /**
-     * TimedAspect for @Timed annotation support on methods.
-     */
-    @Bean
-    public TimedAspect timedAspect() {
-        return new TimedAspect();
     }
 }
