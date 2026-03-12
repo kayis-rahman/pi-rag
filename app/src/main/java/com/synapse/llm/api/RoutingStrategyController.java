@@ -1,5 +1,6 @@
 package com.synapse.llm.api;
 
+import com.synapse.llm.metrics.MetricsService;
 import com.synapse.llm.routing.StrategyRegistry;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,9 +40,11 @@ public class RoutingStrategyController {
     private static final Logger logger = LoggerFactory.getLogger(RoutingStrategyController.class);
 
     private final StrategyRegistry strategyRegistry;
+    private final MetricsService metricsService;
 
-    public RoutingStrategyController(StrategyRegistry strategyRegistry) {
+    public RoutingStrategyController(StrategyRegistry strategyRegistry, MetricsService metricsService) {
         this.strategyRegistry = strategyRegistry;
+        this.metricsService = metricsService;
     }
 
     /**
@@ -51,11 +54,19 @@ public class RoutingStrategyController {
      */
     @GetMapping
     public Mono<ResponseEntity<StrategyStatusResponse>> getStatus() {
+        // Record API call metric
+        metricsService.recordApiCall("/api/routing/strategy", "GET");
+        long startTime = System.currentTimeMillis();
+
         StrategyStatusResponse response = new StrategyStatusResponse(
                 strategyRegistry.getActiveName(),
                 strategyRegistry.getAvailableNames()
         );
-        return Mono.just(ResponseEntity.ok(response));
+        return Mono.just(ResponseEntity.ok(response))
+                .doOnSuccess(resp -> {
+                    long elapsed = System.currentTimeMillis() - startTime;
+                    metricsService.recordApiResponseTime("/api/routing/strategy", "GET", elapsed);
+                });
     }
 
     /**
@@ -66,18 +77,29 @@ public class RoutingStrategyController {
      */
     @PutMapping("/{name}")
     public Mono<ResponseEntity<Object>> switchStrategy(@PathVariable String name) {
+        // Record API call metric
+        metricsService.recordApiCall("/api/routing/strategy", "PUT");
+        long startTime = System.currentTimeMillis();
+
         try {
             strategyRegistry.switchTo(name);
+            metricsService.recordRoutingDecision("strategy_change", name);
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Routing strategy switched successfully");
             response.put("active", strategyRegistry.getActiveName());
-            return Mono.just(ResponseEntity.ok(response));
+            return Mono.just(ResponseEntity.ok((Object) response))
+                    .doOnSuccess(resp -> {
+                        long elapsed = System.currentTimeMillis() - startTime;
+                        metricsService.recordApiResponseTime("/api/routing/strategy", "PUT", elapsed);
+                    });
         } catch (IllegalArgumentException e) {
             logger.warn("Failed to switch to strategy '{}': {}", name, e.getMessage());
+            long elapsed = System.currentTimeMillis() - startTime;
+            metricsService.recordApiResponseTime("/api/routing/strategy", "PUT", elapsed);
             Map<String, Object> error = new HashMap<>();
             error.put("error", e.getMessage());
             error.put("available", strategyRegistry.getAvailableNames());
-            return Mono.just(ResponseEntity.badRequest().body(error));
+            return Mono.just(ResponseEntity.badRequest().body((Object) error));
         }
     }
 

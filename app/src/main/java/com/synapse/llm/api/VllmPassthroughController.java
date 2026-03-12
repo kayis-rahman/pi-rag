@@ -1,5 +1,6 @@
 package com.synapse.llm.api;
 
+import com.synapse.llm.metrics.MetricsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -12,6 +13,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
 import java.util.Set;
 
 @RestController
@@ -25,9 +27,13 @@ public class VllmPassthroughController {
     );
 
     private final WebClient vllmWebClientA;
+    private final MetricsService metricsService;
 
-    public VllmPassthroughController(@Qualifier("vllmWebClientA") WebClient vllmWebClientA) {
+    public VllmPassthroughController(
+            @Qualifier("vllmWebClientA") WebClient vllmWebClientA,
+            MetricsService metricsService) {
         this.vllmWebClientA = vllmWebClientA;
+        this.metricsService = metricsService;
     }
 
     @GetMapping
@@ -50,6 +56,10 @@ public class VllmPassthroughController {
         String fullPath = query != null ? path + "?" + query : path;
 
         log.info("Passthrough {} {}", method, fullPath);
+
+        // Record API call metric
+        metricsService.recordApiCall(path, method.name());
+        long startTime = System.currentTimeMillis();
 
         HttpHeaders upstreamHeaders = new HttpHeaders();
         exchange.getRequest().getHeaders().forEach((name, values) -> {
@@ -77,8 +87,18 @@ public class VllmPassthroughController {
                             .headers(responseHeaders)
                             .body(responseBody));
                 })
+                .doOnSuccess(response -> {
+                    long elapsed = System.currentTimeMillis() - startTime;
+                    metricsService.recordApiResponseTime(path, method.name(), elapsed);
+                })
+                .doOnSubscribe(subscription -> {
+                    log.info("Passthrough request started {} {}", method, fullPath);
+                })
                 .onErrorResume(e -> {
                     log.error("vLLM upstream error {} {}: {}", method, fullPath, e.getMessage());
+                    long elapsed = System.currentTimeMillis() - startTime;
+                    metricsService.recordApiResponseTime(path, method.name(), elapsed);
+                    metricsService.recordCircuitBreakerFailure();
                     return Mono.just(ResponseEntity.status(HttpStatus.BAD_GATEWAY)
                             .body(Flux.empty()));
                 });
