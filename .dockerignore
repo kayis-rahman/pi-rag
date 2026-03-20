@@ -1,0 +1,48 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Claude Code
+.clade
+.claudef
+.memory/
+
+# Git worktrees (isolated development environments)
+.worktrees/
+
+# Build artifacts
+app/build/
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# Logs
+app/logs/
+*.log
+
+# Documentation (not needed in container)
+*.md
+docs/
+
+# Monitoring configs (mounted as volume, not baked into image)
+monitoring/
+
+# Environment files (security - never bake secrets into images)
+.env
+.env.*
+!.env.example
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp

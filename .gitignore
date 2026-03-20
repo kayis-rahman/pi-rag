@@ -23,3 +23,6 @@ Thumbs.db
 
 # Git Worktrees
 .worktrees/
+
+# Environment files with secrets
+.env
