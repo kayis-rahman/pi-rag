@@ -40,7 +40,15 @@ dependencies {
     implementation 'io.micrometer:micrometer-registry-prometheus'
     compileOnly 'org.projectlombok:lombok:1.18.34'
     annotationProcessor 'org.projectlombok:lombok:1.18.34'
-//    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    // Database dependencies
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    implementation 'org.postgresql:postgresql:42.7.3'
+    implementation 'redis.clients:jedis:4.4.6'
+    implementation 'org.springframework.data:spring-data-redis:3.2.0'
+    implementation 'org.xerial:sqlite-jdbc:3.42.0.0'
+    implementation 'org.flywaydb:flyway-core:10.5.0'
 
     // For gRPC communication
     implementation 'io.grpc:grpc-netty-shaded:1.75.0'
@@ -51,14 +59,14 @@ dependencies {
     implementation 'io.netty:netty-resolver-dns-native-macos:4.1.118.Final:osx-aarch_64'
 
     // For Redis integration
-//    implementation 'redis.clients:jedis:4.4.6'
-//    implementation 'org.springframework.data:spring-data-redis:3.2.0'
+    implementation 'redis.clients:jedis:4.4.6'
+    implementation 'org.springframework.data:spring-data-redis:3.2.0'
 
     implementation 'io.qdrant:client:1.17.0'
 
     // For SQLite database
-//    implementation 'org.xerial:sqlite-jdbc:3.42.0.0'
-//    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    implementation 'org.xerial:sqlite-jdbc:3.42.0.0'
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 
     // Spring AI Dependencies
     implementation platform("org.springframework.ai:spring-ai-bom:${springAiVersion}")

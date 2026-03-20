@@ -1,16 +1,27 @@
 server:
-  port: 8080
+  port: 8082
   # Reactor Netty configuration to suppress TCP_NODELAY warning on macOS
   netty:
     pool:
       max-idle-time: 30000
 
 spring:
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
-      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
-      - org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration
+  datasource:
+    url: jdbc:postgresql://localhost:5432/synapse
+    username: synapse_user
+    password: synapse_password
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: ${SHOW_SQL:false}
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
   ai:
     anthropic:
       api-key: ${ANTHROPIC_API_KEY:your-api-key-here}
@@ -19,6 +30,15 @@ spring:
   web:
     resources:
       add-mappings: false
+  redis:
+    host: localhost
+    port: 6379
+    timeout: 2000ms
+    jedis:
+      pool:
+        max-active: 20
+        max-idle: 10
+        min-idle: 5
 
 # LangChain4j Router Configuration
 synapse:
@@ -26,13 +46,11 @@ synapse:
     trace-file: logs/synapse-trace.log
   llm:
     qwen:
-#      base-url: https://u425-c9xl-2793be5c.singapore-b.gpuhub.com:8443/v1
-#      server-url: https://u425-c9xl-2793be5c.singapore-b.gpuhub.com:8443
-      base-url: https://u425-c9xl-2793be5c.singapore-b.gpuhub.com:8443/v1
-      server-url: https://u425-c9xl-2793be5c.singapore-b.gpuhub.com:8443          # Server A (haiku)
-      secondary-server-url: https://u425-c9xl-2793be5c.singapore-b.gpuhub.com:8443  # TEMP: Server A fallback (Server B port not open)
-      model-name: claude-haiku-4-5-20251001
-      secondary-model-name: claude-haiku-4-5-20251001  # TEMP: Same as primary (Server B port not open)
+      server-url: https://u425-u70w-e4420dcd.singapore-b.gpuhub.com:8443 #Server A (haiku)
+#      secondary-server-url: https://u425-u70w-e4420dcd.singapore-b.gpuhub.com:8443 # Server B (sonnet)
+      secondary-server-url: https://u425-c9xl-2793be5c.singapore-b.gpuhub.com:8443 # Server B (sonnet)
+      model-name: claude-haiku-4-5
+      secondary-model-name: claude-sonnet-4-6
       max-output-tokens: 8192
       api-key: "not-needed"                    # vLLM doesn't require auth
       timeout-seconds: 60
@@ -58,122 +76,18 @@ synapse:
       permitted-calls-in-half-open: 3          # Allow 3 calls in half-open state
       min-calls-before-evaluation: 5            # Need 5 calls before threshold check
 
-llm:
-  model_list:
-    - model_name: claude-sonnet-4-6
-      api_key: ${GPUHUB_API_KEY:"test-key"}
-      instances:
-        - instance_id: vllm-primary
-          api_base: https://u425-twwp-6d5643db.singapore-b.gpuhub.com:8443/v1
-          enabled: true
-          is_primary: true
-        - instance_id: vllm-backup
-          api_base: https://u425-u70w-e4420dcd.singapore-b.gpuhub.com:8443/v1
-          enabled: true
-          is_primary: false
-    - model_name: claude-sonnet-4-5-20251022
-      api_key: ${GPUHUB_API_KEY:"test-key"}
-      instances:
-        - instance_id: vllm-primary
-          api_base: https://u425-twwp-6d5643db.singapore-b.gpuhub.com:8443/v1
-          enabled: true
-          is_primary: true
-        - instance_id: vllm-backup
-          api_base: https://u425-u70w-e4420dcd.singapore-b.gpuhub.com:8443/v1
-          enabled: true
-          is_primary: false
-    - model_name: claude-sonnet-4-5
-      api_key: ${GPUHUB_API_KEY:"test-key"}
-      instances:
-        - instance_id: vllm-primary
-          api_base: https://u425-twwp-6d5643db.singapore-b.gpuhub.com:8443/v1
-          enabled: true
-          is_primary: true
-        - instance_id: vllm-backup
-          api_base: https://u425-u70w-e4420dcd.singapore-b.gpuhub.com:8443/v1
-          enabled: true
-          is_primary: false
-    - model_name: claude-haiku-4-5-20251001
-      api_key: ${GPUHUB_API_KEY:"test-key"}
-      instances:
-        - instance_id: vllm-primary
-          api_base: https://u425-twwp-6d5643db.singapore-b.gpuhub.com:8443/v1
-          enabled: true
-          is_primary: true
-        - instance_id: vllm-backup
-          api_base: https://u425-u70w-e4420dcd.singapore-b.gpuhub.com:8443/v1
-          enabled: true
-          is_primary: false
-    - model_name: claude-haiku-4-5
-      api_key: ${GPUHUB_API_KEY:"test-key"}
-      instances:
-        - instance_id: vllm-primary
-          api_base: https://u425-twwp-6d5643db.singapore-b.gpuhub.com:8443/v1
-          enabled: true
-          is_primary: true
-        - instance_id: vllm-backup
-          api_base: https://u425-u70w-e4420dcd.singapore-b.gpuhub.com:8443/v1
-          enabled: true
-          is_primary: false
-  litellm_settings:
-    drop_params: true
-    set_verbose: false
-  general_settings:
-    disable_cooldowns: true
-  settings:
-    default-model: claude-sonnet-4-6
-  routing:
-    enabled: true
-    servers:
-      small:
-        instance-id: local-mlx-qwen
-        api-base: http://127.0.0.1:8888/v1
-        api-key: local-test-key
-        served-model-name: Qwen/Qwen3-1.7B-MLX-4bit
-      large:
-        instance-id: local-mlx-qwen
-        api-base: http://127.0.0.1:8888/v1
-        api-key: local-test-key
-        served-model-name: Qwen/Qwen3-1.7B-MLX-4bit
-    model-tier-map:
-      claude-sonnet-4-6: LARGE
-      claude-sonnet-4-5-20251022: LARGE
-      claude-sonnet-4-5: LARGE
-      claude-haiku-4-5-20251001: SMALL
-      claude-haiku-4-5: SMALL
-    rules:
-      max-small-tokens: 500
-      max-small-words: 30
-#  datasource:
-#    url: jdbc:postgresql://localhost:5432/synapse_memory
-#    username: synapse_user
-#    password: synapse_password
-#    driver-class-name: org.postgresql.Driver
-#    hikari:
-#      maximum-pool-size: 10
-#      connection-timeout: 30000
-#
-#  redis:
-#    host: localhost
-#    port: 6379
-#    timeout: 2000ms
-#    lettuce:
-#      pool:
-#        max-active: 20
-#        max-idle: 10
-#        min-idle: 5
 
 memory:
   episodic:
     redis:
-      host: localhost
-      port: 6379
+      host: ${MEMORY_EPISODIC_REDIS_HOST:localhost}
+      port: ${MEMORY_EPISODIC_REDIS_PORT:6379}
       ttl: 3600  # 1 hour
   semantic:
     qdrant:
-      host: localhost
-      port: 6334
-      api-key: ""
+      host: ${MEMORY_SEMANTIC_QDRANT_HOST:localhost}
+      port: ${MEMORY_SEMANTIC_QDRANT_PORT:6334}
+      api-key: ${MEMORY_SEMANTIC_QDRANT_API_KEY:}
   knowledge:
     sqlite:
       path: /var/lib/synapse/knowledge.db
