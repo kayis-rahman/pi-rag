@@ -26,3 +26,4 @@ Thumbs.db
 
 # Environment files with secrets
 .env
+app/build/
