@@ -1,0 +1,62 @@
+spring:
+  # Test database configurations
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+    hikari:
+      connection-timeout: 20000
+      maximum-pool-size: 2
+      minimum-idle: 1
+
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+
+  redis:
+    # Use test Redis (requires container or mock)
+    host: localhost
+    port: 6379
+    timeout: 30000
+
+memory:
+  episodic:
+    redis:
+      host: localhost
+      port: 6379
+    retention-days: 1
+    batch-size: 10
+    redis-ttl-seconds: 86400
+
+  semantic:
+    enabled: false
+    qdrant:
+      host: localhost
+      port: 6334
+      api-key: ""
+    similarity-threshold: 0.7
+    index-batch-size: 50
+
+  knowledge:
+    sqlite:
+      path: ${java.io.tmpdir}/test-knowledge.db
+
+  async:
+    thread-pool:
+      core-size: 2
+      max-size: 5
+      queue-capacity: 50
+    indexing:
+      batch-interval: 10000
+      queue-name: memory:index:queue:test
+      batch-size: 10
+
+logging:
+  level:
+    com.synapse.memory: DEBUG
+    com.synapse.config: DEBUG
+    org.springframework.data.redis: INFO
+    org.springframework.jdbc: DEBUG
+    org.springframework: WARN
