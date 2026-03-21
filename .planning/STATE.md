@@ -13,10 +13,10 @@
 
 | Attribute | Value |
 |-----------|-------|
-| Phase | 03-session-management |
-| Plan | Pending |
-| Status | Context gathered |
-| Progress | `██` 28% |
+| Phase | 02-memory-core |
+| Plan | 02 (Next) |
+| Status | Plan 01 complete, Plan 02 ready to start |
+| Progress | `███` 35% |
 
 ---
 
@@ -43,6 +43,9 @@
 | GPUHub for Claude hosting | Cost-effective, reliable hosting | Approved |
 | Round-robin model selection | Simple load balancing (v1) | Pending enhancement |
 | gRPC communication | High-performance inter-service | Pending verification |
+| JedisPool over Spring Data Redis | Direct control & performance for HSET/ZSET patterns | Approved (02-01) |
+| HSET + ZSET dual indexing | Efficient object storage + time-ordered retrieval | Approved (02-01) |
+| PostgreSQL + Redis dual-write | Durability + cache, fallback on Redis miss | Approved (02-01) |
 
 ### Key Files
 
@@ -76,6 +79,7 @@
 |------|-------|--------------|
 | 2026-03-09 | Project initialization | Requirements defined, roadmap created |
 | 2026-03-21 | Phase 3 context gathering | Session identification via implicit detection (message array patterns), Redis TTL cleanup, episodic memory storage |
+| 2026-03-21 | Phase 2 Plan 01 execution | EpisodicMemoryService verified complete, 8 unit tests created, all passing. HSET/ZSET time-indexing with PostgreSQL fallback. MEM-01 & MEM-02 satisfied. |
 
 ---
 
@@ -87,11 +91,12 @@ None at this time.
 
 ## Notes
 
-- Brownfield project with existing architecture; key components commented out
-- Database dependencies need enabling in build.gradle
-- UnifiedMemoryService implementation needs completion
-- Configuration exists but databases not fully enabled
+- Phase 2 Plan 01 (Episodic Memory) COMPLETE with full test coverage
+- Phase 2 Plan 02 (Knowledge Graph) ready to start next
+- Pre-existing test failures in LLM routing/health modules (documented in deferred-items.md) do not block memory module development
+- EpisodicMemoryService uses JedisPool (performance-optimized) with PostgreSQL durability fallback
+- Next: Implement KnowledgeGraphService with similar pattern for semantic memory
 
 ---
 
-*Last updated: 2026-03-21*
+*Last updated: 2026-03-21 (02-01 SUMMARY created)*

@@ -59,7 +59,7 @@ This roadmap delivers the core value: users can store, retrieve, and reason abou
 7. Unified memory service provides single interface for all memory operations
 
 **Plans**: 3 plans
-- [ ] 02-memory-core-01-PLAN.md — Implement episodic memory service (Redis + PostgreSQL fallback)
+- [x] 02-memory-core-01-PLAN.md — Implement episodic memory service (Redis + PostgreSQL fallback) [COMPLETED 2026-03-21]
 - [ ] 02-memory-core-02-PLAN.md — Implement knowledge graph service (SQLite triple store)
 - [ ] 02-memory-core-03-PLAN.md — Implement unified facade + semantic placeholder + async indexing
 
