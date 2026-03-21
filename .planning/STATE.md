@@ -14,9 +14,9 @@
 | Attribute | Value |
 |-----------|-------|
 | Phase | 02-memory-core |
-| Plan | 02 (Complete) |
-| Status | Plan 01 complete, Plan 02 complete (Knowledge Graph with JdbcTemplate) |
-| Progress | `████` 42% |
+| Plan | 03 (Complete) |
+| Status | Plan 01 complete, Plan 02 complete, Plan 03 complete (Unified facade + async infrastructure) |
+| Progress | `████████` 64% |
 
 ---
 
@@ -48,6 +48,10 @@
 | PostgreSQL + Redis dual-write | Durability + cache, fallback on Redis miss | Approved (02-01) |
 | JdbcTemplate for knowledge graph | Spring abstraction for typed edges with composite indexes | Approved (02-02) |
 | SQLite triple store | Lightweight relational storage for semantic relationships | Approved (02-02) |
+| Facade pattern over inheritance | Composition with dependency injection for modality orchestration | Approved (02-03) |
+| Fail-soft error handling | Episodic propagates, semantic/graph log only (non-critical) | Approved (02-03) |
+| Redis lists for Phase 2 async | Simple queuing without Stream complexity; upgrade path to Streams | Approved (02-03) |
+| SemanticMemoryService placeholder | Return empty results instead of exceptions; Phase 4 integration | Approved (02-03) |
 
 ### Key Files
 
@@ -83,6 +87,7 @@
 | 2026-03-21 | Phase 3 context gathering | Session identification via implicit detection (message array patterns), Redis TTL cleanup, episodic memory storage |
 | 2026-03-21 | Phase 2 Plan 01 execution | EpisodicMemoryService verified complete, 8 unit tests created, all passing. HSET/ZSET time-indexing with PostgreSQL fallback. MEM-01 & MEM-02 satisfied. |
 | 2026-03-21 | Phase 2 Plan 02 execution | KnowledgeGraphService refactored to JdbcTemplate, KnowledgeGraphConfig created with SQLite & schema init, 6 comprehensive tests. MEM-05 & MEM-06 satisfied. |
+| 2026-03-21 | Phase 2 Plan 03 execution | UnifiedMemoryService facade implemented with all modalities, AsyncIndexingService with Redis queue & batch processing, application-test.yml created, 10 integration tests. MEM-03, MEM-04, MEM-07, MEM-08 satisfied. |
 
 ---
 
@@ -96,10 +101,12 @@ None at this time.
 
 - Phase 2 Plan 01 (Episodic Memory) COMPLETE - Redis HSET+ZSET with PostgreSQL fallback
 - Phase 2 Plan 02 (Knowledge Graph) COMPLETE - SQLite triple store with JdbcTemplate & composite indexes
+- Phase 2 Plan 03 (Unified Facade) COMPLETE - UnifiedMemoryService orchestrates all modalities, AsyncIndexingService for non-blocking work
 - Pre-existing test failures in LLM routing/health modules (documented in deferred-items.md) do not block memory module development
-- Both episodic and knowledge graph services ready for Phase 03 unified interface
-- Next: Plan 03 (UnifiedMemoryService) to orchestrate episodic + knowledge graph + semantic modalities
+- All three memory services now integrated through single unified interface
+- Async infrastructure ready for Phase 4 semantic indexing integration
+- Next: Phase 03 (Session Management) will depend on UnifiedMemoryService
 
 ---
 
-*Last updated: 2026-03-21 (02-02 complete - Knowledge Graph service ready)*
+*Last updated: 2026-03-21 (02-03 complete - Unified memory facade ready)*
