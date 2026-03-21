@@ -52,6 +52,13 @@ public class VllmPassthroughController {
             ServerWebExchange exchange, HttpMethod method, Flux<DataBuffer> body) {
 
         String path = exchange.getRequest().getPath().value();
+
+        // Exclude actuator endpoints from passthrough to allow Spring Boot metrics
+        if (path.startsWith("/actuator")) {
+            log.debug("Excluding actuator path from passthrough: {}", path);
+            return Mono.empty();
+        }
+
         String query = exchange.getRequest().getURI().getRawQuery();
         String fullPath = query != null ? path + "?" + query : path;
 

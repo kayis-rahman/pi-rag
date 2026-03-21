@@ -1,12 +1,12 @@
 package com.synapse.memory.knowledgegraph;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
+import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,21 +16,62 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Unit tests for KnowledgeGraphService.
  * Tests relationship storage, bidirectional queries, and limit enforcement.
+ * Uses manual setup instead of @SpringBootTest to avoid PostgreSQL dependencies.
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-@TestPropertySource(properties = {
-    "memory.knowledge.sqlite.path=:memory:"  // Use in-memory SQLite for tests
-})
 public class KnowledgeGraphServiceTest {
 
-    @Autowired
     private KnowledgeGraphService knowledgeGraphService;
-
-    @Autowired
     private JdbcTemplate knowledgeGraphJdbcTemplate;
 
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws Exception {
+        // Initialize SQLite in-memory database
+        DriverManagerDataSource dataSource = new DriverManagerDataSource();
+        dataSource.setDriverClassName("org.sqlite.JDBC");
+        dataSource.setUrl("jdbc:sqlite::memory:");
+
+        knowledgeGraphJdbcTemplate = new JdbcTemplate(dataSource);
+        knowledgeGraphService = new KnowledgeGraphService();
+
+        // Inject JdbcTemplate via reflection
+        var field = KnowledgeGraphService.class.getDeclaredField("knowledgeGraphJdbcTemplate");
+        field.setAccessible(true);
+        field.set(knowledgeGraphService, knowledgeGraphJdbcTemplate);
+
+        // Create tables if they don't exist (for in-memory SQLite)
+        knowledgeGraphJdbcTemplate.execute("""
+            CREATE TABLE IF NOT EXISTS graph_entities (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                entity_type TEXT NOT NULL,
+                entity_id TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(entity_type, entity_id)
+            )
+            """);
+
+        knowledgeGraphJdbcTemplate.execute("""
+            CREATE TABLE IF NOT EXISTS graph_edges (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                source_type TEXT NOT NULL,
+                source_id TEXT NOT NULL,
+                relation TEXT NOT NULL,
+                target_type TEXT NOT NULL,
+                target_id TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                metadata TEXT
+            )
+            """);
+
+        knowledgeGraphJdbcTemplate.execute("""
+            CREATE INDEX IF NOT EXISTS idx_source
+            ON graph_edges(source_type, source_id)
+            """);
+
+        knowledgeGraphJdbcTemplate.execute("""
+            CREATE INDEX IF NOT EXISTS idx_target
+            ON graph_edges(target_type, target_id)
+            """);
+
         // Clear tables before each test
         knowledgeGraphJdbcTemplate.execute("DELETE FROM graph_edges");
         knowledgeGraphJdbcTemplate.execute("DELETE FROM graph_entities");

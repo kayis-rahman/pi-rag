@@ -10,18 +10,17 @@ WORKDIR /app
 RUN apk add --no-cache dumb-init
 
 # Copy Gradle wrapper and build files first for layer caching
-COPY gradle/wrapper/gradle-wrapper.jar gradle/wrapper/
-COPY gradlew* build.gradle settings.gradle ./
-COPY app/build.gradle app/
+COPY app/gradle ./gradle
+COPY app/gradlew* app/build.gradle app/settings.gradle ./
 
 # Download dependencies (cached layer)
-RUN ./gradlew :app:dependencies --no-daemon --refresh-dependencies
+RUN chmod +x ./gradlew && ./gradlew dependencies --no-daemon --refresh-dependencies
 
 # Copy source code
-COPY app/src ./app/src
+COPY app/src ./src
 
 # Build the JAR (skip tests for faster builds)
-RUN ./gradlew :app:bootJar --no-daemon -x test
+RUN ./gradlew bootJar --no-daemon -x test
 
 # ============================================================================
 # Stage 2: Runtime - Minimal JRE image with the application
@@ -38,7 +37,7 @@ RUN adduser -D -u 1000 synapse
 WORKDIR /app
 
 # Copy the JAR from builder stage
-COPY --from=builder /app/app/build/libs/*.jar app.jar
+COPY --from=builder /app/build/libs/*.jar app.jar
 
 # Create data directory for SQLite and set ownership
 RUN mkdir -p /var/lib/synapse && chown synapse:synapse /var/lib/synapse
@@ -54,4 +53,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:8082/actuator/health || exit 1
 
 # Use dumb-init as entrypoint for proper signal handling
-ENTRYPOINT ["dumb-init", "--", "java", "-jar", "app.jar"]
+ENTRYPOINT ["dumb-init", "--", "java", "-Dspring.flyway.enabled=false", "-jar", "app.jar"]

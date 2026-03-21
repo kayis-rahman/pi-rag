@@ -31,8 +31,8 @@ spring:
     resources:
       add-mappings: false
   redis:
-    host: localhost
-    port: 6379
+    host: ${SPRING_REDIS_HOST:localhost}
+    port: ${SPRING_REDIS_PORT:6379}
     timeout: 2000ms
     jedis:
       pool:
@@ -46,9 +46,8 @@ synapse:
     trace-file: logs/synapse-trace.log
   llm:
     qwen:
-      server-url: https://u425-u70w-e4420dcd.singapore-b.gpuhub.com:8443 #Server A (haiku)
-#      secondary-server-url: https://u425-u70w-e4420dcd.singapore-b.gpuhub.com:8443 # Server B (sonnet)
-      secondary-server-url: https://u425-c9xl-2793be5c.singapore-b.gpuhub.com:8443 # Server B (sonnet)
+      server-url: ${VLLM-A:https://u425-c9xl-2793be5c.singapore-b.gpuhub.com:8443} #Server A (haiku)
+      secondary-server-url: ${VLLM-B:https://u425-u70w-e4420dcd.singapore-b.gpuhub.com:8443} # Server B (sonnet)
       model-name: claude-haiku-4-5
       secondary-model-name: claude-sonnet-4-6
       max-output-tokens: 8192

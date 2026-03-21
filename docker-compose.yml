@@ -1,6 +1,29 @@
-version: '3.9'
-
 services:
+  # ============================================================================
+  # PostgreSQL Database
+  # ============================================================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: synapse-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: synapse
+      POSTGRES_USER: synapse_user
+      POSTGRES_PASSWORD: synapse_password
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./docker-init/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U synapse_user -d synapse"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - synapse-network
+
   # ============================================================================
   # Synapse Application
   # ============================================================================
@@ -14,17 +37,28 @@ services:
     env_file:
       - .env
     environment:
+      # Database configuration (matches PostgresConfig.java env var names)
+      DB_URL: jdbc:postgresql://postgres:5432/synapse
+      DB_USERNAME: synapse_user
+      DB_PASSWORD: synapse_password
       # Service discovery - override application.yml defaults
       MEMORY_EPISODIC_REDIS_HOST: redis
       MEMORY_EPISODIC_REDIS_PORT: "6379"
       MEMORY_SEMANTIC_QDRANT_HOST: qdrant
       MEMORY_SEMANTIC_QDRANT_PORT: "6334"
+      # Spring Redis configuration for health checks and connection
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: "6379"
       # Application configuration
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-}
+      # Disable Flyway - version incompatibility with PostgreSQL 15+
+      JAVA_TOOL_OPTIONS: "-Dspring.flyway.enabled=false"
     volumes:
       # Persist SQLite database
       - synapse-data:/var/lib/synapse
     depends_on:
+      postgres:
+        condition: service_healthy
       redis:
         condition: service_healthy
       qdrant:
@@ -120,6 +154,8 @@ services:
 volumes:
   synapse-data:
     name: synapse-sqlite-data
+  postgres-data:
+    name: synapse-postgres-data
   redis-data:
     name: synapse-redis-data
   qdrant-data:
