@@ -79,7 +79,8 @@ This roadmap delivers the core value: users can store, retrieve, and reason abou
 4. Expired sessions (configured TTL) automatically cleaned up without manual intervention
 5. Current session active state visible to user via status endpoint
 
-**Plans**: TBD
+**Plans**: 1 plan
+- [ ] 03-session-management-01-PLAN.md — Implement SessionManager with implicit session detection and episodic memory integration
 
 ---
 
@@ -158,7 +159,7 @@ This roadmap delivers the core value: users can store, retrieve, and reason abou
 |-------|----------------|--------|-----------|
 | 1 - Database Foundation | 0/1 | Not started | - |
 | 2 - Memory Core | 0/3 | Planned | - |
-| 3 - Session Management | 0/4 | Not started | - |
+| 3 - Session Management | 0/1 | Planned | - |
 | 4 - LLM Integration | 0/5 | Not started | - |
 | 5 - Agent Capabilities | 0/4 | Not started | - |
 | 6 - Workflow | 0/4 | Not started | - |
