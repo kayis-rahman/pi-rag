@@ -3,7 +3,7 @@ package com.synapse.llm.api;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.synapse.llm.config.LlmConfigurationProperties;
-import com.synapse.llm.logging.RequestTraceLogger;
+import com.synapse.llm.metrics.MetricsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
@@ -35,18 +35,18 @@ public class AnthropicCompatibleController {
     private final LlmConfigurationProperties config;
     private final WebClient vllmWebClientA;
     private final WebClient vllmWebClientB;
-    private final RequestTraceLogger traceLogger;
+    private final MetricsService metricsService;
     private final ObjectMapper objectMapper;
 
     public AnthropicCompatibleController(
             LlmConfigurationProperties config,
             @Qualifier("vllmWebClientA") WebClient vllmWebClientA,
             @Qualifier("vllmWebClientB") WebClient vllmWebClientB,
-            RequestTraceLogger traceLogger) {
+            MetricsService metricsService) {
         this.config = config;
         this.vllmWebClientA = vllmWebClientA;
         this.vllmWebClientB = vllmWebClientB;
-        this.traceLogger = traceLogger;
+        this.metricsService = metricsService;
         this.objectMapper = new ObjectMapper();
     }
 
@@ -98,8 +98,8 @@ public class AnthropicCompatibleController {
             // Check if client wants streaming
             boolean wantsStream = Boolean.TRUE.equals(anthropicRequest.get("stream"));
 
-            // Log request
-            traceLogger.logRequest(model, messageCount, wantsStream);
+            // Record metrics for request
+            metricsService.recordLlmRequest(model, messageCount, wantsStream);
 
             if (wantsStream) {
                 return Mono.just(streamMessages(anthropicRequest));
@@ -122,12 +122,12 @@ public class AnthropicCompatibleController {
                             );
 
                             long latencyMs = System.currentTimeMillis() - startTime;
-                            traceLogger.logResponse(model, 200, latencyMs, null);
+                            metricsService.recordLlmResponse(model, latencyMs, 200, false);
                             return (ResponseEntity<?>) ResponseEntity.ok(anthropicResponse);
                         } catch (Exception e) {
                             log.error("Error parsing/translating vLLM response", e);
                             long latencyMs = System.currentTimeMillis() - startTime;
-                            traceLogger.logResponse(model, 400, latencyMs, e.getMessage());
+                            metricsService.recordLlmResponse(model, latencyMs, 400, false);
                             return (ResponseEntity<?>) ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
                                 anthropicError("api_error", "Response translation failed: " + e.getMessage())
                             );
@@ -139,7 +139,7 @@ public class AnthropicCompatibleController {
                         // Use original HTTP status code if available, otherwise 502
                         int statusCode = (e instanceof VllmHttpException ve) ? ve.getStatus() : 502;
                         String errType = statusCode >= 500 ? "api_error" : "invalid_request_error";
-                        traceLogger.logResponse(model, statusCode, latencyMs, e.getMessage());
+                        metricsService.recordLlmResponse(model, latencyMs, statusCode, false);
                         return Mono.just((ResponseEntity<?>) ResponseEntity.status(statusCode).body(
                             anthropicError(errType, e.getMessage())
                         ));
@@ -655,13 +655,13 @@ public class AnthropicCompatibleController {
         .onErrorResume(e -> {
             long latencyMs = System.currentTimeMillis() - startTimeRef;
             int statusCode = (e instanceof VllmHttpException ve) ? ve.getStatus() : 500;
-            traceLogger.logResponse(modelName, statusCode, latencyMs, e.getMessage());
+            metricsService.recordLlmResponse(modelName, latencyMs, statusCode, true);
             log.error("❌ Stream error for model [{}]: {}", modelName, e.getMessage());
             return Flux.just(buildSseErrorEvent(e.getMessage(), statusCode));  // emit Anthropic error event, then stream closes cleanly
         })
         .doOnComplete(() -> {
             long latencyMs = System.currentTimeMillis() - startTimeRef;
-            traceLogger.logResponse(modelName, 200, latencyMs, null);
+            metricsService.recordLlmResponse(modelName, latencyMs, 200, true);
             log.info("✅ Stream completed for model [{}] in {}ms", modelName, latencyMs);
         });
 

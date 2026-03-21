@@ -34,6 +34,12 @@ public class MetricsService {
     private final Counter circuitBreakerFailureCounter;
     private final Counter circuitBreakerOpenCounter;
 
+    // LLM request/response metrics
+    private final ConcurrentHashMap<String, Counter> llmRequestCounters = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, DistributionSummary> llmMessageCountSummaries = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Timer> llmResponseTimers = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Counter> llmErrorCounters = new ConcurrentHashMap<>();
+
     public MetricsService(MeterRegistry meterRegistry) {
         this.meterRegistry = meterRegistry;
 
@@ -180,6 +186,69 @@ public class MetricsService {
      */
     public void recordCircuitBreakerOpen() {
         circuitBreakerOpenCounter.increment();
+    }
+
+    // ============================================================================
+    // LLM Request/Response Metrics (replaces RequestTraceLogger)
+    // ============================================================================
+
+    /**
+     * Record an LLM request with message count and streaming flag.
+     */
+    public void recordLlmRequest(String model, int messageCount, boolean stream) {
+        // Record request counter with stream tag
+        String requestKey = model + "|stream=" + stream;
+        Counter counter = llmRequestCounters.computeIfAbsent(requestKey, key ->
+            Counter.builder("synapse.model.calls")
+                .description("Total calls to a specific LLM model")
+                .tag("model", model)
+                .tag("stream", String.valueOf(stream))
+                .register(meterRegistry)
+        );
+        counter.increment();
+
+        // Record message count distribution
+        DistributionSummary summary = llmMessageCountSummaries.computeIfAbsent(model, m ->
+            DistributionSummary.builder("synapse.llm.message_count")
+                .description("Message count per LLM request")
+                .tag("model", m)
+                .register(meterRegistry)
+        );
+        summary.record(messageCount);
+    }
+
+    /**
+     * Record an LLM response with latency, status code, and streaming flag.
+     */
+    public void recordLlmResponse(String model, long latencyMs, int statusCode, boolean stream) {
+        // Determine outcome
+        String outcome = statusCode >= 400 ? "error" : "success";
+
+        // Record response time with additional tags
+        String responseKey = model + "|stream=" + stream + "|status=" + statusCode + "|outcome=" + outcome;
+        Timer timer = llmResponseTimers.computeIfAbsent(responseKey, key ->
+            Timer.builder("synapse.model.response_time")
+                .description("Response time for LLM model calls")
+                .tag("model", model)
+                .tag("stream", String.valueOf(stream))
+                .tag("status", String.valueOf(statusCode))
+                .tag("outcome", outcome)
+                .register(meterRegistry)
+        );
+        timer.record(latencyMs, java.util.concurrent.TimeUnit.MILLISECONDS);
+
+        // Record error counter if applicable
+        if (statusCode >= 400) {
+            String errorKey = model + "|status=" + statusCode;
+            Counter errorCounter = llmErrorCounters.computeIfAbsent(errorKey, key ->
+                Counter.builder("synapse.llm.errors")
+                    .description("LLM request errors")
+                    .tag("model", model)
+                    .tag("status", String.valueOf(statusCode))
+                    .register(meterRegistry)
+            );
+            errorCounter.increment();
+        }
     }
 
     // ============================================================================

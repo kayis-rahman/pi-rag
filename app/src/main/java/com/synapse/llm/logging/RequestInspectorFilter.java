@@ -18,8 +18,14 @@ public class RequestInspectorFilter implements WebFilter {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-        String method = exchange.getRequest().getMethod().toString();
         String path = exchange.getRequest().getURI().getPath();
+
+        // Skip logging for actuator endpoints (health, prometheus, etc.)
+        if (path.startsWith("/actuator")) {
+            return chain.filter(exchange);
+        }
+
+        String method = exchange.getRequest().getMethod().toString();
         String contentType = exchange.getRequest().getHeaders().getContentType() != null ?
                 exchange.getRequest().getHeaders().getContentType().toString() : "none";
 
