@@ -1,15 +1,16 @@
-//package com.synapse.memory;
-//
-//import com.synapse.memory.episodic.EpisodicMemoryService;
-//import com.synapse.memory.semantic.SemanticMemoryService;
-//import com.synapse.memory.knowledgegraph.KnowledgeGraphService;
-//import java.util.List;
-//
-//public interface MemoryService {
-//    void storeEpisode(Episode episode);
-//    List<Episode> getRecentEpisodes(String sessionId, int limit);
-//    void indexCodebase(String codebasePath);
-//    List<CodeMatch> searchSimilarCode(String query, int limit);
-//    void storeRelationship(String entity1, String relationship, String entity2);
-//    List<String> findRelatedConcepts(String concept);
-//}
+package com.synapse.memory;
+
+import java.util.List;
+
+public interface MemoryService {
+    // Episodic memory operations
+    void storeEpisode(Episode episode);
+    List<Episode> retrieveRecent(String sessionId, int limit);
+
+    // Semantic memory operations (Phase 4: actual embeddings)
+    List<CodeMatch> searchSemantic(String query, int limit);
+
+    // Knowledge graph operations
+    void storeRelationship(String sourceType, String sourceId, String relation, String targetType, String targetId);
+    List<String> findRelatedConcepts(String entityId);
+}
