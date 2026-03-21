@@ -37,7 +37,8 @@ This roadmap delivers the core value: users can store, retrieve, and reason abou
 4. Database migration scripts execute automatically if schema changes required
 5. All three database connections are healthy (can execute test query on each)
 
-**Plans**: TBD
+**Plans**: 1 plan
+- [ ] 01-database-foundation-01-PLAN.md — Enable database dependencies and configurations
 
 ---
 
@@ -57,7 +58,10 @@ This roadmap delivers the core value: users can store, retrieve, and reason abou
 6. User can traverse knowledge graph to find related concepts across memory modalities
 7. Unified memory service provides single interface for all memory operations
 
-**Plans**: TBD
+**Plans**: 3 plans
+- [ ] 02-memory-core-01-PLAN.md — Implement episodic memory service (Redis + PostgreSQL fallback)
+- [ ] 02-memory-core-02-PLAN.md — Implement knowledge graph service (SQLite triple store)
+- [ ] 02-memory-core-03-PLAN.md — Implement unified facade + semantic placeholder + async indexing
 
 ---
 
@@ -152,8 +156,8 @@ This roadmap delivers the core value: users can store, retrieve, and reason abou
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1 - Database Foundation | 0/5 | Not started | - |
-| 2 - Memory Core | 0/8 | Not started | - |
+| 1 - Database Foundation | 0/1 | Not started | - |
+| 2 - Memory Core | 0/3 | Planned | - |
 | 3 - Session Management | 0/4 | Not started | - |
 | 4 - LLM Integration | 0/5 | Not started | - |
 | 5 - Agent Capabilities | 0/4 | Not started | - |

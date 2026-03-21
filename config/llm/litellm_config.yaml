@@ -1,0 +1,56 @@
+model_list:
+  - model_name: claude-opus-4-6
+    litellm_params:
+      model: openai/claude-sonnet-4-6
+      api_base: https://u425-u70w-e4420dcd.singapore-b.gpuhub.com:8443/v1
+      api_key: local-key
+      verify: false
+
+  - model_name: claude-opus-4-5
+    litellm_params:
+      model: openai/claude-sonnet-4-6
+      api_base: https://u425-u70w-e4420dcd.singapore-b.gpuhub.com:8443/v1
+      api_key: local-key
+      verify: false
+
+  - model_name: claude-sonnet-4-6
+    litellm_params:
+      model: openai/claude-sonnet-4-6
+      api_base: https://u425-u70w-e4420dcd.singapore-b.gpuhub.com:8443/v1
+      api_key: local-key
+      verify: false
+
+  - model_name: claude-sonnet-4-5-20251022
+    litellm_params:
+      model: openai/claude-sonnet-4-6
+      api_base: https://u425-u70w-e4420dcd.singapore-b.gpuhub.com:8443/v1
+      api_key: local-key
+      verify: false
+
+  - model_name: claude-sonnet-4-5
+    litellm_params:
+      model: openai/claude-sonnet-4-6
+      api_base: https://u425-u70w-e4420dcd.singapore-b.gpuhub.com:8443/v1
+      api_key: local-key
+      verify: false
+
+  - model_name: claude-haiku-4-5-20251001
+    litellm_params:
+      model: openai/claude-haiku-4-5-20251001
+      api_base: https://u425-twwp-6d5643db.singapore-b.gpuhub.com:8443/v1
+      api_key: local-key
+      verify: false
+
+  - model_name: claude-haiku-4-5
+    litellm_params:
+      model: openai/claude-haiku-4-5-20251001
+      api_base: https://u425-twwp-6d5643db.singapore-b.gpuhub.com:8443/v1
+      api_key: local-key
+      verify: false
+
+litellm_settings:
+  drop_params: true
+  set_verbose: false
+
+general_settings:
+  disable_cooldowns: true
