@@ -32,7 +32,18 @@
       "WebFetch(domain:www.postgresql.org)",
       "WebFetch(domain:api.github.com)",
       "Skill(gsd:update)",
-      "Skill(review)"
+      "Skill(review)",
+      "Bash(nohup *)",
+      "Bash(tail *)",
+      "Bash(lsof *)",
+      "Bash(open *)",
+      "Bash(nc *)",
+      "Bash(python3 *)",
+      "Bash(ios-deploy *)",
+      "Bash(log show *)",
+      "Read(//Users/kayisrahman/**)",
+      "Read(//tmp/**)",
+      "Read(//private/tmp/**)"
     ],
     "defaultMode": "plan"
   },
@@ -61,13 +72,37 @@
         ]
       }
     ],
-    "PostToolUse": [
+    "PreToolUse": [
       {
-        "matcher": "Write|Edit",
+        "matcher": "Bash",
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/PostToolUse.sh",
+            "command": "bash .claude/hooks/PreCommit.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/PostBuild.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/PreCompact.sh",
             "timeout": 5
           }
         ]
