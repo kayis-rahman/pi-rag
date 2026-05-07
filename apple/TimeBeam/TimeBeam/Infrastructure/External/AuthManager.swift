@@ -8,12 +8,16 @@
 import Foundation
 import Combine
 import CryptoKit
+import os
 
 #if os(macOS)
 import AppKit
 #elseif os(iOS)
 import AuthenticationServices
+import UIKit
 #endif
+
+// Apple Sign-In helper removed - using ASWebAuthenticationSession instead 
 
 /**
  * Configuration from Info.plist
@@ -42,6 +46,7 @@ final class AuthManager: ObservableObject {
     // PKCE state and dedupe
     private var pkce: PKCE?
     private var lastProcessedAuthCode: String?
+    private var isSigningIn = false
 
     init() {
         // Listen for OAuth completion notifications
@@ -72,11 +77,35 @@ final class AuthManager: ObservableObject {
     }
 
     func signOut() async {
-        UserDefaults.standard.set(false, forKey: "hasAuthToken")
-        self.isSignedIn = false
-        self.displayName = nil
-        self.email = nil
+        // Revoke refresh tokens on backend
+        guard let token = try? KeychainStore.loadString(.accessToken), !token.isEmpty else {
+            await MainActor.run {
+                self.isSignedIn = false
+                self.displayName = nil
+                self.email = nil
+            }
+            return
+        }
+
+        // Call backend to revoke tokens
+        if let baseURL = Configuration.fromInfoPlist()?.baseURL {
+            let api = ApiClient(baseURL: baseURL)
+            await MainActor.run {
+                self.isSignedIn = false
+                self.displayName = nil
+                self.email = nil
+            }
+            // TODO: Implement token revocation endpoint
+        } else {
+            await MainActor.run {
+                self.isSignedIn = false
+                self.displayName = nil
+                self.email = nil
+            }
+        }
     }
+
+    // Apple Sign-In disabled - requires provisioning profile capability
 
     // MARK: - Token Management
 
@@ -105,6 +134,15 @@ final class AuthManager: ObservableObject {
     }
 
     func signInWithGoogle() async throws {
+        guard !isSigningIn else {
+            #if DEBUG
+            print("[Auth] signInWithGoogle: already in progress, ignoring duplicate call")
+            #endif
+            return
+        }
+        isSigningIn = true
+        defer { isSigningIn = false }
+
         #if os(macOS)
         // macOS: Open Safari with OAuth URL (PKCE)
         guard let clientId = googleClientId() else {
@@ -245,14 +283,22 @@ final class AuthManager: ObservableObject {
         request.httpBody = body.percentEncodedQuery?.data(using: .utf8)
 
         let (data, response) = try await URLSession.shared.data(for: request)
+        let httpResponse = response as? HTTPURLResponse
 
+        #if DEBUG
+        print("[Auth] Token exchange response status: \(httpResponse?.statusCode ?? 0)")
+        if let text = String(data: data, encoding: .utf8) {
+            print("[Auth] Token exchange response body: \(text)")
+        }
+        #endif
 
-
-        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+        guard httpResponse?.statusCode == 200 else {
+            print("[Auth] Token exchange failed: HTTP \(httpResponse?.statusCode ?? 0)")
             throw SignInError.invalidResponse
         }
 
         guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            print("[Auth] Token exchange: failed to parse JSON")
             throw SignInError.invalidResponse
         }
 
@@ -425,8 +471,10 @@ final class AuthManager: ObservableObject {
             // Create presentation context provider that will be retained
             let presentationProvider = OAuthPresentationContextProvider()
 
-            let session = ASWebAuthenticationSession(url: authURL, callbackURLScheme: "com.sparkage.time-beam") { callbackURL, error in
+            let session = ASWebAuthenticationSession(url: authURL, callbackURLScheme: "com.googleusercontent.apps.512741716533-iks9gube8oh8f0gopnmc3v72pe6u3p5m") { callbackURL, error in
                 if let error = error {
+                    self.pkce = nil
+                    self.clearPersistedPKCE()
                     continuation.resume(throwing: error)
                     return
                 }
