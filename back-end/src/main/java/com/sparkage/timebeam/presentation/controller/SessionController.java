@@ -26,6 +26,7 @@ import com.sparkage.timebeam.infrastructure.external.PushNotificationService;
 import com.sparkage.timebeam.infrastructure.external.UserNotAuthenticatedException;
 import com.sparkage.timebeam.presentation.dto.ApnsTokenUpdateRequestDto;
 import com.sparkage.timebeam.presentation.dto.SessionRecordDto;
+import com.sparkage.timebeam.domain.model.TimerActionType;
 import com.sparkage.timebeam.presentation.dto.TimerActionDto;
 import com.sparkage.timebeam.presentation.dto.TimerStateDto;
 
@@ -215,49 +216,68 @@ public class SessionController {
         }
     }
 
-    // Helper to convert action to state - now uses the complete timer state provided by the client
     // Helper to convert action to state - now uses complete timer state provided by client
     private TimerStateDto convertActionToState(TimerActionDto actionDto) {
-        // Use the complete timer state provided by client instead of hardcoded values
-        // This ensures accurate sync between devices
-        // Use server timestamp to avoid client clock issues
-        // Provide defaults for primitive values
-
-        // Calculate total duration based on phase (same logic as TimerSyncService)
-        int workDuration = actionDto.getWorkDuration() > 0 ? actionDto.getWorkDuration() : 25;
-        int breakDuration = actionDto.getBreakDuration() > 0 ? actionDto.getBreakDuration() : 5;
-        int longBreakDuration = actionDto.getLongBreakDuration() > 0 ? actionDto.getLongBreakDuration() : 15;
+        // Calculate total duration based on phase
+        // Durations from iOS arrive in seconds (e.g., workDuration=1500 for 25 minutes)
+        // Defaults are: 1500s (25min), 300s (5min), 900s (15min)
+        int workDuration = actionDto.getWorkDuration() > 0 ? actionDto.getWorkDuration() : 1500;
+        int breakDuration = actionDto.getBreakDuration() > 0 ? actionDto.getBreakDuration() : 300;
+        int longBreakDuration = actionDto.getLongBreakDuration() > 0 ? actionDto.getLongBreakDuration() : 900;
         int totalDuration;
 
         String phase = actionDto.getPhase() != null ? actionDto.getPhase() : "work";
         switch (phase) {
             case "work":
-                totalDuration = workDuration * 60;
+                totalDuration = workDuration;
                 break;
             case "break":
-                totalDuration = breakDuration * 60;
+            case "short_break":
+                totalDuration = breakDuration;
                 break;
             case "longBreak":
-                totalDuration = longBreakDuration * 60;
+            case "long_break":
+                totalDuration = longBreakDuration;
                 break;
             default:
-                totalDuration = workDuration * 60;
+                totalDuration = workDuration;
+        }
+
+        // For START/ADVANCE, calculate remainingSeconds from phase duration
+        // (client doesn't send it in the action DTO, so it defaults to 0)
+        // For PAUSE/RESET/STOP, use the value from the client
+        int remainingSeconds;
+        TimerActionType action = actionDto.getActionType();
+        if (action == TimerActionType.START || action == TimerActionType.ADVANCE) {
+            remainingSeconds = totalDuration;
+        } else {
+            remainingSeconds = actionDto.getRemainingSeconds();
+        }
+
+        // Use action's client timestamp as snapshot time (when this action was created)
+        // Other devices compute: elapsed = now - startTs, remaining = remainingSeconds - elapsed
+        Instant startTs;
+        Long actionTimestamp = actionDto.getTimestamp();
+        if (actionTimestamp != null && actionTimestamp > 0) {
+            startTs = Instant.ofEpochSecond(actionTimestamp);
+        } else {
+            startTs = Instant.now();
         }
 
         return new TimerStateDto(
-            phase,                                                 // 1. phase
-            actionDto.getRemainingSeconds(),                          // 2. remainingSeconds (int -> Integer)
-            actionDto.isRunning(),                                  // 3. isRunning (boolean -> Boolean)
-            workDuration,                                          // 4. workDuration
-            breakDuration,                                          // 5. breakDuration
-            longBreakDuration,                                      // 6. longBreakDuration
-            actionDto.isAutoStartNextSession(),                      // 7. autoStartNextSession (boolean -> Boolean)
-            actionDto.getShortBreaksCompleted(),                      // 8. shortBreaksCompleted
-            totalDuration,                                          // 9. totalDuration
-            null,                                                  // 10. startTimestamp (timer not started yet)
-            null,                                                  // 11. pauseTimestamp (timer not paused yet)
-            Instant.now(),                                          // 12. lastModifiedTimestamp (server timestamp)
-            actionDto.getDeviceId()                                  // 13. deviceId
+            phase,
+            remainingSeconds,
+            actionDto.isRunning(),
+            workDuration,
+            breakDuration,
+            longBreakDuration,
+            actionDto.isAutoStartNextSession(),
+            actionDto.getShortBreaksCompleted(),
+            totalDuration,
+            startTs.toEpochMilli() / 1000.0,
+            null,
+            Instant.now(),
+            actionDto.getDeviceId()
         );
     }
 

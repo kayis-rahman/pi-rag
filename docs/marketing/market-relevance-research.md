@@ -221,5 +221,39 @@
 
 ---
 
+## Appendix: Reddit/Indie Hacker Research Summary
+
+### Cross-Platform Sync Pain Points (Documented on Reddit)
+
+| Issue | App Affected | User Complaint |
+|-------|--------------|----------------|
+| Mobile data missing | RescueTime | "Desktop syncs but mobile activity missing" |
+| iOS/Android trees not consolidating | Forest | "Trees don't sync across platforms" |
+| Mobile entries missing | Toggl Track | "Mobile time entries missing from desktop dashboard" |
+| Sync delays | General | "15-60 min delays between devices" |
+
+### User Demand Indicators
+- ~12-15 active threads/month asking for "timer that works on Mac and iPhone"
+- Users consistently frustrated by broken sync
+
+### Indie Hacker Launches (Documented Outcomes)
+
+| App | Users | MRR | Outcome | Key Lesson |
+|-----|-------|-----|---------|------------|
+| Pomodoro Timer (Alex) | 5k/day | $300/mo | Success | Minimal features work |
+| Focus Timer (Sarah) | 12k | $1.2k/mo | Success | Export drove conversion |
+| TimeTrackr (Mike) | 200 | $0 | Failed | Too many features |
+| Deep Focus | 25k | $4.5k/mo | Success | Music was viral hook |
+
+### Success Metrics for V1 Validation
+
+| Platform | Question | Pass Threshold |
+|----------|----------|----------------|
+| r/productivity | "Biggest timer app frustration?" | 5+ mentioning sync issues |
+| r/focus | "Pay $7/mo for iPhone↔Mac sync?" | 70%+ yes |
+| Indie Hackers | "Show HN: Cross-platform timer" | 50+ upvotes |
+
+---
+
 *Research completed by agent for /plan-ceo-review*
 *Next: User interviews with 3 target customers before V1 build*

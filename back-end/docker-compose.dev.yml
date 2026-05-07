@@ -27,5 +27,4 @@ networks:
 
 volumes:
   postgres_data:
-    name: timebeam_postgres_data
-
+    name: timebeam_postgres_data_new

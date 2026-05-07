@@ -2,137 +2,158 @@
 //  TimerSyncManagerUnitTests.swift
 //  TimeBeamTests
 //
-//  Unit tests for TimerSyncManager authentication-aware sync functionality
-//  Tests authentication observer, sync queuing, and automatic retry logic
+//  Unit tests for TimerSyncManager
 //
 
 import XCTest
-import Combine
 @testable import TimeBeam
 
 final class TimerSyncManagerUnitTests: XCTestCase {
-    private var timerSyncManager: TimerSyncManager!
-    private var mockAuthManager: MockAuthManager!
-    private var mockApiClient: MockApiClient!
     private var mockTimer: MockPomodoroTimer!
-    private var cancellables: Set<AnyCancellable>!
 
     override func setUpWithError() throws {
-        mockAuthManager = MockAuthManager()
-        mockApiClient = MockApiClient()
         mockTimer = MockPomodoroTimer()
-        cancellables = []
-
-        // Note: For full testability, we would need dependency injection
-        // For now, we'll test the existing singleton instance
-        timerSyncManager = TimerSyncManager.shared
+        // Clear deviceId from Keychain for test isolation
+        try clearTestDeviceId()
+        let syncManager = TimerSyncManager.shared
+        syncManager.configure(with: mockTimer)
     }
 
     override func tearDownWithError() throws {
-        mockAuthManager = nil
-        mockApiClient = nil
-        mockTimer = nil
-        cancellables = nil
-        timerSyncManager = nil
+        try clearTestDeviceId()
     }
 
-    // MARK: - Authentication Observer Tests
-
-    func testAuthObserverSetup() {
-        // Given: TimerSyncManager is initialized
-        // When: Instance is created
-        // Then: Should have auth observer set up
-        // Note: This is hard to test directly with singleton pattern
-        // We verify through behavior tests instead
-        XCTAssertNotNil(timerSyncManager)
+    private func clearTestDeviceId() throws {
+        do {
+            try KeychainStore.clear(.deviceId)
+        } catch {
+            // Ignore — test isolation
+        }
     }
 
-    func testSyncQueuesWhenAuthUnavailable() async throws {
-        // Given: Mock scenario where auth is unavailable
-        // Note: This test is limited by singleton pattern
-        // In a real scenario, we'd inject mocks
+    // MARK: - Device ID Tests
 
-        // When: syncTimerState is called
-        await timerSyncManager.syncTimerState()
+    func testDeviceIdIsGeneratedAndPersisted() throws {
+        // Given: fresh state
+        let id = TimerSyncManager.shared.deviceId
 
-        // Then: Should not crash and should handle gracefully
-        // This is a smoke test - full testing requires dependency injection
-        XCTAssertTrue(true, "Sync completed without crashing")
+        // Then: deviceId should exist and not be empty
+        XCTAssertFalse(id.isEmpty, "deviceId should not be empty")
     }
 
-    func testQueuedSyncExecution() {
+    func testDeviceIdPersistsAfterConfigure() throws {
         // Given: TimerSyncManager instance
-        let expectation = XCTestExpectation(description: "Sync should execute")
+        let id1 = TimerSyncManager.shared.deviceId
 
-        // When: We can't easily test internal state with singleton
-        // This is a limitation of the current architecture
+        // When: configure timer
+        TimerSyncManager.shared.configure(with: mockTimer)
 
-        // Then: We verify the instance exists and methods are callable
-        XCTAssertNotNil(timerSyncManager)
-        expectation.fulfill()
-
-        wait(for: [expectation], timeout: 1.0)
+        // Then: deviceId should be the same
+        let id2 = TimerSyncManager.shared.deviceId
+        XCTAssertEqual(id1, id2, "deviceId should persist after configure")
     }
 
-    // MARK: - Basic Functionality Tests
-
-    func testDeviceIdGeneration() {
-        // Given: TimerSyncManager instance
-        // When: Instance is created
-        // Then: Should have a valid device ID
-        XCTAssertFalse(timerSyncManager.deviceId.isEmpty)
-        XCTAssertEqual(timerSyncManager.deviceId.count, 36) // UUID length
-    }
+    // MARK: - Timer Configuration Tests
 
     func testTimerConfiguration() {
-        // Given: Mock timer
         // When: Timer is configured
-        timerSyncManager.configure(with: mockTimer)
+        TimerSyncManager.shared.configure(with: mockTimer)
 
         // Then: Should store the timer reference
-        XCTAssertNotNil(timerSyncManager.getTimer())
+        let timer = TimerSyncManager.shared.getTimer()
+        XCTAssertNotNil(timer)
     }
 
-    func testSyncingState() {
-        // Given: Initial state
-        XCTAssertFalse(timerSyncManager.isSyncing)
+    func testGetTimerReturnsConfiguredTimer() {
+        // When: Timer is configured
+        TimerSyncManager.shared.configure(with: mockTimer)
 
-        // When: We can't easily test state changes with singleton
-        // Then: Property should be accessible
-        XCTAssertNotNil(timerSyncManager.isSyncing)
+        // Then: getTimer should return the mock timer
+        let timer = TimerSyncManager.shared.getTimer() as? MockPomodoroTimer
+        XCTAssertNotNil(timer)
+        XCTAssertTrue(timer === mockTimer)
+    }
+
+    // MARK: - Sync State Tests
+
+    func testIsSyncingInitialValue() {
+        // Then: isSyncing should be false initially
+        XCTAssertFalse(TimerSyncManager.shared.isSyncing)
+    }
+
+    // MARK: - Sync Action Smoke Tests
+
+    func testSyncActionStartDoesNotCrash() async {
+        // Given
+        mockTimer.phase = .work
+        mockTimer.isRunning = false
+
+        // When: sync start action (may fail auth, which is expected)
+        await TimerSyncManager.shared.syncTimerAction(.start)
+
+        // Then: local timer should be updated
+        XCTAssertTrue(mockTimer.isRunning)
+    }
+
+    func testSyncActionPauseDoesNotCrash() async {
+        // Given
+        mockTimer.phase = .work
+        mockTimer.isRunning = true
+
+        // When: sync pause action
+        await TimerSyncManager.shared.syncTimerAction(.pause)
+
+        // Then: local timer should be paused
+        XCTAssertFalse(mockTimer.isRunning)
+    }
+
+    func testSyncActionResetDoesNotCrash() async {
+        // Given
+        mockTimer.phase = .work
+        mockTimer.remainingSeconds = 1500
+        mockTimer.isRunning = true
+
+        // When: sync reset action
+        await TimerSyncManager.shared.syncTimerAction(.reset)
+
+        // Then: local timer should be reset
+        XCTAssertEqual(mockTimer.phase, .work)
+        XCTAssertEqual(mockTimer.shortBreaksCompleted, 0)
     }
 }
 
 // MARK: - Mock Classes
 
-private class MockAuthManager: ObservableObject {
-    @Published var isSignedIn: Bool = false
-    @Published var displayName: String? = nil
-    @Published var email: String? = nil
-}
-
-private class MockApiClient {
-    var pushTimerStateCallCount = 0
-    var pullTimerStateCallCount = 0
-
-    func pushTimerState(_ state: ApiClient.TimerStateDto, accessToken: String) async throws {
-        pushTimerStateCallCount += 1
-    }
-
-    func pullTimerState(accessToken: String) async throws -> ApiClient.TimerStateDto? {
-        pullTimerStateCallCount += 1
-        return nil
-    }
-}
-
-private class MockPomodoroTimer {
-    var phase: String = "work"
+private class MockPomodoroTimer: PomodoroTimer {
+    var phase: Phase = .work
     var isRunning: Bool = false
-    var remainingSeconds: Int = 1500
-    var workDuration: Int = 1500
-    var breakDuration: Int = 300
-    var longBreakDuration: Int = 900
-    var autoStartNextSession: Bool = false
+    var remainingSeconds: Int = 25 * 60
+    var workDuration: Int = 25 * 60
+    var breakDuration: Int = 5 * 60
+    var longBreakDuration: Int = 15 * 60
+    var autoStartNextSession: Bool = true
     var shortBreaksCompleted: Int = 0
-}</content>
-<parameter name="filePath">apple/TimeBeam/TimeBeamTests/UnitTests/Services/TimerSyncManagerUnitTests.swift
+
+    override func applySyncedState(
+        phase: Phase,
+        remainingSeconds: Int,
+        isRunning: Bool,
+        workDuration: Int,
+        breakDuration: Int,
+        longBreakDuration: Int,
+        autoStartNextSession: Bool,
+        shortBreaksCompleted: Int,
+        startTimestamp: Double?,
+        pauseTimestamp: Double?,
+        lastModifiedTimestamp: Double
+    ) {
+        self.phase = phase
+        self.remainingSeconds = remainingSeconds
+        self.isRunning = isRunning
+        self.workDuration = workDuration
+        self.breakDuration = breakDuration
+        self.longBreakDuration = longBreakDuration
+        self.autoStartNextSession = autoStartNextSession
+        self.shortBreaksCompleted = shortBreaksCompleted
+    }
+}

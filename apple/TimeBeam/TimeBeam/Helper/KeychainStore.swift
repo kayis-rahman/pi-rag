@@ -8,6 +8,7 @@ struct KeychainStore {
         case userDisplayName = "com.timebeam.auth.displayName"
         case userEmail = "com.timebeam.auth.email"
         case apnsToken = "com.timebeam.apns.token"
+        case deviceId = "com.timebeam.app.deviceId"
     }
 
     private static let service = "com.timebeam.keychain"
@@ -33,13 +34,7 @@ struct KeychainStore {
 
         let status = SecItemAdd(attributes as CFDictionary, nil)
         guard status == errSecSuccess else {
-            // For development, fall back to UserDefaults if keychain fails
-            #if DEBUG
-            UserDefaults.standard.set(value, forKey: "keychain_fallback_\(item.rawValue)")
-            return
-            #else
             throw NSError(domain: NSOSStatusErrorDomain, code: Int(status))
-            #endif
         }
     }
 
@@ -60,20 +55,10 @@ struct KeychainStore {
         var out: AnyObject?
         let status = SecItemCopyMatching(query as CFDictionary, &out)
         if status == errSecItemNotFound {
-            // Check UserDefaults fallback in DEBUG mode
-            #if DEBUG
-            return UserDefaults.standard.data(forKey: "keychain_fallback_\(item.rawValue)")
-            #else
             return nil
-            #endif
         }
         guard status == errSecSuccess else {
-            // For development, fall back to UserDefaults if keychain fails
-            #if DEBUG
-            return UserDefaults.standard.data(forKey: "keychain_fallback_\(item.rawValue)")
-            #else
             throw NSError(domain: NSOSStatusErrorDomain, code: Int(status))
-            #endif
         }
         return out as? Data
     }
@@ -91,18 +76,8 @@ struct KeychainStore {
         #endif
         let status = SecItemDelete(query as CFDictionary)
         guard status == errSecSuccess || status == errSecItemNotFound else {
-            // For development, also clear UserDefaults fallback if keychain fails
-            #if DEBUG
-            UserDefaults.standard.removeObject(forKey: "keychain_fallback_\(item.rawValue)")
-            return
-            #else
             throw NSError(domain: NSOSStatusErrorDomain, code: Int(status))
-            #endif
         }
-        // Always clear UserDefaults fallback
-        #if DEBUG
-        UserDefaults.standard.removeObject(forKey: "keychain_fallback_\(item.rawValue)")
-        #endif
     }
 
     static func saveString(_ string: String, for item: Item) throws {

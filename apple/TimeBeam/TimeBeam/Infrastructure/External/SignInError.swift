@@ -6,6 +6,8 @@ public enum SignInError: Error, LocalizedError {
     case failed(Error)
     case invalidRequest
     case invalidResponse
+    case appleSignInNotAvailable
+    case appleSignInFailed(Error)
 
     public var errorDescription: String? {
         switch self {
@@ -19,6 +21,10 @@ public enum SignInError: Error, LocalizedError {
             return "Invalid request to authentication server"
         case .invalidResponse:
             return "Invalid response from authentication server"
+        case .appleSignInNotAvailable:
+            return "Sign in with Apple is not available on this device"
+        case .appleSignInFailed(let error):
+            return "Sign in with Apple failed: \(error.localizedDescription)"
         }
     }
 }

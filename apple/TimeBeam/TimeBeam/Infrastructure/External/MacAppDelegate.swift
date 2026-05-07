@@ -2,6 +2,7 @@
 import Cocoa
 import SwiftUI
 import UserNotifications
+import _Concurrency
 
 class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
     static var shared: MacAppDelegate?
@@ -18,6 +19,7 @@ class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterD
 
         // Request notification permissions for macOS
         requestNotificationPermissions()
+        NSApplication.shared.registerForRemoteNotifications()
 
         if MacAppDelegate.statusItem == nil {
             let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -38,11 +40,66 @@ class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterD
         }
     }
 
+    // MARK: - Remote Notifications
+
+    func application(_ application: NSApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        let token = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
+        print("macOS APNs device token registered: \(token.prefix(8))...")
+        Task {
+            guard let accessToken = AuthManager.shared.getValidAccessToken() else { return }
+            let deviceId = TimerSyncManager.shared.deviceId
+            try? await ApiClient.shared.updateApnsToken(deviceId: deviceId, apnsToken: token, accessToken: accessToken)
+        }
+    }
+
+    func application(_ application: NSApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        print("macOS APNs registration failed: \(error.localizedDescription)")
+    }
+
+    // MARK: - URL Handling (OAuth callback)
+
+    func application(_ application: NSApplication, open urls: [URL]) {
+        guard let url = urls.first else { return }
+        Task {
+            try? await AuthManager.shared.handleOAuthCallback(url)
+        }
+    }
+
+    // MARK: - UNUserNotificationCenterDelegate
+
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        let userInfo = notification.request.content.userInfo
+
+        // Handle timer sync notifications silently (no UI)
+        if let type = userInfo["type"] as? String, type == "timer_sync" {
+            print("Received timer sync notification on macOS (willPresent)")
+
+            // Trigger full timer sync when notification arrives
+            Task {
+                await TimerSyncManager.shared.syncTimerState()
+            }
+
+            // Don't show notification for silent sync messages
+            completionHandler([])
+            return
+        }
+
+        // Show regular notifications
         completionHandler([.banner, .sound])
     }
 
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        let userInfo = response.notification.request.content.userInfo
+
+        if let type = userInfo["type"] as? String, type == "timer_sync" {
+            print("Received timer sync notification on macOS (didReceive)")
+
+            // Trigger full timer sync when notification is received
+            Task {
+                await TimerSyncManager.shared.syncTimerState()
+            }
+        }
+
         completionHandler()
     }
 }

@@ -138,7 +138,12 @@ class PomodoroTimer: ObservableObject {
         lastModifiedTimestamp: Double
     ) {
         self.phase = phase
-        self.remainingSeconds = remainingSeconds
+        if isRunning, let start = startTimestamp {
+            let elapsed = Int(Date().timeIntervalSince1970 - start)
+            self.remainingSeconds = max(0, remainingSeconds - elapsed)
+        } else {
+            self.remainingSeconds = remainingSeconds
+        }
         self.isRunning = isRunning
         self.workDuration = workDuration
         self.breakDuration = breakDuration

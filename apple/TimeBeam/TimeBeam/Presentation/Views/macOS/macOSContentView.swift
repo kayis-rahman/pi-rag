@@ -34,6 +34,7 @@ struct macOSContentView: View {
         .frame(width: ringSize + 60)
         .background(Color.themeBackground.ignoresSafeArea())
         .onAppear {
+            TimerSyncManager.shared.configure(with: timer)
             lastPhase = timer.phase
         }
         .onChange(of: timer.phase) { oldPhase, newPhase in

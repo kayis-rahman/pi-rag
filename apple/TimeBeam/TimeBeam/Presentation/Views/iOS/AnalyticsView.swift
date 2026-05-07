@@ -198,9 +198,15 @@ struct AnalyticsView: View {
                     Text("No Data Available")
                         .font(.headline)
                         .foregroundColor(.secondary)
-                    Text("weeklyData: \(weeklyData == nil ? "nil" : "has data")")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                    if let weeklyData = weeklyData {
+                        Text("weeklyData: has \(weeklyData.weeklyChart.data.count) entries")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    } else {
+                        Text("weeklyData: nil")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
                     Text("isLoading: \(isLoading)")
                         .font(.caption)
                         .foregroundColor(.secondary)

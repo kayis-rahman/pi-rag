@@ -278,3 +278,7 @@ memory-bank/*/xcode_log_analysis
 # Editor/IDE
 .idea/
 .vscode/
+
+# Claude Code local overrides
+.claude/*.local.json
+.claude/checkpoints.log

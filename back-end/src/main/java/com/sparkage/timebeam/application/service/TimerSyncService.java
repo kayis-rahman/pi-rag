@@ -367,7 +367,7 @@ public class TimerSyncService {
      * Clean up duplicate timer states for a user
      * Keeps most recently updated state and deletes others
      */
-    private void cleanupDuplicateTimerStates(UUID userId) {
+    public void cleanupDuplicateTimerStates(UUID userId) {
         try {
             // Find all timer states for this user (should only be one, but handle duplicates)
             List<TimerState> allStates = timerStateRepository.findAllByUserId(userId);

@@ -31,11 +31,8 @@ struct iOSContentView: View {
 
 
                 // Session progress indicator
-                CycleProgressView(
-                    completed: timer.shortBreaksCompleted,
-                    total: timer.cycleSize
-                )
-                .frame(width: ringSize * 0.5)
+                CycleProgressView(timer: timer)
+                    .frame(width: ringSize * 0.5)
 
                 // Task selection and quick actions
                 VStack(spacing: 12) {
@@ -149,6 +146,7 @@ struct iOSContentView: View {
             }
         }
         .onAppear {
+            TimerSyncManager.shared.configure(with: timer)
             lastPhase = timer.phase
         }
         .onChange(of: timer.phase) { oldPhase, newPhase in

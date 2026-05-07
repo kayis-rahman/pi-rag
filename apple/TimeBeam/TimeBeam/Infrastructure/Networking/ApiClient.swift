@@ -284,11 +284,25 @@ public struct ApiClient {
             return nil // No content
         }
         
-        return try JSONDecoder().decode(TimerStateDto.self, from: data)
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .custom { decoder in
+            let container = try decoder.singleValueContainer()
+            if let unixSeconds = try? container.decode(Double.self) {
+                return Date(timeIntervalSince1970: unixSeconds)
+            }
+            let str = try container.decode(String.self)
+            let iso = ISO8601DateFormatter()
+            iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            if let date = iso.date(from: str) { return date }
+            iso.formatOptions = [.withInternetDateTime]
+            if let date = iso.date(from: str) { return date }
+            throw DecodingError.dataCorruptedError(in: container, debugDescription: "Cannot decode date: \(str)")
+        }
+        return try decoder.decode(TimerStateDto.self, from: data)
     }
-    
+
     func pushTimerAction(_ action: TimerActionDto, accessToken: String) async throws {
-        guard let request =  createBaseRequest(path: "/api/sessions/timer/action", method: "POST", body: action, accessToken: accessToken) else {
+        guard let request =  createBaseRequest(path: "api/sessions/timer/action", method: "POST", body: action, accessToken: accessToken) else {
             throw ApiError.networkError("Failed to create request")
         }
         let (_, response) = try await urlSession.data(for: request)
@@ -469,13 +483,17 @@ public struct ApiClient {
         }
     }
     
-    // MARK: - Error Handling
-    enum ApiError: Error {
+    // MARK: - Enhanced Error Handling
+    enum ApiError: Error, LocalizedError {
         case invalidURL
         case encodingFailed(Error)
         case networkError(String)
-        
-        var localizedDescription: String {
+        case authenticationFailure
+        case timeoutError(String)
+        case retryExceeded(String)
+        case serverError(Int, String)
+
+        var errorDescription: String {
             switch self {
             case .invalidURL:
                 return "Invalid API URL"
@@ -483,6 +501,14 @@ public struct ApiClient {
                 return "Encoding failed: \(error.localizedDescription)"
             case .networkError(let message):
                 return "Network error: \(message)"
+            case .authenticationFailure:
+                return "Authentication failure"
+            case .timeoutError(let message):
+                return "Request timeout: \(message)"
+            case .retryExceeded(let message):
+                return "Retry limit exceeded: \(message)"
+            case .serverError(let statusCode, let message):
+                return "Server error \(statusCode): \(message)"
             }
         }
     }

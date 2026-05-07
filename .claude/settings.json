@@ -1,0 +1,77 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mvn:*)",
+      "Bash(xcodebuild:*)",
+      "Bash(docker compose:*)",
+      "Bash(docker:*)",
+      "Bash(git:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(pkill:*)",
+      "Bash(curl:*)",
+      "Bash(ssh:*)",
+      "Bash(psql:*)",
+      "Bash(npx:*)",
+      "Bash(xcrun:*)",
+      "Bash(system_profiler:*)",
+      "Bash(tee:*)",
+      "Bash(ipconfig:*)",
+      "Bash(security:*)",
+      "Bash(kill:*)",
+      "Bash(ideviceinstaller:*)",
+      "Bash(swift:*)",
+      "Bash(java:*)",
+      "Read(//Applications/**)",
+      "Read(//Library/Developer/**)",
+      "WebSearch",
+      "WebFetch(domain:developer.apple.com)",
+      "WebFetch(domain:www.oracle.com)",
+      "WebFetch(domain:docs.spring.io)",
+      "WebFetch(domain:kotlinlang.org)",
+      "WebFetch(domain:www.postgresql.org)",
+      "WebFetch(domain:api.github.com)",
+      "Skill(gsd:update)",
+      "Skill(review)"
+    ],
+    "defaultMode": "plan"
+  },
+  "mcpServers": {
+    "postgres": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "postgresql://timebeam:timebeam@localhost:5432/timebeam_e2e"
+      ],
+      "env": {},
+      "enabled": true,
+      "muteAlerts": false
+    }
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/SessionStart.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/PostToolUse.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

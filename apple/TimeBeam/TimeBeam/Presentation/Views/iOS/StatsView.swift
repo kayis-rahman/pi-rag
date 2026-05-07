@@ -76,7 +76,7 @@ struct StatsView: View {
                                 .foregroundColor(Color.themeTextPrimary)
 
                             VStack(spacing: 8) {
-                                ForEach(recentSessions().prefix(5)) { session in
+                                ForEach(recentSessions()) { session in
                                     SessionRow(session: session)
                                 }
 
@@ -114,17 +114,12 @@ struct StatsView: View {
         // Fallback to local data
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
+        let days = (0..<7).reversed().map { -1 * $0 }
 
-        // Get last 7 days
-        return (0..<7).reversed().map { dayOffset in
-            let date = calendar.date(byAdding: .day, value: -dayOffset, to: today)!
-            let sessions = logger.records.filter { record in
-                calendar.isDate(record.startedAt, inSameDayAs: date)
-            }
-
-            let totalMinutes = sessions
-                .filter { $0.isProductive }
-                .reduce(0) { $0 + Int($1.duration / 60) }
+        return days.map { dayOffset in
+            let date = calendar.date(byAdding: .day, value: dayOffset, to: today)!
+            let dailySessions = sessionsForDate(date, calendar: calendar)
+            let totalMinutes = productiveMinutes(sessions: dailySessions)
 
             return DailyStats(
                 date: date,
@@ -134,17 +129,28 @@ struct StatsView: View {
         }
     }
 
+    private func sessionsForDate(_ date: Date, calendar: Calendar) -> [SessionRecordDto] {
+        logger.records.filter { record in
+            calendar.isDate(record.startedAt, inSameDayAs: date)
+        }
+    }
+
+    private func productiveMinutes(sessions: [SessionRecordDto]) -> Int {
+        sessions
+            .filter { $0.isProductive }
+            .reduce(0) { $0 + Int($1.durationSeconds / 60) }
+    }
+
     private func todayTotal() -> Int {
         if analyticsManager.dashboardData != nil {
             return analyticsManager.todayTotal
         }
 
         // Fallback to local data
-        let today = Calendar.current.startOfDay(for: Date())
-        return logger.records
-            .filter { Calendar.current.isDate($0.startedAt, inSameDayAs: today) }
-            .filter { $0.isProductive }
-            .reduce(0) { $0 + Int($1.duration / 60) }
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let todaySessions = sessionsForDate(today, calendar: calendar)
+        return productiveMinutes(sessions: todaySessions)
     }
 
     private func weeklyTotal() -> Int {
@@ -155,12 +161,12 @@ struct StatsView: View {
         // Fallback to local data
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
-        let weekStart = calendar.date(byAdding: .day, value: -6, to: today)!
+        guard let weekStart = calendar.date(byAdding: .day, value: -6, to: today) else {
+            return 0
+        }
 
-        return logger.records
-            .filter { $0.startedAt >= weekStart }
-            .filter { $0.isProductive }
-            .reduce(0) { $0 + Int($1.duration / 60) }
+        let weekSessions = logger.records.filter { $0.startedAt >= weekStart }
+        return productiveMinutes(sessions: weekSessions)
     }
 
     private func bestStreak() -> Int {
@@ -169,19 +175,19 @@ struct StatsView: View {
         }
 
         // Fallback to local data - simplified streak calculation
-        let sortedRecords = logger.records
-            .filter { $0.isProductive }
-            .sorted { $0.startedAt > $1.startedAt }
+        let productiveRecords = logger.records.filter { $0.isProductive }
+        let sortedRecords = productiveRecords.sorted { $0.startedAt > $1.startedAt }
 
         var currentStreak = 0
         var maxStreak = 0
         var lastDate: Date?
+        let calendar = Calendar.current
 
         for record in sortedRecords {
-            let recordDate = Calendar.current.startOfDay(for: record.startedAt)
+            let recordDate = calendar.startOfDay(for: record.startedAt)
 
             if let last = lastDate {
-                let daysDiff = Calendar.current.dateComponents([.day], from: last, to: recordDate).day ?? 0
+                let daysDiff = calendar.dateComponents([.day], from: last, to: recordDate).day ?? 0
 
                 if daysDiff == 1 {
                     currentStreak += 1
@@ -202,7 +208,7 @@ struct StatsView: View {
         return max(maxStreak, currentStreak)
     }
 
-    private func recentSessions() -> [SessionRecord] {
+    private func recentSessions() -> [SessionRecordDto] {
         return logger.records
             .sorted { $0.startedAt > $1.startedAt }
             .prefix(10)
@@ -303,7 +309,7 @@ struct WeeklyBarChart: View {
 }
 
 struct SessionRow: View {
-    let session: SessionRecord
+    let session: SessionRecordDto
 
     var body: some View {
         HStack(spacing: 12) {
@@ -313,11 +319,11 @@ struct SessionRow: View {
                 .frame(width: 8, height: 8)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(session.kind.displayName)
+                Text(sessionKind.displayName)
                     .font(.system(size: 14, weight: .medium))
                     .foregroundColor(Color.themeTextPrimary)
 
-                Text(formatDuration(Int(session.duration / 60)))
+                Text(formatDuration(Int(session.durationSeconds / 60)))
                     .font(.system(size: 12))
                     .foregroundColor(Color.themeTextSecondary)
             }
@@ -331,8 +337,17 @@ struct SessionRow: View {
         .padding(.vertical, 8)
     }
 
+    private var sessionKind: SessionRecord.Kind {
+        switch session.kind.uppercased() {
+        case "WORK": return .work
+        case "SHORTBREAK": return .shortBreak
+        case "LONGBREAK": return .longBreak
+        default: return .work
+        }
+    }
+
     private var phaseColor: Color {
-        switch session.kind {
+        switch sessionKind {
         case .work: return Color.themePrimary
         case .shortBreak: return Color.themeOrangeAccent
         case .longBreak: return Color.themeOrangeDeep

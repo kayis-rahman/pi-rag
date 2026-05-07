@@ -37,6 +37,11 @@ class iOSAppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterD
         if let type = userInfo["type"] as? String, type == "timer_sync" {
             AppLogger.info("Received timer sync notification on iOS (willPresent)", category: .sync)
 
+            // Trigger full timer sync when notification arrives
+            _Concurrency.Task {
+                await TimerSyncManager.shared.syncTimerState()
+            }
+
             // Don't show notification for silent sync messages
             completionHandler([])
             return

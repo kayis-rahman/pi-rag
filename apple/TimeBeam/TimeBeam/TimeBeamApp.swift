@@ -24,7 +24,7 @@ struct TimeBeamApp: App {
     @StateObject var authManager = AuthManager.shared
     @StateObject var taskService = TaskService()
     @StateObject var analyticsManager = AnalyticsManager(
-        apiClient: AnalyticsApiClient(baseURL: Configuration.fromInfoPlist()?.baseURL ?? URL(string: ProcessInfo.processInfo.environment["API_BASE_URL"] ?? "http://192.168.0.173:8080")!),
+        apiClient: AnalyticsApiClient(baseURL: Configuration.fromInfoPlist()?.baseURL ?? URL(string: ProcessInfo.processInfo.environment["API_BASE_URL"] ?? "http://192.168.0.202:8080")!),
         authManager: AuthManager.shared
     )
 
@@ -40,12 +40,18 @@ struct TimeBeamApp: App {
             #if os(iOS)
             Group {
                 if isAppReady {
-                    NavigationView {
-                        VStack(spacing: 0) {
-                            mainContentView
-                                .transition(.opacity)
+                    VStack(spacing: 0) {
+                        Group {
+                            switch selectedTab {
+                            case 0: iOSContentView()
+                            case 1: TaskListView()
+                            case 2: StatsView()
+                            case 3: SettingsView()
+                            default: iOSContentView()
+                            }
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .transition(.opacity)
 
                         BottomTabView(selectedTab: $selectedTab)
                             .frame(height: 80)
@@ -57,29 +63,74 @@ struct TimeBeamApp: App {
                     .environmentObject(taskService)
                     .environmentObject(analyticsManager)
                     .accentColor(Color.themePrimary)
-                    .navigationViewStyle(.stack)
                 } else {
                     LoadingView()
                         .onAppear {
-                            Concurrency.Task {
+                            Task {
                                 await setupApp()
                             }
                         }
                 }
             }
             #else
-            macOSContentView()
-                .environmentObject(timer)
-                .environmentObject(logger)
-                .environmentObject(authManager)
-                .environmentObject(taskService)
-                .environmentObject(analyticsManager)
+            Group {
+                if isAppReady {
+                    macOSContentView()
+                        .environmentObject(timer)
+                        .environmentObject(logger)
+                        .environmentObject(authManager)
+                        .environmentObject(taskService)
+                        .environmentObject(analyticsManager)
+                } else {
+                    LoadingView()
+                        .onAppear {
+                            Task {
+                                await setupApp()
+                            }
+                        }
+                }
+            }
             #endif
         }
     }
 
     @MainActor
     private func setupApp() async {
+        // Restore auth session
+        await authManager.restoreSession()
+
+        // Pull latest timer state from backend if signed in
+        if authManager.isSignedIn,
+           let accessToken = authManager.getValidAccessToken() {
+            do {
+                let pulledState = try await ApiClient.shared.pullTimerState(accessToken: accessToken)
+                if let state = pulledState {
+                    let pulledModified = state.lastModifiedTimestamp?.timeIntervalSince1970 ?? 0
+                    if pulledModified > 0 {
+                        timer.applySyncedState(
+                            phase: Phase(rawValue: state.phase ?? "work") ?? .work,
+                            remainingSeconds: state.remainingSeconds ?? 0,
+                            isRunning: state.isRunning ?? false,
+                            workDuration: state.workDuration ?? 25,
+                            breakDuration: state.breakDuration ?? 5,
+                            longBreakDuration: state.longBreakDuration ?? 15,
+                            autoStartNextSession: state.autoStartNextSession ?? false,
+                            shortBreaksCompleted: state.shortBreaksCompleted ?? 0,
+                            startTimestamp: state.startTimestamp?.timeIntervalSince1970,
+                            pauseTimestamp: state.pauseTimestamp?.timeIntervalSince1970,
+                            lastModifiedTimestamp: pulledModified
+                        )
+                        print("✅ APP_LAUNCH: Applied synced timer state from backend")
+                    }
+                }
+            } catch {
+                print("⚠️ APP_LAUNCH: Failed to pull timer state: \(error.localizedDescription)")
+            }
+        }
+
+        // Configure timer sync manager
+        TimerSyncManager.shared.configure(with: timer)
+
         isAppReady = true
     }
 }

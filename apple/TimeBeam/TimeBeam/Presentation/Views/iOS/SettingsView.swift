@@ -1,4 +1,5 @@
 import SwiftUI
+import AuthenticationServices
 
 struct SettingsView: View {
     @EnvironmentObject var timer: PomodoroTimer
@@ -65,7 +66,9 @@ struct SettingsView: View {
                                     do {
                                         try await authManager.signInWithGoogle()
                                     } catch {
-                                        print("Sign-in failed: \(error)")
+                                        let errorMsg = handleSignInError(error, "SettingsView")
+                                        print("Sign-in failed: \(errorMsg)")
+                                        // TODO: Show alert with error message
                                     }
                                 }
                             }
@@ -222,6 +225,30 @@ struct SettingsView: View {
             autoStartNextSession: timer.autoStartNextSession
         )
         iCloudSyncManager.shared.syncTimerSettings(settings)
+    }
+
+    // MARK: - Error Handling Helpers
+
+    private func handleSignInError(_ error: Error, _ context: String) -> String {
+        let signInError = error as? SignInError
+        switch signInError {
+        case .notConfigured:
+            return "Google Sign-In is not configured. Please check your configuration."
+        case .cancelled:
+            return "Sign-in was cancelled"
+        case .failed(let underlyingError):
+            return "Sign-in failed: \(underlyingError.localizedDescription)"
+        case .invalidRequest:
+            return "Invalid request. Please try again."
+        case .invalidResponse:
+            return "Invalid response from server. Please try again."
+        case .appleSignInNotAvailable:
+            return "Sign in with Apple is not available on this device"
+        case .appleSignInFailed(let underlyingError):
+            return "Sign in with Apple failed: \(underlyingError.localizedDescription)"
+        case .none:
+            return "An unexpected error occurred. Please try again."
+        }
     }
 
     private func displayNameForProfile() -> String {

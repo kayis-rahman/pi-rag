@@ -3,22 +3,61 @@ import SwiftUI
 import Foundation
 import _Concurrency
 
+#if os(macOS)
+import AppKit
+import CoreFoundation
+#elseif os(iOS)
+import UIKit
+#endif
+
 @MainActor
 final class TimerSyncManager: ObservableObject {
     static let shared = TimerSyncManager()
 
     // MARK: - Properties
     @Published private(set) var timer: PomodoroTimer?
-    private let deviceId: String
+    let deviceId: String
     @Published private(set) var isSyncing: Bool = false
     private var queuedSyncNeeded: Bool = false
     private var lastSyncTimestamp: Date = Date.distantPast
+    private var syncRetryCount: Int = 0
+    private var syncRetryDelay: TimeInterval = 1.0
+    private var isNetworkConnected: Bool = true
+    private var isDeviceRegistered: Bool = false
+    private var syncTimer: _Concurrency.Task<Void, Never>?
+    enum SyncError: Error, LocalizedError {
+        case networkFailure(String)
+        case authenticationFailure
+        case timeout
+
+        var errorDescription: String? {
+            switch self {
+            case .networkFailure(let message):
+                return "Network failure: \(message)"
+            case .authenticationFailure:
+                return "Authentication failure"
+            case .timeout:
+                return "Request timeout"
+            }
+        }
+    }
 
     func getTimer() -> PomodoroTimer? { timer }
 
     // MARK: - Initialization
     private init() {
-        deviceId = UUID().uuidString
+        do {
+            if let saved = try KeychainStore.loadString(.deviceId), !saved.isEmpty {
+                deviceId = saved
+            } else {
+                let newId = UUID().uuidString
+                try KeychainStore.saveString(newId, for: .deviceId)
+                deviceId = newId
+            }
+        } catch {
+            print("⚠️ TIMER_SYNC: Failed to load deviceId from Keychain: \(error)")
+            deviceId = UUID().uuidString
+        }
     }
 
     func configure(with timer: PomodoroTimer) {
@@ -31,6 +70,54 @@ final class TimerSyncManager: ObservableObject {
             queuedSyncNeeded = false
             Task {
                 await performSyncTimerState()
+            }
+        }
+
+        // Start periodic polling for cross-device sync
+        startPeriodicPolling()
+    }
+
+    // MARK: - Periodic Polling
+
+    private func startPeriodicPolling() {
+        syncTimer?.cancel()
+        syncTimer = _Concurrency.Task {
+            while !_Concurrency.Task.isCancelled {
+                try? await _Concurrency.Task.sleep(nanoseconds: 30_000_000_000) // 30 seconds
+                if !_Concurrency.Task.isCancelled {
+                    await self.pollForRemoteChanges()
+                }
+            }
+        }
+    }
+
+    private func pollForRemoteChanges() {
+        guard let timer = timer else { return }
+        guard let accessToken = AuthManager.shared.getValidAccessToken() else { return }
+
+        Task { [self] in
+            do {
+                let pulledState = try await ApiClient.shared.pullTimerState(accessToken: accessToken)
+                if let state = pulledState,
+                   let pulledModified = state.lastModifiedTimestamp?.timeIntervalSince1970,
+                   pulledModified > timer.lastModifiedTimestamp {
+                    timer.applySyncedState(
+                        phase: Phase(rawValue: state.phase ?? "work") ?? .work,
+                        remainingSeconds: state.remainingSeconds ?? 0,
+                        isRunning: state.isRunning ?? false,
+                        workDuration: state.workDuration ?? 25,
+                        breakDuration: state.breakDuration ?? 5,
+                        longBreakDuration: state.longBreakDuration ?? 15,
+                        autoStartNextSession: state.autoStartNextSession ?? false,
+                        shortBreaksCompleted: state.shortBreaksCompleted ?? 0,
+                        startTimestamp: state.startTimestamp?.timeIntervalSince1970,
+                        pauseTimestamp: state.pauseTimestamp?.timeIntervalSince1970,
+                        lastModifiedTimestamp: pulledModified
+                    )
+                    print("✅ TIMER_SYNC_POLL: Applied polled state from backend")
+                }
+            } catch {
+                print("⚠️ TIMER_SYNC_POLL: Failed to poll: \(error.localizedDescription)")
             }
         }
     }
@@ -46,7 +133,7 @@ final class TimerSyncManager: ObservableObject {
         }
         await performActionSync(action)
     }
-    
+
     func syncTimerState() async {
         print("🚀 TIMER_SYNC_STATE: syncTimerState() called for full state sync")
         guard timer != nil else {
@@ -77,133 +164,270 @@ final class TimerSyncManager: ObservableObject {
             timer.advance()
         }
 
-        do {
-            guard let accessToken = AuthManager.shared.getValidAccessToken() else {
-                LoggerStore.timer.error("No access token available for sync")
-                print("❌ TIMER_SYNC: No access token available from any source")
-                return
-            }
+        // Perform sync with improved error handling and retry logic
+        let success = await syncWithRetry(
+            operation: .actionSync(action),
+            operationHandler: { [self] accessToken in
+                // Push action to backend - send action + timer state + static metadata
+                let actionDto = TimerActionDto(
+                    action: action.rawValue,
+                    phase: timer.phase.rawValue,
+                    isRunning: timer.isRunning,
+                    remainingSeconds: Int(timer.remainingSeconds),
+                    workDuration: timer.workDuration,
+                    breakDuration: timer.breakDuration,
+                    longBreakDuration: timer.longBreakDuration,
+                    autoStartNextSession: timer.autoStartNextSession,
+                    shortBreaksCompleted: timer.shortBreaksCompleted,
+                    deviceId: self.deviceId,
+                    timestamp: Date().timeIntervalSince1970
+                )
 
-            // Push action to backend - only send action + static metadata (no continuously changing fields)
-            let actionDto = TimerActionDto(
-                action: action.rawValue,
-                phase: timer.phase.rawValue,
-                isRunning: timer.isRunning,
-                workDuration: timer.workDuration,
-                breakDuration: timer.breakDuration,
-                longBreakDuration: timer.longBreakDuration,
-                autoStartNextSession: timer.autoStartNextSession,
-                shortBreaksCompleted: timer.shortBreaksCompleted,
-                deviceId: deviceId,
-                timestamp: Date().timeIntervalSince1970
-            )
+                print("📤 TIMER_SYNC_ACTION_PUSH: Pushing action - \(action.rawValue), phase: \(timer.phase.rawValue), isRunning: \(timer.isRunning)")
 
-            print("📤 TIMER_SYNC_ACTION_PUSH: Pushing action - \(action.rawValue), phase: \(timer.phase.rawValue), isRunning: \(timer.isRunning)")
-            try await ApiClient.shared.pushTimerAction(actionDto, accessToken: accessToken)
+                // Call API directly - URLSession handles timeout
+                try await ApiClient.shared.pushTimerAction(actionDto, accessToken: accessToken)
+                print("✅ TIMER_SYNC_ACTION_SUCCESS: Successfully pushed action to backend")
 
-            // Only pull state occasionally for conflict resolution
-            // This is more efficient than pulling every second
-            if shouldPullState() {
-                await pullLatestState(accessToken: accessToken)
-            }
+                // Only pull state occasionally for conflict resolution
+                // This is more efficient than pulling every second
+                if self.shouldPullState() {
+                    await self.pullLatestState(accessToken: accessToken)
+                }
+            },
+            maxRetries: 3,
+            baseDelay: 1.0
+        )
 
-        } catch {
-            LoggerStore.timer.error("Failed to sync timer action: \(error.localizedDescription)")
+        if !success {
+            print("❌ TIMER_SYNC_ACTION_FAILED: Failed to push timer action after retries")
+            handleSyncFailure("ACTION_SYNC", error: nil as Error?)
         }
     }
 
     private func performSyncTimerState() async {
-        guard let timer = timer else { return }
-        isSyncing = true
-        print("✅ TIMER_SYNC_ACTIVE: Starting full state sync process")
-        defer { isSyncing = false }
-
-        do {
-            guard let accessToken = AuthManager.shared.getValidAccessToken() else {
-                LoggerStore.timer.error("No access token available for sync")
-                print("❌ TIMER_SYNC: No access token available from any source")
-                return
-            }
-
-            // Diagnostic logging for token loading
-            print("✅ TIMER_SYNC: Access token loaded, length: \(accessToken.count)")
-            print("✅ TIMER_SYNC: Token prefix: \(accessToken.prefix(20))...")
-
-            // Push current state to backend
-            let stateDto = TimerStateDto(
-                phase: timer.phase.rawValue,
-                remainingSeconds: Int(timer.remainingSeconds),
-                isRunning: timer.isRunning,
-                workDuration: timer.workDuration,
-                breakDuration: timer.breakDuration,
-                longBreakDuration: timer.longBreakDuration,
-                autoStartNextSession: timer.autoStartNextSession,
-                shortBreaksCompleted: timer.shortBreaksCompleted,
-                totalDuration: Int(timer.currentDuration),
-                lastModifiedTimestamp: Date(timeIntervalSince1970: timer.lastModifiedTimestamp),
-                deviceId: deviceId,
-                startTimestamp: Date(timeIntervalSince1970: timer.startTimestamp ?? 0),
-                pauseTimestamp: Date(timeIntervalSince1970: timer.pauseTimestamp ?? 0)
-            )
-
-            // Diagnostic logging for timer state being pushed
-            print("📤 TIMER_SYNC_PUSH: Pushing state - phase: \(timer.phase.rawValue), remaining: \(timer.remainingSeconds), running: \(timer.isRunning), device: \(deviceId)")
-
-            try await ApiClient.shared.pushTimerState(stateDto, accessToken: accessToken)
-
-            // Pull latest state from backend for conflict resolution (only when needed)
-            await pullLatestState(accessToken: accessToken)
-            
-        } catch {
-            LoggerStore.timer.error("Failed to sync timer state: \(error.localizedDescription)")
-        }
+        guard timer != nil else { return }
+        guard let accessToken = AuthManager.shared.getValidAccessToken() else { return }
+        await pullLatestState(accessToken: accessToken)
     }
-    
+
+    // Enhanced sync with retry logic and timeouts
+    private func syncWithRetry(
+        operation: SyncOperation,
+        operationHandler: @escaping (String) async throws -> Void,
+        maxRetries: Int,
+        baseDelay: TimeInterval
+    ) async -> Bool {
+        var attempt = 0
+        var delay = baseDelay
+
+        while attempt <= maxRetries {
+            do {
+                print("🔄 TIMER_SYNC_ATTEMPT: Attempt \(attempt + 1) for sync operation")
+
+                // Check if we have a valid access token
+                guard let accessToken = AuthManager.shared.getValidAccessToken() else {
+                    throw SyncError.authenticationFailure
+                }
+
+                // Register device on first sync
+                if !isDeviceRegistered {
+                    do {
+                        let registration = DeviceRegistrationDto(
+                            deviceId: deviceId,
+                            deviceName: Self.deviceName(),
+                            deviceType: Self.platformName(),
+                            platformVersion: ProcessInfo.processInfo.operatingSystemVersionString,
+                            appVersion: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0",
+                            fcmToken: nil
+                        )
+                        try await ApiClient.shared.registerDevice(registration, accessToken: accessToken)
+                        isDeviceRegistered = true
+                        print("✅ TIMER_SYNC_DEVICE: Registered device \(deviceId) on platform \(Self.platformName())")
+                    } catch {
+                        print("⚠️ TIMER_SYNC_DEVICE: Failed to register device: \(error.localizedDescription)")
+                        // Don't fail the entire sync if registration fails
+                    }
+                }
+
+                // Execute the sync operation
+                try await operationHandler(accessToken)
+
+                // Success - reset retry counters
+                syncRetryCount = 0
+                syncRetryDelay = 1.0
+                return true
+
+            } catch {
+                print("❌ TIMER_SYNC_ERROR: Sync attempt failed: \(error.localizedDescription)")
+
+                // Handle specific error cases for retry logic
+                if shouldRetry(error, attempt: attempt) {
+                    attempt += 1
+                    if attempt <= maxRetries {
+                        let nextDelay = min(delay * 2, 30.0) // Cap at 30 seconds
+                        print("⏳ TIMER_SYNC_RETRY: Retrying in \(nextDelay) seconds...")
+                        try? await Task.sleep(nanoseconds: UInt64(nextDelay * 1_000_000_000))
+                        delay = nextDelay
+                    }
+                    continue
+                } else {
+                    print("🛑 TIMER_SYNC_ABORT: Skipping retries due to non-retryable error")
+                    break
+                }
+            }
+        }
+
+        print("❌ TIMER_SYNC_MAX_RETRIES: Reached maximum retry attempts (\(maxRetries))")
+        return false
+    }
+
+    private func shouldRetry(_ error: Error, attempt: Int) -> Bool {
+        // Don't retry on authentication failures
+        if let syncError = error as? SyncError,
+           case .authenticationFailure = syncError {
+            return false
+        }
+
+        // Don't retry on certain network errors (non-retryable)
+        if let networkError = error as? ApiClient.ApiError,
+           case .networkError(let message) = networkError,
+           message.contains("Unauthorized") || message.contains("invalid_token") {
+            return false
+        }
+
+        // Retry on network errors, timeouts, and transient failures
+        return attempt < 3
+    }
+
     private func pullLatestState(accessToken: String) async {
         guard let timer = timer else { return }
-        
-        do {
-            if let pulledState = try await ApiClient.shared.pullTimerState(accessToken: accessToken) {
+
+        // Pull state with retry logic
+        let success = await syncWithRetry(
+            operation: .stateSync,
+            operationHandler: { [self] _ in
+                // Validate that we have a valid access token
+                guard let accessToken = AuthManager.shared.getValidAccessToken() else {
+                    throw SyncError.authenticationFailure
+                }
+
+                // Pull the state from backend
+                let pulledState = try await ApiClient.shared.pullTimerState(accessToken: accessToken)
+
+                // Validate the pulled state before applying
+                guard let validatedState = self.validatePulledState(pulledState) else {
+                    print("❌ TIMER_SYNC_PULL_VALIDATE: Invalid state received from backend, skipping update")
+                    return
+                }
+
                 // Diagnostic logging for pulled state
-                print("📥 TIMER_SYNC_PULL: Received state - phase: \(pulledState.phase ?? "unknown"), remaining: \(pulledState.remainingSeconds ?? -1), running: \(pulledState.isRunning ?? false), device: \(pulledState.deviceId ?? "unknown")")
-                print("📥 TIMER_SYNC_PULL: Pulled timestamps - start: \(pulledState.startTimestamp?.timeIntervalSince1970 ?? 0), lastModified: \(pulledState.lastModifiedTimestamp?.timeIntervalSince1970 ?? 0)")
+                print("📥 TIMER_SYNC_PULL: Received state - phase: \(validatedState.phase ?? "unknown"), remaining: \(validatedState.remainingSeconds ?? -1), running: \(validatedState.isRunning ?? false), device: \(validatedState.deviceId ?? "unknown")")
+                print("📥 TIMER_SYNC_PULL: Pulled timestamps - start: \(validatedState.startTimestamp?.timeIntervalSince1970 ?? 0), lastModified: \(validatedState.lastModifiedTimestamp?.timeIntervalSince1970 ?? 0)")
 
                 // Use Date directly for comparison (already parsed by JSONDecoder)
                 let currentModified = timer.lastModifiedTimestamp
-                let pulledModified = pulledState.lastModifiedTimestamp?.timeIntervalSince1970 ?? 0
+                let pulledModified = validatedState.lastModifiedTimestamp?.timeIntervalSince1970 ?? 0
 
                 print("📊 TIMER_SYNC_COMPARE: Current modified: \(currentModified), Pulled modified: \(pulledModified), Should sync: \(currentModified < pulledModified)")
 
-                // Apply if more recent
+                // Apply if more recent and state is valid
                 if timer.lastModifiedTimestamp < pulledModified {
                     // For cross-device sync, use the exact remainingSeconds from the remote state
                     // instead of trying to recalculate based on timestamps
                     print("✅ TIMER_SYNC_APPLY: Applying synced state to local timer")
+
+                    // Apply the validated state to local timer
                     timer.applySyncedState(
-                        phase: Phase(rawValue: pulledState.phase ?? "work") ?? .work,
-                        remainingSeconds: pulledState.remainingSeconds ?? 0,
-                        isRunning: pulledState.isRunning ?? false,
-                        workDuration: pulledState.workDuration ?? 25,
-                        breakDuration: pulledState.breakDuration ?? 5,
-                        longBreakDuration: pulledState.longBreakDuration ?? 15,
-                        autoStartNextSession: pulledState.autoStartNextSession ?? false,
-                        shortBreaksCompleted: pulledState.shortBreaksCompleted ?? 0,
-                        startTimestamp: pulledState.startTimestamp?.timeIntervalSince1970 ?? 0,
-                        pauseTimestamp: pulledState.pauseTimestamp?.timeIntervalSince1970 ?? 0,
+                        phase: Phase(rawValue: validatedState.phase ?? "work") ?? .work,
+                        remainingSeconds: validatedState.remainingSeconds ?? 0,
+                        isRunning: validatedState.isRunning ?? false,
+                        workDuration: validatedState.workDuration ?? 25,
+                        breakDuration: validatedState.breakDuration ?? 5,
+                        longBreakDuration: validatedState.longBreakDuration ?? 15,
+                        autoStartNextSession: validatedState.autoStartNextSession ?? false,
+                        shortBreaksCompleted: validatedState.shortBreaksCompleted ?? 0,
+                        startTimestamp: validatedState.startTimestamp?.timeIntervalSince1970,
+                        pauseTimestamp: validatedState.pauseTimestamp?.timeIntervalSince1970,
                         lastModifiedTimestamp: pulledModified
                     )
                     print("✅ TIMER_SYNC_APPLY: State applied successfully")
-                    
+
                     self.lastSyncTimestamp = Date()
                 } else {
                     self.lastSyncTimestamp = Date()
                 }
-            }
-        } catch {
-            LoggerStore.timer.error("Failed to pull latest timer state: \(error.localizedDescription)")
+            },
+            maxRetries: 2,
+            baseDelay: 1.0
+        )
+
+        if !success {
+            print("❌ TIMER_SYNC_PULL_FAILED: Failed to pull latest timer state after retries")
+            handleSyncFailure("STATE_PULL", error: nil as Error?)
         }
     }
-    
+
+    /**
+     * Validates the pulled state for data integrity and correctness
+     * This ensures the state being applied is safe and consistent
+     */
+    private func validatePulledState(_ state: TimerStateDto?) -> TimerStateDto? {
+        // Return early if state is nil
+        guard let state = state else {
+            print("⚠️ TIMER_SYNC_VALIDATE: Received nil state, skipping validation")
+            return nil
+        }
+
+        // Basic validation of required fields
+        if state.phase == nil {
+            print("❌ TIMER_SYNC_VALIDATE: State missing phase, rejecting")
+            return nil
+        }
+
+        // Validate phase is valid
+        if let phase = state.phase, !Phase.allCases.map({ $0.rawValue }).contains(phase) {
+            print("❌ TIMER_SYNC_VALIDATE: Invalid phase '\(phase)' received, rejecting")
+            return nil
+        }
+
+        // Validate numeric fields are within reasonable bounds
+        if let remainingSeconds = state.remainingSeconds {
+            if remainingSeconds < 0 || remainingSeconds > 3600 { // Max 1 hour
+                print("❌ TIMER_SYNC_VALIDATE: Invalid remainingSeconds \(remainingSeconds), rejecting")
+                return nil
+            }
+        }
+
+        // Validate work duration is within reasonable bounds
+        if let workDuration = state.workDuration {
+            if workDuration < 60 || workDuration > 3600 { // Min 1 minute, max 60 minutes
+                print("❌ TIMER_SYNC_VALIDATE: Invalid workDuration \(workDuration), rejecting")
+                return nil
+            }
+        }
+
+        // Validate break duration is within reasonable bounds
+        if let breakDuration = state.breakDuration {
+            if breakDuration < 60 || breakDuration > 1800 { // Min 1 minute, max 30 minutes
+                print("❌ TIMER_SYNC_VALIDATE: Invalid breakDuration \(breakDuration), rejecting")
+                return nil
+            }
+        }
+
+        // Validate long break duration is within reasonable bounds
+        if let longBreakDuration = state.longBreakDuration {
+            if longBreakDuration < 60 || longBreakDuration > 3600 { // Min 1 minute, max 60 minutes
+                print("❌ TIMER_SYNC_VALIDATE: Invalid longBreakDuration \(longBreakDuration), rejecting")
+                return nil
+            }
+        }
+
+        // If all validations pass, return the state
+        print("✅ TIMER_SYNC_VALIDATE: State passed all validation checks")
+        return state
+    }
+
     private func shouldPullState() -> Bool {
         // Only pull state for conflict resolution when needed, not every time
         // We can do this occasionally or when we detect significant differences
@@ -212,9 +436,31 @@ final class TimerSyncManager: ObservableObject {
         let should = timeSinceLastSync > 30 || lastSyncTimestamp == Date.distantPast
         return should
     }
-    
+
     func updateLastSyncTimestamp() {
         lastSyncTimestamp = Date()
+    }
+
+    // MARK: - Enhanced Error Handling
+    private func handleSyncFailure(_ syncType: String, error: Error?) {
+        // Increment retry counter
+        syncRetryCount += 1
+        syncRetryDelay = min(syncRetryDelay * 2, 30.0) // Exponential backoff up to 30s
+
+        // Log error details
+        if let error = error {
+            print("💥 TIMER_SYNC_ERROR: \(syncType) failed with error: \(error.localizedDescription)")
+            LoggerStore.timer.error("Timer sync failed - \(syncType): \(error.localizedDescription)")
+        } else {
+            print("💥 TIMER_SYNC_ERROR: \(syncType) failed with unknown error")
+            LoggerStore.timer.error("Timer sync failed - \(syncType): Unknown error")
+        }
+
+        // Trigger fallback mechanisms if needed
+        if syncRetryCount >= 3 {
+            print("⚠️ TIMER_SYNC_FALLBACK: Triggering fallback mechanisms after \(syncRetryCount) failed attempts")
+            // In a real implementation, we might trigger fallback logic like offline queueing
+        }
     }
 
     // MARK: - Incoming Action Handling (Event-Based Sync)
@@ -366,4 +612,31 @@ final class TimerSyncManager: ObservableObject {
         }
     }
 
+    // MARK: - Device Identification
+
+    private static func deviceName() -> String {
+        #if os(macOS)
+        return ProcessInfo.processInfo.hostName
+        #elseif os(iOS)
+        return UIDevice.current.name
+        #else
+        return "Unknown Device"
+        #endif
+    }
+
+    private static func platformName() -> String {
+        #if os(macOS)
+        return "macOS"
+        #elseif os(iOS)
+        return "iOS"
+        #else
+        return "unknown"
+        #endif
+    }
+
+    // MARK: - Internal Enum
+    private enum SyncOperation {
+        case stateSync
+        case actionSync(TimerAction)
+    }
 }

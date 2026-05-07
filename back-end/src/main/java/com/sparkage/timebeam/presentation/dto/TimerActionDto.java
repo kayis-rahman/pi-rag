@@ -1,5 +1,7 @@
 package com.sparkage.timebeam.presentation.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.sparkage.timebeam.domain.model.TimerActionType;
 
 /**
@@ -7,6 +9,7 @@ import com.sparkage.timebeam.domain.model.TimerActionType;
  * Contains only action type and static metadata (no continuously changing fields like remainingSeconds)
  */
 public class TimerActionDto {
+    @JsonAlias({"action", "actionType"})
     private TimerActionType actionType;
     private String phase;
     private boolean isRunning;

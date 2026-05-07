@@ -4,5 +4,15 @@
 <dict>
 	<key>aps-environment</key>
 	<string>development</string>
+	<key>com.apple.security.network.client</key>
+	<true/>
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>group.425MSY8FLG.com.sparkage.time-beam</string>
+	</array>
+	<key>com.apple.security.keychain.access-groups</key>
+	<array>
+		<string>425MSY8FLG.com.sparkage.time-beam</string>
+	</array>
 </dict>
 </plist>

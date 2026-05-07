@@ -1,0 +1,16 @@
+{
+  "vaultName": "TimeBeam",
+  "defaultView": "source",
+  "showRibbon": true,
+  "showInlineTitle": false,
+  "showLineNumber": false,
+  "readableLineLength": false,
+  "autoPairBrackets": true,
+  "autoPairMarkdown": true,
+  "rtlRichText": false,
+  "spellcheck": true,
+  "threaded Conversations": false,
+  "livePreview": true,
+  "strictSyntax": false,
+  "enabledExperimentalFeatures": []
+}

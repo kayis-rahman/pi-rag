@@ -15,36 +15,42 @@ struct BottomTabView: View {
     var body: some View {
         HStack(spacing: 0) {
             ForEach(0..<tabs.count, id: \.self) { index in
-                BottomTabButton(
-                    icon: tabs[index].icon,
-                    label: tabs[index].label,
-                    isSelected: selectedTab == index,
-                    badge: badgeForTab(index),
-                    hasActiveIndicator: hasActiveIndicator(for: index)
-                ) {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                        selectedTab = index
-                    }
-                }
-                .frame(maxWidth: .infinity)
+                tabView(for: index)
+                    .frame(maxWidth: .infinity)
             }
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 8)
-        .background(
-            Color.themeCardBackground.opacity(0.95)
-                .blur(radius: 0.5)
-                .overlay(
-                    Rectangle()
-                        .fill(Color.themePrimary.opacity(0.05))
-                        .frame(height: 1)
-                        .frame(maxWidth: .infinity, alignment: .top)
-                )
-        )
+        .background(tabBarBackground)
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: -2)
         .padding(.horizontal, 8)
         .padding(.bottom, 8)
+    }
+
+    private func tabView(for index: Int) -> some View {
+        BottomTabButton(
+            icon: tabs[index].icon,
+            label: tabs[index].label,
+            isSelected: selectedTab == index,
+            badge: badgeForTab(index),
+            hasActiveIndicator: hasActiveIndicator(for: index)
+        ) {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                selectedTab = index
+            }
+        }
+    }
+
+    private var tabBarBackground: some View {
+        Color.themeCardBackground.opacity(0.95)
+            .blur(radius: 0.5)
+            .overlay(
+                Rectangle()
+                    .fill(Color.themePrimary.opacity(0.05))
+                    .frame(height: 1)
+                    .frame(maxWidth: .infinity, alignment: .top)
+            )
     }
 
     private func badgeForTab(_ index: Int) -> String? {

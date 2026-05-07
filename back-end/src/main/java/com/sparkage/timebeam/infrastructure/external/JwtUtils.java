@@ -30,6 +30,18 @@ public class JwtUtils {
                 .compact();
     }
 
+    public String generateRefreshToken(UUID userId) {
+        // Refresh tokens expire in 7 days
+        Date now = new Date();
+        Date exp = new Date(now.getTime() + 7L * 24 * 60 * 60 * 1000);
+        return Jwts.builder()
+                .setSubject(userId.toString())
+                .setIssuedAt(now)
+                .setExpiration(exp)
+                .signWith(key)
+                .compact();
+    }
+
     public UUID parseUserId(String token) {
         Jws<Claims> claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
         return UUID.fromString(claims.getBody().getSubject());
