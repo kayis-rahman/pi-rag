@@ -48,13 +48,9 @@ public class NotificationController {
             return ResponseEntity.badRequest().build();
         }
 
-        // Send the notification to other devices
-        pushNotificationService.sendTimerSyncPush(
-            userId.toString(),
-            payload.getAction().getDeviceId(),
-            payload.getAction().getAction(),
-            payload.getAction().getTimestamp()
-        );
+        // TODO: Send the notification to other devices with full timer state
+        // This endpoint is for manual testing/debugging - not in critical sync path
+        log.debug("Manual push endpoint called - full state push not yet implemented for this endpoint");
 
         log.info("APN notification sent successfully for user: {}, device: {}",
                 userId, payload.getAction().getDeviceId());

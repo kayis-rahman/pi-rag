@@ -104212,3 +104212,931 @@ Unconditional classes:
 2026-05-07 22:03:07.144 [http-nio-0.0.0.0-8080-exec-8] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE HEADER: Vary = Origin
 2026-05-07 22:03:07.144 [http-nio-0.0.0.0-8080-exec-8] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE HEADER: Vary = Origin
 2026-05-07 22:03:07.144 [http-nio-0.0.0.0-8080-exec-8] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE BODY: {"phase":"work","remainingSeconds":1467,"isRunning":false,"workDuration":1500,"breakDuration":300,"longBreakDuration":900,"autoStartNextSession":false,"shortBreaksCompleted":0,"totalDuration":1500,"startTimestamp":1.7781871E9,"pauseTimestamp":null,"lastModifiedTimestamp":"2026-05-07T20:50:39.979Z","deviceId":"040f9fd6-7646-43c7-895c-93ccaedb7bc3"}
+2026-05-07 22:03:18.547 [http-nio-0.0.0.0-8080-exec-10] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/sessions/timer/state
+2026-05-07 22:03:18.549 [http-nio-0.0.0.0-8080-exec-10] DEBUG c.s.t.i.e.JwtAuthenticationFilter - 🔍 JwtAuthenticationFilter: Authorization header present: YES
+2026-05-07 22:03:18.549 [http-nio-0.0.0.0-8080-exec-10] DEBUG c.s.t.i.e.JwtAuthenticationFilter - 🔍 JwtAuthenticationFilter: Header value: Bearer eyJhbGciOiJIU...
+2026-05-07 22:03:18.553 [http-nio-0.0.0.0-8080-exec-10] DEBUG c.s.t.i.e.JwtAuthenticationFilter - ✅ JwtAuthenticationFilter: Valid token for user: 252e4b7c-a98b-4022-87c2-6cc57fdef477
+2026-05-07 22:03:18.554 [http-nio-0.0.0.0-8080-exec-10] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/sessions/timer/state
+2026-05-07 22:03:18.554 [http-nio-0.0.0.0-8080-exec-10] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/sessions/timer/state", parameters={}
+2026-05-07 22:03:18.554 [http-nio-0.0.0.0-8080-exec-10] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.sparkage.timebeam.presentation.controller.SessionController#pullTimerState(Principal)
+2026-05-07 22:03:18.555 [http-nio-0.0.0.0-8080-exec-10] DEBUG o.s.o.j.s.OpenEntityManagerInViewInterceptor - Opening JPA EntityManager in OpenEntityManagerInViewInterceptor
+2026-05-07 22:03:18.556 [http-nio-0.0.0.0-8080-exec-10] DEBUG o.s.s.a.m.AuthorizationManagerBeforeMethodInterceptor - Authorizing method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.sparkage.timebeam.presentation.controller.SessionController.pullTimerState(java.security.Principal); target is of class [com.sparkage.timebeam.presentation.controller.SessionController]
+2026-05-07 22:03:18.557 [http-nio-0.0.0.0-8080-exec-10] DEBUG o.s.s.a.m.AuthorizationManagerBeforeMethodInterceptor - Authorized method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.sparkage.timebeam.presentation.controller.SessionController.pullTimerState(java.security.Principal); target is of class [com.sparkage.timebeam.presentation.controller.SessionController]
+2026-05-07 22:03:18.557 [http-nio-0.0.0.0-8080-exec-10] DEBUG c.s.t.p.controller.SessionController - pull timer state called
+2026-05-07 22:03:18.557 [http-nio-0.0.0.0-8080-exec-10] DEBUG o.s.orm.jpa.JpaTransactionManager - Found thread-bound EntityManager [SessionImpl(1131717577<open>)] for JPA transaction
+2026-05-07 22:03:18.557 [http-nio-0.0.0.0-8080-exec-10] DEBUG o.s.orm.jpa.JpaTransactionManager - Creating new transaction with name [com.sparkage.timebeam.application.service.TimerSyncService.pullTimerState]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT,readOnly
+2026-05-07 22:03:18.574 [http-nio-0.0.0.0-8080-exec-10] DEBUG o.s.jdbc.datasource.DataSourceUtils - Setting JDBC Connection [HikariProxyConnection@1074353916 wrapping org.postgresql.jdbc.PgConnection@36fb9b2f] read-only
+2026-05-07 22:03:18.575 [http-nio-0.0.0.0-8080-exec-10] DEBUG o.h.e.t.internal.TransactionImpl - On TransactionImpl creation, JpaCompliance#isJpaTransactionComplianceEnabled == false
+2026-05-07 22:03:18.575 [http-nio-0.0.0.0-8080-exec-10] DEBUG o.h.e.t.internal.TransactionImpl - begin
+2026-05-07 22:03:18.575 [http-nio-0.0.0.0-8080-exec-10] DEBUG o.s.orm.jpa.JpaTransactionManager - Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@52fb79b9]
+2026-05-07 22:03:18.576 [http-nio-0.0.0.0-8080-exec-10] DEBUG org.hibernate.orm.sql.ast.create - Created new SQL alias : ts1_0
+2026-05-07 22:03:18.577 [http-nio-0.0.0.0-8080-exec-10] DEBUG org.hibernate.orm.sql.ast.create - Registration of TableGroup [StandardTableGroup(com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458))] with identifierForTableGroup [com.sparkage.timebeam.infrastructure.persistence.TimerState] for NavigablePath [com.sparkage.timebeam.infrastructure.persistence.TimerState] 
+2026-05-07 22:03:18.577 [http-nio-0.0.0.0-8080-exec-10] DEBUG o.h.q.s.sql.BaseSqmToSqlAstConverter - Determining mapping-model type for SqmParameter : org.hibernate.query.sqm.tree.expression.SqmJpaCriteriaParameterWrapper@68f017d9
+2026-05-07 22:03:18.577 [http-nio-0.0.0.0-8080-exec-10] DEBUG o.h.q.s.sql.BaseSqmToSqlAstConverter - Determining mapping-model type for SqmPath : SqmBasicValuedSimplePath(com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).userId) 
+2026-05-07 22:03:18.577 [http-nio-0.0.0.0-8080-exec-10] DEBUG org.hibernate.orm.results.graph.AST - DomainResult Graph:
+ \-EntityResultImpl [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458)]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).autoStartNext]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).breakDurationMinutes]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).lastUpdatedAt]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).longBreakDurationMinutes]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).pauseTimestamp]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).phase]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).remainingSeconds]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).running]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).shortBreaksCompleted]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).startTimestamp]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).totalDuration]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).updatedByDeviceId]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).version]
+ |  \-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).workDurationMinutes]
+
+2026-05-07 22:03:18.578 [http-nio-0.0.0.0-8080-exec-10] DEBUG org.hibernate.orm.sql.ast.tree - SQL AST Tree:
+    SelectStatement {
+      FromClause {
+        StandardTableGroup (ts1 : com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458)) {
+          primaryTableReference : timer_states as ts1_0
+        }
+      }
+    }
+
+2026-05-07 22:03:18.578 [http-nio-0.0.0.0-8080-exec-10] DEBUG org.hibernate.orm.sql.exec - Skipping reading Query result cache data: cache-enabled = false, cache-mode = NORMAL
+2026-05-07 22:03:18.578 [http-nio-0.0.0.0-8080-exec-10] DEBUG org.hibernate.orm.results - Initializer list
+2026-05-07 22:03:18.578 [http-nio-0.0.0.0-8080-exec-10] DEBUG org.hibernate.orm.results -     com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458) -> EntityResultInitializer(com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458))@225908193 (SingleTableEntityPersister(com.sparkage.timebeam.infrastructure.persistence.TimerState))
+2026-05-07 22:03:18.578 [http-nio-0.0.0.0-8080-exec-10] DEBUG org.hibernate.SQL - 
+    select
+        ts1_0.user_id,
+        ts1_0.auto_start_next,
+        ts1_0.break_duration_minutes,
+        ts1_0.last_updated_at,
+        ts1_0.long_break_duration_minutes,
+        ts1_0.pause_timestamp,
+        ts1_0.phase,
+        ts1_0.remaining_seconds,
+        ts1_0.is_running,
+        ts1_0.short_breaks_completed,
+        ts1_0.start_timestamp,
+        ts1_0.total_duration,
+        ts1_0.updated_by_device_id,
+        ts1_0.version,
+        ts1_0.work_duration_minutes 
+    from
+        timer_states ts1_0 
+    where
+        ts1_0.user_id=?
+2026-05-07 22:03:18.586 [http-nio-0.0.0.0-8080-exec-10] DEBUG org.hibernate.orm.results - Extracted JDBC value [0] - [252e4b7c-a98b-4022-87c2-6cc57fdef477]
+2026-05-07 22:03:18.586 [http-nio-0.0.0.0-8080-exec-10] DEBUG o.h.orm.results.loading.entity - (EntityResultInitializer) Hydrated EntityKey (com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458)): 252e4b7c-a98b-4022-87c2-6cc57fdef477
+2026-05-07 22:03:18.586 [http-nio-0.0.0.0-8080-exec-10] DEBUG o.h.orm.results.loading.entity - (EntityResultInitializer) Created new entity instance [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458)#252e4b7c-a98b-4022-87c2-6cc57fdef477] : 1334038836
+2026-05-07 22:03:18.586 [http-nio-0.0.0.0-8080-exec-10] DEBUG org.hibernate.orm.results - Extracted JDBC value [1] - [false]
+2026-05-07 22:03:18.586 [http-nio-0.0.0.0-8080-exec-10] DEBUG org.hibernate.orm.results - Extracted JDBC value [2] - [300]
+2026-05-07 22:03:18.586 [http-nio-0.0.0.0-8080-exec-10] DEBUG org.hibernate.orm.results - Extracted JDBC value [3] - [2026-05-07T20:50:39.979523Z]
+2026-05-07 22:03:18.586 [http-nio-0.0.0.0-8080-exec-10] DEBUG org.hibernate.orm.results - Extracted JDBC value [4] - [900]
+2026-05-07 22:03:18.586 [http-nio-0.0.0.0-8080-exec-10] DEBUG org.hibernate.orm.results - Extracted JDBC value [5] - [null]
+2026-05-07 22:03:18.586 [http-nio-0.0.0.0-8080-exec-10] DEBUG org.hibernate.orm.results - Extracted JDBC value [6] - [work]
+2026-05-07 22:03:18.586 [http-nio-0.0.0.0-8080-exec-10] DEBUG org.hibernate.orm.results - Extracted JDBC value [7] - [1467]
+2026-05-07 22:03:18.586 [http-nio-0.0.0.0-8080-exec-10] DEBUG org.hibernate.orm.results - Extracted JDBC value [8] - [false]
+2026-05-07 22:03:18.586 [http-nio-0.0.0.0-8080-exec-10] DEBUG org.hibernate.orm.results - Extracted JDBC value [9] - [0]
+2026-05-07 22:03:18.587 [http-nio-0.0.0.0-8080-exec-10] DEBUG org.hibernate.orm.results - Extracted JDBC value [10] - [1.7781871E9]
+2026-05-07 22:03:18.587 [http-nio-0.0.0.0-8080-exec-10] DEBUG org.hibernate.orm.results - Extracted JDBC value [11] - [1500]
+2026-05-07 22:03:18.587 [http-nio-0.0.0.0-8080-exec-10] DEBUG org.hibernate.orm.results - Extracted JDBC value [12] - [040f9fd6-7646-43c7-895c-93ccaedb7bc3]
+2026-05-07 22:03:18.587 [http-nio-0.0.0.0-8080-exec-10] DEBUG org.hibernate.orm.results - Extracted JDBC value [13] - [42]
+2026-05-07 22:03:18.587 [http-nio-0.0.0.0-8080-exec-10] DEBUG org.hibernate.orm.results - Extracted JDBC value [14] - [1500]
+2026-05-07 22:03:18.587 [http-nio-0.0.0.0-8080-exec-10] DEBUG org.hibernate.orm.results - Extracted JDBC value [13] - [42]
+2026-05-07 22:03:18.587 [http-nio-0.0.0.0-8080-exec-10] DEBUG o.h.orm.results.loading.entity - (EntityResultInitializer) Done materializing entityInstance : com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458)#252e4b7c-a98b-4022-87c2-6cc57fdef477
+2026-05-07 22:03:18.587 [http-nio-0.0.0.0-8080-exec-10] DEBUG org.hibernate.orm.results.loading - Calling top-level assembler (0 / 1) : org.hibernate.sql.results.graph.entity.internal.EntityAssembler@7a6e0d38
+2026-05-07 22:03:18.587 [http-nio-0.0.0.0-8080-exec-10] INFO  c.s.t.a.service.TimerSyncService - TIMER_SYNC_DEBUG: Pulling timer state - Unix timestamp: 1.77818703998E9 (as string: 1778187039.98)
+2026-05-07 22:03:18.587 [http-nio-0.0.0.0-8080-exec-10] DEBUG o.s.orm.jpa.JpaTransactionManager - Initiating transaction commit
+2026-05-07 22:03:18.587 [http-nio-0.0.0.0-8080-exec-10] DEBUG o.s.orm.jpa.JpaTransactionManager - Committing JPA transaction on EntityManager [SessionImpl(1131717577<open>)]
+2026-05-07 22:03:18.587 [http-nio-0.0.0.0-8080-exec-10] DEBUG o.h.e.t.internal.TransactionImpl - committing
+2026-05-07 22:03:18.595 [http-nio-0.0.0.0-8080-exec-10] DEBUG o.s.jdbc.datasource.DataSourceUtils - Resetting read-only flag of JDBC Connection [HikariProxyConnection@1074353916 wrapping org.postgresql.jdbc.PgConnection@36fb9b2f]
+2026-05-07 22:03:18.596 [http-nio-0.0.0.0-8080-exec-10] DEBUG o.s.orm.jpa.JpaTransactionManager - Not closing pre-bound JPA EntityManager after transaction
+2026-05-07 22:03:18.596 [http-nio-0.0.0.0-8080-exec-10] INFO  c.s.t.p.controller.SessionController - timer state pulled for user=252e4b7c-a98b-4022-87c2-6cc57fdef477, device=040f9fd6-7646-43c7-895c-93ccaedb7bc3
+2026-05-07 22:03:18.596 [http-nio-0.0.0.0-8080-exec-10] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2026-05-07 22:03:18.596 [http-nio-0.0.0.0-8080-exec-10] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [TimerStateDto{phase='work', remainingSeconds=1467, isRunning=false, lastModifiedTimestamp=2026-05-07 (truncated)...]
+2026-05-07 22:03:18.597 [http-nio-0.0.0.0-8080-exec-10] DEBUG o.s.o.j.s.OpenEntityManagerInViewInterceptor - Closing JPA EntityManager in OpenEntityManagerInViewInterceptor
+2026-05-07 22:03:18.597 [http-nio-0.0.0.0-8080-exec-10] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2026-05-07 22:03:18.597 [http-nio-0.0.0.0-8080-exec-10] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST: GET /api/sessions/timer/state from 192.168.0.97:58391
+2026-05-07 22:03:18.597 [http-nio-0.0.0.0-8080-exec-10] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: host = 192.168.0.202:8080
+2026-05-07 22:03:18.597 [http-nio-0.0.0.0-8080-exec-10] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: content-type = application/json
+2026-05-07 22:03:18.597 [http-nio-0.0.0.0-8080-exec-10] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: connection = keep-alive
+2026-05-07 22:03:18.597 [http-nio-0.0.0.0-8080-exec-10] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: accept = */*
+2026-05-07 22:03:18.597 [http-nio-0.0.0.0-8080-exec-10] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: user-agent = TimeBeam%20iOS/1 CFNetwork/3860.500.112 Darwin/25.4.0
+2026-05-07 22:03:18.597 [http-nio-0.0.0.0-8080-exec-10] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: authorization = [REDACTED]
+2026-05-07 22:03:18.598 [http-nio-0.0.0.0-8080-exec-10] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: accept-language = en-GB,en;q=0.9
+2026-05-07 22:03:18.598 [http-nio-0.0.0.0-8080-exec-10] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: accept-encoding = gzip, deflate
+2026-05-07 22:03:18.598 [http-nio-0.0.0.0-8080-exec-10] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE: 200 in 43ms
+2026-05-07 22:03:18.598 [http-nio-0.0.0.0-8080-exec-10] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE HEADER: Vary = Origin
+2026-05-07 22:03:18.598 [http-nio-0.0.0.0-8080-exec-10] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE HEADER: Vary = Origin
+2026-05-07 22:03:18.598 [http-nio-0.0.0.0-8080-exec-10] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE HEADER: Vary = Origin
+2026-05-07 22:03:18.598 [http-nio-0.0.0.0-8080-exec-10] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE BODY: {"phase":"work","remainingSeconds":1467,"isRunning":false,"workDuration":1500,"breakDuration":300,"longBreakDuration":900,"autoStartNextSession":false,"shortBreaksCompleted":0,"totalDuration":1500,"startTimestamp":1.7781871E9,"pauseTimestamp":null,"lastModifiedTimestamp":"2026-05-07T20:50:39.979Z","deviceId":"040f9fd6-7646-43c7-895c-93ccaedb7bc3"}
+2026-05-07 22:03:38.078 [http-nio-0.0.0.0-8080-exec-1] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/sessions/timer/state
+2026-05-07 22:03:38.081 [http-nio-0.0.0.0-8080-exec-1] DEBUG c.s.t.i.e.JwtAuthenticationFilter - 🔍 JwtAuthenticationFilter: Authorization header present: YES
+2026-05-07 22:03:38.081 [http-nio-0.0.0.0-8080-exec-1] DEBUG c.s.t.i.e.JwtAuthenticationFilter - 🔍 JwtAuthenticationFilter: Header value: Bearer eyJhbGciOiJIU...
+2026-05-07 22:03:38.085 [http-nio-0.0.0.0-8080-exec-1] DEBUG c.s.t.i.e.JwtAuthenticationFilter - ✅ JwtAuthenticationFilter: Valid token for user: 252e4b7c-a98b-4022-87c2-6cc57fdef477
+2026-05-07 22:03:38.086 [http-nio-0.0.0.0-8080-exec-1] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/sessions/timer/state
+2026-05-07 22:03:38.086 [http-nio-0.0.0.0-8080-exec-1] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/sessions/timer/state", parameters={}
+2026-05-07 22:03:38.086 [http-nio-0.0.0.0-8080-exec-1] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.sparkage.timebeam.presentation.controller.SessionController#pullTimerState(Principal)
+2026-05-07 22:03:38.086 [http-nio-0.0.0.0-8080-exec-1] DEBUG o.s.o.j.s.OpenEntityManagerInViewInterceptor - Opening JPA EntityManager in OpenEntityManagerInViewInterceptor
+2026-05-07 22:03:38.088 [http-nio-0.0.0.0-8080-exec-1] DEBUG o.s.s.a.m.AuthorizationManagerBeforeMethodInterceptor - Authorizing method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.sparkage.timebeam.presentation.controller.SessionController.pullTimerState(java.security.Principal); target is of class [com.sparkage.timebeam.presentation.controller.SessionController]
+2026-05-07 22:03:38.088 [http-nio-0.0.0.0-8080-exec-1] DEBUG o.s.s.a.m.AuthorizationManagerBeforeMethodInterceptor - Authorized method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.sparkage.timebeam.presentation.controller.SessionController.pullTimerState(java.security.Principal); target is of class [com.sparkage.timebeam.presentation.controller.SessionController]
+2026-05-07 22:03:38.088 [http-nio-0.0.0.0-8080-exec-1] DEBUG c.s.t.p.controller.SessionController - pull timer state called
+2026-05-07 22:03:38.089 [http-nio-0.0.0.0-8080-exec-1] DEBUG o.s.orm.jpa.JpaTransactionManager - Found thread-bound EntityManager [SessionImpl(1056188516<open>)] for JPA transaction
+2026-05-07 22:03:38.089 [http-nio-0.0.0.0-8080-exec-1] DEBUG o.s.orm.jpa.JpaTransactionManager - Creating new transaction with name [com.sparkage.timebeam.application.service.TimerSyncService.pullTimerState]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT,readOnly
+2026-05-07 22:03:38.101 [http-nio-0.0.0.0-8080-exec-1] DEBUG o.s.jdbc.datasource.DataSourceUtils - Setting JDBC Connection [HikariProxyConnection@78065420 wrapping org.postgresql.jdbc.PgConnection@36fb9b2f] read-only
+2026-05-07 22:03:38.102 [http-nio-0.0.0.0-8080-exec-1] DEBUG o.h.e.t.internal.TransactionImpl - On TransactionImpl creation, JpaCompliance#isJpaTransactionComplianceEnabled == false
+2026-05-07 22:03:38.102 [http-nio-0.0.0.0-8080-exec-1] DEBUG o.h.e.t.internal.TransactionImpl - begin
+2026-05-07 22:03:38.102 [http-nio-0.0.0.0-8080-exec-1] DEBUG o.s.orm.jpa.JpaTransactionManager - Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@4bc283cf]
+2026-05-07 22:03:38.104 [http-nio-0.0.0.0-8080-exec-1] DEBUG org.hibernate.orm.sql.ast.create - Created new SQL alias : ts1_0
+2026-05-07 22:03:38.104 [http-nio-0.0.0.0-8080-exec-1] DEBUG org.hibernate.orm.sql.ast.create - Registration of TableGroup [StandardTableGroup(com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458))] with identifierForTableGroup [com.sparkage.timebeam.infrastructure.persistence.TimerState] for NavigablePath [com.sparkage.timebeam.infrastructure.persistence.TimerState] 
+2026-05-07 22:03:38.104 [http-nio-0.0.0.0-8080-exec-1] DEBUG o.h.q.s.sql.BaseSqmToSqlAstConverter - Determining mapping-model type for SqmParameter : org.hibernate.query.sqm.tree.expression.SqmJpaCriteriaParameterWrapper@24e26be5
+2026-05-07 22:03:38.104 [http-nio-0.0.0.0-8080-exec-1] DEBUG o.h.q.s.sql.BaseSqmToSqlAstConverter - Determining mapping-model type for SqmPath : SqmBasicValuedSimplePath(com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).userId) 
+2026-05-07 22:03:38.105 [http-nio-0.0.0.0-8080-exec-1] DEBUG org.hibernate.orm.results.graph.AST - DomainResult Graph:
+ \-EntityResultImpl [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458)]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).autoStartNext]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).breakDurationMinutes]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).lastUpdatedAt]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).longBreakDurationMinutes]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).pauseTimestamp]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).phase]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).remainingSeconds]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).running]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).shortBreaksCompleted]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).startTimestamp]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).totalDuration]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).updatedByDeviceId]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).version]
+ |  \-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).workDurationMinutes]
+
+2026-05-07 22:03:38.105 [http-nio-0.0.0.0-8080-exec-1] DEBUG org.hibernate.orm.sql.ast.tree - SQL AST Tree:
+    SelectStatement {
+      FromClause {
+        StandardTableGroup (ts1 : com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458)) {
+          primaryTableReference : timer_states as ts1_0
+        }
+      }
+    }
+
+2026-05-07 22:03:38.105 [http-nio-0.0.0.0-8080-exec-1] DEBUG org.hibernate.orm.sql.exec - Skipping reading Query result cache data: cache-enabled = false, cache-mode = NORMAL
+2026-05-07 22:03:38.105 [http-nio-0.0.0.0-8080-exec-1] DEBUG org.hibernate.orm.results - Initializer list
+2026-05-07 22:03:38.105 [http-nio-0.0.0.0-8080-exec-1] DEBUG org.hibernate.orm.results -     com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458) -> EntityResultInitializer(com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458))@1504407758 (SingleTableEntityPersister(com.sparkage.timebeam.infrastructure.persistence.TimerState))
+2026-05-07 22:03:38.105 [http-nio-0.0.0.0-8080-exec-1] DEBUG org.hibernate.SQL - 
+    select
+        ts1_0.user_id,
+        ts1_0.auto_start_next,
+        ts1_0.break_duration_minutes,
+        ts1_0.last_updated_at,
+        ts1_0.long_break_duration_minutes,
+        ts1_0.pause_timestamp,
+        ts1_0.phase,
+        ts1_0.remaining_seconds,
+        ts1_0.is_running,
+        ts1_0.short_breaks_completed,
+        ts1_0.start_timestamp,
+        ts1_0.total_duration,
+        ts1_0.updated_by_device_id,
+        ts1_0.version,
+        ts1_0.work_duration_minutes 
+    from
+        timer_states ts1_0 
+    where
+        ts1_0.user_id=?
+2026-05-07 22:03:38.113 [http-nio-0.0.0.0-8080-exec-1] DEBUG org.hibernate.orm.results - Extracted JDBC value [0] - [252e4b7c-a98b-4022-87c2-6cc57fdef477]
+2026-05-07 22:03:38.113 [http-nio-0.0.0.0-8080-exec-1] DEBUG o.h.orm.results.loading.entity - (EntityResultInitializer) Hydrated EntityKey (com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458)): 252e4b7c-a98b-4022-87c2-6cc57fdef477
+2026-05-07 22:03:38.113 [http-nio-0.0.0.0-8080-exec-1] DEBUG o.h.orm.results.loading.entity - (EntityResultInitializer) Created new entity instance [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458)#252e4b7c-a98b-4022-87c2-6cc57fdef477] : 1196655620
+2026-05-07 22:03:38.113 [http-nio-0.0.0.0-8080-exec-1] DEBUG org.hibernate.orm.results - Extracted JDBC value [1] - [false]
+2026-05-07 22:03:38.113 [http-nio-0.0.0.0-8080-exec-1] DEBUG org.hibernate.orm.results - Extracted JDBC value [2] - [300]
+2026-05-07 22:03:38.113 [http-nio-0.0.0.0-8080-exec-1] DEBUG org.hibernate.orm.results - Extracted JDBC value [3] - [2026-05-07T20:50:39.979523Z]
+2026-05-07 22:03:38.113 [http-nio-0.0.0.0-8080-exec-1] DEBUG org.hibernate.orm.results - Extracted JDBC value [4] - [900]
+2026-05-07 22:03:38.113 [http-nio-0.0.0.0-8080-exec-1] DEBUG org.hibernate.orm.results - Extracted JDBC value [5] - [null]
+2026-05-07 22:03:38.113 [http-nio-0.0.0.0-8080-exec-1] DEBUG org.hibernate.orm.results - Extracted JDBC value [6] - [work]
+2026-05-07 22:03:38.113 [http-nio-0.0.0.0-8080-exec-1] DEBUG org.hibernate.orm.results - Extracted JDBC value [7] - [1467]
+2026-05-07 22:03:38.113 [http-nio-0.0.0.0-8080-exec-1] DEBUG org.hibernate.orm.results - Extracted JDBC value [8] - [false]
+2026-05-07 22:03:38.113 [http-nio-0.0.0.0-8080-exec-1] DEBUG org.hibernate.orm.results - Extracted JDBC value [9] - [0]
+2026-05-07 22:03:38.113 [http-nio-0.0.0.0-8080-exec-1] DEBUG org.hibernate.orm.results - Extracted JDBC value [10] - [1.7781871E9]
+2026-05-07 22:03:38.113 [http-nio-0.0.0.0-8080-exec-1] DEBUG org.hibernate.orm.results - Extracted JDBC value [11] - [1500]
+2026-05-07 22:03:38.113 [http-nio-0.0.0.0-8080-exec-1] DEBUG org.hibernate.orm.results - Extracted JDBC value [12] - [040f9fd6-7646-43c7-895c-93ccaedb7bc3]
+2026-05-07 22:03:38.113 [http-nio-0.0.0.0-8080-exec-1] DEBUG org.hibernate.orm.results - Extracted JDBC value [13] - [42]
+2026-05-07 22:03:38.113 [http-nio-0.0.0.0-8080-exec-1] DEBUG org.hibernate.orm.results - Extracted JDBC value [14] - [1500]
+2026-05-07 22:03:38.114 [http-nio-0.0.0.0-8080-exec-1] DEBUG org.hibernate.orm.results - Extracted JDBC value [13] - [42]
+2026-05-07 22:03:38.114 [http-nio-0.0.0.0-8080-exec-1] DEBUG o.h.orm.results.loading.entity - (EntityResultInitializer) Done materializing entityInstance : com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458)#252e4b7c-a98b-4022-87c2-6cc57fdef477
+2026-05-07 22:03:38.114 [http-nio-0.0.0.0-8080-exec-1] DEBUG org.hibernate.orm.results.loading - Calling top-level assembler (0 / 1) : org.hibernate.sql.results.graph.entity.internal.EntityAssembler@45fca120
+2026-05-07 22:03:38.114 [http-nio-0.0.0.0-8080-exec-1] INFO  c.s.t.a.service.TimerSyncService - TIMER_SYNC_DEBUG: Pulling timer state - Unix timestamp: 1.77818703998E9 (as string: 1778187039.98)
+2026-05-07 22:03:38.114 [http-nio-0.0.0.0-8080-exec-1] DEBUG o.s.orm.jpa.JpaTransactionManager - Initiating transaction commit
+2026-05-07 22:03:38.114 [http-nio-0.0.0.0-8080-exec-1] DEBUG o.s.orm.jpa.JpaTransactionManager - Committing JPA transaction on EntityManager [SessionImpl(1056188516<open>)]
+2026-05-07 22:03:38.114 [http-nio-0.0.0.0-8080-exec-1] DEBUG o.h.e.t.internal.TransactionImpl - committing
+2026-05-07 22:03:38.120 [http-nio-0.0.0.0-8080-exec-1] DEBUG o.s.jdbc.datasource.DataSourceUtils - Resetting read-only flag of JDBC Connection [HikariProxyConnection@78065420 wrapping org.postgresql.jdbc.PgConnection@36fb9b2f]
+2026-05-07 22:03:38.120 [http-nio-0.0.0.0-8080-exec-1] DEBUG o.s.orm.jpa.JpaTransactionManager - Not closing pre-bound JPA EntityManager after transaction
+2026-05-07 22:03:38.120 [http-nio-0.0.0.0-8080-exec-1] INFO  c.s.t.p.controller.SessionController - timer state pulled for user=252e4b7c-a98b-4022-87c2-6cc57fdef477, device=040f9fd6-7646-43c7-895c-93ccaedb7bc3
+2026-05-07 22:03:38.121 [http-nio-0.0.0.0-8080-exec-1] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2026-05-07 22:03:38.121 [http-nio-0.0.0.0-8080-exec-1] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [TimerStateDto{phase='work', remainingSeconds=1467, isRunning=false, lastModifiedTimestamp=2026-05-07 (truncated)...]
+2026-05-07 22:03:38.122 [http-nio-0.0.0.0-8080-exec-1] DEBUG o.s.o.j.s.OpenEntityManagerInViewInterceptor - Closing JPA EntityManager in OpenEntityManagerInViewInterceptor
+2026-05-07 22:03:38.122 [http-nio-0.0.0.0-8080-exec-1] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2026-05-07 22:03:38.122 [http-nio-0.0.0.0-8080-exec-1] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST: GET /api/sessions/timer/state from 192.168.0.202:51993
+2026-05-07 22:03:38.122 [http-nio-0.0.0.0-8080-exec-1] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: host = 192.168.0.202:8080
+2026-05-07 22:03:38.122 [http-nio-0.0.0.0-8080-exec-1] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: content-type = application/json
+2026-05-07 22:03:38.122 [http-nio-0.0.0.0-8080-exec-1] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: connection = keep-alive
+2026-05-07 22:03:38.122 [http-nio-0.0.0.0-8080-exec-1] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: accept = */*
+2026-05-07 22:03:38.122 [http-nio-0.0.0.0-8080-exec-1] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: user-agent = TimeBeam/1 CFNetwork/3860.500.112 Darwin/25.4.0
+2026-05-07 22:03:38.122 [http-nio-0.0.0.0-8080-exec-1] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: authorization = [REDACTED]
+2026-05-07 22:03:38.122 [http-nio-0.0.0.0-8080-exec-1] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: accept-language = en-IN,en-GB;q=0.9,en;q=0.8
+2026-05-07 22:03:38.122 [http-nio-0.0.0.0-8080-exec-1] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: accept-encoding = gzip, deflate
+2026-05-07 22:03:38.122 [http-nio-0.0.0.0-8080-exec-1] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE: 200 in 36ms
+2026-05-07 22:03:38.122 [http-nio-0.0.0.0-8080-exec-1] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE HEADER: Vary = Origin
+2026-05-07 22:03:38.122 [http-nio-0.0.0.0-8080-exec-1] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE HEADER: Vary = Origin
+2026-05-07 22:03:38.122 [http-nio-0.0.0.0-8080-exec-1] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE HEADER: Vary = Origin
+2026-05-07 22:03:38.122 [http-nio-0.0.0.0-8080-exec-1] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE BODY: {"phase":"work","remainingSeconds":1467,"isRunning":false,"workDuration":1500,"breakDuration":300,"longBreakDuration":900,"autoStartNextSession":false,"shortBreaksCompleted":0,"totalDuration":1500,"startTimestamp":1.7781871E9,"pauseTimestamp":null,"lastModifiedTimestamp":"2026-05-07T20:50:39.979Z","deviceId":"040f9fd6-7646-43c7-895c-93ccaedb7bc3"}
+2026-05-07 22:03:49.321 [http-nio-0.0.0.0-8080-exec-3] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/sessions/timer/state
+2026-05-07 22:03:49.324 [http-nio-0.0.0.0-8080-exec-3] DEBUG c.s.t.i.e.JwtAuthenticationFilter - 🔍 JwtAuthenticationFilter: Authorization header present: YES
+2026-05-07 22:03:49.324 [http-nio-0.0.0.0-8080-exec-3] DEBUG c.s.t.i.e.JwtAuthenticationFilter - 🔍 JwtAuthenticationFilter: Header value: Bearer eyJhbGciOiJIU...
+2026-05-07 22:03:49.329 [http-nio-0.0.0.0-8080-exec-3] DEBUG c.s.t.i.e.JwtAuthenticationFilter - ✅ JwtAuthenticationFilter: Valid token for user: 252e4b7c-a98b-4022-87c2-6cc57fdef477
+2026-05-07 22:03:49.330 [http-nio-0.0.0.0-8080-exec-3] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/sessions/timer/state
+2026-05-07 22:03:49.331 [http-nio-0.0.0.0-8080-exec-3] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/sessions/timer/state", parameters={}
+2026-05-07 22:03:49.331 [http-nio-0.0.0.0-8080-exec-3] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.sparkage.timebeam.presentation.controller.SessionController#pullTimerState(Principal)
+2026-05-07 22:03:49.332 [http-nio-0.0.0.0-8080-exec-3] DEBUG o.s.o.j.s.OpenEntityManagerInViewInterceptor - Opening JPA EntityManager in OpenEntityManagerInViewInterceptor
+2026-05-07 22:03:49.334 [http-nio-0.0.0.0-8080-exec-3] DEBUG o.s.s.a.m.AuthorizationManagerBeforeMethodInterceptor - Authorizing method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.sparkage.timebeam.presentation.controller.SessionController.pullTimerState(java.security.Principal); target is of class [com.sparkage.timebeam.presentation.controller.SessionController]
+2026-05-07 22:03:49.335 [http-nio-0.0.0.0-8080-exec-3] DEBUG o.s.s.a.m.AuthorizationManagerBeforeMethodInterceptor - Authorized method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.sparkage.timebeam.presentation.controller.SessionController.pullTimerState(java.security.Principal); target is of class [com.sparkage.timebeam.presentation.controller.SessionController]
+2026-05-07 22:03:49.335 [http-nio-0.0.0.0-8080-exec-3] DEBUG c.s.t.p.controller.SessionController - pull timer state called
+2026-05-07 22:03:49.335 [http-nio-0.0.0.0-8080-exec-3] DEBUG o.s.orm.jpa.JpaTransactionManager - Found thread-bound EntityManager [SessionImpl(1263719763<open>)] for JPA transaction
+2026-05-07 22:03:49.335 [http-nio-0.0.0.0-8080-exec-3] DEBUG o.s.orm.jpa.JpaTransactionManager - Creating new transaction with name [com.sparkage.timebeam.application.service.TimerSyncService.pullTimerState]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT,readOnly
+2026-05-07 22:03:49.348 [http-nio-0.0.0.0-8080-exec-3] DEBUG o.s.jdbc.datasource.DataSourceUtils - Setting JDBC Connection [HikariProxyConnection@1427614929 wrapping org.postgresql.jdbc.PgConnection@36fb9b2f] read-only
+2026-05-07 22:03:49.348 [http-nio-0.0.0.0-8080-exec-3] DEBUG o.h.e.t.internal.TransactionImpl - On TransactionImpl creation, JpaCompliance#isJpaTransactionComplianceEnabled == false
+2026-05-07 22:03:49.348 [http-nio-0.0.0.0-8080-exec-3] DEBUG o.h.e.t.internal.TransactionImpl - begin
+2026-05-07 22:03:49.348 [http-nio-0.0.0.0-8080-exec-3] DEBUG o.s.orm.jpa.JpaTransactionManager - Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@57c9e30]
+2026-05-07 22:03:49.351 [http-nio-0.0.0.0-8080-exec-3] DEBUG org.hibernate.orm.sql.ast.create - Created new SQL alias : ts1_0
+2026-05-07 22:03:49.351 [http-nio-0.0.0.0-8080-exec-3] DEBUG org.hibernate.orm.sql.ast.create - Registration of TableGroup [StandardTableGroup(com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458))] with identifierForTableGroup [com.sparkage.timebeam.infrastructure.persistence.TimerState] for NavigablePath [com.sparkage.timebeam.infrastructure.persistence.TimerState] 
+2026-05-07 22:03:49.351 [http-nio-0.0.0.0-8080-exec-3] DEBUG o.h.q.s.sql.BaseSqmToSqlAstConverter - Determining mapping-model type for SqmParameter : org.hibernate.query.sqm.tree.expression.SqmJpaCriteriaParameterWrapper@1680ae2a
+2026-05-07 22:03:49.352 [http-nio-0.0.0.0-8080-exec-3] DEBUG o.h.q.s.sql.BaseSqmToSqlAstConverter - Determining mapping-model type for SqmPath : SqmBasicValuedSimplePath(com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).userId) 
+2026-05-07 22:03:49.352 [http-nio-0.0.0.0-8080-exec-3] DEBUG org.hibernate.orm.results.graph.AST - DomainResult Graph:
+ \-EntityResultImpl [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458)]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).autoStartNext]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).breakDurationMinutes]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).lastUpdatedAt]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).longBreakDurationMinutes]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).pauseTimestamp]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).phase]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).remainingSeconds]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).running]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).shortBreaksCompleted]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).startTimestamp]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).totalDuration]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).updatedByDeviceId]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).version]
+ |  \-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).workDurationMinutes]
+
+2026-05-07 22:03:49.352 [http-nio-0.0.0.0-8080-exec-3] DEBUG org.hibernate.orm.sql.ast.tree - SQL AST Tree:
+    SelectStatement {
+      FromClause {
+        StandardTableGroup (ts1 : com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458)) {
+          primaryTableReference : timer_states as ts1_0
+        }
+      }
+    }
+
+2026-05-07 22:03:49.353 [http-nio-0.0.0.0-8080-exec-3] DEBUG org.hibernate.orm.sql.exec - Skipping reading Query result cache data: cache-enabled = false, cache-mode = NORMAL
+2026-05-07 22:03:49.353 [http-nio-0.0.0.0-8080-exec-3] DEBUG org.hibernate.orm.results - Initializer list
+2026-05-07 22:03:49.353 [http-nio-0.0.0.0-8080-exec-3] DEBUG org.hibernate.orm.results -     com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458) -> EntityResultInitializer(com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458))@1112592940 (SingleTableEntityPersister(com.sparkage.timebeam.infrastructure.persistence.TimerState))
+2026-05-07 22:03:49.353 [http-nio-0.0.0.0-8080-exec-3] DEBUG org.hibernate.SQL - 
+    select
+        ts1_0.user_id,
+        ts1_0.auto_start_next,
+        ts1_0.break_duration_minutes,
+        ts1_0.last_updated_at,
+        ts1_0.long_break_duration_minutes,
+        ts1_0.pause_timestamp,
+        ts1_0.phase,
+        ts1_0.remaining_seconds,
+        ts1_0.is_running,
+        ts1_0.short_breaks_completed,
+        ts1_0.start_timestamp,
+        ts1_0.total_duration,
+        ts1_0.updated_by_device_id,
+        ts1_0.version,
+        ts1_0.work_duration_minutes 
+    from
+        timer_states ts1_0 
+    where
+        ts1_0.user_id=?
+2026-05-07 22:03:49.360 [http-nio-0.0.0.0-8080-exec-3] DEBUG org.hibernate.orm.results - Extracted JDBC value [0] - [252e4b7c-a98b-4022-87c2-6cc57fdef477]
+2026-05-07 22:03:49.360 [http-nio-0.0.0.0-8080-exec-3] DEBUG o.h.orm.results.loading.entity - (EntityResultInitializer) Hydrated EntityKey (com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458)): 252e4b7c-a98b-4022-87c2-6cc57fdef477
+2026-05-07 22:03:49.360 [http-nio-0.0.0.0-8080-exec-3] DEBUG o.h.orm.results.loading.entity - (EntityResultInitializer) Created new entity instance [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458)#252e4b7c-a98b-4022-87c2-6cc57fdef477] : 1936584726
+2026-05-07 22:03:49.360 [http-nio-0.0.0.0-8080-exec-3] DEBUG org.hibernate.orm.results - Extracted JDBC value [1] - [false]
+2026-05-07 22:03:49.360 [http-nio-0.0.0.0-8080-exec-3] DEBUG org.hibernate.orm.results - Extracted JDBC value [2] - [300]
+2026-05-07 22:03:49.360 [http-nio-0.0.0.0-8080-exec-3] DEBUG org.hibernate.orm.results - Extracted JDBC value [3] - [2026-05-07T20:50:39.979523Z]
+2026-05-07 22:03:49.360 [http-nio-0.0.0.0-8080-exec-3] DEBUG org.hibernate.orm.results - Extracted JDBC value [4] - [900]
+2026-05-07 22:03:49.360 [http-nio-0.0.0.0-8080-exec-3] DEBUG org.hibernate.orm.results - Extracted JDBC value [5] - [null]
+2026-05-07 22:03:49.361 [http-nio-0.0.0.0-8080-exec-3] DEBUG org.hibernate.orm.results - Extracted JDBC value [6] - [work]
+2026-05-07 22:03:49.361 [http-nio-0.0.0.0-8080-exec-3] DEBUG org.hibernate.orm.results - Extracted JDBC value [7] - [1467]
+2026-05-07 22:03:49.361 [http-nio-0.0.0.0-8080-exec-3] DEBUG org.hibernate.orm.results - Extracted JDBC value [8] - [false]
+2026-05-07 22:03:49.361 [http-nio-0.0.0.0-8080-exec-3] DEBUG org.hibernate.orm.results - Extracted JDBC value [9] - [0]
+2026-05-07 22:03:49.361 [http-nio-0.0.0.0-8080-exec-3] DEBUG org.hibernate.orm.results - Extracted JDBC value [10] - [1.7781871E9]
+2026-05-07 22:03:49.361 [http-nio-0.0.0.0-8080-exec-3] DEBUG org.hibernate.orm.results - Extracted JDBC value [11] - [1500]
+2026-05-07 22:03:49.361 [http-nio-0.0.0.0-8080-exec-3] DEBUG org.hibernate.orm.results - Extracted JDBC value [12] - [040f9fd6-7646-43c7-895c-93ccaedb7bc3]
+2026-05-07 22:03:49.361 [http-nio-0.0.0.0-8080-exec-3] DEBUG org.hibernate.orm.results - Extracted JDBC value [13] - [42]
+2026-05-07 22:03:49.361 [http-nio-0.0.0.0-8080-exec-3] DEBUG org.hibernate.orm.results - Extracted JDBC value [14] - [1500]
+2026-05-07 22:03:49.361 [http-nio-0.0.0.0-8080-exec-3] DEBUG org.hibernate.orm.results - Extracted JDBC value [13] - [42]
+2026-05-07 22:03:49.361 [http-nio-0.0.0.0-8080-exec-3] DEBUG o.h.orm.results.loading.entity - (EntityResultInitializer) Done materializing entityInstance : com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458)#252e4b7c-a98b-4022-87c2-6cc57fdef477
+2026-05-07 22:03:49.361 [http-nio-0.0.0.0-8080-exec-3] DEBUG org.hibernate.orm.results.loading - Calling top-level assembler (0 / 1) : org.hibernate.sql.results.graph.entity.internal.EntityAssembler@37689de5
+2026-05-07 22:03:49.362 [http-nio-0.0.0.0-8080-exec-3] INFO  c.s.t.a.service.TimerSyncService - TIMER_SYNC_DEBUG: Pulling timer state - Unix timestamp: 1.77818703998E9 (as string: 1778187039.98)
+2026-05-07 22:03:49.362 [http-nio-0.0.0.0-8080-exec-3] DEBUG o.s.orm.jpa.JpaTransactionManager - Initiating transaction commit
+2026-05-07 22:03:49.362 [http-nio-0.0.0.0-8080-exec-3] DEBUG o.s.orm.jpa.JpaTransactionManager - Committing JPA transaction on EntityManager [SessionImpl(1263719763<open>)]
+2026-05-07 22:03:49.362 [http-nio-0.0.0.0-8080-exec-3] DEBUG o.h.e.t.internal.TransactionImpl - committing
+2026-05-07 22:03:49.370 [http-nio-0.0.0.0-8080-exec-3] DEBUG o.s.jdbc.datasource.DataSourceUtils - Resetting read-only flag of JDBC Connection [HikariProxyConnection@1427614929 wrapping org.postgresql.jdbc.PgConnection@36fb9b2f]
+2026-05-07 22:03:49.370 [http-nio-0.0.0.0-8080-exec-3] DEBUG o.s.orm.jpa.JpaTransactionManager - Not closing pre-bound JPA EntityManager after transaction
+2026-05-07 22:03:49.370 [http-nio-0.0.0.0-8080-exec-3] INFO  c.s.t.p.controller.SessionController - timer state pulled for user=252e4b7c-a98b-4022-87c2-6cc57fdef477, device=040f9fd6-7646-43c7-895c-93ccaedb7bc3
+2026-05-07 22:03:49.371 [http-nio-0.0.0.0-8080-exec-3] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2026-05-07 22:03:49.371 [http-nio-0.0.0.0-8080-exec-3] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [TimerStateDto{phase='work', remainingSeconds=1467, isRunning=false, lastModifiedTimestamp=2026-05-07 (truncated)...]
+2026-05-07 22:03:49.372 [http-nio-0.0.0.0-8080-exec-3] DEBUG o.s.o.j.s.OpenEntityManagerInViewInterceptor - Closing JPA EntityManager in OpenEntityManagerInViewInterceptor
+2026-05-07 22:03:49.372 [http-nio-0.0.0.0-8080-exec-3] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2026-05-07 22:03:49.372 [http-nio-0.0.0.0-8080-exec-3] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST: GET /api/sessions/timer/state from 192.168.0.97:58394
+2026-05-07 22:03:49.373 [http-nio-0.0.0.0-8080-exec-3] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: host = 192.168.0.202:8080
+2026-05-07 22:03:49.373 [http-nio-0.0.0.0-8080-exec-3] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: content-type = application/json
+2026-05-07 22:03:49.373 [http-nio-0.0.0.0-8080-exec-3] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: connection = keep-alive
+2026-05-07 22:03:49.373 [http-nio-0.0.0.0-8080-exec-3] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: accept = */*
+2026-05-07 22:03:49.373 [http-nio-0.0.0.0-8080-exec-3] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: user-agent = TimeBeam%20iOS/1 CFNetwork/3860.500.112 Darwin/25.4.0
+2026-05-07 22:03:49.373 [http-nio-0.0.0.0-8080-exec-3] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: authorization = [REDACTED]
+2026-05-07 22:03:49.373 [http-nio-0.0.0.0-8080-exec-3] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: accept-language = en-GB,en;q=0.9
+2026-05-07 22:03:49.373 [http-nio-0.0.0.0-8080-exec-3] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: accept-encoding = gzip, deflate
+2026-05-07 22:03:49.373 [http-nio-0.0.0.0-8080-exec-3] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE: 200 in 42ms
+2026-05-07 22:03:49.373 [http-nio-0.0.0.0-8080-exec-3] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE HEADER: Vary = Origin
+2026-05-07 22:03:49.373 [http-nio-0.0.0.0-8080-exec-3] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE HEADER: Vary = Origin
+2026-05-07 22:03:49.373 [http-nio-0.0.0.0-8080-exec-3] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE HEADER: Vary = Origin
+2026-05-07 22:03:49.373 [http-nio-0.0.0.0-8080-exec-3] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE BODY: {"phase":"work","remainingSeconds":1467,"isRunning":false,"workDuration":1500,"breakDuration":300,"longBreakDuration":900,"autoStartNextSession":false,"shortBreaksCompleted":0,"totalDuration":1500,"startTimestamp":1.7781871E9,"pauseTimestamp":null,"lastModifiedTimestamp":"2026-05-07T20:50:39.979Z","deviceId":"040f9fd6-7646-43c7-895c-93ccaedb7bc3"}
+2026-05-07 22:04:09.034 [http-nio-0.0.0.0-8080-exec-5] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/sessions/timer/state
+2026-05-07 22:04:09.037 [http-nio-0.0.0.0-8080-exec-5] DEBUG c.s.t.i.e.JwtAuthenticationFilter - 🔍 JwtAuthenticationFilter: Authorization header present: YES
+2026-05-07 22:04:09.037 [http-nio-0.0.0.0-8080-exec-5] DEBUG c.s.t.i.e.JwtAuthenticationFilter - 🔍 JwtAuthenticationFilter: Header value: Bearer eyJhbGciOiJIU...
+2026-05-07 22:04:09.043 [http-nio-0.0.0.0-8080-exec-5] DEBUG c.s.t.i.e.JwtAuthenticationFilter - ✅ JwtAuthenticationFilter: Valid token for user: 252e4b7c-a98b-4022-87c2-6cc57fdef477
+2026-05-07 22:04:09.044 [http-nio-0.0.0.0-8080-exec-5] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/sessions/timer/state
+2026-05-07 22:04:09.045 [http-nio-0.0.0.0-8080-exec-5] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/sessions/timer/state", parameters={}
+2026-05-07 22:04:09.045 [http-nio-0.0.0.0-8080-exec-5] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.sparkage.timebeam.presentation.controller.SessionController#pullTimerState(Principal)
+2026-05-07 22:04:09.045 [http-nio-0.0.0.0-8080-exec-5] DEBUG o.s.o.j.s.OpenEntityManagerInViewInterceptor - Opening JPA EntityManager in OpenEntityManagerInViewInterceptor
+2026-05-07 22:04:09.047 [http-nio-0.0.0.0-8080-exec-5] DEBUG o.s.s.a.m.AuthorizationManagerBeforeMethodInterceptor - Authorizing method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.sparkage.timebeam.presentation.controller.SessionController.pullTimerState(java.security.Principal); target is of class [com.sparkage.timebeam.presentation.controller.SessionController]
+2026-05-07 22:04:09.048 [http-nio-0.0.0.0-8080-exec-5] DEBUG o.s.s.a.m.AuthorizationManagerBeforeMethodInterceptor - Authorized method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.sparkage.timebeam.presentation.controller.SessionController.pullTimerState(java.security.Principal); target is of class [com.sparkage.timebeam.presentation.controller.SessionController]
+2026-05-07 22:04:09.048 [http-nio-0.0.0.0-8080-exec-5] DEBUG c.s.t.p.controller.SessionController - pull timer state called
+2026-05-07 22:04:09.048 [http-nio-0.0.0.0-8080-exec-5] DEBUG o.s.orm.jpa.JpaTransactionManager - Found thread-bound EntityManager [SessionImpl(715708768<open>)] for JPA transaction
+2026-05-07 22:04:09.048 [http-nio-0.0.0.0-8080-exec-5] DEBUG o.s.orm.jpa.JpaTransactionManager - Creating new transaction with name [com.sparkage.timebeam.application.service.TimerSyncService.pullTimerState]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT,readOnly
+2026-05-07 22:04:09.060 [http-nio-0.0.0.0-8080-exec-5] DEBUG o.s.jdbc.datasource.DataSourceUtils - Setting JDBC Connection [HikariProxyConnection@2008002162 wrapping org.postgresql.jdbc.PgConnection@36fb9b2f] read-only
+2026-05-07 22:04:09.060 [http-nio-0.0.0.0-8080-exec-5] DEBUG o.h.e.t.internal.TransactionImpl - On TransactionImpl creation, JpaCompliance#isJpaTransactionComplianceEnabled == false
+2026-05-07 22:04:09.060 [http-nio-0.0.0.0-8080-exec-5] DEBUG o.h.e.t.internal.TransactionImpl - begin
+2026-05-07 22:04:09.061 [http-nio-0.0.0.0-8080-exec-5] DEBUG o.s.orm.jpa.JpaTransactionManager - Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@41d3b733]
+2026-05-07 22:04:09.063 [http-nio-0.0.0.0-8080-exec-5] DEBUG org.hibernate.orm.sql.ast.create - Created new SQL alias : ts1_0
+2026-05-07 22:04:09.063 [http-nio-0.0.0.0-8080-exec-5] DEBUG org.hibernate.orm.sql.ast.create - Registration of TableGroup [StandardTableGroup(com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458))] with identifierForTableGroup [com.sparkage.timebeam.infrastructure.persistence.TimerState] for NavigablePath [com.sparkage.timebeam.infrastructure.persistence.TimerState] 
+2026-05-07 22:04:09.064 [http-nio-0.0.0.0-8080-exec-5] DEBUG o.h.q.s.sql.BaseSqmToSqlAstConverter - Determining mapping-model type for SqmParameter : org.hibernate.query.sqm.tree.expression.SqmJpaCriteriaParameterWrapper@6d60d29
+2026-05-07 22:04:09.064 [http-nio-0.0.0.0-8080-exec-5] DEBUG o.h.q.s.sql.BaseSqmToSqlAstConverter - Determining mapping-model type for SqmPath : SqmBasicValuedSimplePath(com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).userId) 
+2026-05-07 22:04:09.065 [http-nio-0.0.0.0-8080-exec-5] DEBUG org.hibernate.orm.results.graph.AST - DomainResult Graph:
+ \-EntityResultImpl [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458)]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).autoStartNext]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).breakDurationMinutes]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).lastUpdatedAt]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).longBreakDurationMinutes]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).pauseTimestamp]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).phase]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).remainingSeconds]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).running]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).shortBreaksCompleted]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).startTimestamp]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).totalDuration]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).updatedByDeviceId]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).version]
+ |  \-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).workDurationMinutes]
+
+2026-05-07 22:04:09.065 [http-nio-0.0.0.0-8080-exec-5] DEBUG org.hibernate.orm.sql.ast.tree - SQL AST Tree:
+    SelectStatement {
+      FromClause {
+        StandardTableGroup (ts1 : com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458)) {
+          primaryTableReference : timer_states as ts1_0
+        }
+      }
+    }
+
+2026-05-07 22:04:09.066 [http-nio-0.0.0.0-8080-exec-5] DEBUG org.hibernate.orm.sql.exec - Skipping reading Query result cache data: cache-enabled = false, cache-mode = NORMAL
+2026-05-07 22:04:09.066 [http-nio-0.0.0.0-8080-exec-5] DEBUG org.hibernate.orm.results - Initializer list
+2026-05-07 22:04:09.066 [http-nio-0.0.0.0-8080-exec-5] DEBUG org.hibernate.orm.results -     com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458) -> EntityResultInitializer(com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458))@1010372944 (SingleTableEntityPersister(com.sparkage.timebeam.infrastructure.persistence.TimerState))
+2026-05-07 22:04:09.066 [http-nio-0.0.0.0-8080-exec-5] DEBUG org.hibernate.SQL - 
+    select
+        ts1_0.user_id,
+        ts1_0.auto_start_next,
+        ts1_0.break_duration_minutes,
+        ts1_0.last_updated_at,
+        ts1_0.long_break_duration_minutes,
+        ts1_0.pause_timestamp,
+        ts1_0.phase,
+        ts1_0.remaining_seconds,
+        ts1_0.is_running,
+        ts1_0.short_breaks_completed,
+        ts1_0.start_timestamp,
+        ts1_0.total_duration,
+        ts1_0.updated_by_device_id,
+        ts1_0.version,
+        ts1_0.work_duration_minutes 
+    from
+        timer_states ts1_0 
+    where
+        ts1_0.user_id=?
+2026-05-07 22:04:09.073 [http-nio-0.0.0.0-8080-exec-5] DEBUG org.hibernate.orm.results - Extracted JDBC value [0] - [252e4b7c-a98b-4022-87c2-6cc57fdef477]
+2026-05-07 22:04:09.074 [http-nio-0.0.0.0-8080-exec-5] DEBUG o.h.orm.results.loading.entity - (EntityResultInitializer) Hydrated EntityKey (com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458)): 252e4b7c-a98b-4022-87c2-6cc57fdef477
+2026-05-07 22:04:09.074 [http-nio-0.0.0.0-8080-exec-5] DEBUG o.h.orm.results.loading.entity - (EntityResultInitializer) Created new entity instance [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458)#252e4b7c-a98b-4022-87c2-6cc57fdef477] : 925045011
+2026-05-07 22:04:09.074 [http-nio-0.0.0.0-8080-exec-5] DEBUG org.hibernate.orm.results - Extracted JDBC value [1] - [false]
+2026-05-07 22:04:09.074 [http-nio-0.0.0.0-8080-exec-5] DEBUG org.hibernate.orm.results - Extracted JDBC value [2] - [300]
+2026-05-07 22:04:09.074 [http-nio-0.0.0.0-8080-exec-5] DEBUG org.hibernate.orm.results - Extracted JDBC value [3] - [2026-05-07T20:50:39.979523Z]
+2026-05-07 22:04:09.074 [http-nio-0.0.0.0-8080-exec-5] DEBUG org.hibernate.orm.results - Extracted JDBC value [4] - [900]
+2026-05-07 22:04:09.074 [http-nio-0.0.0.0-8080-exec-5] DEBUG org.hibernate.orm.results - Extracted JDBC value [5] - [null]
+2026-05-07 22:04:09.074 [http-nio-0.0.0.0-8080-exec-5] DEBUG org.hibernate.orm.results - Extracted JDBC value [6] - [work]
+2026-05-07 22:04:09.074 [http-nio-0.0.0.0-8080-exec-5] DEBUG org.hibernate.orm.results - Extracted JDBC value [7] - [1467]
+2026-05-07 22:04:09.075 [http-nio-0.0.0.0-8080-exec-5] DEBUG org.hibernate.orm.results - Extracted JDBC value [8] - [false]
+2026-05-07 22:04:09.075 [http-nio-0.0.0.0-8080-exec-5] DEBUG org.hibernate.orm.results - Extracted JDBC value [9] - [0]
+2026-05-07 22:04:09.075 [http-nio-0.0.0.0-8080-exec-5] DEBUG org.hibernate.orm.results - Extracted JDBC value [10] - [1.7781871E9]
+2026-05-07 22:04:09.075 [http-nio-0.0.0.0-8080-exec-5] DEBUG org.hibernate.orm.results - Extracted JDBC value [11] - [1500]
+2026-05-07 22:04:09.075 [http-nio-0.0.0.0-8080-exec-5] DEBUG org.hibernate.orm.results - Extracted JDBC value [12] - [040f9fd6-7646-43c7-895c-93ccaedb7bc3]
+2026-05-07 22:04:09.075 [http-nio-0.0.0.0-8080-exec-5] DEBUG org.hibernate.orm.results - Extracted JDBC value [13] - [42]
+2026-05-07 22:04:09.075 [http-nio-0.0.0.0-8080-exec-5] DEBUG org.hibernate.orm.results - Extracted JDBC value [14] - [1500]
+2026-05-07 22:04:09.075 [http-nio-0.0.0.0-8080-exec-5] DEBUG org.hibernate.orm.results - Extracted JDBC value [13] - [42]
+2026-05-07 22:04:09.075 [http-nio-0.0.0.0-8080-exec-5] DEBUG o.h.orm.results.loading.entity - (EntityResultInitializer) Done materializing entityInstance : com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458)#252e4b7c-a98b-4022-87c2-6cc57fdef477
+2026-05-07 22:04:09.075 [http-nio-0.0.0.0-8080-exec-5] DEBUG org.hibernate.orm.results.loading - Calling top-level assembler (0 / 1) : org.hibernate.sql.results.graph.entity.internal.EntityAssembler@43e42536
+2026-05-07 22:04:09.076 [http-nio-0.0.0.0-8080-exec-5] INFO  c.s.t.a.service.TimerSyncService - TIMER_SYNC_DEBUG: Pulling timer state - Unix timestamp: 1.77818703998E9 (as string: 1778187039.98)
+2026-05-07 22:04:09.076 [http-nio-0.0.0.0-8080-exec-5] DEBUG o.s.orm.jpa.JpaTransactionManager - Initiating transaction commit
+2026-05-07 22:04:09.076 [http-nio-0.0.0.0-8080-exec-5] DEBUG o.s.orm.jpa.JpaTransactionManager - Committing JPA transaction on EntityManager [SessionImpl(715708768<open>)]
+2026-05-07 22:04:09.076 [http-nio-0.0.0.0-8080-exec-5] DEBUG o.h.e.t.internal.TransactionImpl - committing
+2026-05-07 22:04:09.083 [http-nio-0.0.0.0-8080-exec-5] DEBUG o.s.jdbc.datasource.DataSourceUtils - Resetting read-only flag of JDBC Connection [HikariProxyConnection@2008002162 wrapping org.postgresql.jdbc.PgConnection@36fb9b2f]
+2026-05-07 22:04:09.083 [http-nio-0.0.0.0-8080-exec-5] DEBUG o.s.orm.jpa.JpaTransactionManager - Not closing pre-bound JPA EntityManager after transaction
+2026-05-07 22:04:09.083 [http-nio-0.0.0.0-8080-exec-5] INFO  c.s.t.p.controller.SessionController - timer state pulled for user=252e4b7c-a98b-4022-87c2-6cc57fdef477, device=040f9fd6-7646-43c7-895c-93ccaedb7bc3
+2026-05-07 22:04:09.084 [http-nio-0.0.0.0-8080-exec-5] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2026-05-07 22:04:09.084 [http-nio-0.0.0.0-8080-exec-5] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [TimerStateDto{phase='work', remainingSeconds=1467, isRunning=false, lastModifiedTimestamp=2026-05-07 (truncated)...]
+2026-05-07 22:04:09.085 [http-nio-0.0.0.0-8080-exec-5] DEBUG o.s.o.j.s.OpenEntityManagerInViewInterceptor - Closing JPA EntityManager in OpenEntityManagerInViewInterceptor
+2026-05-07 22:04:09.085 [http-nio-0.0.0.0-8080-exec-5] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2026-05-07 22:04:09.085 [http-nio-0.0.0.0-8080-exec-5] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST: GET /api/sessions/timer/state from 192.168.0.202:51993
+2026-05-07 22:04:09.085 [http-nio-0.0.0.0-8080-exec-5] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: host = 192.168.0.202:8080
+2026-05-07 22:04:09.085 [http-nio-0.0.0.0-8080-exec-5] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: content-type = application/json
+2026-05-07 22:04:09.085 [http-nio-0.0.0.0-8080-exec-5] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: connection = keep-alive
+2026-05-07 22:04:09.085 [http-nio-0.0.0.0-8080-exec-5] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: accept = */*
+2026-05-07 22:04:09.085 [http-nio-0.0.0.0-8080-exec-5] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: user-agent = TimeBeam/1 CFNetwork/3860.500.112 Darwin/25.4.0
+2026-05-07 22:04:09.085 [http-nio-0.0.0.0-8080-exec-5] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: authorization = [REDACTED]
+2026-05-07 22:04:09.085 [http-nio-0.0.0.0-8080-exec-5] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: accept-language = en-IN,en-GB;q=0.9,en;q=0.8
+2026-05-07 22:04:09.085 [http-nio-0.0.0.0-8080-exec-5] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: accept-encoding = gzip, deflate
+2026-05-07 22:04:09.085 [http-nio-0.0.0.0-8080-exec-5] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE: 200 in 41ms
+2026-05-07 22:04:09.085 [http-nio-0.0.0.0-8080-exec-5] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE HEADER: Vary = Origin
+2026-05-07 22:04:09.085 [http-nio-0.0.0.0-8080-exec-5] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE HEADER: Vary = Origin
+2026-05-07 22:04:09.085 [http-nio-0.0.0.0-8080-exec-5] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE HEADER: Vary = Origin
+2026-05-07 22:04:09.085 [http-nio-0.0.0.0-8080-exec-5] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE BODY: {"phase":"work","remainingSeconds":1467,"isRunning":false,"workDuration":1500,"breakDuration":300,"longBreakDuration":900,"autoStartNextSession":false,"shortBreaksCompleted":0,"totalDuration":1500,"startTimestamp":1.7781871E9,"pauseTimestamp":null,"lastModifiedTimestamp":"2026-05-07T20:50:39.979Z","deviceId":"040f9fd6-7646-43c7-895c-93ccaedb7bc3"}
+2026-05-07 22:04:19.903 [http-nio-0.0.0.0-8080-exec-7] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/sessions/timer/state
+2026-05-07 22:04:19.904 [http-nio-0.0.0.0-8080-exec-7] DEBUG c.s.t.i.e.JwtAuthenticationFilter - 🔍 JwtAuthenticationFilter: Authorization header present: YES
+2026-05-07 22:04:19.904 [http-nio-0.0.0.0-8080-exec-7] DEBUG c.s.t.i.e.JwtAuthenticationFilter - 🔍 JwtAuthenticationFilter: Header value: Bearer eyJhbGciOiJIU...
+2026-05-07 22:04:19.906 [http-nio-0.0.0.0-8080-exec-7] DEBUG c.s.t.i.e.JwtAuthenticationFilter - ✅ JwtAuthenticationFilter: Valid token for user: 252e4b7c-a98b-4022-87c2-6cc57fdef477
+2026-05-07 22:04:19.906 [http-nio-0.0.0.0-8080-exec-7] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/sessions/timer/state
+2026-05-07 22:04:19.906 [http-nio-0.0.0.0-8080-exec-7] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/sessions/timer/state", parameters={}
+2026-05-07 22:04:19.906 [http-nio-0.0.0.0-8080-exec-7] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.sparkage.timebeam.presentation.controller.SessionController#pullTimerState(Principal)
+2026-05-07 22:04:19.906 [http-nio-0.0.0.0-8080-exec-7] DEBUG o.s.o.j.s.OpenEntityManagerInViewInterceptor - Opening JPA EntityManager in OpenEntityManagerInViewInterceptor
+2026-05-07 22:04:19.907 [http-nio-0.0.0.0-8080-exec-7] DEBUG o.s.s.a.m.AuthorizationManagerBeforeMethodInterceptor - Authorizing method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.sparkage.timebeam.presentation.controller.SessionController.pullTimerState(java.security.Principal); target is of class [com.sparkage.timebeam.presentation.controller.SessionController]
+2026-05-07 22:04:19.907 [http-nio-0.0.0.0-8080-exec-7] DEBUG o.s.s.a.m.AuthorizationManagerBeforeMethodInterceptor - Authorized method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.sparkage.timebeam.presentation.controller.SessionController.pullTimerState(java.security.Principal); target is of class [com.sparkage.timebeam.presentation.controller.SessionController]
+2026-05-07 22:04:19.907 [http-nio-0.0.0.0-8080-exec-7] DEBUG c.s.t.p.controller.SessionController - pull timer state called
+2026-05-07 22:04:19.907 [http-nio-0.0.0.0-8080-exec-7] DEBUG o.s.orm.jpa.JpaTransactionManager - Found thread-bound EntityManager [SessionImpl(1488370214<open>)] for JPA transaction
+2026-05-07 22:04:19.907 [http-nio-0.0.0.0-8080-exec-7] DEBUG o.s.orm.jpa.JpaTransactionManager - Creating new transaction with name [com.sparkage.timebeam.application.service.TimerSyncService.pullTimerState]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT,readOnly
+2026-05-07 22:04:19.918 [http-nio-0.0.0.0-8080-exec-7] DEBUG o.s.jdbc.datasource.DataSourceUtils - Setting JDBC Connection [HikariProxyConnection@1676679427 wrapping org.postgresql.jdbc.PgConnection@36fb9b2f] read-only
+2026-05-07 22:04:19.918 [http-nio-0.0.0.0-8080-exec-7] DEBUG o.h.e.t.internal.TransactionImpl - On TransactionImpl creation, JpaCompliance#isJpaTransactionComplianceEnabled == false
+2026-05-07 22:04:19.918 [http-nio-0.0.0.0-8080-exec-7] DEBUG o.h.e.t.internal.TransactionImpl - begin
+2026-05-07 22:04:19.919 [http-nio-0.0.0.0-8080-exec-7] DEBUG o.s.orm.jpa.JpaTransactionManager - Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@6af1fe4c]
+2026-05-07 22:04:19.919 [http-nio-0.0.0.0-8080-exec-7] DEBUG org.hibernate.orm.sql.ast.create - Created new SQL alias : ts1_0
+2026-05-07 22:04:19.919 [http-nio-0.0.0.0-8080-exec-7] DEBUG org.hibernate.orm.sql.ast.create - Registration of TableGroup [StandardTableGroup(com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458))] with identifierForTableGroup [com.sparkage.timebeam.infrastructure.persistence.TimerState] for NavigablePath [com.sparkage.timebeam.infrastructure.persistence.TimerState] 
+2026-05-07 22:04:19.919 [http-nio-0.0.0.0-8080-exec-7] DEBUG o.h.q.s.sql.BaseSqmToSqlAstConverter - Determining mapping-model type for SqmParameter : org.hibernate.query.sqm.tree.expression.SqmJpaCriteriaParameterWrapper@4e1add06
+2026-05-07 22:04:19.919 [http-nio-0.0.0.0-8080-exec-7] DEBUG o.h.q.s.sql.BaseSqmToSqlAstConverter - Determining mapping-model type for SqmPath : SqmBasicValuedSimplePath(com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).userId) 
+2026-05-07 22:04:19.919 [http-nio-0.0.0.0-8080-exec-7] DEBUG org.hibernate.orm.results.graph.AST - DomainResult Graph:
+ \-EntityResultImpl [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458)]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).autoStartNext]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).breakDurationMinutes]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).lastUpdatedAt]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).longBreakDurationMinutes]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).pauseTimestamp]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).phase]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).remainingSeconds]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).running]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).shortBreaksCompleted]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).startTimestamp]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).totalDuration]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).updatedByDeviceId]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).version]
+ |  \-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).workDurationMinutes]
+
+2026-05-07 22:04:19.920 [http-nio-0.0.0.0-8080-exec-7] DEBUG org.hibernate.orm.sql.ast.tree - SQL AST Tree:
+    SelectStatement {
+      FromClause {
+        StandardTableGroup (ts1 : com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458)) {
+          primaryTableReference : timer_states as ts1_0
+        }
+      }
+    }
+
+2026-05-07 22:04:19.920 [http-nio-0.0.0.0-8080-exec-7] DEBUG org.hibernate.orm.sql.exec - Skipping reading Query result cache data: cache-enabled = false, cache-mode = NORMAL
+2026-05-07 22:04:19.920 [http-nio-0.0.0.0-8080-exec-7] DEBUG org.hibernate.orm.results - Initializer list
+2026-05-07 22:04:19.920 [http-nio-0.0.0.0-8080-exec-7] DEBUG org.hibernate.orm.results -     com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458) -> EntityResultInitializer(com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458))@632127954 (SingleTableEntityPersister(com.sparkage.timebeam.infrastructure.persistence.TimerState))
+2026-05-07 22:04:19.920 [http-nio-0.0.0.0-8080-exec-7] DEBUG org.hibernate.SQL - 
+    select
+        ts1_0.user_id,
+        ts1_0.auto_start_next,
+        ts1_0.break_duration_minutes,
+        ts1_0.last_updated_at,
+        ts1_0.long_break_duration_minutes,
+        ts1_0.pause_timestamp,
+        ts1_0.phase,
+        ts1_0.remaining_seconds,
+        ts1_0.is_running,
+        ts1_0.short_breaks_completed,
+        ts1_0.start_timestamp,
+        ts1_0.total_duration,
+        ts1_0.updated_by_device_id,
+        ts1_0.version,
+        ts1_0.work_duration_minutes 
+    from
+        timer_states ts1_0 
+    where
+        ts1_0.user_id=?
+2026-05-07 22:04:19.926 [http-nio-0.0.0.0-8080-exec-7] DEBUG org.hibernate.orm.results - Extracted JDBC value [0] - [252e4b7c-a98b-4022-87c2-6cc57fdef477]
+2026-05-07 22:04:19.926 [http-nio-0.0.0.0-8080-exec-7] DEBUG o.h.orm.results.loading.entity - (EntityResultInitializer) Hydrated EntityKey (com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458)): 252e4b7c-a98b-4022-87c2-6cc57fdef477
+2026-05-07 22:04:19.926 [http-nio-0.0.0.0-8080-exec-7] DEBUG o.h.orm.results.loading.entity - (EntityResultInitializer) Created new entity instance [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458)#252e4b7c-a98b-4022-87c2-6cc57fdef477] : 122520334
+2026-05-07 22:04:19.927 [http-nio-0.0.0.0-8080-exec-7] DEBUG org.hibernate.orm.results - Extracted JDBC value [1] - [false]
+2026-05-07 22:04:19.927 [http-nio-0.0.0.0-8080-exec-7] DEBUG org.hibernate.orm.results - Extracted JDBC value [2] - [300]
+2026-05-07 22:04:19.927 [http-nio-0.0.0.0-8080-exec-7] DEBUG org.hibernate.orm.results - Extracted JDBC value [3] - [2026-05-07T20:50:39.979523Z]
+2026-05-07 22:04:19.927 [http-nio-0.0.0.0-8080-exec-7] DEBUG org.hibernate.orm.results - Extracted JDBC value [4] - [900]
+2026-05-07 22:04:19.927 [http-nio-0.0.0.0-8080-exec-7] DEBUG org.hibernate.orm.results - Extracted JDBC value [5] - [null]
+2026-05-07 22:04:19.927 [http-nio-0.0.0.0-8080-exec-7] DEBUG org.hibernate.orm.results - Extracted JDBC value [6] - [work]
+2026-05-07 22:04:19.927 [http-nio-0.0.0.0-8080-exec-7] DEBUG org.hibernate.orm.results - Extracted JDBC value [7] - [1467]
+2026-05-07 22:04:19.927 [http-nio-0.0.0.0-8080-exec-7] DEBUG org.hibernate.orm.results - Extracted JDBC value [8] - [false]
+2026-05-07 22:04:19.927 [http-nio-0.0.0.0-8080-exec-7] DEBUG org.hibernate.orm.results - Extracted JDBC value [9] - [0]
+2026-05-07 22:04:19.927 [http-nio-0.0.0.0-8080-exec-7] DEBUG org.hibernate.orm.results - Extracted JDBC value [10] - [1.7781871E9]
+2026-05-07 22:04:19.927 [http-nio-0.0.0.0-8080-exec-7] DEBUG org.hibernate.orm.results - Extracted JDBC value [11] - [1500]
+2026-05-07 22:04:19.927 [http-nio-0.0.0.0-8080-exec-7] DEBUG org.hibernate.orm.results - Extracted JDBC value [12] - [040f9fd6-7646-43c7-895c-93ccaedb7bc3]
+2026-05-07 22:04:19.927 [http-nio-0.0.0.0-8080-exec-7] DEBUG org.hibernate.orm.results - Extracted JDBC value [13] - [42]
+2026-05-07 22:04:19.927 [http-nio-0.0.0.0-8080-exec-7] DEBUG org.hibernate.orm.results - Extracted JDBC value [14] - [1500]
+2026-05-07 22:04:19.927 [http-nio-0.0.0.0-8080-exec-7] DEBUG org.hibernate.orm.results - Extracted JDBC value [13] - [42]
+2026-05-07 22:04:19.927 [http-nio-0.0.0.0-8080-exec-7] DEBUG o.h.orm.results.loading.entity - (EntityResultInitializer) Done materializing entityInstance : com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458)#252e4b7c-a98b-4022-87c2-6cc57fdef477
+2026-05-07 22:04:19.927 [http-nio-0.0.0.0-8080-exec-7] DEBUG org.hibernate.orm.results.loading - Calling top-level assembler (0 / 1) : org.hibernate.sql.results.graph.entity.internal.EntityAssembler@4ea72124
+2026-05-07 22:04:19.927 [http-nio-0.0.0.0-8080-exec-7] INFO  c.s.t.a.service.TimerSyncService - TIMER_SYNC_DEBUG: Pulling timer state - Unix timestamp: 1.77818703998E9 (as string: 1778187039.98)
+2026-05-07 22:04:19.927 [http-nio-0.0.0.0-8080-exec-7] DEBUG o.s.orm.jpa.JpaTransactionManager - Initiating transaction commit
+2026-05-07 22:04:19.927 [http-nio-0.0.0.0-8080-exec-7] DEBUG o.s.orm.jpa.JpaTransactionManager - Committing JPA transaction on EntityManager [SessionImpl(1488370214<open>)]
+2026-05-07 22:04:19.927 [http-nio-0.0.0.0-8080-exec-7] DEBUG o.h.e.t.internal.TransactionImpl - committing
+2026-05-07 22:04:19.934 [http-nio-0.0.0.0-8080-exec-7] DEBUG o.s.jdbc.datasource.DataSourceUtils - Resetting read-only flag of JDBC Connection [HikariProxyConnection@1676679427 wrapping org.postgresql.jdbc.PgConnection@36fb9b2f]
+2026-05-07 22:04:19.934 [http-nio-0.0.0.0-8080-exec-7] DEBUG o.s.orm.jpa.JpaTransactionManager - Not closing pre-bound JPA EntityManager after transaction
+2026-05-07 22:04:19.934 [http-nio-0.0.0.0-8080-exec-7] INFO  c.s.t.p.controller.SessionController - timer state pulled for user=252e4b7c-a98b-4022-87c2-6cc57fdef477, device=040f9fd6-7646-43c7-895c-93ccaedb7bc3
+2026-05-07 22:04:19.934 [http-nio-0.0.0.0-8080-exec-7] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2026-05-07 22:04:19.934 [http-nio-0.0.0.0-8080-exec-7] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [TimerStateDto{phase='work', remainingSeconds=1467, isRunning=false, lastModifiedTimestamp=2026-05-07 (truncated)...]
+2026-05-07 22:04:19.935 [http-nio-0.0.0.0-8080-exec-7] DEBUG o.s.o.j.s.OpenEntityManagerInViewInterceptor - Closing JPA EntityManager in OpenEntityManagerInViewInterceptor
+2026-05-07 22:04:19.935 [http-nio-0.0.0.0-8080-exec-7] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2026-05-07 22:04:19.935 [http-nio-0.0.0.0-8080-exec-7] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST: GET /api/sessions/timer/state from 192.168.0.97:58395
+2026-05-07 22:04:19.935 [http-nio-0.0.0.0-8080-exec-7] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: host = 192.168.0.202:8080
+2026-05-07 22:04:19.935 [http-nio-0.0.0.0-8080-exec-7] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: content-type = application/json
+2026-05-07 22:04:19.935 [http-nio-0.0.0.0-8080-exec-7] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: connection = keep-alive
+2026-05-07 22:04:19.935 [http-nio-0.0.0.0-8080-exec-7] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: accept = */*
+2026-05-07 22:04:19.935 [http-nio-0.0.0.0-8080-exec-7] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: user-agent = TimeBeam%20iOS/1 CFNetwork/3860.500.112 Darwin/25.4.0
+2026-05-07 22:04:19.935 [http-nio-0.0.0.0-8080-exec-7] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: authorization = [REDACTED]
+2026-05-07 22:04:19.935 [http-nio-0.0.0.0-8080-exec-7] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: accept-language = en-GB,en;q=0.9
+2026-05-07 22:04:19.935 [http-nio-0.0.0.0-8080-exec-7] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: accept-encoding = gzip, deflate
+2026-05-07 22:04:19.935 [http-nio-0.0.0.0-8080-exec-7] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE: 200 in 29ms
+2026-05-07 22:04:19.935 [http-nio-0.0.0.0-8080-exec-7] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE HEADER: Vary = Origin
+2026-05-07 22:04:19.935 [http-nio-0.0.0.0-8080-exec-7] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE HEADER: Vary = Origin
+2026-05-07 22:04:19.935 [http-nio-0.0.0.0-8080-exec-7] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE HEADER: Vary = Origin
+2026-05-07 22:04:19.935 [http-nio-0.0.0.0-8080-exec-7] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE BODY: {"phase":"work","remainingSeconds":1467,"isRunning":false,"workDuration":1500,"breakDuration":300,"longBreakDuration":900,"autoStartNextSession":false,"shortBreaksCompleted":0,"totalDuration":1500,"startTimestamp":1.7781871E9,"pauseTimestamp":null,"lastModifiedTimestamp":"2026-05-07T20:50:39.979Z","deviceId":"040f9fd6-7646-43c7-895c-93ccaedb7bc3"}
+2026-05-07 22:04:40.024 [http-nio-0.0.0.0-8080-exec-6] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/sessions/timer/state
+2026-05-07 22:04:40.028 [http-nio-0.0.0.0-8080-exec-6] DEBUG c.s.t.i.e.JwtAuthenticationFilter - 🔍 JwtAuthenticationFilter: Authorization header present: YES
+2026-05-07 22:04:40.028 [http-nio-0.0.0.0-8080-exec-6] DEBUG c.s.t.i.e.JwtAuthenticationFilter - 🔍 JwtAuthenticationFilter: Header value: Bearer eyJhbGciOiJIU...
+2026-05-07 22:04:40.035 [http-nio-0.0.0.0-8080-exec-6] DEBUG c.s.t.i.e.JwtAuthenticationFilter - ✅ JwtAuthenticationFilter: Valid token for user: 252e4b7c-a98b-4022-87c2-6cc57fdef477
+2026-05-07 22:04:40.036 [http-nio-0.0.0.0-8080-exec-6] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/sessions/timer/state
+2026-05-07 22:04:40.037 [http-nio-0.0.0.0-8080-exec-6] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/sessions/timer/state", parameters={}
+2026-05-07 22:04:40.038 [http-nio-0.0.0.0-8080-exec-6] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.sparkage.timebeam.presentation.controller.SessionController#pullTimerState(Principal)
+2026-05-07 22:04:40.039 [http-nio-0.0.0.0-8080-exec-6] DEBUG o.s.o.j.s.OpenEntityManagerInViewInterceptor - Opening JPA EntityManager in OpenEntityManagerInViewInterceptor
+2026-05-07 22:04:40.044 [http-nio-0.0.0.0-8080-exec-6] DEBUG o.s.s.a.m.AuthorizationManagerBeforeMethodInterceptor - Authorizing method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.sparkage.timebeam.presentation.controller.SessionController.pullTimerState(java.security.Principal); target is of class [com.sparkage.timebeam.presentation.controller.SessionController]
+2026-05-07 22:04:40.045 [http-nio-0.0.0.0-8080-exec-6] DEBUG o.s.s.a.m.AuthorizationManagerBeforeMethodInterceptor - Authorized method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.sparkage.timebeam.presentation.controller.SessionController.pullTimerState(java.security.Principal); target is of class [com.sparkage.timebeam.presentation.controller.SessionController]
+2026-05-07 22:04:40.045 [http-nio-0.0.0.0-8080-exec-6] DEBUG c.s.t.p.controller.SessionController - pull timer state called
+2026-05-07 22:04:40.046 [http-nio-0.0.0.0-8080-exec-6] DEBUG o.s.orm.jpa.JpaTransactionManager - Found thread-bound EntityManager [SessionImpl(682232466<open>)] for JPA transaction
+2026-05-07 22:04:40.046 [http-nio-0.0.0.0-8080-exec-6] DEBUG o.s.orm.jpa.JpaTransactionManager - Creating new transaction with name [com.sparkage.timebeam.application.service.TimerSyncService.pullTimerState]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT,readOnly
+2026-05-07 22:04:40.057 [http-nio-0.0.0.0-8080-exec-6] DEBUG o.s.jdbc.datasource.DataSourceUtils - Setting JDBC Connection [HikariProxyConnection@426032695 wrapping org.postgresql.jdbc.PgConnection@36fb9b2f] read-only
+2026-05-07 22:04:40.057 [http-nio-0.0.0.0-8080-exec-6] DEBUG o.h.e.t.internal.TransactionImpl - On TransactionImpl creation, JpaCompliance#isJpaTransactionComplianceEnabled == false
+2026-05-07 22:04:40.057 [http-nio-0.0.0.0-8080-exec-6] DEBUG o.h.e.t.internal.TransactionImpl - begin
+2026-05-07 22:04:40.058 [http-nio-0.0.0.0-8080-exec-6] DEBUG o.s.orm.jpa.JpaTransactionManager - Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@577f3c3c]
+2026-05-07 22:04:40.060 [http-nio-0.0.0.0-8080-exec-6] DEBUG org.hibernate.orm.sql.ast.create - Created new SQL alias : ts1_0
+2026-05-07 22:04:40.060 [http-nio-0.0.0.0-8080-exec-6] DEBUG org.hibernate.orm.sql.ast.create - Registration of TableGroup [StandardTableGroup(com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458))] with identifierForTableGroup [com.sparkage.timebeam.infrastructure.persistence.TimerState] for NavigablePath [com.sparkage.timebeam.infrastructure.persistence.TimerState] 
+2026-05-07 22:04:40.060 [http-nio-0.0.0.0-8080-exec-6] DEBUG o.h.q.s.sql.BaseSqmToSqlAstConverter - Determining mapping-model type for SqmParameter : org.hibernate.query.sqm.tree.expression.SqmJpaCriteriaParameterWrapper@77d4bedf
+2026-05-07 22:04:40.061 [http-nio-0.0.0.0-8080-exec-6] DEBUG o.h.q.s.sql.BaseSqmToSqlAstConverter - Determining mapping-model type for SqmPath : SqmBasicValuedSimplePath(com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).userId) 
+2026-05-07 22:04:40.061 [http-nio-0.0.0.0-8080-exec-6] DEBUG org.hibernate.orm.results.graph.AST - DomainResult Graph:
+ \-EntityResultImpl [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458)]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).autoStartNext]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).breakDurationMinutes]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).lastUpdatedAt]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).longBreakDurationMinutes]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).pauseTimestamp]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).phase]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).remainingSeconds]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).running]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).shortBreaksCompleted]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).startTimestamp]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).totalDuration]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).updatedByDeviceId]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).version]
+ |  \-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).workDurationMinutes]
+
+2026-05-07 22:04:40.061 [http-nio-0.0.0.0-8080-exec-6] DEBUG org.hibernate.orm.sql.ast.tree - SQL AST Tree:
+    SelectStatement {
+      FromClause {
+        StandardTableGroup (ts1 : com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458)) {
+          primaryTableReference : timer_states as ts1_0
+        }
+      }
+    }
+
+2026-05-07 22:04:40.062 [http-nio-0.0.0.0-8080-exec-6] DEBUG org.hibernate.orm.sql.exec - Skipping reading Query result cache data: cache-enabled = false, cache-mode = NORMAL
+2026-05-07 22:04:40.063 [http-nio-0.0.0.0-8080-exec-6] DEBUG org.hibernate.orm.results - Initializer list
+2026-05-07 22:04:40.063 [http-nio-0.0.0.0-8080-exec-6] DEBUG org.hibernate.orm.results -     com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458) -> EntityResultInitializer(com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458))@491455081 (SingleTableEntityPersister(com.sparkage.timebeam.infrastructure.persistence.TimerState))
+2026-05-07 22:04:40.063 [http-nio-0.0.0.0-8080-exec-6] DEBUG org.hibernate.SQL - 
+    select
+        ts1_0.user_id,
+        ts1_0.auto_start_next,
+        ts1_0.break_duration_minutes,
+        ts1_0.last_updated_at,
+        ts1_0.long_break_duration_minutes,
+        ts1_0.pause_timestamp,
+        ts1_0.phase,
+        ts1_0.remaining_seconds,
+        ts1_0.is_running,
+        ts1_0.short_breaks_completed,
+        ts1_0.start_timestamp,
+        ts1_0.total_duration,
+        ts1_0.updated_by_device_id,
+        ts1_0.version,
+        ts1_0.work_duration_minutes 
+    from
+        timer_states ts1_0 
+    where
+        ts1_0.user_id=?
+2026-05-07 22:04:40.071 [http-nio-0.0.0.0-8080-exec-6] DEBUG org.hibernate.orm.results - Extracted JDBC value [0] - [252e4b7c-a98b-4022-87c2-6cc57fdef477]
+2026-05-07 22:04:40.071 [http-nio-0.0.0.0-8080-exec-6] DEBUG o.h.orm.results.loading.entity - (EntityResultInitializer) Hydrated EntityKey (com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458)): 252e4b7c-a98b-4022-87c2-6cc57fdef477
+2026-05-07 22:04:40.071 [http-nio-0.0.0.0-8080-exec-6] DEBUG o.h.orm.results.loading.entity - (EntityResultInitializer) Created new entity instance [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458)#252e4b7c-a98b-4022-87c2-6cc57fdef477] : 1064567653
+2026-05-07 22:04:40.071 [http-nio-0.0.0.0-8080-exec-6] DEBUG org.hibernate.orm.results - Extracted JDBC value [1] - [false]
+2026-05-07 22:04:40.071 [http-nio-0.0.0.0-8080-exec-6] DEBUG org.hibernate.orm.results - Extracted JDBC value [2] - [300]
+2026-05-07 22:04:40.071 [http-nio-0.0.0.0-8080-exec-6] DEBUG org.hibernate.orm.results - Extracted JDBC value [3] - [2026-05-07T20:50:39.979523Z]
+2026-05-07 22:04:40.071 [http-nio-0.0.0.0-8080-exec-6] DEBUG org.hibernate.orm.results - Extracted JDBC value [4] - [900]
+2026-05-07 22:04:40.071 [http-nio-0.0.0.0-8080-exec-6] DEBUG org.hibernate.orm.results - Extracted JDBC value [5] - [null]
+2026-05-07 22:04:40.072 [http-nio-0.0.0.0-8080-exec-6] DEBUG org.hibernate.orm.results - Extracted JDBC value [6] - [work]
+2026-05-07 22:04:40.072 [http-nio-0.0.0.0-8080-exec-6] DEBUG org.hibernate.orm.results - Extracted JDBC value [7] - [1467]
+2026-05-07 22:04:40.072 [http-nio-0.0.0.0-8080-exec-6] DEBUG org.hibernate.orm.results - Extracted JDBC value [8] - [false]
+2026-05-07 22:04:40.072 [http-nio-0.0.0.0-8080-exec-6] DEBUG org.hibernate.orm.results - Extracted JDBC value [9] - [0]
+2026-05-07 22:04:40.072 [http-nio-0.0.0.0-8080-exec-6] DEBUG org.hibernate.orm.results - Extracted JDBC value [10] - [1.7781871E9]
+2026-05-07 22:04:40.072 [http-nio-0.0.0.0-8080-exec-6] DEBUG org.hibernate.orm.results - Extracted JDBC value [11] - [1500]
+2026-05-07 22:04:40.072 [http-nio-0.0.0.0-8080-exec-6] DEBUG org.hibernate.orm.results - Extracted JDBC value [12] - [040f9fd6-7646-43c7-895c-93ccaedb7bc3]
+2026-05-07 22:04:40.072 [http-nio-0.0.0.0-8080-exec-6] DEBUG org.hibernate.orm.results - Extracted JDBC value [13] - [42]
+2026-05-07 22:04:40.072 [http-nio-0.0.0.0-8080-exec-6] DEBUG org.hibernate.orm.results - Extracted JDBC value [14] - [1500]
+2026-05-07 22:04:40.072 [http-nio-0.0.0.0-8080-exec-6] DEBUG org.hibernate.orm.results - Extracted JDBC value [13] - [42]
+2026-05-07 22:04:40.072 [http-nio-0.0.0.0-8080-exec-6] DEBUG o.h.orm.results.loading.entity - (EntityResultInitializer) Done materializing entityInstance : com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458)#252e4b7c-a98b-4022-87c2-6cc57fdef477
+2026-05-07 22:04:40.072 [http-nio-0.0.0.0-8080-exec-6] DEBUG org.hibernate.orm.results.loading - Calling top-level assembler (0 / 1) : org.hibernate.sql.results.graph.entity.internal.EntityAssembler@7a6906a8
+2026-05-07 22:04:40.072 [http-nio-0.0.0.0-8080-exec-6] INFO  c.s.t.a.service.TimerSyncService - TIMER_SYNC_DEBUG: Pulling timer state - Unix timestamp: 1.77818703998E9 (as string: 1778187039.98)
+2026-05-07 22:04:40.073 [http-nio-0.0.0.0-8080-exec-6] DEBUG o.s.orm.jpa.JpaTransactionManager - Initiating transaction commit
+2026-05-07 22:04:40.073 [http-nio-0.0.0.0-8080-exec-6] DEBUG o.s.orm.jpa.JpaTransactionManager - Committing JPA transaction on EntityManager [SessionImpl(682232466<open>)]
+2026-05-07 22:04:40.073 [http-nio-0.0.0.0-8080-exec-6] DEBUG o.h.e.t.internal.TransactionImpl - committing
+2026-05-07 22:04:40.079 [http-nio-0.0.0.0-8080-exec-6] DEBUG o.s.jdbc.datasource.DataSourceUtils - Resetting read-only flag of JDBC Connection [HikariProxyConnection@426032695 wrapping org.postgresql.jdbc.PgConnection@36fb9b2f]
+2026-05-07 22:04:40.079 [http-nio-0.0.0.0-8080-exec-6] DEBUG o.s.orm.jpa.JpaTransactionManager - Not closing pre-bound JPA EntityManager after transaction
+2026-05-07 22:04:40.079 [http-nio-0.0.0.0-8080-exec-6] INFO  c.s.t.p.controller.SessionController - timer state pulled for user=252e4b7c-a98b-4022-87c2-6cc57fdef477, device=040f9fd6-7646-43c7-895c-93ccaedb7bc3
+2026-05-07 22:04:40.081 [http-nio-0.0.0.0-8080-exec-6] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2026-05-07 22:04:40.081 [http-nio-0.0.0.0-8080-exec-6] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [TimerStateDto{phase='work', remainingSeconds=1467, isRunning=false, lastModifiedTimestamp=2026-05-07 (truncated)...]
+2026-05-07 22:04:40.083 [http-nio-0.0.0.0-8080-exec-6] DEBUG o.s.o.j.s.OpenEntityManagerInViewInterceptor - Closing JPA EntityManager in OpenEntityManagerInViewInterceptor
+2026-05-07 22:04:40.083 [http-nio-0.0.0.0-8080-exec-6] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2026-05-07 22:04:40.083 [http-nio-0.0.0.0-8080-exec-6] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST: GET /api/sessions/timer/state from 192.168.0.202:51993
+2026-05-07 22:04:40.083 [http-nio-0.0.0.0-8080-exec-6] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: host = 192.168.0.202:8080
+2026-05-07 22:04:40.084 [http-nio-0.0.0.0-8080-exec-6] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: content-type = application/json
+2026-05-07 22:04:40.084 [http-nio-0.0.0.0-8080-exec-6] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: connection = keep-alive
+2026-05-07 22:04:40.084 [http-nio-0.0.0.0-8080-exec-6] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: accept = */*
+2026-05-07 22:04:40.084 [http-nio-0.0.0.0-8080-exec-6] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: user-agent = TimeBeam/1 CFNetwork/3860.500.112 Darwin/25.4.0
+2026-05-07 22:04:40.084 [http-nio-0.0.0.0-8080-exec-6] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: authorization = [REDACTED]
+2026-05-07 22:04:40.084 [http-nio-0.0.0.0-8080-exec-6] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: accept-language = en-IN,en-GB;q=0.9,en;q=0.8
+2026-05-07 22:04:40.084 [http-nio-0.0.0.0-8080-exec-6] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: accept-encoding = gzip, deflate
+2026-05-07 22:04:40.084 [http-nio-0.0.0.0-8080-exec-6] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE: 200 in 46ms
+2026-05-07 22:04:40.084 [http-nio-0.0.0.0-8080-exec-6] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE HEADER: Vary = Origin
+2026-05-07 22:04:40.084 [http-nio-0.0.0.0-8080-exec-6] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE HEADER: Vary = Origin
+2026-05-07 22:04:40.084 [http-nio-0.0.0.0-8080-exec-6] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE HEADER: Vary = Origin
+2026-05-07 22:04:40.084 [http-nio-0.0.0.0-8080-exec-6] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE BODY: {"phase":"work","remainingSeconds":1467,"isRunning":false,"workDuration":1500,"breakDuration":300,"longBreakDuration":900,"autoStartNextSession":false,"shortBreaksCompleted":0,"totalDuration":1500,"startTimestamp":1.7781871E9,"pauseTimestamp":null,"lastModifiedTimestamp":"2026-05-07T20:50:39.979Z","deviceId":"040f9fd6-7646-43c7-895c-93ccaedb7bc3"}
+2026-05-07 22:04:49.994 [http-nio-0.0.0.0-8080-exec-8] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/sessions/timer/state
+2026-05-07 22:04:49.996 [http-nio-0.0.0.0-8080-exec-8] DEBUG c.s.t.i.e.JwtAuthenticationFilter - 🔍 JwtAuthenticationFilter: Authorization header present: YES
+2026-05-07 22:04:49.997 [http-nio-0.0.0.0-8080-exec-8] DEBUG c.s.t.i.e.JwtAuthenticationFilter - 🔍 JwtAuthenticationFilter: Header value: Bearer eyJhbGciOiJIU...
+2026-05-07 22:04:50.004 [http-nio-0.0.0.0-8080-exec-8] DEBUG c.s.t.i.e.JwtAuthenticationFilter - ✅ JwtAuthenticationFilter: Valid token for user: 252e4b7c-a98b-4022-87c2-6cc57fdef477
+2026-05-07 22:04:50.008 [http-nio-0.0.0.0-8080-exec-8] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/sessions/timer/state
+2026-05-07 22:04:50.008 [http-nio-0.0.0.0-8080-exec-8] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/sessions/timer/state", parameters={}
+2026-05-07 22:04:50.008 [http-nio-0.0.0.0-8080-exec-8] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.sparkage.timebeam.presentation.controller.SessionController#pullTimerState(Principal)
+2026-05-07 22:04:50.008 [http-nio-0.0.0.0-8080-exec-8] DEBUG o.s.o.j.s.OpenEntityManagerInViewInterceptor - Opening JPA EntityManager in OpenEntityManagerInViewInterceptor
+2026-05-07 22:04:50.010 [http-nio-0.0.0.0-8080-exec-8] DEBUG o.s.s.a.m.AuthorizationManagerBeforeMethodInterceptor - Authorizing method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.sparkage.timebeam.presentation.controller.SessionController.pullTimerState(java.security.Principal); target is of class [com.sparkage.timebeam.presentation.controller.SessionController]
+2026-05-07 22:04:50.010 [http-nio-0.0.0.0-8080-exec-8] DEBUG o.s.s.a.m.AuthorizationManagerBeforeMethodInterceptor - Authorized method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.sparkage.timebeam.presentation.controller.SessionController.pullTimerState(java.security.Principal); target is of class [com.sparkage.timebeam.presentation.controller.SessionController]
+2026-05-07 22:04:50.011 [http-nio-0.0.0.0-8080-exec-8] DEBUG c.s.t.p.controller.SessionController - pull timer state called
+2026-05-07 22:04:50.011 [http-nio-0.0.0.0-8080-exec-8] DEBUG o.s.orm.jpa.JpaTransactionManager - Found thread-bound EntityManager [SessionImpl(599685118<open>)] for JPA transaction
+2026-05-07 22:04:50.011 [http-nio-0.0.0.0-8080-exec-8] DEBUG o.s.orm.jpa.JpaTransactionManager - Creating new transaction with name [com.sparkage.timebeam.application.service.TimerSyncService.pullTimerState]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT,readOnly
+2026-05-07 22:04:50.023 [http-nio-0.0.0.0-8080-exec-8] DEBUG o.s.jdbc.datasource.DataSourceUtils - Setting JDBC Connection [HikariProxyConnection@448886291 wrapping org.postgresql.jdbc.PgConnection@36fb9b2f] read-only
+2026-05-07 22:04:50.024 [http-nio-0.0.0.0-8080-exec-8] DEBUG o.h.e.t.internal.TransactionImpl - On TransactionImpl creation, JpaCompliance#isJpaTransactionComplianceEnabled == false
+2026-05-07 22:04:50.024 [http-nio-0.0.0.0-8080-exec-8] DEBUG o.h.e.t.internal.TransactionImpl - begin
+2026-05-07 22:04:50.024 [http-nio-0.0.0.0-8080-exec-8] DEBUG o.s.orm.jpa.JpaTransactionManager - Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@3e670b10]
+2026-05-07 22:04:50.026 [http-nio-0.0.0.0-8080-exec-8] DEBUG org.hibernate.orm.sql.ast.create - Created new SQL alias : ts1_0
+2026-05-07 22:04:50.026 [http-nio-0.0.0.0-8080-exec-8] DEBUG org.hibernate.orm.sql.ast.create - Registration of TableGroup [StandardTableGroup(com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458))] with identifierForTableGroup [com.sparkage.timebeam.infrastructure.persistence.TimerState] for NavigablePath [com.sparkage.timebeam.infrastructure.persistence.TimerState] 
+2026-05-07 22:04:50.026 [http-nio-0.0.0.0-8080-exec-8] DEBUG o.h.q.s.sql.BaseSqmToSqlAstConverter - Determining mapping-model type for SqmParameter : org.hibernate.query.sqm.tree.expression.SqmJpaCriteriaParameterWrapper@599050d2
+2026-05-07 22:04:50.026 [http-nio-0.0.0.0-8080-exec-8] DEBUG o.h.q.s.sql.BaseSqmToSqlAstConverter - Determining mapping-model type for SqmPath : SqmBasicValuedSimplePath(com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).userId) 
+2026-05-07 22:04:50.027 [http-nio-0.0.0.0-8080-exec-8] DEBUG org.hibernate.orm.results.graph.AST - DomainResult Graph:
+ \-EntityResultImpl [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458)]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).autoStartNext]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).breakDurationMinutes]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).lastUpdatedAt]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).longBreakDurationMinutes]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).pauseTimestamp]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).phase]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).remainingSeconds]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).running]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).shortBreaksCompleted]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).startTimestamp]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).totalDuration]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).updatedByDeviceId]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).version]
+ |  \-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).workDurationMinutes]
+
+2026-05-07 22:04:50.027 [http-nio-0.0.0.0-8080-exec-8] DEBUG org.hibernate.orm.sql.ast.tree - SQL AST Tree:
+    SelectStatement {
+      FromClause {
+        StandardTableGroup (ts1 : com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458)) {
+          primaryTableReference : timer_states as ts1_0
+        }
+      }
+    }
+
+2026-05-07 22:04:50.027 [http-nio-0.0.0.0-8080-exec-8] DEBUG org.hibernate.orm.sql.exec - Skipping reading Query result cache data: cache-enabled = false, cache-mode = NORMAL
+2026-05-07 22:04:50.028 [http-nio-0.0.0.0-8080-exec-8] DEBUG org.hibernate.orm.results - Initializer list
+2026-05-07 22:04:50.028 [http-nio-0.0.0.0-8080-exec-8] DEBUG org.hibernate.orm.results -     com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458) -> EntityResultInitializer(com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458))@504947923 (SingleTableEntityPersister(com.sparkage.timebeam.infrastructure.persistence.TimerState))
+2026-05-07 22:04:50.028 [http-nio-0.0.0.0-8080-exec-8] DEBUG org.hibernate.SQL - 
+    select
+        ts1_0.user_id,
+        ts1_0.auto_start_next,
+        ts1_0.break_duration_minutes,
+        ts1_0.last_updated_at,
+        ts1_0.long_break_duration_minutes,
+        ts1_0.pause_timestamp,
+        ts1_0.phase,
+        ts1_0.remaining_seconds,
+        ts1_0.is_running,
+        ts1_0.short_breaks_completed,
+        ts1_0.start_timestamp,
+        ts1_0.total_duration,
+        ts1_0.updated_by_device_id,
+        ts1_0.version,
+        ts1_0.work_duration_minutes 
+    from
+        timer_states ts1_0 
+    where
+        ts1_0.user_id=?
+2026-05-07 22:04:50.034 [http-nio-0.0.0.0-8080-exec-8] DEBUG org.hibernate.orm.results - Extracted JDBC value [0] - [252e4b7c-a98b-4022-87c2-6cc57fdef477]
+2026-05-07 22:04:50.034 [http-nio-0.0.0.0-8080-exec-8] DEBUG o.h.orm.results.loading.entity - (EntityResultInitializer) Hydrated EntityKey (com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458)): 252e4b7c-a98b-4022-87c2-6cc57fdef477
+2026-05-07 22:04:50.034 [http-nio-0.0.0.0-8080-exec-8] DEBUG o.h.orm.results.loading.entity - (EntityResultInitializer) Created new entity instance [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458)#252e4b7c-a98b-4022-87c2-6cc57fdef477] : 1356239108
+2026-05-07 22:04:50.034 [http-nio-0.0.0.0-8080-exec-8] DEBUG org.hibernate.orm.results - Extracted JDBC value [1] - [false]
+2026-05-07 22:04:50.034 [http-nio-0.0.0.0-8080-exec-8] DEBUG org.hibernate.orm.results - Extracted JDBC value [2] - [300]
+2026-05-07 22:04:50.035 [http-nio-0.0.0.0-8080-exec-8] DEBUG org.hibernate.orm.results - Extracted JDBC value [3] - [2026-05-07T20:50:39.979523Z]
+2026-05-07 22:04:50.035 [http-nio-0.0.0.0-8080-exec-8] DEBUG org.hibernate.orm.results - Extracted JDBC value [4] - [900]
+2026-05-07 22:04:50.035 [http-nio-0.0.0.0-8080-exec-8] DEBUG org.hibernate.orm.results - Extracted JDBC value [5] - [null]
+2026-05-07 22:04:50.035 [http-nio-0.0.0.0-8080-exec-8] DEBUG org.hibernate.orm.results - Extracted JDBC value [6] - [work]
+2026-05-07 22:04:50.035 [http-nio-0.0.0.0-8080-exec-8] DEBUG org.hibernate.orm.results - Extracted JDBC value [7] - [1467]
+2026-05-07 22:04:50.035 [http-nio-0.0.0.0-8080-exec-8] DEBUG org.hibernate.orm.results - Extracted JDBC value [8] - [false]
+2026-05-07 22:04:50.035 [http-nio-0.0.0.0-8080-exec-8] DEBUG org.hibernate.orm.results - Extracted JDBC value [9] - [0]
+2026-05-07 22:04:50.035 [http-nio-0.0.0.0-8080-exec-8] DEBUG org.hibernate.orm.results - Extracted JDBC value [10] - [1.7781871E9]
+2026-05-07 22:04:50.035 [http-nio-0.0.0.0-8080-exec-8] DEBUG org.hibernate.orm.results - Extracted JDBC value [11] - [1500]
+2026-05-07 22:04:50.035 [http-nio-0.0.0.0-8080-exec-8] DEBUG org.hibernate.orm.results - Extracted JDBC value [12] - [040f9fd6-7646-43c7-895c-93ccaedb7bc3]
+2026-05-07 22:04:50.035 [http-nio-0.0.0.0-8080-exec-8] DEBUG org.hibernate.orm.results - Extracted JDBC value [13] - [42]
+2026-05-07 22:04:50.035 [http-nio-0.0.0.0-8080-exec-8] DEBUG org.hibernate.orm.results - Extracted JDBC value [14] - [1500]
+2026-05-07 22:04:50.035 [http-nio-0.0.0.0-8080-exec-8] DEBUG org.hibernate.orm.results - Extracted JDBC value [13] - [42]
+2026-05-07 22:04:50.035 [http-nio-0.0.0.0-8080-exec-8] DEBUG o.h.orm.results.loading.entity - (EntityResultInitializer) Done materializing entityInstance : com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458)#252e4b7c-a98b-4022-87c2-6cc57fdef477
+2026-05-07 22:04:50.035 [http-nio-0.0.0.0-8080-exec-8] DEBUG org.hibernate.orm.results.loading - Calling top-level assembler (0 / 1) : org.hibernate.sql.results.graph.entity.internal.EntityAssembler@931d9b1
+2026-05-07 22:04:50.036 [http-nio-0.0.0.0-8080-exec-8] INFO  c.s.t.a.service.TimerSyncService - TIMER_SYNC_DEBUG: Pulling timer state - Unix timestamp: 1.77818703998E9 (as string: 1778187039.98)
+2026-05-07 22:04:50.036 [http-nio-0.0.0.0-8080-exec-8] DEBUG o.s.orm.jpa.JpaTransactionManager - Initiating transaction commit
+2026-05-07 22:04:50.036 [http-nio-0.0.0.0-8080-exec-8] DEBUG o.s.orm.jpa.JpaTransactionManager - Committing JPA transaction on EntityManager [SessionImpl(599685118<open>)]
+2026-05-07 22:04:50.036 [http-nio-0.0.0.0-8080-exec-8] DEBUG o.h.e.t.internal.TransactionImpl - committing
+2026-05-07 22:04:50.041 [http-nio-0.0.0.0-8080-exec-8] DEBUG o.s.jdbc.datasource.DataSourceUtils - Resetting read-only flag of JDBC Connection [HikariProxyConnection@448886291 wrapping org.postgresql.jdbc.PgConnection@36fb9b2f]
+2026-05-07 22:04:50.041 [http-nio-0.0.0.0-8080-exec-8] DEBUG o.s.orm.jpa.JpaTransactionManager - Not closing pre-bound JPA EntityManager after transaction
+2026-05-07 22:04:50.041 [http-nio-0.0.0.0-8080-exec-8] INFO  c.s.t.p.controller.SessionController - timer state pulled for user=252e4b7c-a98b-4022-87c2-6cc57fdef477, device=040f9fd6-7646-43c7-895c-93ccaedb7bc3
+2026-05-07 22:04:50.042 [http-nio-0.0.0.0-8080-exec-8] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2026-05-07 22:04:50.042 [http-nio-0.0.0.0-8080-exec-8] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [TimerStateDto{phase='work', remainingSeconds=1467, isRunning=false, lastModifiedTimestamp=2026-05-07 (truncated)...]
+2026-05-07 22:04:50.042 [http-nio-0.0.0.0-8080-exec-8] DEBUG o.s.o.j.s.OpenEntityManagerInViewInterceptor - Closing JPA EntityManager in OpenEntityManagerInViewInterceptor
+2026-05-07 22:04:50.043 [http-nio-0.0.0.0-8080-exec-8] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2026-05-07 22:04:50.043 [http-nio-0.0.0.0-8080-exec-8] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST: GET /api/sessions/timer/state from 192.168.0.97:58395
+2026-05-07 22:04:50.043 [http-nio-0.0.0.0-8080-exec-8] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: host = 192.168.0.202:8080
+2026-05-07 22:04:50.043 [http-nio-0.0.0.0-8080-exec-8] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: content-type = application/json
+2026-05-07 22:04:50.043 [http-nio-0.0.0.0-8080-exec-8] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: connection = keep-alive
+2026-05-07 22:04:50.043 [http-nio-0.0.0.0-8080-exec-8] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: accept = */*
+2026-05-07 22:04:50.043 [http-nio-0.0.0.0-8080-exec-8] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: user-agent = TimeBeam%20iOS/1 CFNetwork/3860.500.112 Darwin/25.4.0
+2026-05-07 22:04:50.043 [http-nio-0.0.0.0-8080-exec-8] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: authorization = [REDACTED]
+2026-05-07 22:04:50.043 [http-nio-0.0.0.0-8080-exec-8] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: accept-language = en-GB,en;q=0.9
+2026-05-07 22:04:50.043 [http-nio-0.0.0.0-8080-exec-8] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: accept-encoding = gzip, deflate
+2026-05-07 22:04:50.043 [http-nio-0.0.0.0-8080-exec-8] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE: 200 in 35ms
+2026-05-07 22:04:50.043 [http-nio-0.0.0.0-8080-exec-8] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE HEADER: Vary = Origin
+2026-05-07 22:04:50.043 [http-nio-0.0.0.0-8080-exec-8] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE HEADER: Vary = Origin
+2026-05-07 22:04:50.043 [http-nio-0.0.0.0-8080-exec-8] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE HEADER: Vary = Origin
+2026-05-07 22:04:50.043 [http-nio-0.0.0.0-8080-exec-8] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE BODY: {"phase":"work","remainingSeconds":1467,"isRunning":false,"workDuration":1500,"breakDuration":300,"longBreakDuration":900,"autoStartNextSession":false,"shortBreaksCompleted":0,"totalDuration":1500,"startTimestamp":1.7781871E9,"pauseTimestamp":null,"lastModifiedTimestamp":"2026-05-07T20:50:39.979Z","deviceId":"040f9fd6-7646-43c7-895c-93ccaedb7bc3"}
+2026-05-07 22:05:11.096 [http-nio-0.0.0.0-8080-exec-9] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/sessions/timer/state
+2026-05-07 22:05:11.099 [http-nio-0.0.0.0-8080-exec-9] DEBUG c.s.t.i.e.JwtAuthenticationFilter - 🔍 JwtAuthenticationFilter: Authorization header present: YES
+2026-05-07 22:05:11.099 [http-nio-0.0.0.0-8080-exec-9] DEBUG c.s.t.i.e.JwtAuthenticationFilter - 🔍 JwtAuthenticationFilter: Header value: Bearer eyJhbGciOiJIU...
+2026-05-07 22:05:11.111 [http-nio-0.0.0.0-8080-exec-9] DEBUG c.s.t.i.e.JwtAuthenticationFilter - ✅ JwtAuthenticationFilter: Valid token for user: 252e4b7c-a98b-4022-87c2-6cc57fdef477
+2026-05-07 22:05:11.111 [http-nio-0.0.0.0-8080-exec-9] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/sessions/timer/state
+2026-05-07 22:05:11.112 [http-nio-0.0.0.0-8080-exec-9] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/sessions/timer/state", parameters={}
+2026-05-07 22:05:11.112 [http-nio-0.0.0.0-8080-exec-9] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.sparkage.timebeam.presentation.controller.SessionController#pullTimerState(Principal)
+2026-05-07 22:05:11.112 [http-nio-0.0.0.0-8080-exec-9] DEBUG o.s.o.j.s.OpenEntityManagerInViewInterceptor - Opening JPA EntityManager in OpenEntityManagerInViewInterceptor
+2026-05-07 22:05:11.114 [http-nio-0.0.0.0-8080-exec-9] DEBUG o.s.s.a.m.AuthorizationManagerBeforeMethodInterceptor - Authorizing method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.sparkage.timebeam.presentation.controller.SessionController.pullTimerState(java.security.Principal); target is of class [com.sparkage.timebeam.presentation.controller.SessionController]
+2026-05-07 22:05:11.115 [http-nio-0.0.0.0-8080-exec-9] DEBUG o.s.s.a.m.AuthorizationManagerBeforeMethodInterceptor - Authorized method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.sparkage.timebeam.presentation.controller.SessionController.pullTimerState(java.security.Principal); target is of class [com.sparkage.timebeam.presentation.controller.SessionController]
+2026-05-07 22:05:11.116 [http-nio-0.0.0.0-8080-exec-9] DEBUG c.s.t.p.controller.SessionController - pull timer state called
+2026-05-07 22:05:11.116 [http-nio-0.0.0.0-8080-exec-9] DEBUG o.s.orm.jpa.JpaTransactionManager - Found thread-bound EntityManager [SessionImpl(1894922997<open>)] for JPA transaction
+2026-05-07 22:05:11.116 [http-nio-0.0.0.0-8080-exec-9] DEBUG o.s.orm.jpa.JpaTransactionManager - Creating new transaction with name [com.sparkage.timebeam.application.service.TimerSyncService.pullTimerState]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT,readOnly
+2026-05-07 22:05:11.129 [http-nio-0.0.0.0-8080-exec-9] DEBUG o.s.jdbc.datasource.DataSourceUtils - Setting JDBC Connection [HikariProxyConnection@1165184402 wrapping org.postgresql.jdbc.PgConnection@36fb9b2f] read-only
+2026-05-07 22:05:11.129 [http-nio-0.0.0.0-8080-exec-9] DEBUG o.h.e.t.internal.TransactionImpl - On TransactionImpl creation, JpaCompliance#isJpaTransactionComplianceEnabled == false
+2026-05-07 22:05:11.129 [http-nio-0.0.0.0-8080-exec-9] DEBUG o.h.e.t.internal.TransactionImpl - begin
+2026-05-07 22:05:11.129 [http-nio-0.0.0.0-8080-exec-9] DEBUG o.s.orm.jpa.JpaTransactionManager - Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@4f4ff686]
+2026-05-07 22:05:11.132 [http-nio-0.0.0.0-8080-exec-9] DEBUG org.hibernate.orm.sql.ast.create - Created new SQL alias : ts1_0
+2026-05-07 22:05:11.132 [http-nio-0.0.0.0-8080-exec-9] DEBUG org.hibernate.orm.sql.ast.create - Registration of TableGroup [StandardTableGroup(com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458))] with identifierForTableGroup [com.sparkage.timebeam.infrastructure.persistence.TimerState] for NavigablePath [com.sparkage.timebeam.infrastructure.persistence.TimerState] 
+2026-05-07 22:05:11.132 [http-nio-0.0.0.0-8080-exec-9] DEBUG o.h.q.s.sql.BaseSqmToSqlAstConverter - Determining mapping-model type for SqmParameter : org.hibernate.query.sqm.tree.expression.SqmJpaCriteriaParameterWrapper@5b55e450
+2026-05-07 22:05:11.132 [http-nio-0.0.0.0-8080-exec-9] DEBUG o.h.q.s.sql.BaseSqmToSqlAstConverter - Determining mapping-model type for SqmPath : SqmBasicValuedSimplePath(com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).userId) 
+2026-05-07 22:05:11.133 [http-nio-0.0.0.0-8080-exec-9] DEBUG org.hibernate.orm.results.graph.AST - DomainResult Graph:
+ \-EntityResultImpl [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458)]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).autoStartNext]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).breakDurationMinutes]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).lastUpdatedAt]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).longBreakDurationMinutes]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).pauseTimestamp]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).phase]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).remainingSeconds]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).running]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).shortBreaksCompleted]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).startTimestamp]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).totalDuration]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).updatedByDeviceId]
+ |  +-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).version]
+ |  \-BasicFetch [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458).workDurationMinutes]
+
+2026-05-07 22:05:11.133 [http-nio-0.0.0.0-8080-exec-9] DEBUG org.hibernate.orm.sql.ast.tree - SQL AST Tree:
+    SelectStatement {
+      FromClause {
+        StandardTableGroup (ts1 : com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458)) {
+          primaryTableReference : timer_states as ts1_0
+        }
+      }
+    }
+
+2026-05-07 22:05:11.134 [http-nio-0.0.0.0-8080-exec-9] DEBUG org.hibernate.orm.sql.exec - Skipping reading Query result cache data: cache-enabled = false, cache-mode = NORMAL
+2026-05-07 22:05:11.134 [http-nio-0.0.0.0-8080-exec-9] DEBUG org.hibernate.orm.results - Initializer list
+2026-05-07 22:05:11.134 [http-nio-0.0.0.0-8080-exec-9] DEBUG org.hibernate.orm.results -     com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458) -> EntityResultInitializer(com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458))@1436204202 (SingleTableEntityPersister(com.sparkage.timebeam.infrastructure.persistence.TimerState))
+2026-05-07 22:05:11.134 [http-nio-0.0.0.0-8080-exec-9] DEBUG org.hibernate.SQL - 
+    select
+        ts1_0.user_id,
+        ts1_0.auto_start_next,
+        ts1_0.break_duration_minutes,
+        ts1_0.last_updated_at,
+        ts1_0.long_break_duration_minutes,
+        ts1_0.pause_timestamp,
+        ts1_0.phase,
+        ts1_0.remaining_seconds,
+        ts1_0.is_running,
+        ts1_0.short_breaks_completed,
+        ts1_0.start_timestamp,
+        ts1_0.total_duration,
+        ts1_0.updated_by_device_id,
+        ts1_0.version,
+        ts1_0.work_duration_minutes 
+    from
+        timer_states ts1_0 
+    where
+        ts1_0.user_id=?
+2026-05-07 22:05:11.140 [http-nio-0.0.0.0-8080-exec-9] DEBUG org.hibernate.orm.results - Extracted JDBC value [0] - [252e4b7c-a98b-4022-87c2-6cc57fdef477]
+2026-05-07 22:05:11.140 [http-nio-0.0.0.0-8080-exec-9] DEBUG o.h.orm.results.loading.entity - (EntityResultInitializer) Hydrated EntityKey (com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458)): 252e4b7c-a98b-4022-87c2-6cc57fdef477
+2026-05-07 22:05:11.140 [http-nio-0.0.0.0-8080-exec-9] DEBUG o.h.orm.results.loading.entity - (EntityResultInitializer) Created new entity instance [com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458)#252e4b7c-a98b-4022-87c2-6cc57fdef477] : 2015950465
+2026-05-07 22:05:11.140 [http-nio-0.0.0.0-8080-exec-9] DEBUG org.hibernate.orm.results - Extracted JDBC value [1] - [false]
+2026-05-07 22:05:11.140 [http-nio-0.0.0.0-8080-exec-9] DEBUG org.hibernate.orm.results - Extracted JDBC value [2] - [300]
+2026-05-07 22:05:11.141 [http-nio-0.0.0.0-8080-exec-9] DEBUG org.hibernate.orm.results - Extracted JDBC value [3] - [2026-05-07T20:50:39.979523Z]
+2026-05-07 22:05:11.141 [http-nio-0.0.0.0-8080-exec-9] DEBUG org.hibernate.orm.results - Extracted JDBC value [4] - [900]
+2026-05-07 22:05:11.141 [http-nio-0.0.0.0-8080-exec-9] DEBUG org.hibernate.orm.results - Extracted JDBC value [5] - [null]
+2026-05-07 22:05:11.141 [http-nio-0.0.0.0-8080-exec-9] DEBUG org.hibernate.orm.results - Extracted JDBC value [6] - [work]
+2026-05-07 22:05:11.141 [http-nio-0.0.0.0-8080-exec-9] DEBUG org.hibernate.orm.results - Extracted JDBC value [7] - [1467]
+2026-05-07 22:05:11.141 [http-nio-0.0.0.0-8080-exec-9] DEBUG org.hibernate.orm.results - Extracted JDBC value [8] - [false]
+2026-05-07 22:05:11.141 [http-nio-0.0.0.0-8080-exec-9] DEBUG org.hibernate.orm.results - Extracted JDBC value [9] - [0]
+2026-05-07 22:05:11.141 [http-nio-0.0.0.0-8080-exec-9] DEBUG org.hibernate.orm.results - Extracted JDBC value [10] - [1.7781871E9]
+2026-05-07 22:05:11.141 [http-nio-0.0.0.0-8080-exec-9] DEBUG org.hibernate.orm.results - Extracted JDBC value [11] - [1500]
+2026-05-07 22:05:11.141 [http-nio-0.0.0.0-8080-exec-9] DEBUG org.hibernate.orm.results - Extracted JDBC value [12] - [040f9fd6-7646-43c7-895c-93ccaedb7bc3]
+2026-05-07 22:05:11.141 [http-nio-0.0.0.0-8080-exec-9] DEBUG org.hibernate.orm.results - Extracted JDBC value [13] - [42]
+2026-05-07 22:05:11.141 [http-nio-0.0.0.0-8080-exec-9] DEBUG org.hibernate.orm.results - Extracted JDBC value [14] - [1500]
+2026-05-07 22:05:11.141 [http-nio-0.0.0.0-8080-exec-9] DEBUG org.hibernate.orm.results - Extracted JDBC value [13] - [42]
+2026-05-07 22:05:11.141 [http-nio-0.0.0.0-8080-exec-9] DEBUG o.h.orm.results.loading.entity - (EntityResultInitializer) Done materializing entityInstance : com.sparkage.timebeam.infrastructure.persistence.TimerState(12192347561458)#252e4b7c-a98b-4022-87c2-6cc57fdef477
+2026-05-07 22:05:11.141 [http-nio-0.0.0.0-8080-exec-9] DEBUG org.hibernate.orm.results.loading - Calling top-level assembler (0 / 1) : org.hibernate.sql.results.graph.entity.internal.EntityAssembler@78d76ac2
+2026-05-07 22:05:11.143 [http-nio-0.0.0.0-8080-exec-9] INFO  c.s.t.a.service.TimerSyncService - TIMER_SYNC_DEBUG: Pulling timer state - Unix timestamp: 1.77818703998E9 (as string: 1778187039.98)
+2026-05-07 22:05:11.143 [http-nio-0.0.0.0-8080-exec-9] DEBUG o.s.orm.jpa.JpaTransactionManager - Initiating transaction commit
+2026-05-07 22:05:11.143 [http-nio-0.0.0.0-8080-exec-9] DEBUG o.s.orm.jpa.JpaTransactionManager - Committing JPA transaction on EntityManager [SessionImpl(1894922997<open>)]
+2026-05-07 22:05:11.143 [http-nio-0.0.0.0-8080-exec-9] DEBUG o.h.e.t.internal.TransactionImpl - committing
+2026-05-07 22:05:11.148 [http-nio-0.0.0.0-8080-exec-9] DEBUG o.s.jdbc.datasource.DataSourceUtils - Resetting read-only flag of JDBC Connection [HikariProxyConnection@1165184402 wrapping org.postgresql.jdbc.PgConnection@36fb9b2f]
+2026-05-07 22:05:11.148 [http-nio-0.0.0.0-8080-exec-9] DEBUG o.s.orm.jpa.JpaTransactionManager - Not closing pre-bound JPA EntityManager after transaction
+2026-05-07 22:05:11.148 [http-nio-0.0.0.0-8080-exec-9] INFO  c.s.t.p.controller.SessionController - timer state pulled for user=252e4b7c-a98b-4022-87c2-6cc57fdef477, device=040f9fd6-7646-43c7-895c-93ccaedb7bc3
+2026-05-07 22:05:11.149 [http-nio-0.0.0.0-8080-exec-9] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2026-05-07 22:05:11.149 [http-nio-0.0.0.0-8080-exec-9] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [TimerStateDto{phase='work', remainingSeconds=1467, isRunning=false, lastModifiedTimestamp=2026-05-07 (truncated)...]
+2026-05-07 22:05:11.150 [http-nio-0.0.0.0-8080-exec-9] DEBUG o.s.o.j.s.OpenEntityManagerInViewInterceptor - Closing JPA EntityManager in OpenEntityManagerInViewInterceptor
+2026-05-07 22:05:11.150 [http-nio-0.0.0.0-8080-exec-9] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2026-05-07 22:05:11.150 [http-nio-0.0.0.0-8080-exec-9] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST: GET /api/sessions/timer/state from 192.168.0.202:51993
+2026-05-07 22:05:11.150 [http-nio-0.0.0.0-8080-exec-9] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: host = 192.168.0.202:8080
+2026-05-07 22:05:11.150 [http-nio-0.0.0.0-8080-exec-9] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: content-type = application/json
+2026-05-07 22:05:11.150 [http-nio-0.0.0.0-8080-exec-9] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: connection = keep-alive
+2026-05-07 22:05:11.150 [http-nio-0.0.0.0-8080-exec-9] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: accept = */*
+2026-05-07 22:05:11.150 [http-nio-0.0.0.0-8080-exec-9] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: user-agent = TimeBeam/1 CFNetwork/3860.500.112 Darwin/25.4.0
+2026-05-07 22:05:11.150 [http-nio-0.0.0.0-8080-exec-9] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: authorization = [REDACTED]
+2026-05-07 22:05:11.150 [http-nio-0.0.0.0-8080-exec-9] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: accept-language = en-IN,en-GB;q=0.9,en;q=0.8
+2026-05-07 22:05:11.150 [http-nio-0.0.0.0-8080-exec-9] DEBUG c.s.t.i.config.RequestLoggingFilter - >>> REQUEST HEADER: accept-encoding = gzip, deflate
+2026-05-07 22:05:11.150 [http-nio-0.0.0.0-8080-exec-9] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE: 200 in 38ms
+2026-05-07 22:05:11.150 [http-nio-0.0.0.0-8080-exec-9] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE HEADER: Vary = Origin
+2026-05-07 22:05:11.150 [http-nio-0.0.0.0-8080-exec-9] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE HEADER: Vary = Origin
+2026-05-07 22:05:11.150 [http-nio-0.0.0.0-8080-exec-9] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE HEADER: Vary = Origin
+2026-05-07 22:05:11.150 [http-nio-0.0.0.0-8080-exec-9] DEBUG c.s.t.i.config.RequestLoggingFilter - <<< RESPONSE BODY: {"phase":"work","remainingSeconds":1467,"isRunning":false,"workDuration":1500,"breakDuration":300,"longBreakDuration":900,"autoStartNextSession":false,"shortBreaksCompleted":0,"totalDuration":1500,"startTimestamp":1.7781871E9,"pauseTimestamp":null,"lastModifiedTimestamp":"2026-05-07T20:50:39.979Z","deviceId":"040f9fd6-7646-43c7-895c-93ccaedb7bc3"}

@@ -64,8 +64,7 @@ public class TimerSyncService {
                     pushNotificationService.sendTimerSyncPush(
                         userId.toString(),
                         deviceIdString,
-                        "state_update",
-                        stateDto.getLastModifiedTimestamp() != null ? stateDto.getLastModifiedTimestamp().toString() : Instant.now().toString()
+                        stateDto
                     );
                 } else {
                     // Create new timer state - first device to sync
@@ -334,7 +333,8 @@ public class TimerSyncService {
                     log.info("Updated timer state for user={} with action from device={} (collaborative mode)", userId, deviceIdString);
 
                     // Send push notification to other devices for real-time sync
-                    pushNotificationService.sendTimerSyncPush(userId.toString(), deviceIdString, "action_" + actionDto.getActionType().toString().toLowerCase(), actionDto.getTimestamp().toString());
+                    TimerStateDto stateDto = convertActionToStateDto(existingState, actionDto);
+                    pushNotificationService.sendTimerSyncPush(userId.toString(), deviceIdString, stateDto);
                 } else {
                     // Create new timer state - first device to sync
                     TimerState newState = createTimerStateFromActionDto(userId, actionDto);
@@ -393,6 +393,24 @@ public class TimerSyncService {
                 Exception e) {
             log.error("Failed to cleanup duplicate timer states for user={}: {}", userId, e.getMessage(), e);
         }
+    }
+
+    private TimerStateDto convertActionToStateDto(TimerState state, TimerActionDto actionDto) {
+        return new TimerStateDto(
+            state.getPhase(),
+            state.getRemainingSeconds(),
+            state.isRunning(),
+            state.getWorkDurationMinutes(),
+            state.getBreakDurationMinutes(),
+            state.getLongBreakDurationMinutes(),
+            false,  // autoStartNextSession
+            state.getShortBreaksCompleted(),
+            state.getTotalDuration(),
+            state.getStartTimestamp(),  // already Double
+            state.getPauseTimestamp(),  // already Double
+            state.getLastUpdatedAt(),
+            state.getUpdatedByDeviceId() != null ? state.getUpdatedByDeviceId().toString() : null
+        );
     }
 }
 
