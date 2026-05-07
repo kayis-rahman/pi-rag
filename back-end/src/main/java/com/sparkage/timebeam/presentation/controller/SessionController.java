@@ -153,10 +153,11 @@ public class SessionController {
 
         // Store the action as state - now using the complete timer state provided by the client
         // Retry on optimistic locking failures
+        TimerStateDto stateFromAction = null;
         int maxRetries = 3;
         for (int attempt = 1; attempt <= maxRetries; attempt++) {
             try {
-                TimerStateDto stateFromAction = convertActionToState(actionDto);
+                stateFromAction = convertActionToState(actionDto);
                 log.debug("Converted action to state: phase={}, remainingSeconds={}, isRunning={}, workDuration={}, breakDuration={}, longBreakDuration={}, autoStartNextSession={}, shortBreaksCompleted={}",
                         stateFromAction.getPhase(), stateFromAction.getRemainingSeconds(), stateFromAction.getIsRunning(),
                         stateFromAction.getWorkDuration(), stateFromAction.getBreakDuration(), stateFromAction.getLongBreakDuration(),
@@ -189,12 +190,14 @@ public class SessionController {
             }
         }
 
-        // Send silent push notification to other devices
-        try {
-            pushService.sendTimerSyncPush(uid.toString(), actionDto.getDeviceId(), actionDto.getAction().toString(), actionDto.getTimestamp().toString());
-        } catch (Exception e) {
-            log.warn("Failed to send push notification for timer sync, but action was stored successfully", e);
-            // Don't fail the request if push fails - the action is still stored
+        // Send silent push notification with full timer state to other devices
+        if (stateFromAction != null) {
+            try {
+                pushService.sendTimerSyncPush(uid.toString(), actionDto.getDeviceId(), stateFromAction);
+            } catch (Exception e) {
+                log.warn("Failed to send push notification for timer sync, but action was stored successfully", e);
+                // Don't fail the request if push fails - the action is still stored
+            }
         }
 
         return ResponseEntity.ok().build();

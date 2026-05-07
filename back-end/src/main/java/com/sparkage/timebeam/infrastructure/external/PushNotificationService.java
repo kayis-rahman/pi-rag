@@ -22,6 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.sparkage.timebeam.infrastructure.persistence.UserDevice;
 import com.sparkage.timebeam.infrastructure.persistence.UserDeviceRepository;
+import com.sparkage.timebeam.presentation.dto.TimerStateDto;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class PushNotificationService {
@@ -109,9 +111,9 @@ public class PushNotificationService {
     }
 
     /**
-     * Send silent APNs message to trigger timer sync on other devices
+     * Send silent APNs message with full timer state to trigger sync on other devices
      */
-    public void sendTimerSyncPush(String userId, String deviceId, String action, String timestamp) {
+    public void sendTimerSyncPush(String userId, String excludeDeviceId, TimerStateDto state) {
         if (!apnsEnabled || apnsClient == null) {
             log.debug("APNs not enabled, skipping push for user: {}", userId);
             return;
@@ -119,16 +121,25 @@ public class PushNotificationService {
 
         try {
             // Get APNs tokens with platform info for this user (excluding sending device)
-            List<DeviceTokenInfo> deviceTokens = getApnsTokensWithPlatformForUser(userId, deviceId);
+            List<DeviceTokenInfo> deviceTokens = getApnsTokensWithPlatformForUser(userId, excludeDeviceId);
             if (deviceTokens.isEmpty()) {
                 log.debug("No APNs tokens found for user: {}", userId);
                 return;
             }
 
-            // Create payload for silent notification matching iOS app expectations
+            // Create payload with full timer state so receiving device can apply directly
+            // Format: JSON with aps metadata + timer fields for direct application
             String payload = String.format(
-                "{\"aps\":{\"content-available\":1,\"sound\":\"\"},\"type\":\"timer_sync\",\"action\":{\"action\":\"%s\",\"deviceId\":\"%s\",\"timestamp\":\"%s\"}}",
-                action, deviceId, timestamp
+                "{\"aps\":{\"content-available\":1,\"sound\":\"\"},\"type\":\"timer_sync\",\"phase\":\"%s\",\"remainingSeconds\":%d,\"isRunning\":%s,\"startTimestamp\":%f,\"pauseTimestamp\":%s,\"workDuration\":%d,\"breakDuration\":%d,\"longBreakDuration\":%d,\"deviceId\":\"%s\"}",
+                state.getPhase(),
+                state.getRemainingSeconds() != null ? state.getRemainingSeconds() : 0,
+                state.getIsRunning() != null ? state.getIsRunning() : false,
+                state.getStartTimestamp() != null ? state.getStartTimestamp() : 0.0,
+                state.getPauseTimestamp() != null ? ("\"" + state.getPauseTimestamp() + "\"") : "null",
+                state.getWorkDuration() != null ? state.getWorkDuration() : 1500,
+                state.getBreakDuration() != null ? state.getBreakDuration() : 300,
+                state.getLongBreakDuration() != null ? state.getLongBreakDuration() : 900,
+                state.getDeviceId()
             );
 
             // Send to all devices using platform-specific bundle IDs
@@ -141,12 +152,12 @@ public class PushNotificationService {
                 );
 
                 Future<PushNotificationResponse<SimpleApnsPushNotification>> response = apnsClient.sendNotification(push);
-                log.debug("Timer sync push sent to token: {}, bundle: {}, user: {}",
-                         deviceToken.getApnsToken(), bundleId, userId);
+                log.debug("Timer sync push sent with state - phase: {}, remaining: {}, running: {}, user: {}",
+                         state.getPhase(), state.getRemainingSeconds(), state.getIsRunning(), userId);
             }
 
         } catch (Exception e) {
-            log.error("Failed to send timer sync push for user: {}, device: {}", userId, deviceId, e);
+            log.error("Failed to send timer sync push for user: {}, device: {}", userId, excludeDeviceId, e);
         }
     }
 

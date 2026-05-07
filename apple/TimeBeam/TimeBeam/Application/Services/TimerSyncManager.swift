@@ -211,6 +211,34 @@ final class TimerSyncManager: ObservableObject {
         await pullLatestState(accessToken: accessToken)
     }
 
+    func applyEventState(from userInfo: [AnyHashable: Any]) {
+        guard let timer = timer else { return }
+        guard let phase = userInfo["phase"] as? String,
+              let remainingSeconds = userInfo["remainingSeconds"] as? Int,
+              let isRunning = userInfo["isRunning"] as? Bool else { return }
+
+        let startTimestamp = userInfo["startTimestamp"] as? Double
+        let pauseTimestamp = userInfo["pauseTimestamp"] as? Double
+        let workDuration = userInfo["workDuration"] as? Int ?? 1500
+        let breakDuration = userInfo["breakDuration"] as? Int ?? 300
+        let longBreakDuration = userInfo["longBreakDuration"] as? Int ?? 900
+
+        timer.applySyncedState(
+            phase: Phase(rawValue: phase) ?? .work,
+            remainingSeconds: remainingSeconds,
+            isRunning: isRunning,
+            workDuration: workDuration,
+            breakDuration: breakDuration,
+            longBreakDuration: longBreakDuration,
+            autoStartNextSession: timer.autoStartNextSession,
+            shortBreaksCompleted: timer.shortBreaksCompleted,
+            startTimestamp: startTimestamp,
+            pauseTimestamp: pauseTimestamp,
+            lastModifiedTimestamp: Date().timeIntervalSince1970
+        )
+        print("✅ TIMER_SYNC_EVENT: Applied state from push notification - phase: \(phase), remaining: \(remainingSeconds), running: \(isRunning)")
+    }
+
     // Enhanced sync with retry logic and timeouts
     private func syncWithRetry(
         operation: SyncOperation,

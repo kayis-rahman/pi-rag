@@ -37,9 +37,11 @@ class iOSAppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterD
         if let type = userInfo["type"] as? String, type == "timer_sync" {
             AppLogger.info("Received timer sync notification on iOS (willPresent)", category: .sync)
 
-            // Trigger full timer sync when notification arrives
-            _Concurrency.Task {
-                await TimerSyncManager.shared.syncTimerState()
+            // Apply timer state directly from push payload
+            _Concurrency.Task { [weak self] in
+                await MainActor.run {
+                    self?.applyStateFromPush(userInfo)
+                }
             }
 
             // Don't show notification for silent sync messages
@@ -57,13 +59,19 @@ class iOSAppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterD
         if let type = userInfo["type"] as? String, type == "timer_sync" {
             AppLogger.info("User tapped timer sync notification on iOS", category: .sync)
 
-            // Trigger full timer sync when user taps notification (to ensure latest state)
-            _Concurrency.Task {
-                await TimerSyncManager.shared.syncTimerState()
+            // Apply timer state directly from push payload when user taps
+            _Concurrency.Task { [weak self] in
+                await MainActor.run {
+                    self?.applyStateFromPush(userInfo)
+                }
             }
         }
 
         completionHandler()
+    }
+
+    private func applyStateFromPush(_ userInfo: [AnyHashable: Any]) {
+        TimerSyncManager.shared.applyEventState(from: userInfo)
     }
 }
 #endif
