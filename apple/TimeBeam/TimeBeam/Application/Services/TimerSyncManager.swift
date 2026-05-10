@@ -370,9 +370,10 @@ final class TimerSyncManager {
                 // Execute the sync operation
                 try await operationHandler(accessToken)
 
-                // Success - reset retry counters
+                // Success - reset retry counters and dismiss alert
                 syncRetryCount = 0
                 syncRetryDelay = 1.0
+                SyncFailureAlertManager.shared.dismissAlert()
                 return true
 
             } catch {
@@ -562,7 +563,10 @@ final class TimerSyncManager {
     private func handleSyncFailure(_ syncType: String, error: Error?) {
         // Increment retry counter
         syncRetryCount += 1
-        syncRetryDelay = min(syncRetryDelay * 2, 30.0) // Exponential backoff up to 30s
+
+        // D-06 backoff intervals: 30s, 60s, 120s, cap at 300s
+        let backoffInterval = SyncFailureAlertManager.shared.getBackoffInterval(for: syncRetryCount)
+        syncRetryDelay = backoffInterval
 
         // Log error details
         if let error = error {
@@ -573,11 +577,23 @@ final class TimerSyncManager {
             LoggerStore.timer.error("Timer sync failed - \(syncType): Unknown error")
         }
 
-        // Trigger fallback mechanisms if needed
+        // Show alert after 3+ consecutive failures
         if syncRetryCount >= 3 {
-            print("⚠️ TIMER_SYNC_FALLBACK: Triggering fallback mechanisms after \(syncRetryCount) failed attempts")
-            // In a real implementation, we might trigger fallback logic like offline queueing
+            print("⚠️ TIMER_SYNC_ALERT: Showing sync failure alert after \(syncRetryCount) consecutive failures")
+            SyncFailureAlertManager.shared.showAlert(
+                consecutiveFailures: syncRetryCount,
+                retryAction: { [weak self] in
+                    await self?.manualRetry()
+                }
+            )
         }
+    }
+
+    func manualRetry() async {
+        print("🔁 TIMER_SYNC_MANUAL_RETRY: User triggered manual retry")
+        syncRetryCount = 0
+        syncRetryDelay = 1.0
+        await syncTimerAction(.start)
     }
 
     // MARK: - Incoming Action Handling (Event-Based Sync)

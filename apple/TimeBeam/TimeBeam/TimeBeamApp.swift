@@ -28,6 +28,7 @@ struct TimeBeamApp: App {
         apiClient: AnalyticsApiClient(baseURL: Configuration.fromInfoPlist()?.baseURL ?? URL(string: ProcessInfo.processInfo.environment["API_BASE_URL"] ?? "http://192.168.0.202:8080")!),
         authManager: AuthManager.shared
     )
+    @State var syncAlertManager = SyncFailureAlertManager.shared
 
     @State private var isAppReady = false
     @State private var selectedTab = 0
@@ -39,26 +40,31 @@ struct TimeBeamApp: App {
             #if os(iOS)
             Group {
                 if isAppReady {
-                    TabView(selection: $selectedTab) {
-                        iOSContentView()
-                            .tabItem { Label("Home", systemImage: "house.fill") }
-                            .tag(0)
-                        TaskListView()
-                            .tabItem { Label("Tasks", systemImage: "checklist") }
-                            .tag(1)
-                        StatsView()
-                            .tabItem { Label("Status", systemImage: "chart.bar.fill") }
-                            .tag(2)
-                        SettingsView()
-                            .tabItem { Label("Profile", systemImage: "person.circle") }
-                            .tag(3)
+                    VStack(spacing: 0) {
+                        SyncStatusBanner(alertManager: syncAlertManager)
+
+                        TabView(selection: $selectedTab) {
+                            iOSContentView()
+                                .tabItem { Label("Home", systemImage: "house.fill") }
+                                .tag(0)
+                            TaskListView()
+                                .tabItem { Label("Tasks", systemImage: "checklist") }
+                                .tag(1)
+                            StatsView()
+                                .tabItem { Label("Status", systemImage: "chart.bar.fill") }
+                                .tag(2)
+                            SettingsView()
+                                .tabItem { Label("Profile", systemImage: "person.circle") }
+                                .tag(3)
+                        }
+                        .tint(Color.themePrimary)
                     }
-                    .tint(Color.themePrimary)
                     .environment(timer)
                     .environment(logger)
                     .environment(authManager)
                     .environment(taskService)
                     .environment(analyticsManager)
+                    .environment(syncAlertManager)
                 } else {
                     LoadingView()
                         .onAppear {
@@ -71,12 +77,17 @@ struct TimeBeamApp: App {
             #else
             Group {
                 if isAppReady {
-                    macOSContentView()
-                        .environment(timer)
-                        .environment(logger)
-                        .environment(authManager)
-                        .environment(taskService)
-                        .environment(analyticsManager)
+                    VStack(spacing: 0) {
+                        SyncStatusBanner(alertManager: syncAlertManager)
+
+                        macOSContentView()
+                    }
+                    .environment(timer)
+                    .environment(logger)
+                    .environment(authManager)
+                    .environment(taskService)
+                    .environment(analyticsManager)
+                    .environment(syncAlertManager)
                 } else {
                     LoadingView()
                         .onAppear {
