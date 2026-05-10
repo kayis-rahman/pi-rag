@@ -1,5 +1,5 @@
 import os
-import SwiftUI
+import Observation
 import Foundation
 import _Concurrency
 
@@ -11,13 +11,14 @@ import UIKit
 #endif
 
 @MainActor
-final class TimerSyncManager: ObservableObject {
+@Observable
+final class TimerSyncManager {
     static let shared = TimerSyncManager()
 
     // MARK: - Properties
-    @Published private(set) var timer: PomodoroTimer?
+    private(set) var timer: PomodoroTimer?
     let deviceId: String
-    @Published private(set) var isSyncing: Bool = false
+    private(set) var isSyncing: Bool = false
     private var queuedSyncNeeded: Bool = false
     private var lastSyncTimestamp: Date = Date.distantPast
     private var syncRetryCount: Int = 0
@@ -25,6 +26,8 @@ final class TimerSyncManager: ObservableObject {
     private var isNetworkConnected: Bool = true
     private var isDeviceRegistered: Bool = false
     private var syncTimer: _Concurrency.Task<Void, Never>?
+    private var actionQueue: [QueuedTimerAction] = []
+    private let maxQueueSize = 50
     enum SyncError: Error, LocalizedError {
         case networkFailure(String)
         case authenticationFailure
@@ -64,6 +67,12 @@ final class TimerSyncManager: ObservableObject {
         self.timer = timer
         print("🔧 TIMER_SYNC_CONFIG: Timer configured, deviceId: \(deviceId)")
 
+        // Load persisted action queue from Keychain on startup
+        actionQueue = loadActionQueue()
+        if !actionQueue.isEmpty {
+            print("📋 TIMER_SYNC_QUEUE: Loaded \(actionQueue.count) persisted actions — will drain on next network event")
+        }
+
         // If we had a queued sync request, execute it now
         if queuedSyncNeeded {
             print("🔄 TIMER_SYNC_QUEUED: Executing queued sync")
@@ -81,44 +90,52 @@ final class TimerSyncManager: ObservableObject {
 
     private func startPeriodicPolling() {
         syncTimer?.cancel()
-        syncTimer = _Concurrency.Task {
+        syncTimer = _Concurrency.Task { [weak self] in
+            // Poll immediately on configure so a freshly launched device picks up
+            // the current state without waiting an interval. APNs push is the
+            // primary path; this is the safety net when push is delayed/dropped.
+            await self?.pollForRemoteChanges()
             while !_Concurrency.Task.isCancelled {
-                try? await _Concurrency.Task.sleep(nanoseconds: 30_000_000_000) // 30 seconds
+                try? await _Concurrency.Task.sleep(nanoseconds: 5_000_000_000) // 5 seconds
                 if !_Concurrency.Task.isCancelled {
-                    await self.pollForRemoteChanges()
+                    await self?.pollForRemoteChanges()
                 }
             }
         }
     }
 
-    private func pollForRemoteChanges() {
+    private func pollForRemoteChanges() async {
         guard let timer = timer else { return }
-        guard let accessToken = AuthManager.shared.getValidAccessToken() else { return }
 
-        Task { [self] in
-            do {
-                let pulledState = try await ApiClient.shared.pullTimerState(accessToken: accessToken)
-                if let state = pulledState,
-                   let pulledModified = state.lastModifiedTimestamp?.timeIntervalSince1970,
-                   pulledModified > timer.lastModifiedTimestamp {
-                    timer.applySyncedState(
-                        phase: Phase(rawValue: state.phase ?? "work") ?? .work,
-                        remainingSeconds: state.remainingSeconds ?? 0,
-                        isRunning: state.isRunning ?? false,
-                        workDuration: state.workDuration ?? 25,
-                        breakDuration: state.breakDuration ?? 5,
-                        longBreakDuration: state.longBreakDuration ?? 15,
-                        autoStartNextSession: state.autoStartNextSession ?? false,
-                        shortBreaksCompleted: state.shortBreaksCompleted ?? 0,
-                        startTimestamp: state.startTimestamp?.timeIntervalSince1970,
-                        pauseTimestamp: state.pauseTimestamp?.timeIntervalSince1970,
-                        lastModifiedTimestamp: pulledModified
-                    )
-                    print("✅ TIMER_SYNC_POLL: Applied polled state from backend")
-                }
-            } catch {
-                print("⚠️ TIMER_SYNC_POLL: Failed to poll: \(error.localizedDescription)")
+        var accessToken = AuthManager.shared.getValidAccessToken()
+        if accessToken == nil {
+            let refreshed = await AuthManager.shared.refreshAccessToken()
+            if refreshed { accessToken = AuthManager.shared.getValidAccessToken() }
+        }
+        guard let accessToken = accessToken else { return }
+
+        do {
+            let pulledState = try await ApiClient.shared.pullTimerState(accessToken: accessToken)
+            if let state = pulledState,
+               let pulledModified = state.lastModifiedTimestamp?.timeIntervalSince1970,
+               pulledModified > timer.lastModifiedTimestamp {
+                timer.applySyncedState(
+                    phase: Phase(rawValue: state.phase ?? "work") ?? .work,
+                    remainingSeconds: state.remainingSeconds ?? 0,
+                    isRunning: state.isRunning ?? false,
+                    workDuration: state.workDuration ?? 25,
+                    breakDuration: state.breakDuration ?? 5,
+                    longBreakDuration: state.longBreakDuration ?? 15,
+                    autoStartNextSession: state.autoStartNextSession ?? false,
+                    shortBreaksCompleted: state.shortBreaksCompleted ?? 0,
+                    startTimestamp: state.startTimestamp?.timeIntervalSince1970,
+                    pauseTimestamp: state.pauseTimestamp?.timeIntervalSince1970,
+                    lastModifiedTimestamp: pulledModified
+                )
+                print("✅ TIMER_SYNC_POLL: Applied polled state from backend")
             }
+        } catch {
+            print("⚠️ TIMER_SYNC_POLL: Failed to poll: \(error.localizedDescription)")
         }
     }
 
@@ -211,22 +228,36 @@ final class TimerSyncManager: ObservableObject {
         await pullLatestState(accessToken: accessToken)
     }
 
+    @MainActor
     func applyEventState(from userInfo: [AnyHashable: Any]) {
         guard let timer = timer else { return }
-        guard let phase = userInfo["phase"] as? String,
-              let remainingSeconds = userInfo["remainingSeconds"] as? Int,
-              let isRunning = userInfo["isRunning"] as? Bool else { return }
+        guard let phase = userInfo["phase"] as? String else { return }
+
+        let remainingSecondsInt: Int
+        if let i = userInfo["remainingSeconds"] as? Int {
+            remainingSecondsInt = i
+        } else if let n = userInfo["remainingSeconds"] as? NSNumber {
+            remainingSecondsInt = n.intValue
+        } else { return }
+
+        let isRunningBool: Bool
+        if let b = userInfo["isRunning"] as? Bool {
+            isRunningBool = b
+        } else if let n = userInfo["isRunning"] as? NSNumber {
+            isRunningBool = n.boolValue
+        } else { return }
 
         let startTimestamp = userInfo["startTimestamp"] as? Double
-        let pauseTimestamp = userInfo["pauseTimestamp"] as? Double
+        let pauseTimestamp = (userInfo["pauseTimestamp"] as? Double) ?? (userInfo["pauseTimestamp"] as? NSNumber)?.doubleValue
         let workDuration = userInfo["workDuration"] as? Int ?? 1500
         let breakDuration = userInfo["breakDuration"] as? Int ?? 300
         let longBreakDuration = userInfo["longBreakDuration"] as? Int ?? 900
+        let lastModifiedTimestamp = userInfo["lastModifiedTimestamp"] as? Double ?? Date().timeIntervalSince1970
 
         timer.applySyncedState(
             phase: Phase(rawValue: phase) ?? .work,
-            remainingSeconds: remainingSeconds,
-            isRunning: isRunning,
+            remainingSeconds: remainingSecondsInt,
+            isRunning: isRunningBool,
             workDuration: workDuration,
             breakDuration: breakDuration,
             longBreakDuration: longBreakDuration,
@@ -234,9 +265,9 @@ final class TimerSyncManager: ObservableObject {
             shortBreaksCompleted: timer.shortBreaksCompleted,
             startTimestamp: startTimestamp,
             pauseTimestamp: pauseTimestamp,
-            lastModifiedTimestamp: Date().timeIntervalSince1970
+            lastModifiedTimestamp: lastModifiedTimestamp
         )
-        print("✅ TIMER_SYNC_EVENT: Applied state from push notification - phase: \(phase), remaining: \(remainingSeconds), running: \(isRunning)")
+        print("✅ TIMER_SYNC_EVENT: Applied state from push notification - phase: \(phase), remaining: \(remainingSecondsInt), running: \(isRunningBool)")
     }
 
     // Enhanced sync with retry logic and timeouts
@@ -253,8 +284,13 @@ final class TimerSyncManager: ObservableObject {
             do {
                 print("🔄 TIMER_SYNC_ATTEMPT: Attempt \(attempt + 1) for sync operation")
 
-                // Check if we have a valid access token
-                guard let accessToken = AuthManager.shared.getValidAccessToken() else {
+                // Check if we have a valid access token, attempt refresh if expired
+                var accessToken = AuthManager.shared.getValidAccessToken()
+                if accessToken == nil {
+                    let refreshed = await AuthManager.shared.refreshAccessToken()
+                    if refreshed { accessToken = AuthManager.shared.getValidAccessToken() }
+                }
+                guard let accessToken = accessToken else {
                     throw SyncError.authenticationFailure
                 }
 
@@ -370,9 +406,9 @@ final class TimerSyncManager: ObservableObject {
                         phase: Phase(rawValue: validatedState.phase ?? "work") ?? .work,
                         remainingSeconds: validatedState.remainingSeconds ?? 0,
                         isRunning: validatedState.isRunning ?? false,
-                        workDuration: validatedState.workDuration ?? 25,
-                        breakDuration: validatedState.breakDuration ?? 5,
-                        longBreakDuration: validatedState.longBreakDuration ?? 15,
+                        workDuration: validatedState.workDuration ?? 1500,
+                        breakDuration: validatedState.breakDuration ?? 300,
+                        longBreakDuration: validatedState.longBreakDuration ?? 900,
                         autoStartNextSession: validatedState.autoStartNextSession ?? false,
                         shortBreaksCompleted: validatedState.shortBreaksCompleted ?? 0,
                         startTimestamp: validatedState.startTimestamp?.timeIntervalSince1970,
@@ -660,6 +696,57 @@ final class TimerSyncManager: ObservableObject {
         #else
         return "unknown"
         #endif
+    }
+
+    // MARK: - Action Queue Management
+
+    func enqueueAction(_ action: QueuedTimerAction) {
+        if actionQueue.count >= maxQueueSize {
+            print("⚠️ TIMER_SYNC_QUEUE: Queue at max size (\(maxQueueSize)), dropping oldest action")
+            actionQueue.removeFirst()
+        }
+        actionQueue.append(action)
+        persistActionQueue()
+    }
+
+    private func persistActionQueue() {
+        guard !actionQueue.isEmpty else {
+            print("💾 TIMER_SYNC_QUEUE: Queue is empty, skipping persist")
+            return
+        }
+
+        do {
+            let encoded = try JSONEncoder().encode(actionQueue)
+            try KeychainStore.save(encoded, for: .actionQueue)
+            print("💾 TIMER_SYNC_QUEUE: Persisted \(actionQueue.count) actions to Keychain")
+        } catch {
+            print("❌ TIMER_SYNC_QUEUE_PERSIST: Failed to persist queue: \(error.localizedDescription)")
+        }
+    }
+
+    func loadActionQueue() -> [QueuedTimerAction] {
+        do {
+            guard let data = try KeychainStore.load(.actionQueue) else {
+                print("📋 TIMER_SYNC_QUEUE: No persisted queue in Keychain")
+                return []
+            }
+            let decoded = try JSONDecoder().decode([QueuedTimerAction].self, from: data)
+            print("📋 TIMER_SYNC_QUEUE: Loaded \(decoded.count) actions from Keychain")
+            return decoded
+        } catch {
+            print("❌ TIMER_SYNC_QUEUE_LOAD: Failed to load queue: \(error.localizedDescription)")
+            return []
+        }
+    }
+
+    func clearActionQueue() {
+        actionQueue.removeAll()
+        do {
+            try KeychainStore.clear(.actionQueue)
+            print("🗑️ TIMER_SYNC_QUEUE: Cleared action queue from Keychain")
+        } catch {
+            print("❌ TIMER_SYNC_QUEUE_CLEAR: Failed to clear queue: \(error.localizedDescription)")
+        }
     }
 
     // MARK: - Internal Enum
