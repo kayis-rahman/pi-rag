@@ -2,6 +2,7 @@ import os
 import Observation
 import Foundation
 import _Concurrency
+import Network
 
 #if os(macOS)
 import AppKit
@@ -28,6 +29,8 @@ final class TimerSyncManager {
     private var syncTimer: _Concurrency.Task<Void, Never>?
     private var actionQueue: [QueuedTimerAction] = []
     private let maxQueueSize = 50
+    private var networkMonitor: NWPathMonitor?
+    private var networkQueue: DispatchQueue?
     enum SyncError: Error, LocalizedError {
         case networkFailure(String)
         case authenticationFailure
@@ -82,8 +85,45 @@ final class TimerSyncManager {
             }
         }
 
+        // Start network connectivity monitoring
+        startNetworkMonitoring()
+
         // Start periodic polling for cross-device sync
         startPeriodicPolling()
+    }
+
+    // MARK: - Network Monitoring
+
+    private func startNetworkMonitoring() {
+        networkQueue = DispatchQueue(label: "com.timebeam.networkMonitor")
+        networkMonitor = NWPathMonitor()
+
+        networkMonitor?.pathUpdateHandler = { [weak self] path in
+            let isNowConnected = path.status == .satisfied
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                let wasConnected = self.isNetworkConnected
+
+                if isNowConnected && !wasConnected {
+                    print("🌐 TIMER_SYNC_NETWORK: Network restored — draining action queue")
+                    self.isNetworkConnected = true
+                    Task { await self.drainActionQueue() }
+                } else if !isNowConnected && wasConnected {
+                    print("🌐 TIMER_SYNC_NETWORK: Network lost — buffering mode")
+                    self.isNetworkConnected = false
+                }
+            }
+        }
+
+        networkMonitor?.start(queue: networkQueue!)
+        print("🌐 TIMER_SYNC_NETWORK: Network monitoring started")
+    }
+
+    private func stopNetworkMonitoring() {
+        networkMonitor?.cancel()
+        networkMonitor = nil
+        networkQueue = nil
+        print("🌐 TIMER_SYNC_NETWORK: Network monitoring stopped")
     }
 
     // MARK: - Periodic Polling
@@ -96,7 +136,7 @@ final class TimerSyncManager {
             // primary path; this is the safety net when push is delayed/dropped.
             await self?.pollForRemoteChanges()
             while !_Concurrency.Task.isCancelled {
-                try? await _Concurrency.Task.sleep(nanoseconds: 5_000_000_000) // 5 seconds
+                try? await _Concurrency.Task.sleep(nanoseconds: 30_000_000_000) // 30 seconds
                 if !_Concurrency.Task.isCancelled {
                     await self?.pollForRemoteChanges()
                 }
@@ -712,6 +752,88 @@ final class TimerSyncManager {
     }
 
     // MARK: - Action Queue Management
+
+    private func drainActionQueue() async {
+        // Guard: if actionQueue is empty, return immediately
+        guard !actionQueue.isEmpty else {
+            print("📋 TIMER_SYNC_DRAIN: Queue is empty, nothing to drain")
+            return
+        }
+
+        // Log: "Draining N queued actions"
+        print("📋 TIMER_SYNC_DRAIN: Draining \(actionQueue.count) queued actions")
+
+        // Take snapshot: `let queueSnapshot = actionQueue`
+        let queueSnapshot = actionQueue
+
+        // Clear in-memory: `actionQueue.removeAll()`
+        actionQueue.removeAll()
+
+        // Clear persisted: clearActionQueue() (which calls KeychainStore.clear(.actionQueue))
+        clearActionQueue()
+
+        // Iterate queueSnapshot sequentially with consecutive failure tracking
+        var consecutiveFailures = 0
+        for (index, queuedAction) in queueSnapshot.enumerated() {
+            // For each queued action, build TimerActionDto from its fields
+            let actionDto = TimerActionDto(
+                action: queuedAction.action,
+                phase: queuedAction.phase,
+                isRunning: queuedAction.isRunning,
+                remainingSeconds: queuedAction.remainingSeconds,
+                workDuration: queuedAction.workDuration,
+                breakDuration: queuedAction.breakDuration,
+                longBreakDuration: queuedAction.longBreakDuration,
+                autoStartNextSession: queuedAction.autoStartNextSession,
+                shortBreaksCompleted: queuedAction.shortBreaksCompleted,
+                deviceId: deviceId,
+                timestamp: queuedAction.timestamp
+            )
+
+            // Get access token (AuthManager.shared.getValidAccessToken(), try refresh if nil)
+            var accessToken = AuthManager.shared.getValidAccessToken()
+            if accessToken == nil {
+                let refreshed = await AuthManager.shared.refreshAccessToken()
+                if refreshed { accessToken = AuthManager.shared.getValidAccessToken() }
+            }
+
+            guard let accessToken = accessToken else {
+                print("❌ TIMER_SYNC_DRAIN: Failed to get access token, re-queuing remaining actions")
+                // Re-queue remaining actions
+                let remaining = Array(queueSnapshot.dropFirst(index))
+                actionQueue.append(contentsOf: remaining)
+                persistActionQueue()
+                break
+            }
+
+            // Call ApiClient.shared.pushTimerAction(dto, accessToken: token)
+            do {
+                try await ApiClient.shared.pushTimerAction(actionDto, accessToken: accessToken)
+                print("✅ TIMER_SYNC_DRAIN: Action \(index + 1)/\(queueSnapshot.count) pushed successfully")
+                // On success: reset consecutiveFailures to 0
+                consecutiveFailures = 0
+            } catch {
+                // On failure: increment consecutiveFailures; if >= 3, re-queue remaining actions and break
+                consecutiveFailures += 1
+                print("❌ TIMER_SYNC_DRAIN: Action \(index + 1)/\(queueSnapshot.count) failed - \(error.localizedDescription) (failures: \(consecutiveFailures))")
+
+                if consecutiveFailures >= 3 {
+                    print("⚠️ TIMER_SYNC_DRAIN: 3 consecutive failures reached, re-queuing remaining actions")
+                    let remaining = Array(queueSnapshot.dropFirst(index))
+                    actionQueue.append(contentsOf: remaining)
+                    persistActionQueue()
+                    break
+                }
+            }
+        }
+
+        // After loop, log drain result
+        if actionQueue.isEmpty {
+            print("✅ TIMER_SYNC_DRAIN: All queued actions successfully drained")
+        } else {
+            print("⚠️ TIMER_SYNC_DRAIN: Drain paused with \(actionQueue.count) actions remaining")
+        }
+    }
 
     func enqueueAction(_ action: QueuedTimerAction) {
         if actionQueue.count >= maxQueueSize {

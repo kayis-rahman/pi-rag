@@ -12,68 +12,58 @@ struct CircularTimerView: View {
     }
 
     var body: some View {
+        let ringWidth = size * 0.055
+        let ringFrame = size * 0.88
+
         ZStack {
-            // Outer glass effect timer ring with phase-appropriate tint
+            // Single glass backing disc
             Circle()
-                .fill(phaseColor)
                 .frame(width: size, height: size)
-                .overlay(
-                    Circle()
-                        .stroke(phaseBorder, lineWidth: size * 0.015)
-                        .opacity(0.5)
-                )
                 .glassEffectInteractiveConditional(tint: phaseTint, in: Circle())
 
-            // Progress circle (outer ring)
+            // Track ring — guide rail for progress
+            Circle()
+                .stroke(Color.themeTextSecondary.opacity(0.2), lineWidth: ringWidth)
+                .frame(width: ringFrame, height: ringFrame)
+
+            // Progress ring
             Circle()
                 .trim(from: 0, to: timer.progress)
                 .stroke(
                     angularGradient(for: timer.phase),
-                    style: StrokeStyle(
-                        lineWidth: size * 0.04,
-                        lineCap: .round
-                    )
+                    style: StrokeStyle(lineWidth: ringWidth, lineCap: .round)
                 )
                 .rotationEffect(.degrees(-90))
-                .frame(width: size, height: size)
+                .frame(width: ringFrame, height: ringFrame)
 
-            // Pulsing animation when active
+            // Pulsing glow when running
             if timer.isRunning {
                 Circle()
-                    .stroke(phaseBorder.opacity(0.4), lineWidth: size * 0.04)
-                    .frame(width: size, height: size)
-                    .scaleEffect(1.05)
-                    .opacity(0.6)
+                    .stroke(phaseBorder.opacity(0.35), lineWidth: ringWidth)
+                    .frame(width: ringFrame, height: ringFrame)
+                    .scaleEffect(1.04)
+                    .opacity(0.5)
                     .animation(
-                        .easeInOut(duration: 1.5)
-                            .repeatForever(autoreverses: true),
+                        .easeInOut(duration: 1.5).repeatForever(autoreverses: true),
                         value: timer.isRunning
                     )
             }
 
-            // Inner glass disc behind content
-            Circle()
-                .frame(width: size * 0.75, height: size * 0.75)
-                .glassEffectInteractiveConditional(tint: nil, in: Circle())
-
-            // Content overlay
+            // Text content — sits directly on glass
             VStack(spacing: size * 0.02) {
-                // Time display
                 Text(timer.remainingSeconds.mmss)
-                    .font(.system(size: size * 0.18, weight: .bold, design: .rounded))
+                    .font(.system(size: size * 0.20, weight: .bold, design: .rounded))
                     .monospacedDigit()
                     .foregroundColor(.themeTextPrimary)
 
-                // PomodoroTimer.Phase label
                 Text(timer.phase.displayName)
-                    .font(.system(size: size * 0.06, weight: .medium, design: .rounded))
-                    .foregroundColor(.themeTextSecondary.opacity(0.6))
+                    .font(.system(size: size * 0.065, weight: .medium, design: .rounded))
+                    .foregroundColor(.themeTextSecondary.opacity(0.75))
 
-                // Session progress (only show if requested)
                 if showSessionProgress {
                     Text("Cycle \(timer.shortBreaksCompleted + 1) of \(timer.cycleSize)")
-                        .font(.system(size: size * 0.04, weight: .regular, design: .rounded))
-                        .foregroundColor(.themeTextSecondary.opacity(0.4))
+                        .font(.system(size: size * 0.045, weight: .regular, design: .rounded))
+                        .foregroundColor(.themeTextSecondary.opacity(0.5))
                         .padding(.top, size * 0.02)
                 }
             }
@@ -86,67 +76,41 @@ struct CircularTimerView: View {
         switch phase {
         case .work:
             AngularGradient(
-                gradient: Gradient(colors: [
-                    .themePrimary,
-                    .themeAccent
-                ]),
+                gradient: Gradient(colors: [.themePrimary, .themeAccent]),
                 center: .center,
                 startAngle: .degrees(0),
                 endAngle: .degrees(360)
             )
         case .break:
             AngularGradient(
-                gradient: Gradient(colors: [
-                    .themeOrangePrimary,
-                    .themeOrangeAccent
-                ]),
+                gradient: Gradient(colors: [.themeOrangePrimary, .themeOrangeAccent]),
                 center: .center,
                 startAngle: .degrees(0),
                 endAngle: .degrees(360)
             )
         case .longBreak:
             AngularGradient(
-                gradient: Gradient(colors: [
-                    .themeOrangeAccent,
-                    .themeOrangeDeep
-                ]),
+                gradient: Gradient(colors: [.themeOrangeAccent, .themeOrangeDeep]),
                 center: .center,
                 startAngle: .degrees(0),
                 endAngle: .degrees(360)
             )
-        }
-    }
-
-    private var phaseColor: Color {
-        switch timer.phase {
-        case .work:
-            LiquidGlass.primaryTint.opacity(0.1)
-        case .break:
-            LiquidGlass.warningTint.opacity(0.1)
-        case .longBreak:
-            LiquidGlass.warningTint.opacity(0.15)
         }
     }
 
     private var phaseTint: Color {
         switch timer.phase {
-        case .work:
-            LiquidGlass.primaryTint.opacity(0.25)
-        case .break:
-            LiquidGlass.warningTint.opacity(0.25)
-        case .longBreak:
-            LiquidGlass.warningTint.opacity(0.35)
+        case .work:      LiquidGlass.primaryTint.opacity(0.45)
+        case .break:     LiquidGlass.warningTint.opacity(0.45)
+        case .longBreak: LiquidGlass.warningTint.opacity(0.55)
         }
     }
 
     private var phaseBorder: Color {
         switch timer.phase {
-        case .work:
-            LiquidGlass.primaryTint.opacity(0.5)
-        case .break:
-            LiquidGlass.warningTint.opacity(0.5)
-        case .longBreak:
-            LiquidGlass.warningTint.opacity(0.6)
+        case .work:      LiquidGlass.primaryTint.opacity(0.5)
+        case .break:     LiquidGlass.warningTint.opacity(0.5)
+        case .longBreak: LiquidGlass.warningTint.opacity(0.6)
         }
     }
 }
