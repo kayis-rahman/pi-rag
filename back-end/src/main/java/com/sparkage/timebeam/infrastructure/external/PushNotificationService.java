@@ -1,6 +1,7 @@
 package com.sparkage.timebeam.infrastructure.external;
 
 import java.io.File;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -127,19 +128,41 @@ public class PushNotificationService {
                 return;
             }
 
-            // Create payload with full timer state so receiving device can apply directly
-            // Format: JSON with aps metadata + timer fields for direct application
+            // Recompute live remainingSeconds against backend clock so receivers
+            // tick from the correct value regardless of delivery latency.
+            int liveRemaining = state.getRemainingSeconds() != null ? state.getRemainingSeconds() : 0;
+            boolean isRunning = state.getIsRunning() != null && state.getIsRunning();
+            if (isRunning && state.getStartTimestamp() != null) {
+                double nowSeconds = java.time.Instant.now().toEpochMilli() / 1000.0;
+                long elapsed = Math.max(0L, (long) Math.floor(nowSeconds - state.getStartTimestamp()));
+                liveRemaining = (int) Math.max(0L, (long) liveRemaining - elapsed);
+            }
+
+            // Create payload with full timer state so receiving device can apply directly.
+            // pauseTimestamp emitted as JSON number (or null) so iOS Double cast succeeds.
+            String pauseTs = state.getPauseTimestamp() != null
+                ? String.format(java.util.Locale.ROOT, "%f", state.getPauseTimestamp())
+                : "null";
+            // Convert Instant to seconds (Double) for iOS compatibility
+            double lastModifiedSec = state.getLastModifiedTimestamp() != null
+                ? state.getLastModifiedTimestamp().getEpochSecond()
+                    + state.getLastModifiedTimestamp().getNano() / 1_000_000_000.0
+                : Instant.now().getEpochSecond() + Instant.now().getNano() / 1_000_000_000.0;
             String payload = String.format(
-                "{\"aps\":{\"content-available\":1,\"sound\":\"\"},\"type\":\"timer_sync\",\"phase\":\"%s\",\"remainingSeconds\":%d,\"isRunning\":%s,\"startTimestamp\":%f,\"pauseTimestamp\":%s,\"workDuration\":%d,\"breakDuration\":%d,\"longBreakDuration\":%d,\"deviceId\":\"%s\"}",
+                java.util.Locale.ROOT,
+                "{\"aps\":{\"content-available\":1,\"sound\":\"\"},\"type\":\"timer_sync\",\"phase\":\"%s\",\"remainingSeconds\":%d,\"isRunning\":%s,\"startTimestamp\":%f,\"pauseTimestamp\":%s,\"workDuration\":%d,\"breakDuration\":%d,\"longBreakDuration\":%d,\"autoStartNextSession\":%s,\"shortBreaksCompleted\":%d,\"deviceId\":\"%s\",\"lastModifiedTimestamp\":%f}",
                 state.getPhase(),
-                state.getRemainingSeconds() != null ? state.getRemainingSeconds() : 0,
-                state.getIsRunning() != null ? state.getIsRunning() : false,
+                liveRemaining,
+                isRunning,
                 state.getStartTimestamp() != null ? state.getStartTimestamp() : 0.0,
-                state.getPauseTimestamp() != null ? ("\"" + state.getPauseTimestamp() + "\"") : "null",
+                pauseTs,
                 state.getWorkDuration() != null ? state.getWorkDuration() : 1500,
                 state.getBreakDuration() != null ? state.getBreakDuration() : 300,
                 state.getLongBreakDuration() != null ? state.getLongBreakDuration() : 900,
-                state.getDeviceId()
+                state.getAutoStartNextSession() != null ? state.getAutoStartNextSession() : false,
+                state.getShortBreaksCompleted() != null ? state.getShortBreaksCompleted() : 0,
+                state.getDeviceId(),
+                lastModifiedSec
             );
 
             // Send to all devices using platform-specific bundle IDs

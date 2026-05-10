@@ -60,7 +60,7 @@ public class TimerSyncService {
                     timerStateRepository.save(existingState);
                     log.info("Updated timer state for user={} from device={} (collaborative mode)", userId, deviceIdString);
 
-                    // Send push notification to other devices for real-time sync
+                    // Send push notification AFTER successful persistence (not before)
                     pushNotificationService.sendTimerSyncPush(
                         userId.toString(),
                         deviceIdString,
@@ -86,6 +86,13 @@ public class TimerSyncService {
                     newState.setVersion(1L);
                     timerStateRepository.save(newState);
                     log.info("Created new timer state for user={} from device={}", userId, deviceIdString);
+
+                    // Send push notification after persistence
+                    pushNotificationService.sendTimerSyncPush(
+                        userId.toString(),
+                        deviceIdString,
+                        stateDto
+                    );
                 }
                 return;
             } catch (org.springframework.orm.ObjectOptimisticLockingFailureException e) {
@@ -120,8 +127,11 @@ public class TimerSyncService {
             if (stateOpt.isPresent()) {
                 TimerState state = stateOpt.get();
                 TimerStateDto dto = convertToDto(state);
-                double unixTimestamp = Math.round(((double) state.getLastUpdatedAt().toEpochMilli() / 1000.0) * 100.0) / 100.0;
-                log.info("TIMER_SYNC_DEBUG: Pulling timer state - Unix timestamp: {} (as string: {})", unixTimestamp, String.format("%.2f", unixTimestamp));
+                applyLiveElapsed(dto, state);
+                // Convert to seconds (Double) for iOS compatibility
+                double unixTimestamp = (double) state.getLastUpdatedAt().toEpochMilli() / 1000.0;
+                log.info("TIMER_SYNC_DEBUG: Pulling timer state - Unix timestamp: {} (as string: {}), liveRemaining: {}",
+                        unixTimestamp, String.format("%.2f", unixTimestamp), dto.getRemainingSeconds());
                 return Optional.of(dto);
             } else {
                 log.debug("No timer state found for user={}", userId);
@@ -131,6 +141,25 @@ public class TimerSyncService {
             log.error("Failed to pull timer state for user={}: {}", userId, e.getMessage(), e);
             return Optional.empty();
         }
+    }
+
+    /**
+     * Recompute remainingSeconds against backend clock when timer is running.
+     * Stored remainingSeconds is the value at the moment of the last action; this
+     * subtracts the wall-clock elapsed since startTimestamp so any device receives
+     * the live tick value, eliminating clock-skew between devices.
+     */
+    private void applyLiveElapsed(TimerStateDto dto, TimerState state) {
+        Boolean running = dto.getIsRunning();
+        Double startTs = dto.getStartTimestamp();
+        Integer remaining = dto.getRemainingSeconds();
+        if (running == null || !running || startTs == null || remaining == null) {
+            return;
+        }
+        double nowSeconds = Instant.now().toEpochMilli() / 1000.0;
+        long elapsed = Math.max(0L, (long) Math.floor(nowSeconds - startTs));
+        int live = (int) Math.max(0L, (long) remaining - elapsed);
+        dto.setRemainingSeconds(live);
     }
 
     /**
@@ -403,7 +432,7 @@ public class TimerSyncService {
             state.getWorkDurationMinutes(),
             state.getBreakDurationMinutes(),
             state.getLongBreakDurationMinutes(),
-            false,  // autoStartNextSession
+            state.isAutoStartNext(),  // autoStartNextSession - read from entity
             state.getShortBreaksCompleted(),
             state.getTotalDuration(),
             state.getStartTimestamp(),  // already Double
