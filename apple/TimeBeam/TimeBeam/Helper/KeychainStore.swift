@@ -5,10 +5,12 @@ struct KeychainStore {
     enum Item: String {
         case idToken = "com.timebeam.auth.idToken"
         case accessToken = "com.timebeam.auth.accessToken"
+        case refreshToken = "com.timebeam.auth.refreshToken"
         case userDisplayName = "com.timebeam.auth.displayName"
         case userEmail = "com.timebeam.auth.email"
         case apnsToken = "com.timebeam.apns.token"
         case deviceId = "com.timebeam.app.deviceId"
+        case actionQueue = "com.timebeam.app.actionQueue"
     }
 
     private static let service = "com.timebeam.keychain"
