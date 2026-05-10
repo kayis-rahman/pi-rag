@@ -254,6 +254,19 @@ final class TimerSyncManager {
         let longBreakDuration = userInfo["longBreakDuration"] as? Int ?? 900
         let lastModifiedTimestamp = userInfo["lastModifiedTimestamp"] as? Double ?? Date().timeIntervalSince1970
 
+        // Timestamp comparison per D-01: newer wins
+        // Skip apply if push timestamp is stale (older than or equal to local)
+        if lastModifiedTimestamp <= timer.lastModifiedTimestamp {
+            print("⏭️ TIMER_SYNC_EVENT: Push timestamp \(lastModifiedTimestamp) <= local \(timer.lastModifiedTimestamp) — skipping (local state is newer)")
+            return
+        }
+
+        // Read autoStartNextSession from userInfo payload, not local fallback
+        let autoStartNextSession = userInfo["autoStartNextSession"] as? Bool ?? false
+
+        // Read shortBreaksCompleted from userInfo payload, not local fallback
+        let shortBreaksCompleted = userInfo["shortBreaksCompleted"] as? Int ?? 0
+
         timer.applySyncedState(
             phase: Phase(rawValue: phase) ?? .work,
             remainingSeconds: remainingSecondsInt,
@@ -261,8 +274,8 @@ final class TimerSyncManager {
             workDuration: workDuration,
             breakDuration: breakDuration,
             longBreakDuration: longBreakDuration,
-            autoStartNextSession: timer.autoStartNextSession,
-            shortBreaksCompleted: timer.shortBreaksCompleted,
+            autoStartNextSession: autoStartNextSession,
+            shortBreaksCompleted: shortBreaksCompleted,
             startTimestamp: startTimestamp,
             pauseTimestamp: pauseTimestamp,
             lastModifiedTimestamp: lastModifiedTimestamp
