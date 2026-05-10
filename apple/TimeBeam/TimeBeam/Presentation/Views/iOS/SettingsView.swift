@@ -2,9 +2,9 @@ import SwiftUI
 import AuthenticationServices
 
 struct SettingsView: View {
-    @EnvironmentObject var timer: PomodoroTimer
-    @EnvironmentObject var logger: SessionLogger
-    @EnvironmentObject var authManager: AuthManager
+    @Environment(PomodoroTimer.self) var timer
+    @Environment(SessionLogger.self) var logger
+    @Environment(AuthManager.self) var authManager
     @AppStorage("soundEnabled") private var soundEnabled = true
     @AppStorage("hapticsEnabled") private var hapticsEnabled = true
     @AppStorage("appTheme") private var appTheme = AppTheme.system
@@ -135,7 +135,10 @@ struct SettingsView: View {
                         )
                     }
 
-                    Toggle("Auto-start next session", isOn: $timer.autoStartNextSession)
+                    Toggle("Auto-start next session", isOn: Binding(
+                        get: { timer.autoStartNextSession },
+                        set: { timer.autoStartNextSession = $0 }
+                    ))
                         .onChange(of: timer.autoStartNextSession) { _, _ in
                             syncTimerSettingsToiCloud()
                         }
@@ -292,7 +295,7 @@ struct SettingsView: View {
 // MARK: - Supporting Views
 
 struct AccountManagementView: View {
-    @EnvironmentObject var authManager: AuthManager
+    @Environment(AuthManager.self) var authManager
 
     // Device stats state
     @State private var deviceStats: DeviceStats?
@@ -411,14 +414,14 @@ struct AccountManagementView: View {
         guard authManager.isSignedIn else { return }
 
         isLoadingDeviceStats = true
-         deviceStatsError = nil
+        deviceStatsError = nil
 
-         _Concurrency.Task {
+        _Concurrency.Task {
             do {
                 guard let config = ApiClient.Configuration.fromInfoPlist(),
-                      let accessToken = try? KeychainStore.loadString(.accessToken) else {
+                      let accessToken = authManager.getValidAccessToken() else {
                     throw NSError(domain: "DeviceStats", code: -1,
-                                userInfo: [NSLocalizedDescriptionKey: "Missing configuration"])
+                                userInfo: [NSLocalizedDescriptionKey: "Missing or invalid access token"])
                 }
 
                 let apiClient = ApiClient(baseURL: config.baseURL)
@@ -455,7 +458,8 @@ struct AccountManagementView: View {
 
 #Preview {
     SettingsView()
-        .environmentObject(PomodoroTimer())
-        .environmentObject(SessionLogger())
-        .environmentObject(AuthManager())
+        .environment(PomodoroTimer())
+        .environment(SessionLogger())
+        .environment(AuthManager.shared)
+        .environment(TaskService())
 }

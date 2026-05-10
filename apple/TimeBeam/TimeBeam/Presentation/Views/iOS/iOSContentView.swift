@@ -6,10 +6,10 @@ import UserNotifications
 
 #if os(iOS)
 struct iOSContentView: View {
-    @EnvironmentObject var timer: PomodoroTimer
-    @EnvironmentObject var logger: SessionLogger
-    @EnvironmentObject var authManager: AuthManager
-    @EnvironmentObject var taskService: TaskService
+    @Environment(PomodoroTimer.self) var timer
+    @Environment(SessionLogger.self) var logger
+    @Environment(AuthManager.self) var authManager
+    @Environment(TaskService.self) var taskService
     @State private var audioPlayer: AVAudioPlayer?
     @State private var lastPhase: Phase = .work
     @State private var didRequestNotificationPermission: Bool = UserDefaults.standard.bool(forKey: "didRequestNotificationPermission")
@@ -81,7 +81,7 @@ struct iOSContentView: View {
                             .padding(.vertical, 8)
                         } else {
                             // Show Active Task Section
-                            ActiveTaskSectionView(timer: timer, taskService: taskService)
+                            ActiveTaskSectionView()
                         }
                     }
 
@@ -135,7 +135,7 @@ struct iOSContentView: View {
                     }) {
                         Image(systemName: "arrow.counterclockwise")
                             .font(.system(size: 20, weight: .medium))
-                            .foregroundColor(Color.themeTextSecondary)
+                            .foregroundColor(Color.secondary.opacity(0.6))
                             .frame(width: 44, height: 44)
                             .background(Color.themeCardBackground.opacity(0.8))
                             .clipShape(Circle())

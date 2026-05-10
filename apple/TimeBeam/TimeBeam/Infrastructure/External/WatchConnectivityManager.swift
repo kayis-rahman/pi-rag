@@ -1,4 +1,4 @@
-import Combine
+import Observation
 import Foundation
 
 #if os(iOS) || os(watchOS)
@@ -15,7 +15,8 @@ import WatchConnectivity
 #if os(iOS) || os(watchOS)
 
 @MainActor
-final class WatchConnectivityManager: ObservableObject {
+@Observable
+final class WatchConnectivityManager {
     static var shared: WatchConnectivityManager? = WatchConnectivityManager()
 
     private enum Keys {

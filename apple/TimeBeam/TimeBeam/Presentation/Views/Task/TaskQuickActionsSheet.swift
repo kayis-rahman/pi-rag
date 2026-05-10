@@ -3,7 +3,7 @@ import SwiftUI
 
 struct TaskQuickActionsSheet: View {
     let task: UserTask
-    @ObservedObject var taskService: TaskService
+    @Environment(TaskService.self) var taskService
 
     var body: some View {
         Text("Task Quick Actions")

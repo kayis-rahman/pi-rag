@@ -3,7 +3,7 @@ import SwiftUI
 #if os(iOS)
 struct TaskPickerView: View {
     @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject var taskService: TaskService
+    @Environment(TaskService.self) var taskService
 
     let onTaskSelected: (UserTask?) -> Void
 
@@ -159,6 +159,6 @@ private struct TaskRowView: View {
     TaskPickerView { task in
         print("Selected task: \(task?.title ?? "None")")
     }
-    .environmentObject(TaskService())
+    .environment(TaskService())
 }
 #endif

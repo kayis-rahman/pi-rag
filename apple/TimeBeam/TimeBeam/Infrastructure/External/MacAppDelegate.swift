@@ -8,6 +8,7 @@ class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterD
     static var shared: MacAppDelegate?
     private let notificationDelegate = NotificationDelegate()
     private static var statusItem: NSStatusItem?
+    private var pendingApnsToken: String?
 
     override init() {
         super.init()
@@ -45,15 +46,42 @@ class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterD
     func application(_ application: NSApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         let token = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
         print("macOS APNs device token registered: \(token.prefix(8))...")
+        pendingApnsToken = token
         Task {
-            guard let accessToken = AuthManager.shared.getValidAccessToken() else { return }
-            let deviceId = TimerSyncManager.shared.deviceId
-            try? await ApiClient.shared.updateApnsToken(deviceId: deviceId, apnsToken: token, accessToken: accessToken)
+            await registerApnsTokenWhenReady(token: token)
+        }
+    }
+
+    @MainActor
+    private func registerApnsTokenWhenReady(token: String, retries: Int = 6) async {
+        for attempt in 0..<retries {
+            if let accessToken = AuthManager.shared.getValidAccessToken() {
+                let deviceId = TimerSyncManager.shared.deviceId
+                try? await ApiClient.shared.updateApnsToken(deviceId: deviceId, apnsToken: token, accessToken: accessToken)
+                pendingApnsToken = nil
+                return
+            }
+            if attempt < retries - 1 {
+                try? await _Concurrency.Task.sleep(nanoseconds: 2_000_000_000)
+            }
         }
     }
 
     func application(_ application: NSApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
         print("macOS APNs registration failed: \(error.localizedDescription)")
+    }
+
+    // Silent (background) push: aps:{content-available:1} bypasses the
+    // notification center delegate and lands here even when the app is foreground.
+    func application(_ application: NSApplication, didReceiveRemoteNotification userInfo: [String: Any]) {
+        if let type = userInfo["type"] as? String, type == "timer_sync" {
+            print("Received silent timer_sync push on macOS")
+            _Concurrency.Task { [weak self] in
+                await MainActor.run {
+                    self?.applyStateFromPush(userInfo as [AnyHashable: Any])
+                }
+            }
+        }
     }
 
     // MARK: - URL Handling (OAuth callback)
@@ -107,6 +135,7 @@ class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterD
         completionHandler()
     }
 
+    @MainActor
     private func applyStateFromPush(_ userInfo: [AnyHashable: Any]) {
         TimerSyncManager.shared.applyEventState(from: userInfo)
     }

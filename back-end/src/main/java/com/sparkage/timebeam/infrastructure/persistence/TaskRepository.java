@@ -14,10 +14,19 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
 
     List<Task> findByUserIdOrderByCreatedAtDesc(UUID userId);
 
+    List<Task> findByUserIdAndDeletedAtIsNullOrderByCreatedAtDesc(UUID userId);
+
     @Query("SELECT t FROM Task t WHERE t.userId = :userId AND t.status IN ('todo', 'in_progress') ORDER BY t.createdAt DESC")
     List<Task> findActiveTasksByUserId(@Param("userId") UUID userId);
 
+    @Query("SELECT t FROM Task t WHERE t.userId = :userId AND t.status IN ('todo', 'in_progress') AND t.deletedAt IS NULL ORDER BY t.createdAt DESC")
+    List<Task> findActiveNonDeletedTasksByUserId(@Param("userId") UUID userId);
+
     List<Task> findByUserIdAndStatus(UUID userId, Task.Status status);
+
+    List<Task> findByUserIdAndStatusAndDeletedAtIsNull(UUID userId, Task.Status status);
+
+    List<Task> findByUserIdAndDeletedAtIsNotNullOrderByDeletedAtDesc(UUID userId);
 
     long countByUserId(UUID userId);
 

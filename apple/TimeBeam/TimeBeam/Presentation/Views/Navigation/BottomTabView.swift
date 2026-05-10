@@ -2,8 +2,10 @@ import SwiftUI
 
 struct BottomTabView: View {
     @Binding var selectedTab: Int
-    @EnvironmentObject var taskService: TaskService
-    @EnvironmentObject var timer: PomodoroTimer
+    @Environment(TaskService.self) var taskService
+    @Environment(PomodoroTimer.self) var timer
+
+    @Namespace private var selectionNamespace
 
     private let tabs: [(icon: String, label: String, badge: String?)] = [
         (icon: "house.fill", label: "Home", badge: nil),
@@ -14,17 +16,20 @@ struct BottomTabView: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            ForEach(0..<tabs.count, id: \.self) { index in
-                tabView(for: index)
-                    .frame(maxWidth: .infinity)
+            GlassEffectContainer(spacing: 24) {
+                ForEach(0..<tabs.count, id: \.self) { index in
+                    tabView(for: index)
+                }
             }
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 8)
-        .background(tabBarBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: -2)
-        .padding(.horizontal, 8)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background {
+            RoundedRectangle(cornerRadius: 28)
+                .fill(Color(red: 1, green: 1, blue: 1, opacity: 0.4))
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 28))
+        .padding(.horizontal, 16)
         .padding(.bottom, 8)
     }
 
@@ -33,24 +38,21 @@ struct BottomTabView: View {
             icon: tabs[index].icon,
             label: tabs[index].label,
             isSelected: selectedTab == index,
-            badge: badgeForTab(index),
-            hasActiveIndicator: hasActiveIndicator(for: index)
+            badge: badgeForTab(index)
         ) {
             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                 selectedTab = index
             }
         }
-    }
-
-    private var tabBarBackground: some View {
-        Color.themeCardBackground.opacity(0.95)
-            .blur(radius: 0.5)
-            .overlay(
-                Rectangle()
-                    .fill(Color.themePrimary.opacity(0.05))
-                    .frame(height: 1)
-                    .frame(maxWidth: .infinity, alignment: .top)
-            )
+        .background {
+            if selectedTab == index {
+                Capsule()
+                    .fill(Color(red: 168/255, green: 230/255, blue: 207/255).opacity(0.18))
+                    .matchedGeometryEffect(id: "tabSelection", in: selectionNamespace)
+                    .padding(.vertical, 6)
+                    .padding(.horizontal, 4)
+            }
+        }
     }
 
     private func badgeForTab(_ index: Int) -> String? {
@@ -64,15 +66,13 @@ struct BottomTabView: View {
             return nil
         }
     }
+}
 
-    private func hasActiveIndicator(for index: Int) -> Bool {
-        switch index {
-        case 0: // Home
-            return timer.currentTaskId != nil
-        case 1: // Tasks
-            return taskService.activeTasks.contains { $0.status == .inProgress }
-        default:
-            return false
-        }
+#Preview {
+    VStack {
+        BottomTabView(selectedTab: .constant(0))
     }
+    .environment(TaskService())
+    .environment(PomodoroTimer())
+    .background(Color(red: 247/255, green: 253/255, blue: 251/255))
 }

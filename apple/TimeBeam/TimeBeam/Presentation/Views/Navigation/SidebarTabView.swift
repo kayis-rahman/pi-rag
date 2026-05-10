@@ -2,8 +2,8 @@ import SwiftUI
 
 struct SidebarTabView: View {
     @Binding var selectedTab: Int
-    @EnvironmentObject var taskService: TaskService
-    @EnvironmentObject var timer: PomodoroTimer
+    @Environment(TaskService.self) var taskService
+    @Environment(PomodoroTimer.self) var timer
 
     private let tabs: [(icon: String, label: String, badge: String?)] = [
         (icon: "house.fill", label: "Home", badge: nil),
@@ -21,18 +21,8 @@ struct SidebarTabView: View {
         }
         .padding(.vertical, 20)
         .padding(.horizontal, 8)
-        .background(
-            Color.themeCardBackground.opacity(0.95)
-                .blur(radius: 0.5)
-                .overlay(
-                    Rectangle()
-                        .fill(Color.themePrimary.opacity(0.05))
-                        .frame(width: 1)
-                        .frame(maxWidth: .infinity, alignment: .trailing)
-                )
-        )
+        .background(.ultraThinMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 16))
-        .shadow(color: Color.black.opacity(0.1), radius: 8, x: 2, y: 0)
         .padding(.vertical, 8)
         .padding(.leading, 8)
     }
@@ -43,19 +33,17 @@ struct SidebarTabView: View {
         VStack(spacing: 4) {
             Image(systemName: "timer.circle.fill")
                 .font(.system(size: 24, weight: .medium))
-                .foregroundColor(.themePrimary)
+                .foregroundColor(Color(red: 168/255, green: 230/255, blue: 207/255))
                 .padding(6)
                 .background(
                     Circle()
-                        .fill(Color.themeCardBackground.opacity(0.8))
-                        .blur(radius: 1)
+                        .fill(Color(red: 255, green: 255, blue: 255, opacity: 0.8))
                 )
 
             Text("TimeBeam")
                 .font(.caption)
                 .fontWeight(.semibold)
-                .foregroundColor(.themePrimary.opacity(0.8))
-                .opacity(0.8)
+                .foregroundColor(Color(red: 168/255, green: 230/255, blue: 207/255).opacity(0.6))
         }
         .padding(.bottom, 24)
     }
@@ -82,7 +70,7 @@ struct SidebarTabView: View {
         VStack(spacing: 8) {
             if timer.isRunning {
                 Circle()
-                    .fill(Color.themePrimary)
+                    .fill(Color(red: 168/255, green: 230/255, blue: 207/255))
                     .frame(width: 8, height: 8)
                     .opacity(timer.isRunning ? 1 : 0)
                     .animation(.easeInOut(duration: 0.5).repeatForever(), value: timer.isRunning)
@@ -101,26 +89,6 @@ struct SidebarTabView: View {
             }
         }
         .padding(.bottom, 20)
-    }
-
-    private var sidebarCardStyle: some View {
-        self
-            .padding(.vertical, 20)
-            .padding(.horizontal, 8)
-            .background(
-                Color.themeCardBackground.opacity(0.95)
-                    .blur(radius: 0.5)
-                    .overlay(
-                        Rectangle()
-                            .fill(Color.themePrimary.opacity(0.05))
-                            .frame(width: 1)
-                            .frame(maxWidth: .infinity, alignment: .trailing)
-                    )
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 16))
-            .shadow(color: Color.black.opacity(0.1), radius: 8, x: 2, y: 0)
-            .padding(.vertical, 8)
-            .padding(.leading, 8)
     }
 
     private func badgeForTab(_ index: Int) -> String? {

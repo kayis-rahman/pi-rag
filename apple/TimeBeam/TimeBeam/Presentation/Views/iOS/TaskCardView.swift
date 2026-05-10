@@ -17,7 +17,7 @@ struct TaskCardView: View {
                 HStack(spacing: 8) {
                     Image(systemName: task.status == .completed ? "checkmark.circle.fill" : "circle")
                         .font(.system(size: 20))
-                        .foregroundColor(task.status == .completed ? .themePrimary : .secondary)
+                        .foregroundColor(task.status == .completed ? .themeSuccess : .secondary)
 
                     Text(task.title)
                         .font(.headline)
@@ -30,14 +30,14 @@ struct TaskCardView: View {
                     if task.status == .completed {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.system(size: 24))
-                            .foregroundColor(.themePrimary)
+                            .foregroundColor(.themeSuccess)
                     }
                 }
             }
             .padding(16)
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.themeCardBackground)
+                    .fill(Color(red: 255/255, green: 255/255, blue: 255, opacity: 0.6))
             )
         }
         .buttonStyle(.plain)

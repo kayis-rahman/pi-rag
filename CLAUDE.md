@@ -66,6 +66,90 @@ Key routing rules:
 - Save progress, checkpoint, resume → invoke checkpoint
 - Code quality, health check → invoke health
 
+## Liquid Glass Design Rule (STRICT)
+
+For ANY SwiftUI/frontend code changes in the iOS/macOS app (`apple/TimeBeam/`):
+
+**Invoke `everything-claude-code:liquid-glass-design` skill FIRST before making any edits.**
+
+This skill enforces Apple's native Liquid Glass design pattern (iOS 26+/macOS 26+) and ensures:
+- Proper use of `.glassEffect()` modifiers
+- Consistent design system across components
+- Accessibility standards (contrast, Dynamic Type)
+- Performance best practices (avoid nested effects, limit 2 levels deep)
+
+**Applies to:**
+- Creating new SwiftUI views or components
+- Modifying existing view layouts
+- Adding new buttons, cards, containers, or interactive elements
+- Changing styling, colors, or visual hierarchy
+
+**Does NOT apply to:**
+- Backend changes (`back-end/`)
+- Non-visual logic (state management, business logic without UI)
+- Build configuration or tooling
+
+## SwiftUI Pattern Rule (STRICT)
+
+For ANY SwiftUI view or state management changes in the iOS/macOS app (`apple/TimeBeam/`):
+
+**Invoke `everything-claude-code:swiftui-patterns` skill FIRST before making any edits.**
+
+This skill enforces modern SwiftUI patterns (iOS 17+) and ensures:
+- Use `@Observable` macro instead of `ObservableObject` + `@Published`
+- Use `@Environment` instead of `@EnvironmentObject` for dependency injection
+- Use `@State` for view-local state, `@Binding` for two-way references
+- Proper `@Observable` class pattern with `@MainActor` for async safety
+- Correct environment key setup for shared services
+
+**Migration Pattern:**
+
+```swift
+// OLD (pre-iOS 17)
+class ViewModel: ObservableObject {
+    @Published var value = 0
+}
+@EnvironmentObject var viewModel: ViewModel
+
+// NEW (iOS 17+)
+@Observable
+class ViewModel {
+    var value = 0
+}
+@Environment(\.pomodoroTimer) var timer
+```
+
+**Applies to:**
+- Creating or modifying SwiftUI views
+- Adding/Updating view models or data models
+- Changing state management patterns
+- Modifying environment object injection
+
+**Does NOT apply to:**
+- Backend changes (`back-end/`)
+- Non-UI Swift code
+- Build configuration or tooling
+
+## Subagent Rule (STRICT)
+
+When a task involves independent searches, code exploration, or parallel work, ALWAYS launch multiple Explore/Plan subagents in a single message — never sequentially.
+
+**Use 2-3 parallel agents when:**
+- Searching for patterns across multiple directories or file types
+- Investigating a bug with unclear root cause
+- Researching before planning a feature or refactor
+- Checking status of multiple components (e.g., migration across many files)
+
+**Use 1 agent when:**
+- Task is isolated to a known file
+- You're making a small, targeted change
+- The user provided specific file paths and line numbers
+
+**Never:**
+- Launch agents sequentially when they have independent goals
+- Do exploration yourself when an Explore agent can do it faster
+- Skip agent usage because "it's quick" — parallel agents are always faster
+
 ## Docker Context — pi-node
 
 When Docker context is set to `pi-node`, `localhost` becomes `piworm.local` for all service URLs (Postgres, backend, etc.).

@@ -31,10 +31,14 @@ The plans are structured to create a complete authentication system for the Time
 Each plan follows the specified requirements for authentication system implementation, covering Google Sign-In integration, JWT-based authorization, secure token management, and user registration/login functionality.
 ### Phase 4: cross sync
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Harden event-driven cross-device timer synchronization — offline queue, push delta apply, conflict resolution, backoff + user alert
+**Requirements**: SYNC-01, SYNC-02, SYNC-03, SYNC-04, SYNC-05, SYNC-06
 **Depends on:** Phase 3
-**Plans:** 0 plans
+**Plans:** 5 plans (Wave 0-3)
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 4 to break down)
+- [ ] 04-00-PLAN.md — Wave 0: Test stubs (all SYNC reqs)
+- [ ] 04-01-PLAN.md — Wave 1: Backend push payload fix (SYNC-05)
+- [ ] 04-02-PLAN.md — Wave 1: Offline queue + applyEventState fix (SYNC-01, SYNC-02, SYNC-06)
+- [ ] 04-03-PLAN.md — Wave 2: NWPathMonitor + drain + polling fix (SYNC-03)
+- [ ] 04-04-PLAN.md — Wave 3: Backoff alert UI (SYNC-04)

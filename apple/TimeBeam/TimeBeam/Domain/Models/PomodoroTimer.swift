@@ -1,7 +1,7 @@
 import Foundation
 import os
 import SwiftUI
-import Combine
+import Observation
 import _Concurrency
 
 enum Phase: String, Codable, CaseIterable, Hashable, Identifiable, Sendable {
@@ -21,13 +21,14 @@ enum Phase: String, Codable, CaseIterable, Hashable, Identifiable, Sendable {
 }
 
 @MainActor
-class PomodoroTimer: ObservableObject {
-    @Published var phase: Phase = .work
-    @Published var remainingSeconds: Int = 25 * 60
-    @Published var isRunning: Bool = false
-    @Published var shortBreaksCompleted: Int = 0
-    @Published var autoStartNextSession: Bool = true
-    @Published var currentTaskId: UUID?
+@Observable
+class PomodoroTimer {
+    var phase: Phase = .work
+    var remainingSeconds: Int = 25 * 60
+    var isRunning: Bool = false
+    var shortBreaksCompleted: Int = 0
+    var autoStartNextSession: Bool = true
+    var currentTaskId: UUID?
 
     private(set) var workDuration: Int = 25 * 60
     private(set) var breakDuration: Int = 5 * 60
@@ -56,7 +57,10 @@ class PomodoroTimer: ObservableObject {
     }
 
     deinit {
-        timerTask?.cancel()
+        // Use MainActor-isolated task to cancel
+        Task { @MainActor in
+            timerTask?.cancel()
+        }
     }
 
     var progress: Double {
@@ -137,13 +141,12 @@ class PomodoroTimer: ObservableObject {
         pauseTimestamp: Double?,
         lastModifiedTimestamp: Double
     ) {
+        // Backend recomputes liveRemaining server-side against its own clock
+        // (TimerSyncService.applyLiveElapsed + PushNotificationService),
+        // so trust the value as-is. Doing a second elapsed subtraction here
+        // would double-count and make remote devices show wrong remaining.
         self.phase = phase
-        if isRunning, let start = startTimestamp {
-            let elapsed = Int(Date().timeIntervalSince1970 - start)
-            self.remainingSeconds = max(0, remainingSeconds - elapsed)
-        } else {
-            self.remainingSeconds = remainingSeconds
-        }
+        self.remainingSeconds = max(0, remainingSeconds)
         self.isRunning = isRunning
         self.workDuration = workDuration
         self.breakDuration = breakDuration
@@ -153,7 +156,7 @@ class PomodoroTimer: ObservableObject {
         self.startTimestamp = startTimestamp
         self.pauseTimestamp = pauseTimestamp
         self.lastModifiedTimestamp = lastModifiedTimestamp
-        
+
         if isRunning {
             startTimer()
         } else {
@@ -169,6 +172,7 @@ class PomodoroTimer: ObservableObject {
                 await MainActor.run {
                     if self.isRunning && remainingSeconds > 0 {
                         remainingSeconds -= 1
+                        self.lastModifiedTimestamp = Date().timeIntervalSince1970
                     }
                 }
             }

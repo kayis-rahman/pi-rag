@@ -42,6 +42,38 @@ Symptom: `remainingSeconds` is 0, timer state corrupted after sync.
 3. Check iOS sends `TimerActionDto` with `action` field: `apple/TimeBeam/TimeBeam/Infrastructure/Networking/DTOs/TimerActionDto.swift`
 4. Backend `SessionController.convertActionToState()` uses `actionDto.getActionType()` — must not be null
 
+### Timer Sync — Cross-Device Sync Not Working
+Symptom: Timer state not updating across devices, or shows stale data.
+
+**Root Causes:**
+1. `lastModifiedTimestamp` missing in push payload → fix: add to `PushNotificationService.java`
+2. Swift using `Date()` instead of payload timestamp → fix: use `userInfo["lastModifiedTimestamp"] as? Double`
+3. MainActor isolation error → fix: add `@MainActor` to `registerApnsTokenWhenReady()`
+4. `pauseTimestamp` parsing failure → fix: handle both Double and NSNumber
+
+**Verification Commands:**
+```bash
+# 1. Backend push payload includes lastModifiedTimestamp
+grep -n "lastModifiedMs" back-end/src/main/java/com/sparkage/timebeam/infrastructure/external/PushNotificationService.java
+
+# 2. Swift uses payload timestamp
+grep -n "lastModifiedTimestamp = userInfo" apple/TimeBeam/TimeBeam/Application/Services/TimerSyncManager.swift
+
+# 3. @MainActor on functions accessing AuthManager.shared
+grep -n "@MainActor" apple/TimeBeam/TimeBeam/Infrastructure/External/*.swift
+
+# 4. Build succeeds without MainActor errors
+xcodebuild -scheme "TimeBeam" build 2>&1 | grep -i "mainactor"
+
+# 5. Backend tests pass
+cd back-end && mvn test -Dtest=TimerSyncServiceTest
+```
+
+**Post-Fix Verification:**
+- Check iOS/macOS logs for `TIMER_SYNC_EVENT: Applied state from push notification`
+- Verify `lastModifiedTimestamp` values are consistent across devices
+- Confirm no `MainActor isolation` warnings in Xcode console
+
 ## Log Extraction Commands
 ```
 # macOS system log

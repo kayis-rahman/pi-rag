@@ -3,7 +3,7 @@ import SwiftUI
 import Charts
 
 struct TaskAnalyticsView: View {
-    @EnvironmentObject var taskService: TaskService
+    @Environment(TaskService.self) var taskService
     @State private var analyticsData: TaskAnalyticsData?
     @State private var isLoading = false
     @State private var selectedTimeRange = "month"
@@ -406,6 +406,6 @@ struct TaskBreakdownData: Identifiable {
 
 #Preview {
     TaskAnalyticsView()
-        .environmentObject(TaskService())
+        .environment(TaskService())
 }
 #endif

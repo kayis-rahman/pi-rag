@@ -2,7 +2,7 @@
 import SwiftUI
 
 struct DeletedTasksView: View {
-    @EnvironmentObject var taskService: TaskService
+    @Environment(TaskService.self) var taskService
     @Environment(\.dismiss) private var dismiss
     @State private var showingPermanentDeleteAlert = false
     @State private var taskToDelete: RecycleBinItem?

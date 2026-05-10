@@ -1,4 +1,5 @@
 import SwiftUI
+import Observation
 import UserNotifications
 
 #if os(macOS)
@@ -19,11 +20,11 @@ struct TimeBeamApp: App {
     @UIApplicationDelegateAdaptor(iOSAppDelegate.self) var appDelegate
     #endif
 
-    @StateObject var timer = PomodoroTimer()
-    @StateObject var logger = SessionLogger()
-    @StateObject var authManager = AuthManager.shared
-    @StateObject var taskService = TaskService()
-    @StateObject var analyticsManager = AnalyticsManager(
+    @State var timer = PomodoroTimer()
+    @State var logger = SessionLogger()
+    @State var authManager = AuthManager.shared
+    @State var taskService = TaskService()
+    @State var analyticsManager = AnalyticsManager(
         apiClient: AnalyticsApiClient(baseURL: Configuration.fromInfoPlist()?.baseURL ?? URL(string: ProcessInfo.processInfo.environment["API_BASE_URL"] ?? "http://192.168.0.202:8080")!),
         authManager: AuthManager.shared
     )
@@ -32,37 +33,32 @@ struct TimeBeamApp: App {
     @State private var selectedTab = 0
     @State private var navigationPath = NavigationPath()
     @State private var isSidebarCollapsed = false
-    @State private var previousTab = 0
-    @State private var transitionDirection = TransitionDirection.none
 
     var body: some Scene {
         WindowGroup {
             #if os(iOS)
             Group {
                 if isAppReady {
-                    VStack(spacing: 0) {
-                        Group {
-                            switch selectedTab {
-                            case 0: iOSContentView()
-                            case 1: TaskListView()
-                            case 2: StatsView()
-                            case 3: SettingsView()
-                            default: iOSContentView()
-                            }
-                        }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .transition(.opacity)
-
-                        BottomTabView(selectedTab: $selectedTab)
-                            .frame(height: 80)
-                            .background(Color(.secondarySystemBackground))
+                    TabView(selection: $selectedTab) {
+                        iOSContentView()
+                            .tabItem { Label("Home", systemImage: "house.fill") }
+                            .tag(0)
+                        TaskListView()
+                            .tabItem { Label("Tasks", systemImage: "checklist") }
+                            .tag(1)
+                        StatsView()
+                            .tabItem { Label("Status", systemImage: "chart.bar.fill") }
+                            .tag(2)
+                        SettingsView()
+                            .tabItem { Label("Profile", systemImage: "person.circle") }
+                            .tag(3)
                     }
-                    .environmentObject(timer)
-                    .environmentObject(logger)
-                    .environmentObject(authManager)
-                    .environmentObject(taskService)
-                    .environmentObject(analyticsManager)
-                    .accentColor(Color.themePrimary)
+                    .tint(Color.themePrimary)
+                    .environment(timer)
+                    .environment(logger)
+                    .environment(authManager)
+                    .environment(taskService)
+                    .environment(analyticsManager)
                 } else {
                     LoadingView()
                         .onAppear {
@@ -76,11 +72,11 @@ struct TimeBeamApp: App {
             Group {
                 if isAppReady {
                     macOSContentView()
-                        .environmentObject(timer)
-                        .environmentObject(logger)
-                        .environmentObject(authManager)
-                        .environmentObject(taskService)
-                        .environmentObject(analyticsManager)
+                        .environment(timer)
+                        .environment(logger)
+                        .environment(authManager)
+                        .environment(taskService)
+                        .environment(analyticsManager)
                 } else {
                     LoadingView()
                         .onAppear {
@@ -134,4 +130,3 @@ struct TimeBeamApp: App {
         isAppReady = true
     }
 }
-

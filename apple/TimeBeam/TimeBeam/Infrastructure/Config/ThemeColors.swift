@@ -5,8 +5,37 @@ extension Color {
     static let themePrimary = Color(hex: "#A8E6CF")
     static let themeSecondary = Color(hex: "#FFD7A8") // Orange secondary
     static let themeAccent = Color(hex: "#56C596")
-    static let themeTextPrimary = Color(hex: "#1B4332")
-    static let themeBackground = Color(hex: "#F7FDFB")
+    static let themeTextPrimary: Color = {
+        #if canImport(UIKit)
+        Color(UIColor { t in
+            t.userInterfaceStyle == .dark
+                ? UIColor(red: 0.659, green: 0.902, blue: 0.812, alpha: 1)
+                : UIColor(red: 0.106, green: 0.263, blue: 0.196, alpha: 1)
+        })
+        #else
+        Color(nsColor: NSColor(name: nil, dynamicProvider: { a in
+            a.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+                ? NSColor(red: 0.659, green: 0.902, blue: 0.812, alpha: 1)
+                : NSColor(red: 0.106, green: 0.263, blue: 0.196, alpha: 1)
+        }))
+        #endif
+    }()
+
+    static let themeBackground: Color = {
+        #if canImport(UIKit)
+        Color(UIColor { t in
+            t.userInterfaceStyle == .dark
+                ? UIColor(red: 0.053, green: 0.098, blue: 0.078, alpha: 1)
+                : UIColor(red: 0.969, green: 0.992, blue: 0.980, alpha: 1)
+        })
+        #else
+        Color(nsColor: NSColor(name: nil, dynamicProvider: { a in
+            a.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+                ? NSColor(red: 0.053, green: 0.098, blue: 0.078, alpha: 1)
+                : NSColor(red: 0.969, green: 0.992, blue: 0.980, alpha: 1)
+        }))
+        #endif
+    }()
 
     // Alternative Warm Orange Scheme (can be toggled)
     static let themeOrangePrimary = Color(hex: "#FFD7A8")
@@ -15,9 +44,23 @@ extension Color {
     static let themeOrangeBackground = Color(hex: "#FFF8ED")
 
     // Neutral colors
-    static let themeTextSecondary = Color.gray.opacity(0.8)
+    static let themeTextSecondary = Color.secondary
     static let themeBorder = Color.gray.opacity(0.2)
-    static let themeCardBackground = Color.white.opacity(0.8)
+    static let themeCardBackground: Color = {
+        #if canImport(UIKit)
+        Color(UIColor { t in
+            t.userInterfaceStyle == .dark
+                ? UIColor(red: 0.12, green: 0.20, blue: 0.16, alpha: 0.85)
+                : UIColor(white: 1.0, alpha: 0.8)
+        })
+        #else
+        Color(nsColor: NSColor(name: nil, dynamicProvider: { a in
+            a.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+                ? NSColor(red: 0.12, green: 0.20, blue: 0.16, alpha: 0.85)
+                : NSColor(white: 1.0, alpha: 0.8)
+        }))
+        #endif
+    }()
 
     // Semantic colors
     static let themeSuccess = Color.green.opacity(0.8)

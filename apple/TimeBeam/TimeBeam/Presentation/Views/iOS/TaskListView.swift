@@ -5,7 +5,7 @@ import UIKit
 
 #if os(iOS)
 struct TaskListView: View {
-    @EnvironmentObject var taskService: TaskService
+    @Environment(TaskService.self) var taskService
     @State private var showingCreateTask = false
     @State private var isLoading = false
     @State private var errorMessage: String?
@@ -475,6 +475,6 @@ private struct FilterPill: View {
 
 #Preview {
     TaskListView()
-        .environmentObject(TaskService())
+        .environment(TaskService())
 }
 #endif

@@ -2,7 +2,7 @@ import SwiftUI
 
 #if os(iOS)
 struct RecycleBinView: View {
-    @EnvironmentObject var taskService: TaskService
+    @Environment(TaskService.self) var taskService
     @Environment(\.dismiss) private var dismiss
     @State private var recycleBinItems: [RecycleBinItem] = []
     @State private var isLoading = false
@@ -185,6 +185,6 @@ private struct RecycleBinItemRow: View {
 
 #Preview {
     RecycleBinView()
-        .environmentObject(TaskService())
+        .environment(TaskService())
 }
 #endif

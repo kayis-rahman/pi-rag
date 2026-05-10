@@ -36,11 +36,9 @@ struct PrimaryButton: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 16)
-            .background(Color.themePrimary)
-            .foregroundColor(.white)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            .shadow(color: Color.themePrimary.opacity(0.3), radius: 4, x: 0, y: 2)
         }
+        .foregroundStyle(.white)
+        .glassEffectInteractiveConditional(tint: .themePrimary, in: .rect(cornerRadius: 12))
         .buttonStyle(.plain)
         .disabled(isLoading)
     }

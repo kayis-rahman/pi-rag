@@ -12,6 +12,7 @@ struct EnhancedTaskRow: View {
                 Circle()
                     .fill(statusColor)
                     .frame(width: 8, height: 8)
+                    .glassEffectInteractiveConditional(in: .capsule)
 
                 // Task details
                 VStack(alignment: .leading, spacing: 4) {
@@ -37,17 +38,18 @@ struct EnhancedTaskRow: View {
             .padding(16)
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.themeCardBackground)
+                    .fill(Color(red: 255/255, green: 255/255, blue: 255, opacity: 0.6))
             )
         }
         .buttonStyle(.plain)
+        .glassEffectCardConditional(cornerRadius: 12)
     }
 
     private var statusColor: Color {
         switch task.status {
-        case .todo: return .orange
+        case .todo: return .themeOrangeAccent
         case .inProgress: return .blue
-        case .completed: return .green
+        case .completed: return .themeSuccess
         }
     }
 }

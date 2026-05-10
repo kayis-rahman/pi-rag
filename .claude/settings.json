@@ -33,17 +33,7 @@
       "WebFetch(domain:api.github.com)",
       "Skill(gsd:update)",
       "Skill(review)",
-      "Bash(nohup *)",
-      "Bash(tail *)",
-      "Bash(lsof *)",
-      "Bash(open *)",
-      "Bash(nc *)",
-      "Bash(python3 *)",
-      "Bash(ios-deploy *)",
-      "Bash(log show *)",
-      "Read(//Users/kayisrahman/**)",
-      "Read(//tmp/**)",
-      "Read(//private/tmp/**)"
+      "Skill(everything-claude-code:liquid-glass-design)"
     ],
     "defaultMode": "plan"
   },
@@ -103,6 +93,11 @@
           {
             "type": "command",
             "command": "bash .claude/hooks/PreCompact.sh",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/SessionComplete.sh",
             "timeout": 5
           }
         ]

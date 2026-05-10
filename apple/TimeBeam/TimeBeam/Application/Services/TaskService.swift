@@ -1,9 +1,11 @@
 import Foundation
+import Observation
 
 @MainActor
-final class TaskService: ObservableObject {
-    @Published private(set) var tasks: [UserTask] = []
-    @Published private(set) var activeTasks: [UserTask] = []
+@Observable
+final class TaskService {
+    private(set) var tasks: [UserTask] = []
+    private(set) var activeTasks: [UserTask] = []
 
     private let apiClient: ApiClientProtocol
     private let keychainStore: KeychainStoreProtocol

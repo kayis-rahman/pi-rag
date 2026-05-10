@@ -144,6 +144,23 @@ public struct ApiClient {
     
     
     
+    struct RefreshResponse: Codable {
+        let accessToken: String
+        let refreshToken: String
+    }
+
+    func refreshToken(refreshToken: String) async throws -> RefreshResponse {
+        let url = baseURL.appendingPathComponent("api/auth/refresh")
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(refreshToken)", forHTTPHeaderField: "Authorization")
+        let (data, response) = try await urlSession.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+            throw ApiError.authenticationFailure
+        }
+        return try JSONDecoder().decode(RefreshResponse.self, from: data)
+    }
+
     func login(email: String) async throws -> LoginResponse {
         let url = baseURL.appendingPathComponent("api/auth/login")
         var request = URLRequest(url: url)

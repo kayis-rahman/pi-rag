@@ -246,26 +246,21 @@ public class SessionController {
                 totalDuration = workDuration;
         }
 
-        // For START/ADVANCE, calculate remainingSeconds from phase duration
-        // (client doesn't send it in the action DTO, so it defaults to 0)
-        // For PAUSE/RESET/STOP, use the value from the client
-        int remainingSeconds;
+        // Trust client's remainingSeconds for all actions.
+        // Resume-from-pause sends START with the saved remaining (e.g. 1424),
+        // a true fresh start sends START with full duration. Backend respects either.
+        // ADVANCE: client computes phase + remaining locally before sending.
         TimerActionType action = actionDto.getActionType();
-        if (action == TimerActionType.START || action == TimerActionType.ADVANCE) {
+        int remainingSeconds = actionDto.getRemainingSeconds();
+        if (remainingSeconds <= 0) {
+            // Defensive: only fall back to phase duration if client value is missing/invalid.
             remainingSeconds = totalDuration;
-        } else {
-            remainingSeconds = actionDto.getRemainingSeconds();
         }
 
-        // Use action's client timestamp as snapshot time (when this action was created)
-        // Other devices compute: elapsed = now - startTs, remaining = remainingSeconds - elapsed
-        Instant startTs;
-        Long actionTimestamp = actionDto.getTimestamp();
-        if (actionTimestamp != null && actionTimestamp > 0) {
-            startTs = Instant.ofEpochSecond(actionTimestamp);
-        } else {
-            startTs = Instant.now();
-        }
+        // Always anchor startTimestamp to backend clock when running so other
+        // devices can compute elapsed against a single authoritative clock.
+        // For non-running actions (PAUSE/RESET/STOP), startTimestamp is informational only.
+        Instant startTs = Instant.now();
 
         return new TimerStateDto(
             phase,

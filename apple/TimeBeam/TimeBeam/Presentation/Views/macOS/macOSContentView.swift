@@ -6,9 +6,9 @@ import UserNotifications
 import AppKit
 
 struct macOSContentView: View {
-    @EnvironmentObject var timer: PomodoroTimer
-    @EnvironmentObject var logger: SessionLogger
-    @EnvironmentObject var authManager: AuthManager
+    @Environment(PomodoroTimer.self) var timer
+    @Environment(SessionLogger.self) var logger
+    @Environment(AuthManager.self) var authManager
     @State private var audioPlayer: AVAudioPlayer?
     @State private var lastPhase: Phase = .work
     @State private var didRequestNotificationPermission: Bool = UserDefaults.standard.bool(forKey: "didRequestNotificationPermission")
@@ -32,7 +32,7 @@ struct macOSContentView: View {
         }
         .padding(.vertical, 20)
         .frame(width: ringSize + 60)
-        .background(Color.themeBackground.ignoresSafeArea())
+        .glassEffectOrMaterial()
         .onAppear {
             TimerSyncManager.shared.configure(with: timer)
             lastPhase = timer.phase
@@ -45,7 +45,7 @@ struct macOSContentView: View {
         }
         .sheet(isPresented: $showingAnalytics) {
             AnalyticsView()
-                .environmentObject(logger)
+                .environment(logger)
         }
         .sheet(isPresented: $showingAbout) {
             AboutView()
@@ -115,7 +115,7 @@ struct macOSContentView: View {
             Circle()
                 .trim(from: 0, to: timer.progress)
                 .stroke(
-                    AngularGradient.forThemePhase(timer.phase),
+                    angularGradient(for: timer.phase),
                     style: StrokeStyle(lineWidth: ringLineWidth, lineCap: .round)
                 )
                 .rotationEffect(.degrees(-90))
@@ -212,12 +212,20 @@ struct macOSContentView: View {
             }
 
         } label: {
-            Image(systemName: "gearshape.fill")
-                .font(.system(size: buttonSize * 0.45))
-                .frame(width: buttonSize, height: buttonSize)
-                .foregroundStyle(Color.themeTextSecondary)
-                .background(.regularMaterial)
-                .clipShape(Circle())
+            if #available(macOS 26, *) {
+                Image(systemName: "gearshape.fill")
+                    .font(.system(size: buttonSize * 0.45))
+                    .frame(width: buttonSize, height: buttonSize)
+                    .foregroundStyle(Color.themeTextSecondary)
+                    .glassEffect(.regular.interactive(), in: .circle)
+            } else {
+                Image(systemName: "gearshape.fill")
+                    .font(.system(size: buttonSize * 0.45))
+                    .frame(width: buttonSize, height: buttonSize)
+                    .foregroundStyle(Color.themeTextSecondary)
+                    .background(.regularMaterial)
+                    .clipShape(Circle())
+            }
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Options")
@@ -236,7 +244,7 @@ struct macOSContentView: View {
             Image(systemName: timer.isRunning ? "pause.fill" : "play.fill")
                 .font(.system(size: buttonSize * 0.5, weight: .bold))
                 .frame(width: buttonSize * 1.2, height: buttonSize * 1.2)
-                .background(Color.themePrimary)
+                .glassEffectInteractiveConditional(tint: .themePrimary, in: .circle)
                 .foregroundStyle(Color.themeAccent)
                 .clipShape(Circle())
         }
@@ -253,12 +261,47 @@ struct macOSContentView: View {
             Image(systemName: "arrow.counterclockwise")
                 .font(.system(size: buttonSize * 0.45))
                 .frame(width: buttonSize, height: buttonSize)
+                .glassEffectInteractiveConditional(in: .circle)
                 .foregroundStyle(Color.themeTextSecondary)
-                .background(.regularMaterial)
                 .clipShape(Circle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Reset")
+    }
+
+    private func angularGradient(for phase: Phase) -> AngularGradient {
+        switch phase {
+        case .work:
+            AngularGradient(
+                gradient: Gradient(colors: [
+                    Color(red: 168/255, green: 230/255, blue: 207/255),
+                    Color(red: 86/255, green: 197/255, blue: 150/255)
+                ]),
+                center: .center,
+                startAngle: .degrees(0),
+                endAngle: .degrees(360)
+            )
+        case .break:
+            AngularGradient(
+                gradient: Gradient(colors: [
+                    Color(red: 255/255, green: 179/255, blue: 102/255),
+                    Color(red: 255/255, green: 159/255, blue: 28/255)
+                ]),
+                center: .center,
+                startAngle: .degrees(0),
+                endAngle: .degrees(360)
+            )
+        case .longBreak:
+            AngularGradient(
+                gradient: Gradient(colors: [
+                    Color(red: 255/255, green: 159/255, blue: 28/255),
+                    Color(red: 255/255, green: 128/255, blue: 0/255)
+                ]),
+                center: .center,
+                startAngle: .degrees(0),
+                endAngle: .degrees(360)
+            )
+        }
     }
 
     private func startWithPermission() {
@@ -283,14 +326,26 @@ struct macOSContentView: View {
     }
 }
 
+// Extension to provide conditional glassEffect for macOS < 26
+extension View {
+    @ViewBuilder
+    func glassEffectOrMaterial() -> some View {
+        if #available(macOS 26, *) {
+            self.glassEffect(.regular, in: RoundedRectangle(cornerRadius: 20))
+        } else {
+            self.background(.regularMaterial)
+        }
+    }
+}
+
 #endif
 
 #if os(macOS)
 #Preview {
     macOSContentView()
-        .environmentObject(PomodoroTimer())
-        .environmentObject(SessionLogger())
-        .environmentObject(AuthManager())
+        .environment(PomodoroTimer())
+        .environment(SessionLogger())
+        .environment(AuthManager())
 }
 #endif
 

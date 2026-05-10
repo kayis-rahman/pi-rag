@@ -27,6 +27,16 @@ Use consistent envelope: success indicator, data payload, error message, metadat
 - `POST /api/devices/register` — register device for push notifications
 - Silent APNs push carries `{"type": "timer_sync"}` in userInfo
 
+## Cross-Device Timer Sync Architecture
+- `PomodoroTimer` (Domain) is the single source of truth in memory
+- `TimerSyncManager` (singleton) handles sync — `deviceId` persists to Keychain
+- iOS sends `TimerActionDto.action` (String) → backend `TimerActionDto.actionType` (enum) with `@JsonAlias`
+- Backend `convertActionToState()` uses `actionDto.getActionType()` — must not be null
+- `TimerState` entity is one-per-user in `timer_states` table — conflict resolution by `lastModifiedTimestamp`
+- 30-second periodic polling + silent APNs push trigger `syncTimerState()`
+- Push payload must include `lastModifiedTimestamp` for proper timestamp comparison
+- `applyEventState()` must use payload timestamp, not `Date()` for `lastModifiedTimestamp`
+
 ## Docker (pi-node context)
 - localhost → piworm.local when Docker context is pi-node
 - Postgres: `piworm.local:5432`

@@ -3,7 +3,7 @@ import SwiftUI
 #if os(iOS)
 struct TaskCreationView: View {
     @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject var taskService: TaskService
+    @Environment(TaskService.self) var taskService
 
     @State private var title = ""
     @State private var description = ""
@@ -88,6 +88,6 @@ struct TaskCreationView: View {
 
 #Preview {
     TaskCreationView()
-        .environmentObject(TaskService())
+        .environment(TaskService())
 }
 #endif

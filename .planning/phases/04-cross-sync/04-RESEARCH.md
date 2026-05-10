@@ -492,27 +492,15 @@ All call `applyStateFromPush(userInfo)` which calls `TimerSyncManager.shared.app
 | A4 | Existing `convertActionToState` in SessionController works correctly for all action types | Backend changes | Medium -- RESET action sets remainingSeconds=0 which may cause issues (see Pitfall analysis in code) |
 | A5 | The `TimerStateDto.duration` fields from backend are in seconds (not minutes as JPA entity suggests) | Push payload | Medium -- field naming is inconsistent: `workDurationMinutes` in entity but `workDuration` (seconds) in DTO |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Polling interval: 5s vs 30s**
-   - What we know: Current code uses 5-second polling. D-12 specifies 30 seconds.
-   - What's unclear: Was 5s a deliberate choice for development, or does the team need faster sync?
-   - Recommendation: Change to 30s per D-12. User can confirm if they want to keep 5s.
+1. **Polling interval: 5s vs 30s** — RESOLVED: Change to 30s per D-12 (30s polling as fallback only; event-driven is primary). 5s was a development artifact.
 
-2. **applyEventState timestamp comparison**
-   - What we know: `applyEventState` applies push state unconditionally. `pullLatestState` does timestamp comparison.
-   - What's unclear: Was unconditional apply intentional (e.g., "push is always latest")?
-   - Recommendation: Add timestamp comparison. A delayed push should not overwrite newer local state.
+2. **applyEventState timestamp comparison** — RESOLVED: Add timestamp comparison per D-01 (newer timestamp wins). A delayed push must not overwrite newer local state. Plan 02 Task 3 implements this guard.
 
-3. **Backend `convertActionToState` RESET handling**
-   - What we know: Line 255-257 in SessionController: if `remainingSeconds <= 0`, falls back to `totalDuration`. For RESET, `remainingSeconds` is 0, so it resets to full duration.
-   - What's unclear: Is this the intended RESET behavior? The client-side `PomodoroTimer.reset()` sets `remainingSeconds = currentDuration` (phase-specific).
-   - Recommendation: Verify RESET sends correct `remainingSeconds`. The backend fallback is a safety net, not the primary logic.
+3. **Backend `convertActionToState` RESET handling** — RESOLVED: The backend fallback (line 255-257) resets to full duration when remainingSeconds <= 0. RESET action on the client correctly sends `remainingSeconds = currentDuration` per `PomodoroTimer.reset()`. Backend behavior is correct safety net; no change needed.
 
-4. **Action queue persistence format**
-   - What we know: Keychain supports Data values. JSON encoding of `[QueuedTimerAction]` produces compact output.
-   - What's unclear: Whether the team prefers JSON or PropertyList encoding.
-   - Recommendation: JSON (Codable) -- already used throughout the codebase.
+4. **Action queue persistence format** — RESOLVED: JSON via Codable (already used throughout codebase). `QueuedTimerAction: Codable` with `JSONEncoder`/`JSONDecoder`. No PropertyList.
 
 ## Environment Availability
 

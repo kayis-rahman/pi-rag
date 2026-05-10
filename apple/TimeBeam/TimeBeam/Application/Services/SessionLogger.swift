@@ -6,14 +6,15 @@
 //
 
 import Foundation
-
+import Observation
 
 // Domain models and infrastructure
 // (Types should be available in the same module)
 
 @MainActor
-final class SessionLogger: ObservableObject {
-    @Published private(set) var records: [SessionRecordDto] = []
+@Observable
+final class SessionLogger {
+    private(set) var records: [SessionRecordDto] = []
 
     private let storageKey = "SessionLogger.records.v1"
 

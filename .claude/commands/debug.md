@@ -61,3 +61,21 @@ log show --predicate 'eventMessage contains "WatchSyncManager" || eventMessage c
 - `pkill -f "spring-boot"` — kill running backend
 - `lsof -i :8080` — check port 8080 usage
 - `lsof -i :5432` — check port 5432 usage
+
+## Quick Checks (Timer Sync)
+```bash
+# 1. Backend running?
+curl -s http://localhost:8080/api/auth/health
+
+# 2. PostgreSQL running?
+lsof -i:5432
+
+# 3. Check timer state in DB:
+SELECT * FROM timer_states ORDER BY last_updated_at DESC LIMIT 5;
+
+# 4. Check APNs tokens registered:
+SELECT device_id, device_type, active FROM user_devices WHERE active = true;
+```
+
+## Debug Reference
+See `agents/debug-session.md` for comprehensive debug workflows and checklists.

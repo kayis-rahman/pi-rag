@@ -9,7 +9,8 @@ import jakarta.persistence.*;
 @Table(name = "tasks", indexes = {
     @Index(columnList = "user_id, status"),
     @Index(columnList = "user_id, created_at DESC"),
-    @Index(columnList = "user_id, updated_at DESC")
+    @Index(columnList = "user_id, updated_at DESC"),
+    @Index(columnList = "user_id, deleted_at")
 })
 public class Task {
     @Id
@@ -35,6 +36,9 @@ public class Task {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
+
     public enum Status {
         todo, in_progress, completed
     }
@@ -42,6 +46,10 @@ public class Task {
     public Task() {}
 
     public Task(UUID id, UUID userId, String title, String description, Status status, Instant createdAt, Instant updatedAt) {
+        this(id, userId, title, description, status, createdAt, updatedAt, null);
+    }
+
+    public Task(UUID id, UUID userId, String title, String description, Status status, Instant createdAt, Instant updatedAt, Instant deletedAt) {
         this.id = id;
         this.userId = userId;
         this.title = title;
@@ -49,6 +57,7 @@ public class Task {
         this.status = status;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.deletedAt = deletedAt;
     }
 
     // Getters and setters
@@ -73,6 +82,9 @@ public class Task {
     public Instant getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
 
+    public Instant getDeletedAt() { return deletedAt; }
+    public void setDeletedAt(Instant deletedAt) { this.deletedAt = deletedAt; }
+
     @PrePersist
     protected void onCreate() {
         if (createdAt == null) {
@@ -95,5 +107,19 @@ public class Task {
 
     public boolean isCompleted() {
         return status == Status.completed;
+    }
+
+    public boolean isSoftDeleted() {
+        return deletedAt != null;
+    }
+
+    public void softDelete() {
+        this.deletedAt = Instant.now();
+        this.updatedAt = Instant.now();
+    }
+
+    public void restore() {
+        this.deletedAt = null;
+        this.updatedAt = Instant.now();
     }
 }

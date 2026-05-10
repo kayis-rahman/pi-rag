@@ -5,47 +5,12 @@ struct BottomTabButton: View {
     let label: String
     let isSelected: Bool
     let badge: String?
-    let hasActiveIndicator: Bool
     let action: () -> Void
-
-    @State private var isPressed = false
 
     var body: some View {
         Button(action: action) {
             ZStack(alignment: .topTrailing) {
-                VStack(spacing: 4) {
-                    ZStack {
-                        // Icon with background
-                        Image(systemName: icon)
-                            .font(.system(size: 20, weight: isSelected ? .semibold : .medium))
-                            .foregroundColor(iconColor)
-                            .frame(width: 28, height: 28)
-                            .background(
-                                Circle()
-                                    .fill(isSelected ? Color.themePrimary.opacity(0.15) : Color.clear)
-                                    .frame(width: 36, height: 36)
-                            )
-                            .scaleEffect(isPressed ? 0.9 : 1.0)
-
-                        // Active indicator
-                        if hasActiveIndicator {
-                            Circle()
-                                .fill(Color.themePrimary)
-                                .frame(width: 6, height: 6)
-                                .offset(x: 12, y: -12)
-                                .transition(.scale.combined(with: .opacity))
-                        }
-                    }
-
-                    Text(label)
-                        .font(.system(size: 11, weight: isSelected ? .semibold : .regular))
-                        .foregroundColor(labelColor)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.8)
-                        .opacity(isSelected ? 1.0 : 0.8)
-                }
-                .frame(height: 50)
-                .padding(.vertical, 6)
+                contentArea
 
                 // Badge
                 if let badge = badge {
@@ -54,7 +19,7 @@ struct BottomTabButton: View {
                         .foregroundColor(.white)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
-                        .background(Color.themePrimary)
+                        .background(Color(red: 168/255, green: 230/255, blue: 207/255))
                         .clipShape(Capsule())
                         .offset(x: 8, y: -8)
                         .transition(.scale.combined(with: .opacity))
@@ -62,30 +27,46 @@ struct BottomTabButton: View {
             }
         }
         .buttonStyle(.plain)
-        .pressAction(onPress: { isPressed in
-            withAnimation(.spring(response: 0.1, dampingFraction: 0.8)) {
-                self.isPressed = isPressed
-            }
-        }, perform: action)
+    }
+
+    private var contentArea: some View {
+        VStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.system(size: 20, weight: isSelected ? .semibold : .medium))
+                .foregroundColor(iconColor)
+                .frame(height: 28)
+
+            Text(label)
+                .font(.system(size: 11, weight: isSelected ? .semibold : .regular))
+                .foregroundColor(labelColor)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .opacity(isSelected ? 1.0 : 0.8)
+        }
+        .frame(height: 62)
+        .padding(.vertical, 6)
+        .glassEffectInteractiveConditional(tint: tint, in: .capsule)
+    }
+
+    private var tint: Color {
+        isSelected ? Color(red: 168/255, green: 230/255, blue: 207/255) : Color.secondary.opacity(0.3)
     }
 
     private var iconColor: Color {
-        if isSelected {
-            return .themePrimary
-        } else if hasActiveIndicator {
-            return .themePrimary.opacity(0.8)
-        } else {
-            return .secondary
-        }
+        isSelected ? Color(red: 168/255, green: 230/255, blue: 207/255) : Color.secondary
     }
 
     private var labelColor: Color {
-        if isSelected {
-            return .themePrimary
-        } else if hasActiveIndicator {
-            return .themePrimary.opacity(0.7)
-        } else {
-            return .secondary
-        }
+        isSelected ? Color(red: 168/255, green: 230/255, blue: 207/255) : Color.secondary
     }
+}
+
+#Preview {
+    VStack(spacing: 20) {
+        BottomTabButton(icon: "house.fill", label: "Home", isSelected: true, badge: nil) {}
+        BottomTabButton(icon: "checklist", label: "Tasks", isSelected: false, badge: "3") {}
+        BottomTabButton(icon: "person.fill", label: "Profile", isSelected: false, badge: nil) {}
+    }
+    .padding()
+    .background(Color(red: 247/255, green: 253/255, blue: 251/255))
 }

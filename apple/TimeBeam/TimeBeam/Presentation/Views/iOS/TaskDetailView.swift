@@ -3,7 +3,7 @@ import SwiftUI
 #if os(iOS)
 struct TaskDetailView: View {
     @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject var taskService: TaskService
+    @Environment(TaskService.self) var taskService
 
     let task: UserTask
 
@@ -253,6 +253,6 @@ private extension UserTask.Status {
             updatedAt: Date()
         ))
     }
-    .environmentObject(TaskService())
+    .environment(TaskService())
 }
 #endif

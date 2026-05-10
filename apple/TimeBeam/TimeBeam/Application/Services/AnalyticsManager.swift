@@ -1,13 +1,15 @@
 import Foundation
+import Observation
 
 @MainActor
-class AnalyticsManager: ObservableObject {
+@Observable
+class AnalyticsManager {
 
-    @Published var dashboardData: AnalyticsDashboardResponse?
+    var dashboardData: AnalyticsDashboardResponse?
 
-    @Published var isLoading = false
+    var isLoading = false
 
-    @Published var error: Error?
+    var error: Error?
 
 
 

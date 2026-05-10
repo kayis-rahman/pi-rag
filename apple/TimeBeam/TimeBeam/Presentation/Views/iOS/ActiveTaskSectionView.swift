@@ -1,8 +1,8 @@
 import SwiftUI
 
 struct ActiveTaskSectionView: View {
-    @ObservedObject var timer: PomodoroTimer
-    @ObservedObject var taskService: TaskService
+    @Environment(PomodoroTimer.self) var timer
+    @Environment(TaskService.self) var taskService
 
     var body: some View {
         VStack(spacing: 8) {

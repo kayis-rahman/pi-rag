@@ -3,8 +3,8 @@ import Charts
 import SwiftUI
 
 struct StatsView: View {
-    @EnvironmentObject var logger: SessionLogger
-    @EnvironmentObject var analyticsManager: AnalyticsManager
+    @Environment(SessionLogger.self) var logger
+    @Environment(AnalyticsManager.self) var analyticsManager
 
     var body: some View {
         NavigationStack {
@@ -13,7 +13,7 @@ struct StatsView: View {
                     // Header
                     Text("Your Progress")
                         .font(.system(size: 28, weight: .bold, design: .default))
-                        .foregroundColor(Color.themeTextPrimary)
+                        .foregroundColor(Color(red: 27/255, green: 67/255, blue: 50/255))
                         .frame(maxWidth: .infinity, alignment: .leading)
 
                     // Weekly Chart
@@ -21,7 +21,7 @@ struct StatsView: View {
                         VStack(alignment: .leading, spacing: 16) {
                             Text("This Week")
                                 .font(.system(size: 20, weight: .semibold, design: .default))
-                                .foregroundColor(Color.themeTextPrimary)
+                                .foregroundColor(Color(red: 27/255, green: 67/255, blue: 50/255))
 
                             WeeklyBarChart(data: weeklyData())
                                 .frame(height: 200)
@@ -34,14 +34,14 @@ struct StatsView: View {
                             title: "Today",
                             value: formatDuration(todayTotal()),
                             icon: "sun.max.fill",
-                            color: Color.themePrimary
+                            color: Color(red: 168/255, green: 230/255, blue: 207/255)
                         )
 
                         SummaryCard(
                             title: "This Week",
                             value: formatDuration(weeklyTotal()),
                             icon: "calendar",
-                            color: Color.themeAccent
+                            color: Color(red: 86/255, green: 197/255, blue: 150/255)
                         )
                     }
 
@@ -50,21 +50,21 @@ struct StatsView: View {
                             title: "Best Streak",
                             value: "\(bestStreak()) days",
                             icon: "flame.fill",
-                            color: Color.themeOrangeAccent
+                            color: Color(red: 255/255, green: 159/255, blue: 28/255)
                         )
 
                         SummaryCard(
                             title: "Focus",
                             value: "25m",
                             icon: "timer",
-                            color: Color.themePrimary
+                            color: Color(red: 168/255, green: 230/255, blue: 207/255)
                         )
 
                         SummaryCard(
                             title: "Break",
                             value: "5m",
                             icon: "cup.and.saucer.fill",
-                            color: Color.themeOrangeAccent
+                            color: Color(red: 255/255, green: 159/255, blue: 28/255)
                         )
                     }
 
@@ -73,7 +73,7 @@ struct StatsView: View {
                         VStack(alignment: .leading, spacing: 16) {
                             Text("Recent Sessions")
                                 .font(.system(size: 20, weight: .semibold, design: .default))
-                                .foregroundColor(Color.themeTextPrimary)
+                                .foregroundColor(Color(red: 27/255, green: 67/255, blue: 50/255))
 
                             VStack(spacing: 8) {
                                 ForEach(recentSessions()) { session in
@@ -83,7 +83,7 @@ struct StatsView: View {
                                 if recentSessions().count > 5 {
                                     Text("+\(recentSessions().count - 5) more sessions")
                                         .font(.system(size: 14))
-                                        .foregroundColor(Color.themeTextSecondary)
+                                        .foregroundColor(Color.secondary.opacity(0.6))
                                         .frame(maxWidth: .infinity, alignment: .center)
                                         .padding(.vertical, 8)
                                 }
@@ -94,7 +94,7 @@ struct StatsView: View {
                 .padding(.horizontal, 20)
                 .padding(.vertical, 24)
             }
-            .background(Color.themeBackground.ignoresSafeArea())
+            .background(Color(red: 247/255, green: 253/255, blue: 251/255).ignoresSafeArea())
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             #endif
@@ -242,9 +242,7 @@ struct StatsCard<Content: View>: View {
             content
         }
         .padding(20)
-        .background(Color.themeCardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
+        .glassEffectCardConditional(cornerRadius: 16)
     }
 }
 
@@ -270,12 +268,10 @@ struct SummaryCard: View {
 
             Text(title)
                 .font(.system(size: 14))
-                .foregroundColor(Color.themeTextSecondary)
+                .foregroundColor(Color.secondary.opacity(0.6))
         }
         .padding(16)
-        .background(Color.themeCardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+        .glassEffectCardConditional(cornerRadius: 12, tint: color.opacity(0.3))
     }
 }
 
@@ -288,21 +284,21 @@ struct WeeklyBarChart: View {
                 x: .value("Day", item.dayLabel),
                 y: .value("Minutes", item.minutes)
             )
-            .foregroundStyle(Color.themePrimary.gradient)
+            .foregroundStyle(Color(red: 168/255, green: 230/255, blue: 207/255).gradient)
             .cornerRadius(4)
         }
         .chartYAxis {
             AxisMarks { value in
-                AxisGridLine().foregroundStyle(Color.themeTextSecondary.opacity(0.2))
-                AxisTick().foregroundStyle(Color.themeTextSecondary.opacity(0.3))
-                AxisValueLabel().foregroundStyle(Color.themeTextSecondary)
+                AxisGridLine().foregroundStyle(Color.secondary.opacity(0.2))
+                AxisTick().foregroundStyle(Color.secondary.opacity(0.3))
+                AxisValueLabel().foregroundStyle(Color.secondary.opacity(0.6))
             }
         }
         .chartXAxis {
             AxisMarks { value in
-                AxisGridLine().foregroundStyle(Color.themeTextSecondary.opacity(0.2))
-                AxisTick().foregroundStyle(Color.themeTextSecondary.opacity(0.3))
-                AxisValueLabel().foregroundStyle(Color.themeTextSecondary)
+                AxisGridLine().foregroundStyle(Color.secondary.opacity(0.2))
+                AxisTick().foregroundStyle(Color.secondary.opacity(0.3))
+                AxisValueLabel().foregroundStyle(Color.secondary.opacity(0.6))
             }
         }
     }
@@ -321,18 +317,18 @@ struct SessionRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(sessionKind.displayName)
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(Color.themeTextPrimary)
+                    .foregroundColor(Color(red: 27/255, green: 67/255, blue: 50/255))
 
                 Text(formatDuration(Int(session.durationSeconds / 60)))
                     .font(.system(size: 12))
-                    .foregroundColor(Color.themeTextSecondary)
+                    .foregroundColor(Color.secondary.opacity(0.6))
             }
 
             Spacer()
 
             Text(formatTime(session.startedAt))
                 .font(.system(size: 12))
-                .foregroundColor(Color.themeTextSecondary)
+                .foregroundColor(Color.secondary.opacity(0.6))
         }
         .padding(.vertical, 8)
     }
@@ -348,9 +344,9 @@ struct SessionRow: View {
 
     private var phaseColor: Color {
         switch sessionKind {
-        case .work: return Color.themePrimary
-        case .shortBreak: return Color.themeOrangeAccent
-        case .longBreak: return Color.themeOrangeDeep
+        case .work: return Color(red: 168/255, green: 230/255, blue: 207/255)
+        case .shortBreak: return Color(red: 255/255, green: 159/255, blue: 28/255)
+        case .longBreak: return Color(red: 255/255, green: 128/255, blue: 0/255)
         }
     }
 
@@ -376,8 +372,8 @@ struct DailyStats: Identifiable {
 
 #Preview {
     StatsView()
-        .environmentObject(SessionLogger())
-        .environmentObject(AnalyticsManager(
+        .environment(SessionLogger())
+        .environment(AnalyticsManager(
             apiClient: AnalyticsApiClient(baseURL: URL(string: "https://api.example.com")!),
             authManager: AuthManager()
         ))

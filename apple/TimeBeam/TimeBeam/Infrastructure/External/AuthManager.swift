@@ -6,9 +6,9 @@
 //
 
 import Foundation
-import Combine
 import CryptoKit
 import os
+import Observation
 
 #if os(macOS)
 import AppKit
@@ -36,12 +36,13 @@ struct Configuration {
 }
 
 @MainActor
-final class AuthManager: ObservableObject {
+@Observable
+final class AuthManager {
     static let shared = AuthManager()
 
-    @Published var isSignedIn: Bool = false
-    @Published var displayName: String? = nil
-    @Published var email: String? = nil
+    var isSignedIn: Bool = false
+    var displayName: String? = nil
+    var email: String? = nil
 
     // PKCE state and dedupe
     private var pkce: PKCE?
@@ -60,15 +61,26 @@ final class AuthManager: ObservableObject {
         print("[Auth] restoreSession: begin")
         #endif
 
-        // Prefer backend access token as sign-in indicator (like working version)
-        let backendToken = try? KeychainStore.loadString(.accessToken)
         let cachedName = try? KeychainStore.loadString(.userDisplayName)
         let cachedEmail = try? KeychainStore.loadString(.userEmail)
 
         await MainActor.run {
-            self.isSignedIn = (backendToken?.isEmpty == false)
             if let name = cachedName, !name.isEmpty { self.displayName = name }
             if let mail = cachedEmail, !mail.isEmpty { self.email = mail }
+        }
+
+        if let token = try? KeychainStore.loadString(.accessToken), !token.isEmpty {
+            if isTokenExpired(token) {
+                #if DEBUG
+                print("[Auth] restoreSession: access token expired, attempting refresh")
+                #endif
+                let refreshed = await refreshAccessToken()
+                await MainActor.run { self.isSignedIn = refreshed }
+            } else {
+                await MainActor.run { self.isSignedIn = true }
+            }
+        } else {
+            await MainActor.run { self.isSignedIn = false }
         }
 
         #if DEBUG
@@ -76,32 +88,52 @@ final class AuthManager: ObservableObject {
         #endif
     }
 
-    func signOut() async {
-        // Revoke refresh tokens on backend
-        guard let token = try? KeychainStore.loadString(.accessToken), !token.isEmpty else {
-            await MainActor.run {
-                self.isSignedIn = false
-                self.displayName = nil
-                self.email = nil
-            }
-            return
+    func refreshAccessToken() async -> Bool {
+        guard let refreshToken = try? KeychainStore.loadString(.refreshToken), !refreshToken.isEmpty else {
+            #if DEBUG
+            print("[Auth] refreshAccessToken: no refresh token stored, cannot refresh")
+            #endif
+            await MainActor.run { self.isSignedIn = false }
+            return false
         }
+        do {
+            let result = try await ApiClient.shared.refreshToken(refreshToken: refreshToken)
+            try? KeychainStore.saveString(result.accessToken, for: .accessToken)
+            try? KeychainStore.saveString(result.refreshToken, for: .refreshToken)
+            await MainActor.run { self.isSignedIn = true }
+            #if DEBUG
+            print("[Auth] refreshAccessToken: success, new token length=\(result.accessToken.count)")
+            #endif
+            return true
+        } catch {
+            #if DEBUG
+            print("[Auth] refreshAccessToken: failed: \(error.localizedDescription), signing out")
+            #endif
+            try? KeychainStore.clear(.accessToken)
+            try? KeychainStore.clear(.refreshToken)
+            await MainActor.run { self.isSignedIn = false }
+            return false
+        }
+    }
 
-        // Call backend to revoke tokens
-        if let baseURL = Configuration.fromInfoPlist()?.baseURL {
-            let api = ApiClient(baseURL: baseURL)
-            await MainActor.run {
-                self.isSignedIn = false
-                self.displayName = nil
-                self.email = nil
-            }
-            // TODO: Implement token revocation endpoint
-        } else {
-            await MainActor.run {
-                self.isSignedIn = false
-                self.displayName = nil
-                self.email = nil
-            }
+    private func isTokenExpired(_ token: String) -> Bool {
+        let parts = token.split(separator: ".")
+        guard parts.count >= 2 else { return true }
+        let payload = String(parts[1])
+        let padded = payload + String(repeating: "=", count: (4 - payload.count % 4) % 4)
+        guard let data = Data(base64Encoded: padded),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let exp = json["exp"] as? Double else { return true }
+        return Date().timeIntervalSince1970 >= exp - 60
+    }
+
+    func signOut() async {
+        try? KeychainStore.clear(.accessToken)
+        try? KeychainStore.clear(.refreshToken)
+        await MainActor.run {
+            self.isSignedIn = false
+            self.displayName = nil
+            self.email = nil
         }
     }
 
@@ -110,17 +142,17 @@ final class AuthManager: ObservableObject {
     // MARK: - Token Management
 
     func getValidAccessToken() -> String? {
-        // Check if signed in first
         guard isSignedIn else {
             LoggerStore.auth.warning("getValidAccessToken called but not signed in")
             return nil
         }
 
-        // Try to load from Keychain
         do {
             if let token = try KeychainStore.loadString(.accessToken), !token.isEmpty {
-                // TODO: Add expiration check when token expiration is tracked
-                // For now, assume token is valid if present
+                if isTokenExpired(token) {
+                    LoggerStore.auth.warning("getValidAccessToken: Token is expired")
+                    return nil
+                }
                 LoggerStore.auth.debug("getValidAccessToken: Token found (length: \(token.count))")
                 return token
             } else {
@@ -425,6 +457,7 @@ final class AuthManager: ObservableObject {
 
             // Store tokens and user info in Keychain
             try KeychainStore.saveString(login.accessToken, for: .accessToken)
+            if let rt = login.refreshToken { try? KeychainStore.saveString(rt, for: .refreshToken) }
             try KeychainStore.saveString(userEmail, for: .userEmail)
             try KeychainStore.saveString(displayName, for: .userDisplayName)
 
@@ -447,13 +480,11 @@ final class AuthManager: ObservableObject {
             print("[Auth] completeOAuthSignIn: backend login failed: \(error)")
             #endif
 
-            // If backend fails, still allow local sign-in for development
             await MainActor.run {
-                self.isSignedIn = true
-                self.email = userEmail
-                self.displayName = displayName
+                self.isSignedIn = false
+                self.email = nil
+                self.displayName = nil
             }
-            UserDefaults.standard.set(true, forKey: "hasAuthToken")
         }
     }
 
