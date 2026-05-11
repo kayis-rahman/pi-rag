@@ -47,7 +47,7 @@ struct TimeBeamApp: App {
                             iOSContentView()
                                 .tabItem { Label("Home", systemImage: "house.fill") }
                                 .tag(0)
-                            TaskListView()
+                            TaskListView(selectedTab: $selectedTab)
                                 .tabItem { Label("Tasks", systemImage: "checklist") }
                                 .tag(1)
                             StatsView()

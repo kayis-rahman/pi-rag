@@ -6,9 +6,12 @@ import UIKit
 #if os(iOS)
 struct TaskListView: View {
     @Environment(TaskService.self) var taskService
+    @Environment(AuthManager.self) var authManager
+    @Binding var selectedTab: Int
     @State private var showingCreateTask = false
     @State private var isLoading = false
     @State private var errorMessage: String?
+    @State private var isUnauthenticated = false
     @State private var searchText = ""
     @State private var selectedStatusFilter: UserTask.Status? = nil
     @State private var showingFilters = false
@@ -86,19 +89,47 @@ struct TaskListView: View {
                 }
 
                 if taskService.tasks.isEmpty && !isLoading {
-                    VStack(spacing: 16) {
-                        Image(systemName: "checklist")
-                            .font(.system(size: 48))
-                            .foregroundColor(.secondary)
-                        Text("No tasks yet")
-                            .font(.headline)
-                            .foregroundColor(.secondary)
-                        Text("Create your first task to get started")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
+                    if isUnauthenticated {
+                        VStack(spacing: 12) {
+                            Image(systemName: "person.crop.circle.badge.exclamationmark")
+                                .font(.system(size: 40))
+                                .foregroundColor(.orange)
+                            Text("Sign in to sync tasks")
+                                .font(.headline)
+                            Text("Your tasks sync across devices when you're signed in.")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                            Button {
+                                selectedTab = 3
+                            } label: {
+                                Text("Sign In")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 8)
+                                    .background(Color.themePrimary)
+                                    .foregroundColor(.white)
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                            }
+                            .padding(.horizontal, 200)
+                        }
+                        .padding()
+                    } else {
+                        VStack(spacing: 16) {
+                            Image(systemName: "checklist")
+                                .font(.system(size: 48))
+                                .foregroundColor(.secondary)
+                            Text("No tasks yet")
+                                .font(.headline)
+                                .foregroundColor(.secondary)
+                            Text("Create your first task to get started")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                        }
+                        .padding()
                     }
-                    .padding()
                 }
 
                 if isLoading {
@@ -140,13 +171,26 @@ struct TaskListView: View {
             .task {
                 await loadTasks()
             }
-            .alert("Error", isPresented: .constant(errorMessage != nil)) {
-                Button("OK") {
-                    errorMessage = nil
-                }
-            } message: {
-                if let errorMessage = errorMessage {
-                    Text(errorMessage)
+            .overlay {
+                if let message = errorMessage {
+                    VStack(spacing: 12) {
+                        Image(systemName: "exclamationmark.triangle")
+                            .font(.system(size: 28))
+                            .foregroundColor(.red)
+                        Text(message)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                        Button("Dismiss") {
+                            errorMessage = nil
+                        }
+                        .font(.subheadline)
+                        .foregroundColor(.themePrimary)
+                    }
+                    .padding()
+                    .background(Color(.systemBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .padding(32)
                 }
             }
         }
@@ -156,13 +200,20 @@ struct TaskListView: View {
     private func loadTasks() async {
         isLoading = true
         errorMessage = nil
+        isUnauthenticated = false
 
         do {
             try await taskService.fetchTasks(status: selectedStatusFilter.flatMap { ApiTaskStatus(rawValue: $0.rawValue) })
         } catch {
+            // Ignore cancellation errors — view was dismissed/rebuilt
+            if error is CancellationError { return }
             // Only show error if there are no cached tasks available
             if taskService.tasks.isEmpty {
-                errorMessage = error.localizedDescription
+                if !authManager.isSignedIn {
+                    isUnauthenticated = true
+                } else {
+                    errorMessage = error.localizedDescription
+                }
             }
         }
 
@@ -245,6 +296,7 @@ struct TaskListView: View {
 }
 
 private struct TaskRowView: View {
+    @Environment(TaskService.self) var taskService
     let task: UserTask
     @State private var progress: TaskProgress?
     @State private var isLoadingProgress = false
@@ -403,10 +455,7 @@ private struct TaskRowView: View {
         isLoadingProgress = true
         defer { isLoadingProgress = false }
 
-        // Get task service from environment
-        // This would need to be injected properly in a real implementation
         do {
-            let taskService = TaskService() // This is not ideal - should be injected
             progress = try await taskService.getTaskProgress(task)
         } catch {
             // Silently fail for progress loading
@@ -474,7 +523,8 @@ private struct FilterPill: View {
 }
 
 #Preview {
-    TaskListView()
+    TaskListView(selectedTab: .constant(1))
         .environment(TaskService())
+        .environment(AuthManager.shared)
 }
 #endif

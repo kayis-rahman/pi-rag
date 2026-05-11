@@ -135,9 +135,7 @@ public struct ApiClient {
      * Get access token
      */
     func getAccessToken() -> String? {
-        // TODO: Get real access token from Keychain
-        // For now, return nil
-        return nil
+        try? KeychainStore.loadString(.accessToken)
     }
     
     // MARK: - Auth Methods

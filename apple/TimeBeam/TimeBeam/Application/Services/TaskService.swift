@@ -541,14 +541,10 @@ extension ApiClient: ApiClientProtocol {
     }
 
     private func getAccessToken() throws -> String {
-        do {
-            guard let token = try KeychainStore.loadString(.accessToken) else {
-                throw TaskServiceError.unauthorized
-            }
-            return token
-        } catch {
+        guard let token = try KeychainStore.loadString(.accessToken) else {
             throw TaskServiceError.unauthorized
         }
+        return token
     }
 }
 
