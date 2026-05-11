@@ -297,6 +297,18 @@ timer.onSessionCompleted = { [weak logger, weak timer] completedPhase, duration 
 **How to avoid:** Check `UserDefaults.standard.bool(forKey: "hapticsEnabled")` in the session completion handler before triggering haptics. On iOS, use `UIImpactFeedbackGenerator`. On macOS, haptics are not available.
 **Warning signs:** Toggle changes but behavior is the same.
 
+### Pitfall 7: Backend applyLiveElapsed Already Recomputes remainingSeconds
+**What goes wrong:** iOS applies synced state and also subtracts elapsed time, double-counting.
+**Why it happens:** Backend `TimerSyncService.applyLiveElapsed()` recomputes remainingSeconds against server clock when timer is running. iOS code must trust the server-computed value.
+**How to avoid:** Do NOT subtract elapsed time in `PomodoroTimer.applySyncedState()`. The backend already did this.
+**Warning signs:** Timer on two devices shows different remaining times for the same phase.
+
+### Pitfall 8: Missing Initial Database Schema Migration
+**What goes wrong:** On a fresh database, the `timer_states` table does not exist because no V1 Flyway migration creates it.
+**Why it happens:** Only V2 (user_devices.updated_at) and V3 (tasks.deleted_at) migrations exist. The initial schema (users, sessions, timer_states) was likely created via `ddl-auto: update` in dev but has no Flyway migration.
+**How to avoid:** Create a V1 migration (or V4 if numbering follows existing sequence) for the timer_states table based on the TimerState JPA entity.
+**Warning signs:** `Table "timer_states" does not exist` when deploying to a clean environment.
+
 ## Code Examples
 
 ### Timer State Transition (Complete Flow)
@@ -360,6 +372,51 @@ func sendSessionDoneNotification(phase: String) {
 }
 ```
 
+### Backend Timer Action Endpoint (SessionController)
+```java
+// Source: SessionController.java — pushTimerAction with convertActionToState
+@PostMapping("/timer/action")
+public ResponseEntity<Void> pushTimerAction(@RequestBody TimerActionDto actionDto, Principal principal) {
+    UUID uid = resolveUserId(principal);
+    TimerStateDto stateFromAction = convertActionToState(actionDto);
+    timerSyncService.pushTimerState(uid, stateFromAction, actionDto.getDeviceId());
+    pushService.sendTimerSyncPush(uid.toString(), actionDto.getDeviceId(), stateFromAction);
+    return ResponseEntity.ok().build();
+}
+
+private TimerStateDto convertActionToState(TimerActionDto actionDto) {
+    // Client sends durations in seconds — trust client values directly
+    int workDuration = actionDto.getWorkDuration() > 0 ? actionDto.getWorkDuration() : 1500;
+    int breakDuration = actionDto.getBreakDuration() > 0 ? actionDto.getBreakDuration() : 300;
+    int longBreakDuration = actionDto.getLongBreakDuration() > 0 ? actionDto.getLongBreakDuration() : 900;
+    // Client remainingSeconds — trust for both fresh start and resume-from-pause
+    int remainingSeconds = actionDto.getRemainingSeconds();
+    if (remainingSeconds <= 0) remainingSeconds = totalDuration;
+    return new TimerStateDto(
+        phase, remainingSeconds, actionDto.isRunning(),
+        workDuration, breakDuration, longBreakDuration,
+        actionDto.isAutoStartNextSession(), actionDto.getShortBreaksCompleted(),
+        totalDuration, Instant.now().toEpochMilli() / 1000.0, null,
+        Instant.now(), actionDto.getDeviceId()
+    );
+}
+```
+
+### Backend applyLiveElapsed (Server Clock Recomputation)
+```java
+// Source: TimerSyncService.java — applyLiveElapsed
+private void applyLiveElapsed(TimerStateDto dto, TimerState state) {
+    // Only recompute when timer is running and has a start timestamp
+    if (running == null || !running || startTs == null || remaining == null) {
+        return;
+    }
+    double nowSeconds = Instant.now().toEpochMilli() / 1000.0;
+    long elapsed = Math.max(0L, (long) Math.floor(nowSeconds - startTs));
+    int live = (int) Math.max(0L, (long) remaining - elapsed);
+    dto.setRemainingSeconds(live);  // <-- iOS must trust this value, do NOT subtract again
+}
+```
+
 ## State of the Art
 
 | Old Approach | Current Approach | When Changed | Impact |
@@ -380,6 +437,9 @@ func sendSessionDoneNotification(phase: String) {
 | A4 | Backend `convertActionToState` uses `actionType` enum with `@JsonAlias` | Architecture Patterns | Verified in CLAUDE.md Timer Sync Architecture; `SessionController.java` line 253 confirms `actionDto.getActionType()` |
 | A5 | iOS haptics via `UIImpactFeedbackGenerator` are sufficient | Don't Hand-Roll | If richer haptics needed (e.g., UINotificationFeedbackGenerator), the pattern is the same |
 | A6 | `iCloudSyncManager` exists and works for settings sync | Standard Stack | The file exists at `Infrastructure/iCloudSyncManager.swift` — assumed functional from existing SettingsView usage |
+| A7 | Backend timer service is fully implemented (TimerSyncService, TimerSyncServiceComprehensiveTest, TimerSyncIntegrationTest) and needs NO additional work in Phase 03 | Standard Stack, Common Pitfalls | If backend has undiscovered bugs, Phase 03 would need backend tasks — but 8 test files and 3 service files suggest comprehensive coverage |
+| A8 | Initial Flyway migration for timer_states table is missing (only V2, V3 exist) | Common Pitfall 8 | If schema was created via `ddl-auto: update`, the app works in dev but fails on clean deployments |
+| A9 | NotificationManager.sendSessionDoneNotification does not currently check `soundEnabled` from AppStorage | Common Pitfall 6 | Chime and notifications fire regardless of user preference toggle |
 
 ## Open Questions
 
@@ -398,21 +458,31 @@ func sendSessionDoneNotification(phase: String) {
    - What's unclear: Whether this is a deliberate feature or leftover from an earlier implementation.
    - Recommendation: Investigate whether a 2-second pause protection is needed. If so, implement it; if not, update tests to match current behavior.
 
+4. **Should timer configuration changes (duration steppers) persist to the backend?**
+   - What we know: Durations are stored locally in `PomodoroTimer` and synced to iCloud via `iCloudSyncManager`. The backend `timer_states` entity has `work_duration_minutes`, `break_duration_minutes`, `long_break_duration_minutes` columns.
+   - What's unclear: Whether Phase 03 should wire duration changes to the backend `pushTimerState` endpoint, or leave this for a later phase.
+   - Recommendation: Wire to backend. The entity and endpoint already support it. Adding it now prevents a future refactor.
+
+5. **Should NotificationManager.read soundEnabled/hapticsEnabled preferences before firing?**
+   - What we know: SettingsView has `@AppStorage("soundEnabled")` and `@AppStorage("hapticsEnabled")` toggles. NotificationManager.sendSessionDoneNotification() always plays chime and notification.
+   - What's unclear: Whether the notification system should respect user preferences or always fire.
+   - Recommendation: Respect preferences. The toggles are wired in SettingsView but never consumed. Add preference checks to NotificationManager.
+
 ## Environment Availability
 
 | Dependency | Required By | Available | Version | Fallback |
 |------------|------------|-----------|---------|----------|
-| Xcode / Swift 5.9+ | Timer UI, @Observable | ✓ | Verified via codebase | — |
-| iOS 17 simulator | Testing @Observable | ✓ | iPhone 17 Pro available per rules/launch.md | iPhone 17 |
-| macOS 14+ | Timer UI | ✓ | macOS native build | — |
-| AVFoundation | Audio chime | ✓ | Built-in framework | — |
-| UserNotifications | Session notifications | ✓ | Built-in framework | — |
-| CoreHaptics (iOS only) | Haptic feedback | ✓ | Built-in framework | Visual feedback only |
-| PostgreSQL (Docker) | Backend tests | ✓ | docker-compose.dev.yml | Skip backend tests |
-| chime-sound.mp3 | Audio playback | ? | Not found in source tree | `UNNotificationSound.default` fallback |
+| Xcode / Swift 5.9+ | Timer UI, @Observable | Yes | Verified via codebase | — |
+| iOS 17 simulator | Testing @Observable | Yes | iPhone 17 Pro available per rules/launch.md | iPhone 17 |
+| macOS 14+ | Timer UI | Yes | macOS native build | — |
+| AVFoundation | Audio chime | Yes | Built-in framework | — |
+| UserNotifications | Session notifications | Yes | Built-in framework | — |
+| CoreHaptics (iOS only) | Haptic feedback | Yes | Built-in framework | Visual feedback only |
+| PostgreSQL (Docker) | Backend tests | Yes | docker-compose.dev.yml | Skip backend tests |
+| chime-sound.mp3 | Audio playback | Yes | Found in `apple/TimeBeam/TimeBeam/chime-sound.mp3` | `UNNotificationSound.default` fallback |
 
 **Missing dependencies with no fallback:**
-- `chime-sound.mp3` in app bundle — may be excluded from git (binary asset). Needs verification.
+- None
 
 **Missing dependencies with fallback:**
 - None
@@ -430,10 +500,10 @@ func sendSessionDoneNotification(phase: String) {
 ### Phase Requirements -> Test Map
 | Req ID | Behavior | Test Type | Automated Command | File Exists? |
 |--------|----------|-----------|-------------------|-------------|
-| TIMER-01 | Timer countdown (start/pause/reset) | unit | `xcodebuild test -scheme TimeBeam -destination 'platform=macOS' -only-testing:TimeBeamTests/PomodoroTimerUnitTests` | ✅ Exists (needs fix) |
-| TIMER-02 | Session completion and recording | unit | New: `PomodoroTimerSessionTests` | ❌ Wave 0 |
-| TIMER-03 | Timer UI rendering | visual/manual | Build + Preview inspection | ✅ Exists (CircularTimerView preview) |
-| TIMER-04 | Configurable durations | unit | `SettingsView` stepper -> `updateDurations()` | ❌ Wave 0 |
+| TIMER-01 | Timer countdown (start/pause/reset) | unit | `xcodebuild test -scheme TimeBeam -destination 'platform=macOS' -only-testing:TimeBeamTests/PomodoroTimerUnitTests` | Exists (needs fix) |
+| TIMER-02 | Session completion and recording | unit | New: `PomodoroTimerSessionTests` | No — Wave 0 |
+| TIMER-03 | Timer UI rendering | visual/manual | Build + Preview inspection | Exists (CircularTimerView preview) |
+| TIMER-04 | Configurable durations | unit | `SettingsView` stepper -> `updateDurations()` | No — Wave 0 |
 
 ### Sampling Rate
 - **Per task commit:** Run `PomodoroTimerUnitTests` (fixed) — < 5 seconds
@@ -446,6 +516,7 @@ func sendSessionDoneNotification(phase: String) {
 - [ ] Fix `PomodoroTimerUnitTests.swift` — remove `startFromSync()` references, fix Double/Int mismatch
 - [ ] `SessionLoggerTests.swift` — covers session recording integration
 - [ ] Xcode test scheme configuration — verify test targets are set up correctly
+- [ ] Backend V1 migration test on fresh database — migration file missing
 
 ## Security Domain
 
@@ -477,24 +548,33 @@ func sendSessionDoneNotification(phase: String) {
 - Codebase analysis: `SessionLogger.swift` — verified session recording
 - Codebase analysis: `NotificationManager.swift` — verified notification delivery
 - Codebase analysis: `SettingsView.swift` — verified duration configuration
-- Codebase analysis: `SessionController.java` — verified backend timer endpoints
+- Codebase analysis: `SessionController.java` — verified backend timer endpoints (pushTimerAction, convertActionToState)
+- Codebase analysis: `TimerSyncService.java` — verified backend sync service (pushTimerState, pullTimerState, applyLiveElapsed, pushTimerAction, cleanupDuplicateTimerStates)
+- Codebase analysis: `TimerState.java` (JPA) — verified timer_states entity schema with @Version optimistic locking
+- Codebase analysis: `TimerActionDto.java` — verified @JsonAlias for cross-platform action field
 - CLAUDE.md Timer Sync Architecture section — verified sync flow
 - `.claude/rules/swift-coding.md` — Swift conventions
+- `iCloudSyncManager.swift` — verified TimerSettings struct and NSUbiquitousKeyValueStore usage
+- `KeychainStore.swift` — verified Keychain persistence wrapper for deviceId, tokens, actionQueue
+- `TimerStateRepository.java` — verified TimerStateRepository (find, save, findByUserId)
 
 ### Secondary (MEDIUM confidence)
 - `PomodoroTimerUnitTests.swift` — existing tests (need fixing)
 - `iCloudSyncManager.swift` — referenced by SettingsView (assumed functional)
-- Phase 04 RESEARCH.md — confirms timer exists as foundation for sync
+- `TimerSyncServiceComprehensiveTest.java` — 8 timer-related test files in backend suggest thorough coverage
+- `TimerEventService.java`, `TimeController.java` — additional backend timer event infrastructure
 
 ### Tertiary (LOW confidence)
-- `chime-sound.mp3` existence — not found in source tree; may be in Xcode project resources
+- `chime-sound.mp3` existence — found in bundle (verified via find command)
+- Initial Flyway migration for timer_states missing — only V2, V3 in repo (verified via ls migration dir)
 
 ## Metadata
 
 **Confidence breakdown:**
-- Standard stack: HIGH — all frameworks are built-in; verified against existing codebase
+- Standard stack: HIGH — all built-in frameworks; verified against existing codebase
 - Architecture: HIGH — existing code provides clear architecture; gaps identified through code analysis
 - Pitfalls: HIGH — derived from actual code gaps (onSessionCompleted not wired, test compilation issues)
+- Backend completeness: HIGH — full backend timer infrastructure verified via codebase exploration (8 test files, 3 service files, 2 controllers, entity, repositories)
 
 **Research date:** 2026-05-11
 **Valid until:** 2026-06-11 (stable domain; timer patterns change rarely)
@@ -510,11 +590,13 @@ func sendSessionDoneNotification(phase: String) {
 
 1. **Timer engine is functionally complete** — `PomodoroTimer` has all core methods (start, pause, reset, advance) and tracks state correctly with timestamps for sync
 2. **Timer UI exists for both platforms** — `CircularTimerView` component + `iOSContentView` + `macOSContentView` with settings
-3. **Critical gap: Session completion bridge** — `onSessionCompleted` callback is declared but never wired; no code connects timer expiry to session recording or notifications
-4. **Critical gap: Auto-advance logic** — `startTimer()` loop exits at zero without calling `advance()` or `onSessionCompleted`; the timer just stops at "00:00"
-5. **Unit tests are broken** — `PomodoroTimerUnitTests.swift` references a non-existent `startFromSync()` method and asserts `Double` on an `Int` field
-6. **Haptics toggle is disconnected** — SettingsView has `hapticsEnabled` but no code checks it
-7. **Audio chime depends on a binary asset** — `chime-sound.mp3` not found in source tree; may need to be added to Xcode resources
+3. **Backend timer infrastructure is fully implemented** — TimerSyncService, TimerSyncIntegrationTest, TimerState entity with optimistic locking, SessionController timer endpoints, PushNotificationService, TimeController, TimerEventService, 8 test files
+4. **Critical gap: Session completion bridge** — `onSessionCompleted` callback is declared but never wired; no code connects timer expiry to session recording or notifications
+5. **Critical gap: Auto-advance logic** — `startTimer()` loop exits at zero without calling `advance()` or `onSessionCompleted`; the timer just stops at "00:00"
+6. **Unit tests are broken** — `PomodoroTimerUnitTests.swift` references a non-existent `startFromSync()` method and asserts `Double` on an `Int` field
+7. **Haptics toggle is disconnected** — SettingsView has `hapticsEnabled` but no code checks it
+8. **Initial Flyway migration missing** — only V2 and V3 exist; no migration creates the timer_states table (schema created via `ddl-auto: update` in dev)
+9. **Backend applyLiveElapsed already recomputes remainingSeconds** — iOS must trust this value; double-subtraction causes drift
 
 ### File Created
 `.planning/phases/03-timer-implementation/03-RESEARCH.md`
@@ -525,11 +607,14 @@ func sendSessionDoneNotification(phase: String) {
 | Standard Stack | HIGH | All built-in frameworks; verified against existing code |
 | Architecture | HIGH | Code analysis reveals clear gaps and integration points |
 | Pitfalls | HIGH | Based on actual code gaps (nil callback, broken tests) |
+| Backend completeness | HIGH | Full backend timer stack verified: entity, services, controllers, repos, 8 test files |
 
 ### Open Questions
 1. Should timer expiry (auto-advance) sync to backend or stay local?
 2. What should timer display show when at "00:00" with auto-start disabled?
 3. Is `startFromSync()` (referenced in broken tests) a needed feature?
+4. Should timer duration configuration persist to the backend, or leave for later phase?
+5. Should NotificationManager respect `soundEnabled`/`hapticsEnabled` preferences?
 
 ### Ready for Planning
-Research complete. The timer domain is well-understood with specific, actionable gaps identified. Planner can create tasks to wire the session completion flow, fix tests, and implement the remaining UI polish.
+Research complete. The timer domain is well-understood with specific, actionable gaps identified. Planner can create tasks to wire the session completion flow, fix tests, implement the remaining UI polish, and create the missing database migration.
