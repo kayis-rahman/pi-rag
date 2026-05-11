@@ -9,4 +9,5 @@ import com.sparkage.timebeam.infrastructure.persistence.SessionRecord;
 
 public interface SessionRecordRepository extends JpaRepository<SessionRecord, UUID> {
     List<SessionRecord> findByUserIdOrderByStartedAtDesc(UUID userId);
+    List<SessionRecord> findByTaskIdAndKindAndCompletedTrue(UUID taskId, SessionRecord.Kind kind);
 }

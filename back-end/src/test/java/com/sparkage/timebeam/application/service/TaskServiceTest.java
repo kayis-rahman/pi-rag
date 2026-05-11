@@ -156,7 +156,7 @@ class TaskServiceTest {
         List<Task> taskList = List.of(testTask);
         List<TaskDto> taskDtoList = List.of(testTaskDto);
 
-        when(taskRepository.findByUserIdOrderByCreatedAtDesc(userId)).thenReturn(taskList);
+        when(taskRepository.findByUserIdAndDeletedAtIsNullOrderByCreatedAtDesc(userId)).thenReturn(taskList);
         when(taskMapper.toDto(testTask)).thenReturn(testTaskDto);
 
         // Act
@@ -167,7 +167,7 @@ class TaskServiceTest {
         assertEquals(1, result.size());
         assertEquals(taskDtoList, result);
 
-        verify(taskRepository, times(1)).findByUserIdOrderByCreatedAtDesc(userId);
+        verify(taskRepository, times(1)).findByUserIdAndDeletedAtIsNullOrderByCreatedAtDesc(userId);
         verify(taskMapper, times(1)).toDto(testTask);
     }
 
@@ -228,19 +228,22 @@ class TaskServiceTest {
     }
 
     @Test
-    void delete_shouldDeleteTaskSuccessfully() {
+    void delete_shouldSoftDeleteTaskSuccessfully() {
         // Arrange
         UUID taskId = testTask.getId();
         UUID userId = testTask.getUserId();
         when(taskRepository.findById(taskId)).thenReturn(Optional.of(testTask));
-        doNothing().when(taskRepository).deleteById(taskId);
+        when(taskRepository.save(any(Task.class))).thenAnswer(invocation -> {
+            Task savedTask = invocation.getArgument(0);
+            return savedTask;
+        });
 
         // Act
         taskService.delete(taskId, userId);
 
         // Assert
         verify(taskRepository, times(1)).findById(taskId);
-        verify(taskRepository, times(1)).deleteById(taskId);
+        verify(taskRepository, times(1)).save(any(Task.class));
     }
 
     @Test

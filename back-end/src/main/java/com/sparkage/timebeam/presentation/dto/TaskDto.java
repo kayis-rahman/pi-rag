@@ -11,10 +11,15 @@ public class TaskDto {
     private String status;
     private Instant createdAt;
     private Instant updatedAt;
+    private Instant deletedAt;
 
     public TaskDto() {}
 
     public TaskDto(UUID id, UUID userId, String title, String description, String status, Instant createdAt, Instant updatedAt) {
+        this(id, userId, title, description, status, createdAt, updatedAt, null);
+    }
+
+    public TaskDto(UUID id, UUID userId, String title, String description, String status, Instant createdAt, Instant updatedAt, Instant deletedAt) {
         this.id = id;
         this.userId = userId;
         this.title = title;
@@ -22,6 +27,7 @@ public class TaskDto {
         this.status = status;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.deletedAt = deletedAt;
     }
 
     public UUID getId() { return id; }
@@ -44,4 +50,7 @@ public class TaskDto {
 
     public Instant getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
+
+    public Instant getDeletedAt() { return deletedAt; }
+    public void setDeletedAt(Instant deletedAt) { this.deletedAt = deletedAt; }
 }

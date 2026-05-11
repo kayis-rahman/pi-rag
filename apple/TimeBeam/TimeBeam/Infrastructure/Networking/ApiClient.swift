@@ -435,26 +435,26 @@ public struct ApiClient {
     }
     
     func fetchTask(id: UUID, accessToken: String) async throws -> TaskDto {
-        let url = baseURL.appendingPathComponent("tasks/\(id)")
+        let url = baseURL.appendingPathComponent("api/tasks/\(id)")
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-        
+
         let (data, response) = try await urlSession.data(for: request)
-        
+
         guard let httpResponse = response as? HTTPURLResponse else {
             throw ApiError.networkError("Invalid response type")
         }
         guard httpResponse.statusCode == 200 else {
             throw ApiError.networkError("Fetch task failed with status: \(httpResponse.statusCode)")
         }
-        
+
         return try JSONDecoder().decode(TaskDto.self, from: data)
     }
     
     func updateTask(id: UUID, _ request: TaskUpdateRequest, accessToken: String) async throws -> TaskDto {
-        guard let req = createBaseRequest(path: "tasks/\(id)", method: "PUT", body: request, accessToken: accessToken) else {
+        guard let req = createBaseRequest(path: "api/tasks/\(id)", method: "PUT", body: request, accessToken: accessToken) else {
             throw ApiError.networkError("Failed to create request")
         }
         let (data, response) = try await urlSession.data(for: req)
@@ -470,7 +470,7 @@ public struct ApiClient {
     }
     
     func deleteTask(id: UUID, accessToken: String) async throws {
-        let url = baseURL.appendingPathComponent("tasks/\(id)")
+        let url = baseURL.appendingPathComponent("api/tasks/\(id)")
         var request = URLRequest(url: url)
         request.httpMethod = "DELETE"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")

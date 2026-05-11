@@ -22,6 +22,7 @@ import com.sparkage.timebeam.application.service.TaskService;
 import com.sparkage.timebeam.infrastructure.external.UserNotAuthenticatedException;
 import com.sparkage.timebeam.presentation.dto.TaskCreateRequest;
 import com.sparkage.timebeam.presentation.dto.TaskDto;
+import com.sparkage.timebeam.presentation.dto.TaskProgressResponseDto;
 import com.sparkage.timebeam.presentation.dto.TaskUpdateRequest;
 
 @RestController
@@ -99,6 +100,44 @@ public class TaskController {
         taskService.delete(id, uid);
         log.info("task deleted: id={}", id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/soft-delete")
+    public ResponseEntity<TaskDto> softDelete(@PathVariable("id") UUID id, Principal principal) {
+        log.debug("soft-delete task called for id={}", id);
+        UUID uid = resolveUserId(principal);
+        if (uid == null) return ResponseEntity.status(401).build();
+
+        TaskDto dto = taskService.softDelete(id, uid);
+        return ResponseEntity.ok(dto);
+    }
+
+    @PostMapping("/{id}/restore")
+    public ResponseEntity<TaskDto> restore(@PathVariable("id") UUID id, Principal principal) {
+        log.debug("restore task called for id={}", id);
+        UUID uid = resolveUserId(principal);
+        if (uid == null) return ResponseEntity.status(401).build();
+
+        TaskDto dto = taskService.restore(id, uid);
+        return ResponseEntity.ok(dto);
+    }
+
+    @GetMapping("/deleted")
+    public ResponseEntity<List<TaskDto>> listDeleted(Principal principal) {
+        log.debug("list deleted tasks for current user called");
+        UUID uid = resolveUserId(principal);
+        if (uid == null) return ResponseEntity.status(401).build();
+
+        return ResponseEntity.ok(taskService.listDeletedTasks(uid));
+    }
+
+    @GetMapping("/{id}/progress")
+    public ResponseEntity<TaskProgressResponseDto> getProgress(@PathVariable("id") UUID id, Principal principal) {
+        log.debug("get task progress called for id={}", id);
+        UUID uid = resolveUserId(principal);
+        if (uid == null) return ResponseEntity.status(401).build();
+
+        return ResponseEntity.ok(taskService.getTaskProgress(id, uid));
     }
 
     // Helper to resolve UUID user id from Principal. Returns null on missing/invalid principal.
