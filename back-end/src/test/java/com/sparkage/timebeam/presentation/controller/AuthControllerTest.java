@@ -53,7 +53,7 @@ class AuthControllerTest {
         when(userService.createUser(anyString(), anyString())).thenReturn(dto);
 
         mvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsString(r)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.email").value("test@x.com"));
     }
 

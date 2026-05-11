@@ -50,11 +50,11 @@ public class AuthController {
         Optional<User> existing = userService.findByEmail(request.getEmail());
         if (existing.isPresent()) {
             return userService.findDtoById(existing.get().getId())
-                    .map(ResponseEntity::ok)
+                    .map(dto -> ResponseEntity.status(409).body(dto))
                     .orElseGet(() -> ResponseEntity.status(500).build());
         }
         UserDto dto = userService.createUser(request.getEmail(), request.getDisplayName());
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.status(201).body(dto);
     }
 
     @PostMapping("/login")
