@@ -29,6 +29,8 @@ The plans are structured to create a complete authentication system for the Time
 3. Testing implementation (Wave 2) - Comprehensive unit and integration tests for all authentication components
 
 Each plan follows the specified requirements for authentication system implementation, covering Google Sign-In integration, JWT-based authorization, secure token management, and user registration/login functionality.
+
+**Status: SKIPPED** — Auth code was built organically during phase 01/04 work. Plans never formally executed. Code is functional. Plans closed out without re-execution.
 ### Phase 4: cross sync
 
 **Goal:** Harden event-driven cross-device timer synchronization — offline queue, push delta apply, conflict resolution, backoff + user alert
