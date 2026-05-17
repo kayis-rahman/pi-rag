@@ -9,6 +9,8 @@ struct macOSContentView: View {
     @Environment(PomodoroTimer.self) var timer
     @Environment(SessionLogger.self) var logger
     @Environment(AuthManager.self) var authManager
+    @AppStorage("soundEnabled") private var soundEnabled = true
+    @AppStorage("hapticsEnabled") private var hapticsEnabled = true
     @State private var audioPlayer: AVAudioPlayer?
     @State private var lastPhase: Phase = .work
     @State private var didRequestNotificationPermission: Bool = UserDefaults.standard.bool(forKey: "didRequestNotificationPermission")
@@ -174,6 +176,11 @@ struct macOSContentView: View {
 
             Divider()
 
+            Toggle("Sound", isOn: $soundEnabled)
+            Toggle("Haptics", isOn: $hapticsEnabled)
+
+            Divider()
+
             Button("Analytics & Insights…") {
                 showingAnalytics = true
             }
@@ -209,6 +216,8 @@ struct macOSContentView: View {
 
             Button("Reset to Defaults", role: .destructive) {
                 timer.reset()
+                soundEnabled = true
+                hapticsEnabled = true
             }
 
         } label: {
@@ -316,6 +325,7 @@ struct macOSContentView: View {
     }
 
     private func playChime() {
+        guard UserDefaults.standard.bool(forKey: "soundEnabled") else { return }
         guard let soundURL = Bundle.main.url(forResource: "chime-sound", withExtension: "mp3") else { return }
         do {
             audioPlayer = try AVAudioPlayer(contentsOf: soundURL)

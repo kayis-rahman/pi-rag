@@ -174,6 +174,7 @@ struct iOSContentView: View {
     }
 
     private func playChime() {
+        guard UserDefaults.standard.bool(forKey: "soundEnabled") else { return }
         guard let soundURL = Bundle.main.url(forResource: "chime-sound", withExtension: "mp3") else { return }
         do {
             audioPlayer = try AVAudioPlayer(contentsOf: soundURL)

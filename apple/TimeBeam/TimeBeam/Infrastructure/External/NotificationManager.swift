@@ -1,11 +1,12 @@
 import Foundation
 import UserNotifications
 
-#if os(watchOS)
-import WatchKit
+#if os(iOS)
+import UIKit
 #endif
 
 #if os(watchOS)
+import WatchKit
 #endif
 
 open class NotificationManager {
@@ -35,10 +36,14 @@ open class NotificationManager {
         } else {
             content.body = "Break session done! Time to focus."
         }
-        if let _ = Bundle.main.url(forResource: "chime-sound", withExtension: "mp3") {
-            content.sound = UNNotificationSound(named: UNNotificationSoundName("chime-sound.mp3"))
+        if UserDefaults.standard.bool(forKey: "soundEnabled") {
+            if let _ = Bundle.main.url(forResource: "chime-sound", withExtension: "mp3") {
+                content.sound = UNNotificationSound(named: UNNotificationSoundName("chime-sound.mp3"))
+            } else {
+                content.sound = .default
+            }
         } else {
-            content.sound = .default
+            content.sound = .none
         }
         let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)
         UNUserNotificationCenter.current().add(request, withCompletionHandler: nil)
@@ -47,7 +52,11 @@ open class NotificationManager {
     }
 
     func triggerHapticIfNeeded() {
-        #if os(watchOS)
+        guard UserDefaults.standard.bool(forKey: "hapticsEnabled") else { return }
+        #if os(iOS)
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
+        #elseif os(watchOS)
         WKInterfaceDevice.current().play(.notification)
         #endif
     }

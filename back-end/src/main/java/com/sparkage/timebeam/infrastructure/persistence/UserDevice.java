@@ -70,6 +70,7 @@ public class UserDevice {
         private String platform;
         private Boolean active;
         private Instant lastSeenAt;
+        private String apnsToken;
         private Instant createdAt;
         private Instant updatedAt;
 
@@ -113,6 +114,11 @@ public class UserDevice {
             return this;
         }
 
+        public Builder apnsToken(String apnsToken) {
+            this.apnsToken = apnsToken;
+            return this;
+        }
+
         public Builder createdAt(Instant createdAt) {
             this.createdAt = createdAt;
             return this;
@@ -133,6 +139,7 @@ public class UserDevice {
             device.platform = this.platform;
             device.active = this.active;
             device.lastSeenAt = this.lastSeenAt;
+            device.apnsToken = this.apnsToken;
             device.createdAt = this.createdAt != null ? this.createdAt : Instant.now();
             device.updatedAt = this.updatedAt != null ? this.updatedAt : Instant.now();
             return device;
