@@ -7,8 +7,8 @@
 
 ### Orchestrator Core
 
-- [ ] **SYN-01**: Python orchestrator scaffolding (FastAPI + pydantic-settings)
-- [ ] **SYN-12**: Pi 5 deployment automation (systemd + docker-compose)
+- [x] **SYN-01**: Python orchestrator scaffolding (FastAPI + pydantic-settings)
+- [x] **SYN-12**: Pi 5 deployment automation (systemd + docker-compose)
 
 ### Data Sources
 
@@ -73,8 +73,8 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SYN-01 | Phase 1 | Pending |
-| SYN-12 | Phase 1 | Pending |
+| SYN-01 | Phase 1 | Done |
+| SYN-12 | Phase 1 | Done |
 | SYN-08 | Phase 2 | Pending |
 | SYN-02 | Phase 3 | Pending |
 | SYN-03 | Phase 3 | Pending |

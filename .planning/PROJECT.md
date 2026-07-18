@@ -36,7 +36,7 @@ Wake up → get AI-generated briefing of day (email, tasks, calendar) → enter 
 
 ### Active
 
-- [ ] SYN-01: Python orchestrator scaffolding (FastAPI + pydantic)
+- [x] SYN-01: Python orchestrator scaffolding (FastAPI + pydantic)
 - [ ] SYN-02: Gmail API integration (email briefing)
 - [ ] SYN-03: GitHub Projects integration (task polling)
 - [ ] SYN-04: iCal integration (.ics polling)
@@ -47,7 +47,7 @@ Wake up → get AI-generated briefing of day (email, tasks, calendar) → enter 
 - [ ] SYN-09: TimeBeam API contract (session sync endpoints)
 - [ ] SYN-10: Voice pipeline (IndicWhisper + Parler-TTS)
 - [ ] SYN-11: Open WebUI fallback configuration
-- [ ] SYN-12: Pi 5 deployment automation
+- [x] SYN-12: Pi 5 deployment automation
 
 ### Out of Scope
 

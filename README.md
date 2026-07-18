@@ -29,21 +29,13 @@ synapse/
 ├── app/
 │   ├── main.py           # FastAPI entry point
 │   ├── config.py         # Settings (pydantic-settings)
-│   ├── api/              # Route handlers
-│   │   ├── briefing.py   # GTD briefing endpoints
-│   │   └── sessions.py   # Focus session endpoints
-│   ├── services/         # Business logic
-│   │   ├── briefing.py   # Briefing pipeline
-│   │   ├── gmail.py      # Gmail integration
-│   │   ├── github.py     # GitHub Projects integration
-│   │   ├── ical.py       # iCal integration
-│   │   ├── llm.py        # LLM orchestration
-│   │   └── session.py    # Session management
-│   ├── models/           # Pydantic data models
-│   └── infra/            # Infrastructure clients
-│       ├── qdrant.py     # Qdrant client
-│       ├── redis.py      # Redis client
-│       └── whisper.py    # IndicWhisper ASR
+│   ├── api/              # Route handlers (placeholder)
+│   ├── services/         # Business logic (placeholder)
+│   ├── models/           # Pydantic data models (placeholder)
+│   └── infra/            # Infrastructure clients (placeholder)
+├── systemd/              # systemd service + deployment scripts
+│   ├── synapse.service   # Systemd unit for orchestrator
+│   └── synapse.automator.sh  # One-shot Pi setup script
 ├── tests/                # pytest
 ├── docker-compose.yml    # Qdrant + Redis + Open WebUI
 ├── requirements.txt      # Python dependencies

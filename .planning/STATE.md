@@ -6,9 +6,9 @@ status: planning
 last_updated: "2026-06-08T19:00:00.000Z"
 progress:
   total_phases: 6
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  completed_phases: 1
+  total_plans: 1
+  completed_plans: 1
 ---
 
 # Synapse — Project State
@@ -27,9 +27,9 @@ progress:
 | Attribute | Value |
 |-----------|-------|
 | Phase | 01-foundation |
-| Plan | none |
+| Plan | 01-foundation-01-PLAN.md |
 | Status | Greenfield — old Spring Boot code archived |
-| Progress | `░░░░░░░░` 0% |
+| Progress | `██░░░░░░` 17% |
 
 ---
 
@@ -55,6 +55,7 @@ progress:
 | PROJECT.md | Scope and decisions | `.planning/` |
 | REQUIREMENTS.md | v1/v2 requirements | `.planning/` |
 | ROADMAP.md | Phase plan | `.planning/` |
+| STATE.md | Project state | `.planning/` |
 
 ### Technical Stack
 
@@ -83,6 +84,7 @@ progress:
 | Date | Topic | Key Outcomes |
 |------|-------|--------------|
 | 2026-06-08 | Scope pivot | Old Spring Boot archived, new scope defined, git repo restructured |
+| 2026-07-18 | Phase 1 | FastAPI scaffolding verified, systemd service created, docker-compose confirmed, plan written |
 
 ---
 

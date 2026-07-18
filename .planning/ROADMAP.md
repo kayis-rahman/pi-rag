@@ -37,7 +37,7 @@ This roadmap delivers the core value: daily GTD briefing + adaptive focus sessio
 5. Tailscale connectivity verified from iPhone
 
 **Plans**: 1 plan
-- [ ] 01-foundation-01-PLAN.md — FastAPI scaffolding + docker-compose + systemd
+- [x] 01-foundation-01-PLAN.md — FastAPI scaffolding + docker-compose + systemd
 
 ---
 
@@ -146,7 +146,7 @@ This roadmap delivers the core value: daily GTD briefing + adaptive focus sessio
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1 - Foundation | 0/1 | Planned | - |
+| 1 - Foundation | 1/1 | In Progress | 2026-07-18 |
 | 2 - LLM Infrastructure | 0/1 | Planned | - |
 | 3 - Data Sources | 0/3 | Planned | - |
 | 4 - GTD Briefing | 0/2 | Planned | - |
