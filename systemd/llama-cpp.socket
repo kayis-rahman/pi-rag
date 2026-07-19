@@ -1,0 +1,10 @@
+[Unit]
+Description=llama.cpp Socket Activation
+
+[Socket]
+ListenStream=8081
+Accept=no
+KeepAlive=yes
+
+[Install]
+WantedBy=sockets.target

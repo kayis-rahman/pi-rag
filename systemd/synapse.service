@@ -1,7 +1,7 @@
 [Unit]
 Description=Synapse Orchestrator
-After=network.target
-Wants=qdrant.service redis.service
+After=network.target llama-cpp.socket
+Wants=qdrant.service redis.service llama-cpp.socket
 
 [Service]
 Type=simple
