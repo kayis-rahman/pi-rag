@@ -75,7 +75,7 @@
 |-------------|-------|--------|
 | SYN-01 | Phase 1 | Done |
 | SYN-12 | Phase 1 | Done |
-| SYN-08 | Phase 2 | Pending |
+| SYN-08 | Phase 2 | Done |
 | SYN-02 | Phase 3 | Pending |
 | SYN-03 | Phase 3 | Pending |
 | SYN-04 | Phase 3 | Pending |

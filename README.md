@@ -27,11 +27,13 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
 ```
 synapse/
 ├── app/
-│   ├── main.py           # FastAPI entry point
+│   ├── main.py           # FastAPI entry point + LLM proxy endpoints
 │   ├── config.py         # Settings (pydantic-settings)
 │   ├── api/              # Route handlers (placeholder)
-│   ├── services/         # Business logic (placeholder)
-│   ├── models/           # Pydantic data models (placeholder)
+│   ├── services/         # Business logic
+│   │   └── llm.py        # llama.cpp proxy + GPUHub fallback
+│   ├── models/           # Pydantic data models
+│   │   └── llm.py        # ChatCompletionRequest/Response
 │   └── infra/            # Infrastructure clients (placeholder)
 ├── systemd/              # systemd service + deployment scripts
 │   ├── synapse.service   # Systemd unit for orchestrator

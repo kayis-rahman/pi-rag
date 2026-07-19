@@ -22,8 +22,8 @@ class Settings(BaseSettings):
     PI_USER: str = "pi"
 
     # LLM (llama.cpp)
-    LLAMA_HOST: str = "http://localhost:8081"
-    LLAMA_MODEL: str = "gemma-4-e4b-q4.gguf"
+    LLAMA_HOST: str = "http://192.168.0.100:8080"
+    LLAMA_MODEL: str = "bartowski/google_gemma-4-E2B-it-GGUF:Q4_0"
     LLAMA_IDLE_TIMEOUT: int = 300  # seconds before auto-unload
 
     # Fallback LLM (GPUHub)

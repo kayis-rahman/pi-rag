@@ -56,7 +56,7 @@ This roadmap delivers the core value: daily GTD briefing + adaptive focus sessio
 5. Fallback to GPUHub Qwen3-27B configured
 
 **Plans**: 1 plan
-- [ ] 02-llm-infrastructure-01-PLAN.md — llama.cpp service + socket activation + fallback
+- [x] 02-llm-infrastructure-01-PLAN.md — llama.cpp service + socket activation + fallback
 
 ---
 
@@ -147,7 +147,7 @@ This roadmap delivers the core value: daily GTD briefing + adaptive focus sessio
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1 - Foundation | 1/1 | In Progress | 2026-07-18 |
-| 2 - LLM Infrastructure | 0/1 | Planned | - |
+| 2 - LLM Infrastructure | 1/1 | In Progress | 2026-07-19 |
 | 3 - Data Sources | 0/3 | Planned | - |
 | 4 - GTD Briefing | 0/2 | Planned | - |
 | 5 - TimeBeam Integration | 0/3 | Planned | - |

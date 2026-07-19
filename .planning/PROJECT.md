@@ -43,7 +43,7 @@ Wake up → get AI-generated briefing of day (email, tasks, calendar) → enter 
 - [ ] SYN-05: GTD briefing prompt pipeline (LLM orchestration)
 - [ ] SYN-06: Qdrant RAG integration (long-term memory)
 - [ ] SYN-07: Redis session state management
-- [ ] SYN-08: llama.cpp service with systemd socket activation
+- [x] SYN-08: llama.cpp service with systemd socket activation
 - [ ] SYN-09: TimeBeam API contract (session sync endpoints)
 - [ ] SYN-10: Voice pipeline (IndicWhisper + Parler-TTS)
 - [ ] SYN-11: Open WebUI fallback configuration

@@ -7,8 +7,8 @@ last_updated: "2026-06-08T19:00:00.000Z"
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
+  total_plans: 2
+  completed_plans: 2
 ---
 
 # Synapse — Project State
@@ -27,9 +27,9 @@ progress:
 | Attribute | Value |
 |-----------|-------|
 | Phase | 01-foundation |
-| Plan | 01-foundation-01-PLAN.md |
+| Plan | 01-foundation-01-PLAN.md, 02-llm-infrastructure-01-PLAN.md |
 | Status | Greenfield — old Spring Boot code archived |
-| Progress | `██░░░░░░` 17% |
+| Progress | `████░░░░` 33% |
 
 ---
 
@@ -85,6 +85,7 @@ progress:
 |------|-------|--------------|
 | 2026-06-08 | Scope pivot | Old Spring Boot archived, new scope defined, git repo restructured |
 | 2026-07-18 | Phase 1 | FastAPI scaffolding verified, systemd service created, docker-compose confirmed, plan written |
+| 2026-07-19 | Phase 2 | LLM proxy service built, tested against real llama.cpp on Pi, GPUHub fallback wired |
 
 ---
 
