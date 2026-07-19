@@ -1,45 +1,52 @@
 """Tests for iCal integration service."""
 
-from datetime import datetime
+from datetime import date
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from app.models.briefing import TaskItem
 from app.services.ical import fetch_today_events
 
 
-async def test_fetch_today_events_parses_ics() -> None:
-    """fetch_today_events parses ics data and returns EventItem list."""
-    ics_data = """BEGIN:VCALENDAR
+def _today_ics() -> str:
+    """Return ICS data with today's date."""
+    today = date.today().strftime("%Y%m%d")
+    tomorrow = (date.today() + __import__("datetime").timedelta(days=1)).strftime("%Y%m%d")
+    return f"""BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Test//Test//EN
 BEGIN:VEVENT
-DTSTART;VALUE=DATE:20260714
-DTEND;VALUE=DATE:20260715
+DTSTART;VALUE=DATE:{today}
+DTEND;VALUE=DATE:{tomorrow}
 SUMMARY:Team meeting
 DESCRIPTION:Weekly sync
 UID:meeting-001@test.com
 END:VEVENT
 BEGIN:VEVENT
-DTSTART;VALUE=DATE:20260714T140000
-DTEND;VALUE=DATE:20260714T150000
+DTSTART;VALUE=DATE:{today}T140000
+DTEND;VALUE=DATE:{today}T150000
 SUMMARY:Code review
 DESCRIPTION:Review PR #42
 UID:review-001@test.com
 END:VEVENT
 BEGIN:VEVENT
-DTSTART;VALUE=DATE:20260715
-DTEND;VALUE=DATE:20260716
+DTSTART;VALUE=DATE:{tomorrow}
+DTEND;VALUE=DATE:{tomorrow}
 SUMMARY:Tomorrow event
 UID:future-001@test.com
 END:VEVENT
 END:VCALENDAR
 """
 
+
+async def test_fetch_today_events_parses_ics() -> None:
+    """fetch_today_events parses ics data and returns EventItem list."""
+    ics_data = _today_ics()
+
     mock_response = AsyncMock()
     mock_response.text = ics_data
     mock_response.raise_for_status = MagicMock()
 
-    with patch("app.services.github.httpx.AsyncClient") as mock_client_cls:
+    with patch("app.services.ical.httpx.AsyncClient") as mock_client_cls:
         mock_client = AsyncMock()
         mock_client.__aenter__ = AsyncMock(return_value=mock_client)
         mock_client.__aexit__ = AsyncMock(return_value=None)
@@ -64,23 +71,13 @@ async def test_fetch_today_events_empty_when_no_urls() -> None:
 
 async def test_fetch_today_events_handles_single_url() -> None:
     """fetch_today_events works with a single URL."""
-    ics_data = """BEGIN:VCALENDAR
-VERSION:2.0
-PRODID:-//Test//Test//EN
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20260714
-DTEND;VALUE=DATE:20260715
-SUMMARY:Daily standup
-UID:daily-001@test.com
-END:VEVENT
-END:VCALENDAR
-"""
+    ics_data = _today_ics()
 
     mock_response = AsyncMock()
     mock_response.text = ics_data
     mock_response.raise_for_status = MagicMock()
 
-    with patch("app.services.github.httpx.AsyncClient") as mock_client_cls:
+    with patch("app.services.ical.httpx.AsyncClient") as mock_client_cls:
         mock_client = AsyncMock()
         mock_client.__aenter__ = AsyncMock(return_value=mock_client)
         mock_client.__aexit__ = AsyncMock(return_value=None)
@@ -89,29 +86,19 @@ END:VCALENDAR
 
         result = await fetch_today_events(["http://example.com/calendar.ics"])
 
-    assert len(result) == 1
-    assert result[0].title == "Daily standup"
+    assert len(result) == 2
+    assert result[0].title == "Team meeting"
 
 
 async def test_fetch_today_events_handles_fetch_errors() -> None:
     """When an iCal URL fails, it skips that URL and tries others."""
-    ics_data = """BEGIN:VCALENDAR
-VERSION:2.0
-PRODID:-//Test//Test//EN
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20260714
-DTEND;VALUE=DATE:20260715
-SUMMARY:Good calendar
-UID:good-001@test.com
-END:VEVENT
-END:VCALENDAR
-"""
+    ics_data = _today_ics()
 
     good_response = AsyncMock()
     good_response.text = ics_data
     good_response.raise_for_status = MagicMock()
 
-    with patch("app.services.github.httpx.AsyncClient") as mock_client_cls:
+    with patch("app.services.ical.httpx.AsyncClient") as mock_client_cls:
         mock_client = AsyncMock()
         mock_client.__aenter__ = AsyncMock(return_value=mock_client)
         mock_client.__aexit__ = AsyncMock(return_value=None)
@@ -130,5 +117,5 @@ END:VCALENDAR
             "http://good.example.com/calendar.ics",
         ])
 
-    assert len(result) == 1
-    assert result[0].title == "Good calendar"
+    assert len(result) == 2
+    assert result[0].title == "Team meeting"

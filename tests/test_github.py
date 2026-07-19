@@ -6,10 +6,22 @@ from app.models.briefing import TaskItem
 from app.services.github import fetch_active_tasks
 
 
+def _mock_httpx_client(resp_json: dict) -> AsyncMock:
+    """Create a mock httpx.AsyncClient that returns the given JSON."""
+    mock_resp = MagicMock()
+    mock_resp.json.return_value = resp_json
+    mock_resp.raise_for_status = MagicMock()
+
+    mock_client = AsyncMock()
+    mock_client.post.return_value = mock_resp
+    mock_client.__aenter__.return_value = mock_client
+    mock_client.__aexit__.return_value = None
+    return mock_client
+
+
 async def test_fetch_active_tasks_returns_tasks() -> None:
     """fetch_active_tasks returns list of TaskItem from GitHub Projects."""
-    mock_response = MagicMock()
-    mock_response.json.return_value = {
+    mock_response = {
         "data": {
             "projectV2": {
                 "items": {
@@ -41,15 +53,10 @@ async def test_fetch_active_tasks_returns_tasks() -> None:
             }
         }
     }
-    mock_response.raise_for_status = MagicMock()
 
-    with patch("app.services.github.httpx.AsyncClient") as mock_client_cls:
-        mock_client = AsyncMock()
-        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
-        mock_client.__aexit__ = AsyncMock(return_value=None)
-        mock_client.post.return_value = mock_response
-        mock_client_cls.return_value = mock_client
+    mock_client = _mock_httpx_client(mock_response)
 
+    with patch("app.services.github.httpx.AsyncClient", return_value=mock_client):
         result = await fetch_active_tasks()
 
     assert len(result) == 2
@@ -70,19 +77,9 @@ async def test_fetch_active_tasks_empty_when_no_token() -> None:
 
 async def test_fetch_active_tasks_empty_when_no_issues() -> None:
     """When GitHub returns no issues, returns empty list."""
-    mock_response = MagicMock()
-    mock_response.json.return_value = {
-        "data": {"projectV2": {"items": {"nodes": []}}}
-    }
-    mock_response.raise_for_status = MagicMock()
+    mock_client = _mock_httpx_client({"data": {"projectV2": {"items": {"nodes": []}}}})
 
-    with patch("app.services.github.httpx.AsyncClient") as mock_client_cls:
-        mock_client = AsyncMock()
-        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
-        mock_client.__aexit__ = AsyncMock(return_value=None)
-        mock_client.post.return_value = mock_response
-        mock_client_cls.return_value = mock_client
-
+    with patch("app.services.github.httpx.AsyncClient", return_value=mock_client):
         result = await fetch_active_tasks()
 
     assert result == []
@@ -90,8 +87,7 @@ async def test_fetch_active_tasks_empty_when_no_issues() -> None:
 
 async def test_fetch_active_tasks_sets_priority_for_overdue() -> None:
     """Overdue tasks get high priority."""
-    mock_response = MagicMock()
-    mock_response.json.return_value = {
+    mock_client = _mock_httpx_client({
         "data": {
             "projectV2": {
                 "items": {
@@ -103,7 +99,7 @@ async def test_fetch_active_tasks_sets_priority_for_overdue() -> None:
                                 "body": "",
                                 "state": "OPEN",
                                 "labels": {"nodes": []},
-                                "dueDate": "2020-01-01",  # past date
+                                "dueDate": "2020-01-01",
                                 "assignee": None,
                             }
                         },
@@ -111,16 +107,9 @@ async def test_fetch_active_tasks_sets_priority_for_overdue() -> None:
                 }
             }
         }
-    }
-    mock_response.raise_for_status = MagicMock()
+    })
 
-    with patch("app.services.github.httpx.AsyncClient") as mock_client_cls:
-        mock_client = AsyncMock()
-        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
-        mock_client.__aexit__ = AsyncMock(return_value=None)
-        mock_client.post.return_value = mock_response
-        mock_client_cls.return_value = mock_client
-
+    with patch("app.services.github.httpx.AsyncClient", return_value=mock_client):
         result = await fetch_active_tasks()
 
     assert result[0].priority == "high"

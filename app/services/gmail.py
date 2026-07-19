@@ -25,8 +25,8 @@ async def fetch_today_emails() -> list[EmailItem]:
         creds = None
         if settings.GMAIL_CREDENTIALS_PATH:
             try:
-                from google.oauth2 import credentials
-                creds = credentials.Credentials.from_authorized_user_file(
+                from google.oauth2.credentials import Credentials
+                creds = Credentials.from_authorized_user_file(
                     settings.GMAIL_CREDENTIALS_PATH,
                     ["https://www.googleapis.com/auth/gmail.readonly"],
                 )
