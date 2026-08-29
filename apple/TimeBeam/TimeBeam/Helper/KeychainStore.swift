@@ -4,6 +4,7 @@ import Security
 struct KeychainStore {
     enum Item: String {
         case idToken = "com.timebeam.auth.idToken"
+        case appleUserIdentifier = "com.synapse.auth.appleUserIdentifier"
         case accessToken = "com.timebeam.auth.accessToken"
         case refreshToken = "com.timebeam.auth.refreshToken"
         case userDisplayName = "com.timebeam.auth.displayName"

@@ -54,7 +54,7 @@ struct SettingsView: View {
                     } else {
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("Google Sign-In")
+                                Text("Sign in with Apple")
                                     .font(.system(size: 16, weight: .medium))
                                 Text("Sync data across devices")
                                     .font(.system(size: 14))
@@ -64,7 +64,7 @@ struct SettingsView: View {
                              Button("Sign In") {
                                  _Concurrency.Task {
                                     do {
-                                        try await authManager.signInWithGoogle()
+                                        try await authManager.signInWithApple()
                                     } catch {
                                         let errorMsg = handleSignInError(error, "SettingsView")
                                         print("Sign-in failed: \(errorMsg)")
@@ -384,10 +384,10 @@ struct AccountManagementView: View {
                             .foregroundStyle(.secondary)
                     }
 
-                     Button("Sign In with Google") {
+                     Button("Sign In with Apple") {
                          _Concurrency.Task {
                             do {
-                                try await authManager.signInWithGoogle()
+                                try await authManager.signInWithApple()
                             } catch {
                                 print("Sign-in failed: \(error)")
                             }

@@ -99,6 +99,7 @@ struct TimeBeamApp: App {
             }
             #endif
         }
+        .modelContainer(PersistenceController.shared)
     }
 
     @MainActor
