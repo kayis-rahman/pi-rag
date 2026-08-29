@@ -471,8 +471,8 @@ final class TaskModelUnitTests: XCTestCase {
 
     func testTaskEqualityPerformance() throws {
         // Given
-        let tasks = try (0..<1000).map { _ in
-            Task(id: UUID(), userId: UUID(), title: "Task \($0)",
+        let tasks = try (0..<1000).map { i in
+            Task(id: UUID(), userId: UUID(), title: "Task \(i)",
                 description: nil, status: .todo, createdAt: Date(), updatedAt: Date())
         }
 

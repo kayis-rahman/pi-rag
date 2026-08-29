@@ -69,11 +69,7 @@ final class AuthManager {
             if let mail = cachedEmail, !mail.isEmpty { self.email = mail }
         }
 
-        if let storedAppleID = try? KeychainStore.loadString(.appleUserIdentifier),
-           let appleUserIdentifier = storedAppleID,
-           !appleUserIdentifier.isEmpty {
-            self.isSignedIn = true
-        } else if let token = try? KeychainStore.loadString(.accessToken), !token.isEmpty {
+        if let token = try? KeychainStore.loadString(.accessToken), !token.isEmpty {
             if isTokenExpired(token) {
                 #if DEBUG
                 print("[Auth] restoreSession: access token expired, attempting refresh")
@@ -91,23 +87,6 @@ final class AuthManager {
         print("[Auth] restoreSession: completed with isSignedIn=\(self.isSignedIn)")
         #endif
     }
-
-    #if os(iOS) || os(macOS)
-    func signInWithApple() async throws {
-        let account = try await AppleSignInCoordinator.shared.signIn()
-        try KeychainStore.saveString(account.userIdentifier, for: .appleUserIdentifier)
-
-        if let displayName = account.displayName, !displayName.isEmpty {
-            try KeychainStore.saveString(displayName, for: .userDisplayName)
-            self.displayName = displayName
-        }
-        if let email = account.email, !email.isEmpty {
-            try KeychainStore.saveString(email, for: .userEmail)
-            self.email = email
-        }
-        isSignedIn = true
-    }
-    #endif
 
     func refreshAccessToken() async -> Bool {
         guard let refreshToken = try? KeychainStore.loadString(.refreshToken), !refreshToken.isEmpty else {
@@ -151,7 +130,6 @@ final class AuthManager {
     func signOut() async {
         try? KeychainStore.clear(.accessToken)
         try? KeychainStore.clear(.refreshToken)
-        try? KeychainStore.clear(.appleUserIdentifier)
         await MainActor.run {
             self.isSignedIn = false
             self.displayName = nil

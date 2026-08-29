@@ -8,19 +8,22 @@
 import XCTest
 @testable import TimeBeam
 
+@MainActor
 final class SetupAppSyncTests: XCTestCase {
 
-    private var mockTimer: MockPomodoroTimer!
+    private var mockTimer: PomodoroTimer!
 
-    override func setUpWithError() throws {
-        mockTimer = MockPomodoroTimer()
-        try clearTestState()
+    override func setUp() async {
+        super.setUp()
+        mockTimer = PomodoroTimer()
+        try? clearTestState()
         let syncManager = TimerSyncManager.shared
         syncManager.configure(with: mockTimer)
     }
 
-    override func tearDownWithError() throws {
-        try clearTestState()
+    override func tearDown() async {
+        try? clearTestState()
+        super.tearDown()
     }
 
     private func clearTestState() throws {

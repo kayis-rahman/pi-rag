@@ -8,19 +8,22 @@
 import XCTest
 @testable import TimeBeam
 
+@MainActor
 final class SyncFailureAlertTests: XCTestCase {
 
-    private var mockTimer: MockPomodoroTimer!
+    private var mockTimer: PomodoroTimer!
 
     override func setUpWithError() throws {
-        mockTimer = MockPomodoroTimer()
-        try clearTestState()
+        try super.setUpWithError()
+        mockTimer = PomodoroTimer()
+        try? clearTestState()
         let syncManager = TimerSyncManager.shared
         syncManager.configure(with: mockTimer)
     }
 
     override func tearDownWithError() throws {
-        try clearTestState()
+        try? clearTestState()
+        try super.tearDownWithError()
     }
 
     private func clearTestState() throws {
@@ -33,19 +36,19 @@ final class SyncFailureAlertTests: XCTestCase {
 
     // MARK: - Sync Failure Alert Visibility Tests
 
-    func test_twoFailures_noAlert() {
+    func test_twoFailures_noAlert() async {
         XCTFail("not implemented — will be satisfied by Plan 02/03")
     }
 
-    func test_threeConsecutiveFailures_triggersAlert() {
+    func test_threeConsecutiveFailures_triggersAlert() async {
         XCTFail("not implemented — will be satisfied by Plan 02/03")
     }
 
-    func test_manualRetry_resetsFailureCount() {
+    func test_manualRetry_resetsFailureCount() async {
         XCTFail("not implemented — will be satisfied by Plan 02/03")
     }
 
-    func test_successAfterAlert_dismissesAlert() {
+    func test_successAfterAlert_dismissesAlert() async {
         XCTFail("not implemented — will be satisfied by Plan 02/03")
     }
 }

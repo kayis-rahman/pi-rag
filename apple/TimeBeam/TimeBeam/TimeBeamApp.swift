@@ -99,7 +99,6 @@ struct TimeBeamApp: App {
             }
             #endif
         }
-        .modelContainer(PersistenceController.shared)
     }
 
     @MainActor
@@ -137,7 +136,7 @@ struct TimeBeamApp: App {
         }
 
         // Configure timer sync manager
-        TimerSyncManager.shared.configure(with: timer)
+        TimerSyncManager.shared.configure(with: timer, accessToken: authManager.getValidAccessToken())
 
         isAppReady = true
     }

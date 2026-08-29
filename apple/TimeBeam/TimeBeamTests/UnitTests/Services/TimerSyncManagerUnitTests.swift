@@ -8,19 +8,22 @@
 import XCTest
 @testable import TimeBeam
 
+@MainActor
 final class TimerSyncManagerUnitTests: XCTestCase {
-    private var mockTimer: MockPomodoroTimer!
+    private var mockTimer: PomodoroTimer!
 
     override func setUpWithError() throws {
-        mockTimer = MockPomodoroTimer()
+        try super.setUpWithError()
+        mockTimer = PomodoroTimer()
         // Clear deviceId from Keychain for test isolation
-        try clearTestDeviceId()
+        try? clearTestDeviceId()
         let syncManager = TimerSyncManager.shared
         syncManager.configure(with: mockTimer)
     }
 
     override func tearDownWithError() throws {
-        try clearTestDeviceId()
+        try? clearTestDeviceId()
+        try super.tearDownWithError()
     }
 
     private func clearTestDeviceId() throws {
@@ -33,7 +36,7 @@ final class TimerSyncManagerUnitTests: XCTestCase {
 
     // MARK: - Device ID Tests
 
-    func testDeviceIdIsGeneratedAndPersisted() throws {
+    func testDeviceIdIsGeneratedAndPersisted() async throws {
         // Given: fresh state
         let id = TimerSyncManager.shared.deviceId
 
@@ -41,7 +44,7 @@ final class TimerSyncManagerUnitTests: XCTestCase {
         XCTAssertFalse(id.isEmpty, "deviceId should not be empty")
     }
 
-    func testDeviceIdPersistsAfterConfigure() throws {
+    func testDeviceIdPersistsAfterConfigure() async throws {
         // Given: TimerSyncManager instance
         let id1 = TimerSyncManager.shared.deviceId
 
@@ -55,7 +58,7 @@ final class TimerSyncManagerUnitTests: XCTestCase {
 
     // MARK: - Timer Configuration Tests
 
-    func testTimerConfiguration() {
+    func testTimerConfiguration() async {
         // When: Timer is configured
         TimerSyncManager.shared.configure(with: mockTimer)
 
@@ -64,19 +67,19 @@ final class TimerSyncManagerUnitTests: XCTestCase {
         XCTAssertNotNil(timer)
     }
 
-    func testGetTimerReturnsConfiguredTimer() {
+    func testGetTimerReturnsConfiguredTimer() async {
         // When: Timer is configured
         TimerSyncManager.shared.configure(with: mockTimer)
 
         // Then: getTimer should return the mock timer
-        let timer = TimerSyncManager.shared.getTimer() as? MockPomodoroTimer
+        let timer = TimerSyncManager.shared.getTimer() as? PomodoroTimer
         XCTAssertNotNil(timer)
         XCTAssertTrue(timer === mockTimer)
     }
 
     // MARK: - Sync State Tests
 
-    func testIsSyncingInitialValue() {
+    func testIsSyncingInitialValue() async {
         // Then: isSyncing should be false initially
         XCTAssertFalse(TimerSyncManager.shared.isSyncing)
     }
@@ -119,41 +122,5 @@ final class TimerSyncManagerUnitTests: XCTestCase {
         // Then: local timer should be reset
         XCTAssertEqual(mockTimer.phase, .work)
         XCTAssertEqual(mockTimer.shortBreaksCompleted, 0)
-    }
-}
-
-// MARK: - Mock Classes
-
-private class MockPomodoroTimer: PomodoroTimer {
-    var phase: Phase = .work
-    var isRunning: Bool = false
-    var remainingSeconds: Int = 25 * 60
-    var workDuration: Int = 25 * 60
-    var breakDuration: Int = 5 * 60
-    var longBreakDuration: Int = 15 * 60
-    var autoStartNextSession: Bool = true
-    var shortBreaksCompleted: Int = 0
-
-    override func applySyncedState(
-        phase: Phase,
-        remainingSeconds: Int,
-        isRunning: Bool,
-        workDuration: Int,
-        breakDuration: Int,
-        longBreakDuration: Int,
-        autoStartNextSession: Bool,
-        shortBreaksCompleted: Int,
-        startTimestamp: Double?,
-        pauseTimestamp: Double?,
-        lastModifiedTimestamp: Double
-    ) {
-        self.phase = phase
-        self.remainingSeconds = remainingSeconds
-        self.isRunning = isRunning
-        self.workDuration = workDuration
-        self.breakDuration = breakDuration
-        self.longBreakDuration = longBreakDuration
-        self.autoStartNextSession = autoStartNextSession
-        self.shortBreaksCompleted = shortBreaksCompleted
     }
 }

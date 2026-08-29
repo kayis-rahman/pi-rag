@@ -39,13 +39,29 @@ class PomodoroTimer {
     private var timerTask: _Concurrency.Task<Void, Never>?
     var startTimestamp: Double?
     var pauseTimestamp: Double?
-    var lastModifiedTimestamp: Double
+    private(set) var lastModifiedTimestamp: Double
 
     init() {
         self.workDuration = 25 * 60
         self.breakDuration = 5 * 60
         self.longBreakDuration = 15 * 60
         self.remainingSeconds = 25 * 60
+        self.phase = .work
+        self.isRunning = false
+        self.autoStartNextSession = false
+        self.shortBreaksCompleted = 0
+        self.currentTaskId = nil
+        self.startTimestamp = nil
+        self.pauseTimestamp = nil
+        self.lastModifiedTimestamp = Date().timeIntervalSince1970
+    }
+
+    // Internal constructor for tests with custom durations
+    internal init(workDuration: Int, breakDuration: Int, longBreakDuration: Int = 15 * 60) {
+        self.workDuration = workDuration
+        self.breakDuration = breakDuration
+        self.longBreakDuration = longBreakDuration
+        self.remainingSeconds = workDuration
         self.phase = .work
         self.isRunning = false
         self.autoStartNextSession = false
@@ -106,6 +122,7 @@ class PomodoroTimer {
 
     func advance() {
         let previousPhase = phase
+        let previousDuration = currentDuration
         switch previousPhase {
         case .work:
             shortBreaksCompleted += 1
@@ -125,7 +142,21 @@ class PomodoroTimer {
         }
 
         lastModifiedTimestamp = Date().timeIntervalSince1970
-        onSessionCompleted?(previousPhase, currentDuration)
+        onSessionCompleted?(previousPhase, previousDuration)
+    }
+
+    /// Handle timer reaching zero — advance phase and optionally auto-start
+    func handleTimerCompletion() {
+        guard isRunning else { return }
+        advance()
+        if autoStartNextSession {
+            start()
+        }
+    }
+
+    /// Internal setter for lastModifiedTimestamp (tests only)
+    internal func setLastModifiedTimestamp(_ value: Double) {
+        lastModifiedTimestamp = value
     }
 
     func applySyncedState(

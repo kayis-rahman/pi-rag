@@ -31,6 +31,8 @@ final class TimerSyncManager {
     private let maxQueueSize = 50
     private var networkMonitor: NWPathMonitor?
     private var networkQueue: DispatchQueue?
+    private var wsClient: WebSocketClient?
+
     enum SyncError: Error, LocalizedError {
         case networkFailure(String)
         case authenticationFailure
@@ -66,7 +68,7 @@ final class TimerSyncManager {
         }
     }
 
-    func configure(with timer: PomodoroTimer) {
+    func configure(with timer: PomodoroTimer, accessToken: String? = nil) {
         self.timer = timer
         print("🔧 TIMER_SYNC_CONFIG: Timer configured, deviceId: \(deviceId)")
 
@@ -90,6 +92,18 @@ final class TimerSyncManager {
 
         // Start periodic polling for cross-device sync
         startPeriodicPolling()
+
+        // Set up WebSocket for real-time sync
+        if let wsURL = getWebSocketURL(),
+           let token = accessToken {
+            let client = WebSocketClient(baseURL: wsURL)
+            client.onTimerState = { [weak self] json in
+                guard let self = self else { return }
+                self.applyEventState(from: json as! [AnyHashable: Any])
+            }
+            self.wsClient = client
+            Task { await client.connect(token: token) }
+        }
     }
 
     // MARK: - Network Monitoring
@@ -107,10 +121,16 @@ final class TimerSyncManager {
                 if isNowConnected && !wasConnected {
                     print("🌐 TIMER_SYNC_NETWORK: Network restored — draining action queue")
                     self.isNetworkConnected = true
-                    Task { await self.drainActionQueue() }
+                    Task {
+                        await self.drainActionQueue()
+                        if let token = AuthManager.shared.getValidAccessToken() {
+                            await self.reconnectWebSocket(token: token)
+                        }
+                    }
                 } else if !isNowConnected && wasConnected {
                     print("🌐 TIMER_SYNC_NETWORK: Network lost — buffering mode")
                     self.isNetworkConnected = false
+                    self.wsClient?.disconnect()
                 }
             }
         }
@@ -124,6 +144,36 @@ final class TimerSyncManager {
         networkMonitor = nil
         networkQueue = nil
         print("🌐 TIMER_SYNC_NETWORK: Network monitoring stopped")
+    }
+
+    // MARK: - WebSocket
+
+    private func getWebSocketURL() -> URL? {
+        guard
+            let dict = Bundle.main.infoDictionary,
+            let base = dict["API_BASE_URL"] as? String,
+            var components = URLComponents(string: base)
+        else { return nil }
+        components.scheme = "ws"
+        components.path = (components.path ?? "") + "/ws"
+        return components.url
+    }
+
+    func reconnectWebSocket(token: String) async {
+        guard let wsURL = getWebSocketURL() else { return }
+        let client = WebSocketClient(baseURL: wsURL)
+        client.onTimerState = { [weak self] json in
+            guard let self = self else { return }
+            let dict = Dictionary(uniqueKeysWithValues: json.map { (k, v) in (String(describing: k), v) })
+            self.applyEventState(from: dict)
+        }
+        self.wsClient = client
+        await client.connect(token: token)
+        print("✅ TIMER_SYNC_WS: Reconnected after network restore")
+    }
+
+    func disconnectWebSocket() {
+        wsClient?.disconnect()
     }
 
     // MARK: - Periodic Polling
@@ -221,7 +271,29 @@ final class TimerSyncManager {
             timer.advance()
         }
 
-        // Perform sync with improved error handling and retry logic
+        // Try WebSocket first for real-time sync to other devices
+        if wsClient?.currentState == .connected {
+            do {
+                try await wsClient!.sendAction(
+                    action: action.rawValue,
+                    phase: timer.phase.rawValue,
+                    isRunning: timer.isRunning,
+                    remainingSeconds: Int(timer.remainingSeconds),
+                    workDuration: timer.workDuration,
+                    breakDuration: timer.breakDuration,
+                    longBreakDuration: timer.longBreakDuration,
+                    autoStartNextSession: timer.autoStartNextSession,
+                    shortBreaksCompleted: timer.shortBreaksCompleted,
+                    deviceId: deviceId,
+                    timestamp: Date().timeIntervalSince1970
+                )
+                print("⚡ TIMER_SYNC_WS: Action sent via WebSocket (fast path)")
+            } catch {
+                print("⚠️ TIMER_SYNC_WS: WebSocket send failed, falling back to HTTP: \(error)")
+            }
+        }
+
+        // Perform HTTP sync for persistence and conflict resolution
         let success = await syncWithRetry(
             operation: .actionSync(action),
             operationHandler: { [self] accessToken in
@@ -905,4 +977,5 @@ final class TimerSyncManager {
         case stateSync
         case actionSync(TimerAction)
     }
+
 }

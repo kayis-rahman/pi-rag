@@ -150,6 +150,34 @@ When a task involves independent searches, code exploration, or parallel work, A
 - Do exploration yourself when an Explore agent can do it faster
 - Skip agent usage because "it's quick" — parallel agents are always faster
 
+## iOS Physical Device Rule (STRICT)
+
+**Always deploy iOS to physical device, NOT simulator.** Simulator cannot test real-world scenarios like push notifications, background tasks, haptics, or actual network conditions.
+
+**Launch Commands:**
+```bash
+# Build for physical device (generic iOS)
+cd apple/TimeBeam && xcodebuild -scheme "TimeBeam iOS" -destination 'generic/platform=iOS' build
+
+# Deploy to connected physical device (use actual UDID)
+cd apple/TimeBeam && xcodebuild -scheme "TimeBeam iOS" -destination 'platform=iOS,id=<UDID>' build
+
+# Find connected device UDID
+xcrun xctrace list devices | grep "Devices ==" -A 5
+```
+
+**Prerequisites:**
+- Physical device must be unlocked and trusted in Xcode
+- Device shows as "Offline" = unlock and tap "Trust" this computer
+- Physical devices don't support `xcodebuild run` — use `build` only, then open Xcode to run
+- API_BASE_URL must point to backend reachable by device (piworm.local or local IP on device's network)
+
+**Cross-device testing:** ALWAYS use physical iOS + macOS app for timer sync tests.
+
+**Does NOT apply to:**
+- Quick UI layout verification (simulator OK for visual-only checks)
+- Backend-only work
+
 ## Docker Context — pi-node
 
 When Docker context is set to `pi-node`, `localhost` becomes `piworm.local` for all service URLs (Postgres, backend, etc.).

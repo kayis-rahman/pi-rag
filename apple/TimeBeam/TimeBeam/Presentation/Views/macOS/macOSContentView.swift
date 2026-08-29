@@ -201,10 +201,10 @@ struct macOSContentView: View {
                     _Concurrency.Task { await authManager.signOut() }
                 }
             } else {
-                Button("Sign In with Apple") {
+                Button("Sign In with Google") {
                     _Concurrency.Task {
                         do {
-                            try await authManager.signInWithApple()
+                            try await authManager.signInWithGoogle()
                         } catch {
                             print("Sign-in failed: \(error)")
                         }
@@ -360,3 +360,4 @@ extension View {
 #endif
 
 // All PomodoroTimer methods are now properly implemented - no shims needed
+

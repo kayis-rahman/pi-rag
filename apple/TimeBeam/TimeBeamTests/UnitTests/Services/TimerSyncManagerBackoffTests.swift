@@ -8,19 +8,22 @@
 import XCTest
 @testable import TimeBeam
 
+@MainActor
 final class TimerSyncManagerBackoffTests: XCTestCase {
 
-    private var mockTimer: MockPomodoroTimer!
+    private var mockTimer: PomodoroTimer!
 
     override func setUpWithError() throws {
-        mockTimer = MockPomodoroTimer()
-        try clearTestState()
+        try super.setUpWithError()
+        mockTimer = PomodoroTimer()
+        try? clearTestState()
         let syncManager = TimerSyncManager.shared
         syncManager.configure(with: mockTimer)
     }
 
     override func tearDownWithError() throws {
-        try clearTestState()
+        try? clearTestState()
+        try super.tearDownWithError()
     }
 
     private func clearTestState() throws {
@@ -33,23 +36,23 @@ final class TimerSyncManagerBackoffTests: XCTestCase {
 
     // MARK: - Exponential Backoff Interval Tests
 
-    func test_firstFailure_backoff30s() {
+    func test_firstFailure_backoff30s() async {
         XCTFail("not implemented — will be satisfied by Plan 02/03")
     }
 
-    func test_secondFailure_backoff60s() {
+    func test_secondFailure_backoff60s() async {
         XCTFail("not implemented — will be satisfied by Plan 02/03")
     }
 
-    func test_thirdFailure_backoff120s() {
+    func test_thirdFailure_backoff120s() async {
         XCTFail("not implemented — will be satisfied by Plan 02/03")
     }
 
-    func test_fourthFailure_capped300s() {
+    func test_fourthFailure_capped300s() async {
         XCTFail("not implemented — will be satisfied by Plan 02/03")
     }
 
-    func test_successResetsBackoff() {
+    func test_successResetsBackoff() async {
         XCTFail("not implemented — will be satisfied by Plan 02/03")
     }
 }

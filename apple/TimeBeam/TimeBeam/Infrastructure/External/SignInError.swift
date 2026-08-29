@@ -12,7 +12,7 @@ public enum SignInError: Error, LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .notConfigured:
-            return "Sign in with Apple is not configured"
+            return "Google Sign-In is not configured"
         case .cancelled:
             return "Sign-in was cancelled"
         case .failed(let error):

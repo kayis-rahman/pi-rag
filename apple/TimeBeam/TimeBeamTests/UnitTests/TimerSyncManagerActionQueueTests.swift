@@ -1,20 +1,21 @@
 import XCTest
 @testable import TimeBeam
 
+@MainActor
 final class TimerSyncManagerActionQueueTests: XCTestCase {
 
     var sut: TimerSyncManager!
     var mockTimer: PomodoroTimer!
 
-    override func setUp() {
-        super.setUp()
+    override func setUpWithError() throws {
+        try super.setUpWithError()
         sut = TimerSyncManager.shared
         mockTimer = PomodoroTimer()
         sut.configure(with: mockTimer)
     }
 
-    override func tearDown() {
-        super.tearDown()
+    override func tearDownWithError() throws {
+        try super.tearDownWithError()
         // Clean up Keychain after tests
         try? KeychainStore.clear(.actionQueue)
     }
@@ -35,7 +36,7 @@ final class TimerSyncManagerActionQueueTests: XCTestCase {
         )
 
         // Enqueue the action
-        await sut.enqueueAction(action)
+        sut.enqueueAction(action)
 
         // Verify persisted to Keychain
         let loaded = try KeychainStore.load(.actionQueue)
@@ -75,8 +76,8 @@ final class TimerSyncManagerActionQueueTests: XCTestCase {
             shortBreaksCompleted: 1
         )
 
-        await sut.enqueueAction(action1)
-        await sut.enqueueAction(action2)
+        sut.enqueueAction(action1)
+        sut.enqueueAction(action2)
 
         let loaded = try KeychainStore.load(.actionQueue)
         XCTAssertNotNil(loaded)
@@ -107,7 +108,7 @@ final class TimerSyncManagerActionQueueTests: XCTestCase {
         try KeychainStore.save(encoded, for: .actionQueue)
 
         // Load using the manager's method
-        let loaded = await sut.loadActionQueue()
+        let loaded = sut.loadActionQueue()
         XCTAssertEqual(loaded.count, 1)
         XCTAssertEqual(loaded[0].action, "reset")
         XCTAssertEqual(loaded[0].timestamp, 3000.0)
@@ -129,7 +130,7 @@ final class TimerSyncManagerActionQueueTests: XCTestCase {
                 autoStartNextSession: true,
                 shortBreaksCompleted: 0
             )
-            await sut.enqueueAction(action)
+            sut.enqueueAction(action)
         }
 
         // Verify only 50 actions remain (oldest dropped)
@@ -191,14 +192,14 @@ final class TimerSyncManagerActionQueueTests: XCTestCase {
         )
 
         // Enqueue action
-        await sut.enqueueAction(action)
+        sut.enqueueAction(action)
 
         // Verify it's in Keychain
         var loaded = try KeychainStore.load(.actionQueue)
         XCTAssertNotNil(loaded)
 
         // Clear the queue
-        await sut.clearActionQueue()
+        sut.clearActionQueue()
 
         // Verify it's removed from Keychain
         loaded = try KeychainStore.load(.actionQueue)

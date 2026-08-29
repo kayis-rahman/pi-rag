@@ -8,12 +8,13 @@
 import XCTest
 @testable import TimeBeam
 
+@MainActor
 final class TimerSyncIntegrationTests: XCTestCase {
 
-    private var mockTimer: MockPomodoroTimer!
+    private var mockTimer: PomodoroTimer!
 
     override func setUpWithError() throws {
-        mockTimer = MockPomodoroTimer()
+        mockTimer = PomodoroTimer()
         // Clear deviceId from Keychain for test isolation
         try clearTestDeviceId()
         // Reset singleton state
@@ -168,41 +169,5 @@ final class TimerSyncIntegrationTests: XCTestCase {
         XCTAssertEqual(mockTimer.phase, .break, "Phase should be updated")
         XCTAssertEqual(mockTimer.remainingSeconds, 300, "Remaining seconds should be updated")
         XCTAssertTrue(mockTimer.isRunning, "Timer should be running")
-    }
-}
-
-// MARK: - Mock Classes
-
-private class MockPomodoroTimer: PomodoroTimer {
-    var phase: Phase = .work
-    var isRunning: Bool = false
-    var remainingSeconds: Int = 25 * 60
-    var workDuration: Int = 25 * 60
-    var breakDuration: Int = 5 * 60
-    var longBreakDuration: Int = 15 * 60
-    var autoStartNextSession: Bool = true
-    var shortBreaksCompleted: Int = 0
-
-    override func applySyncedState(
-        phase: Phase,
-        remainingSeconds: Int,
-        isRunning: Bool,
-        workDuration: Int,
-        breakDuration: Int,
-        longBreakDuration: Int,
-        autoStartNextSession: Bool,
-        shortBreaksCompleted: Int,
-        startTimestamp: Double?,
-        pauseTimestamp: Double?,
-        lastModifiedTimestamp: Double
-    ) {
-        self.phase = phase
-        self.remainingSeconds = remainingSeconds
-        self.isRunning = isRunning
-        self.workDuration = workDuration
-        self.breakDuration = breakDuration
-        self.longBreakDuration = longBreakDuration
-        self.autoStartNextSession = autoStartNextSession
-        self.shortBreaksCompleted = shortBreaksCompleted
     }
 }

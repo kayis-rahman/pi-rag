@@ -7,21 +7,22 @@
 import XCTest
 @testable import TimeBeam
 
+@MainActor
 final class PomodoroTimerUnitTests: XCTestCase {
 
     private var timer: PomodoroTimer!
 
-    override func setUp() {
-        super.setUp()
+    override func setUpWithError() throws {
+        try super.setUpWithError()
         timer = PomodoroTimer()
     }
 
-    override func tearDown() {
+    override func tearDownWithError() throws {
         timer = nil
-        super.tearDown()
+        try super.tearDownWithError()
     }
 
-    func testStartSetsTimestamps() {
+    func testStartSetsTimestamps() async {
         // Given
         let before = Date().timeIntervalSince1970
 
@@ -35,7 +36,7 @@ final class PomodoroTimerUnitTests: XCTestCase {
         XCTAssertGreaterThan(timer.lastModifiedTimestamp, before)
     }
 
-    func testPauseSetsTimestamps() {
+    func testPauseSetsTimestamps() async {
         // Given
         timer.start()
 
@@ -49,14 +50,14 @@ final class PomodoroTimerUnitTests: XCTestCase {
         XCTAssertGreaterThan(timer.lastModifiedTimestamp, beforePause)
     }
 
-    func testPauseIgnoreWithin2Seconds() {
+    func testPauseIgnoreWithin2Seconds() async {
         // Given
-        timer.startFromSync()
+        timer.start()
 
         // When
         let beforePause = Date()
         // Wait less than 2 seconds
-        Thread.sleep(forTimeInterval: 0.5)
+        try? await Task.sleep(nanoseconds: 500_000_000)
         timer.pause()
 
         // Then
@@ -65,13 +66,13 @@ final class PomodoroTimerUnitTests: XCTestCase {
         XCTAssertNil(timer.pauseTimestamp)
     }
 
-    func testPauseExecuteAfter2Seconds() {
+    func testPauseExecuteAfter2Seconds() async {
         // Given
-        timer.startFromSync()
+        timer.start()
 
         // When
         // Wait more than 2 seconds
-        Thread.sleep(forTimeInterval: 2.5)
+        try? await Task.sleep(nanoseconds: 2_500_000_000)
         timer.pause()
 
         // Then
@@ -79,18 +80,18 @@ final class PomodoroTimerUnitTests: XCTestCase {
         XCTAssertNotNil(timer.pauseTimestamp)
     }
 
-    func testRemainingSecondsDouble() {
+    func testRemainingSecondsDouble() async {
         // Given
         timer.start()
 
         // When
-        timer.remainingSeconds = 1234.5
+        timer.remainingSeconds = 1234
 
         // Then
-        XCTAssertEqual(timer.remainingSeconds, 1234.5)
+        XCTAssertEqual(timer.remainingSeconds, 1234)
     }
 
-    func testProgressCalculation() {
+    func testProgressCalculation() async {
         // Given
         timer.remainingSeconds = 750 // Half of 1500
 

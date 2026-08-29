@@ -8,19 +8,22 @@
 import XCTest
 @testable import TimeBeam
 
+@MainActor
 final class TimerSyncManagerQueueTests: XCTestCase {
 
-    private var mockTimer: MockPomodoroTimer!
+    private var mockTimer: PomodoroTimer!
 
     override func setUpWithError() throws {
-        mockTimer = MockPomodoroTimer()
-        try clearTestState()
+        try super.setUpWithError()
+        mockTimer = PomodoroTimer()
+        try? clearTestState()
         let syncManager = TimerSyncManager.shared
         syncManager.configure(with: mockTimer)
     }
 
     override func tearDownWithError() throws {
-        try clearTestState()
+        try? clearTestState()
+        try super.tearDownWithError()
     }
 
     private func clearTestState() throws {
@@ -34,29 +37,29 @@ final class TimerSyncManagerQueueTests: XCTestCase {
 
     // MARK: - Action Queue Enqueue Tests
 
-    func test_enqueueAction_addsToQueue() {
+    func test_enqueueAction_addsToQueue() async {
         XCTFail("not implemented — will be satisfied by Plan 02/03")
     }
 
-    func test_enqueueAction_persistsToKeychain() {
+    func test_enqueueAction_persistsToKeychain() async {
         XCTFail("not implemented — will be satisfied by Plan 02/03")
     }
 
-    func test_queue_overflow_dropsOldest() {
+    func test_queue_overflow_dropsOldest() async {
         XCTFail("not implemented — will be satisfied by Plan 02/03")
     }
 
     // MARK: - Action Queue Drain Tests
 
-    func test_drainActionQueue_replaysInOrder() {
+    func test_drainActionQueue_replaysInOrder() async {
         XCTFail("not implemented — will be satisfied by Plan 02/03")
     }
 
-    func test_drainActionQueue_requeuesOnConsecutiveFailures() {
+    func test_drainActionQueue_requeuesOnConsecutiveFailures() async {
         XCTFail("not implemented — will be satisfied by Plan 02/03")
     }
 
-    func test_loadActionQueue_restoresFromKeychain() {
+    func test_loadActionQueue_restoresFromKeychain() async {
         XCTFail("not implemented — will be satisfied by Plan 02/03")
     }
 }

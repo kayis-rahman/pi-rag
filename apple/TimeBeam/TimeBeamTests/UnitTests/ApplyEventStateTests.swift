@@ -1,21 +1,22 @@
 import XCTest
 @testable import TimeBeam
 
+@MainActor
 final class ApplyEventStateTests: XCTestCase {
 
     var sut: TimerSyncManager!
     var mockTimer: PomodoroTimer!
 
-    override func setUp() {
-        super.setUp()
+    override func setUpWithError() throws {
+        try super.setUpWithError()
         sut = TimerSyncManager.shared
         mockTimer = PomodoroTimer()
-        mockTimer.lastModifiedTimestamp = 2000.0
+        mockTimer.setLastModifiedTimestamp(2000.0)
         sut.configure(with: mockTimer)
     }
 
     // Test 1: applyEventState with push timestamp <= local lastModifiedTimestamp skips apply
-    func test_applyEventState_skipWhenPushTimestampIsStale() {
+    func test_applyEventState_skipWhenPushTimestampIsStale() async {
         let userInfo: [AnyHashable: Any] = [
             "phase": "work",
             "remainingSeconds": 1500,
@@ -41,7 +42,7 @@ final class ApplyEventStateTests: XCTestCase {
     }
 
     // Test 2: applyEventState with push timestamp > local lastModifiedTimestamp applies state
-    func test_applyEventState_applyWhenPushTimestampIsNewer() {
+    func test_applyEventState_applyWhenPushTimestampIsNewer() async {
         let userInfo: [AnyHashable: Any] = [
             "phase": "short_break",
             "remainingSeconds": 250,
@@ -66,7 +67,7 @@ final class ApplyEventStateTests: XCTestCase {
     }
 
     // Test 3: applyEventState reads autoStartNextSession from userInfo (not timer fallback)
-    func test_applyEventState_readsAutoStartNextSessionFromPayload() {
+    func test_applyEventState_readsAutoStartNextSessionFromPayload() async {
         let userInfo: [AnyHashable: Any] = [
             "phase": "work",
             "remainingSeconds": 1500,
@@ -90,7 +91,7 @@ final class ApplyEventStateTests: XCTestCase {
     }
 
     // Test 4: applyEventState reads shortBreaksCompleted from userInfo (not timer fallback)
-    func test_applyEventState_readsShortBreaksCompletedFromPayload() {
+    func test_applyEventState_readsShortBreaksCompletedFromPayload() async {
         let userInfo: [AnyHashable: Any] = [
             "phase": "long_break",
             "remainingSeconds": 850,
@@ -114,8 +115,8 @@ final class ApplyEventStateTests: XCTestCase {
     }
 
     // Test 5: applyEventState with equal timestamps skips apply (per D-01)
-    func test_applyEventState_skipWhenTimestampsAreEqual() {
-        mockTimer.lastModifiedTimestamp = 2000.0
+    func test_applyEventState_skipWhenTimestampsAreEqual() async {
+        mockTimer.setLastModifiedTimestamp(2000.0)
 
         let userInfo: [AnyHashable: Any] = [
             "phase": "work",
@@ -140,7 +141,7 @@ final class ApplyEventStateTests: XCTestCase {
     }
 
     // Test 6: applyEventState handles NSNumber types for numeric fields
-    func test_applyEventState_handlesNSNumberTypes() {
+    func test_applyEventState_handlesNSNumberTypes() async {
         let userInfo: [AnyHashable: Any] = [
             "phase": "work",
             "remainingSeconds": NSNumber(value: 1200), // NSNumber instead of Int
