@@ -1,0 +1,80 @@
+name: 🚀 CI Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  # Fast feedback (fail fast)
+  lint:
+    uses: ./.github/workflows/lint.yml
+
+  # Unit tests (all platforms)
+  unit-tests:
+    uses: ./.github/workflows/test-unit.yml
+
+  # Integration tests (all platforms)
+  integration-tests:
+    uses: ./.github/workflows/test-integration.yml
+    needs: [unit-tests]
+
+  # Backend comprehensive testing (keep existing)
+  backend:
+    uses: ./.github/workflows/backend.yml
+    needs: [unit-tests]
+    secrets: inherit
+
+  # Frontend testing (keep existing)
+  frontend:
+    uses: ./.github/workflows/frontend.yml
+    needs: [unit-tests]
+    secrets: inherit
+
+  # Comprehensive testing (keep existing)
+  testing:
+    uses: ./.github/workflows/testing.yml
+    needs: [backend, frontend]
+    secrets: inherit
+
+  # Security scanning (keep existing)
+  security:
+    uses: ./.github/workflows/security.yml
+    needs: [backend, frontend]
+    secrets: inherit
+
+  # Test report aggregation
+  test-report:
+    uses: ./.github/workflows/test-report.yml
+    needs: [unit-tests, integration-tests]
+    secrets: inherit
+
+  # Quality gates (all must pass)
+  quality-gate:
+    runs-on: [self-hosted, piwrom]
+    needs: [lint, unit-tests, integration-tests, backend, frontend, testing, security, test-report]
+    if: always()
+
+    steps:
+    - name: Final Quality Assessment
+      run: |
+        # Check all dependent jobs
+        if [[ "${{ needs.lint.result }}" != "success" ]] ||
+           [[ "${{ needs.unit-tests.result }}" != "success" ]] ||
+           [[ "${{ needs.integration-tests.result }}" != "success" ]] ||
+           [[ "${{ needs.backend.result }}" != "success" ]] ||
+           [[ "${{ needs.frontend.result }}" != "success" ]] ||
+           [[ "${{ needs.testing.result }}" != "success" ]] ||
+           [[ "${{ needs.security.result }}" != "success" ]] ||
+           [[ "${{ needs.test-report.result }}" != "success" ]]; then
+
+          echo "❌ Quality gates failed - blocking merge"
+          echo "## 🚫 CI Pipeline Failed" >> $GITHUB_STEP_SUMMARY
+          echo "One or more quality gates did not pass." >> $GITHUB_STEP_SUMMARY
+          exit 1
+        fi
+
+        echo "✅ All quality gates passed"
+        echo "## ✅ CI Pipeline Successful" >> $GITHUB_STEP_SUMMARY
+        echo "All checks passed - ready for merge." >> $GITHUB_STEP_SUMMARY
