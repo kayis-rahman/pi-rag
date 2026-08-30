@@ -1,112 +1,27 @@
-# Synapse — Personal AI Assistant Hub
+# Synapse UI Guidance
 
-## What This Is
+## Strict physical-device-only iOS rule
 
-Personal AI assistant hub hosted on Raspberry Pi 5 (8GB RAM).
-One job: Daily GTD briefing + focus sessions (tasks, email, calendar, Pomodoro).
+All iOS builds, installs, launches, and UI-test runs must target the configured
+physical iPhone 15 Pro (`EF10AF50-5F03-56B0-A662-5DFE185E0B23`). Simulator
+destinations and simulator-based validation are prohibited. Before running,
+verify that `xcrun devicectl list devices` reports the phone as available and
+paired. If the phone is unavailable, stop and fix the connection rather than
+falling back to a simulator. Use `scripts/run-on-iphone15pro.sh` and the
+physical-device UI-test commands documented in
+`docs/ios-ui-tests-on-iphone-15-pro.md`.
 
-## Architecture
+For every UI change—SwiftUI layout, styling, interaction, motion, navigation,
+accessibility, or UI tests—read and apply the installed `emil-design-eng`
+skill from `emilkowalski/skills` before implementation:
 
-```
-┌─────────────────────────────────────────────────┐
-│                 Raspberry Pi 5                   │
-│                                                  │
-│  ┌──────────────┐  ┌──────────────┐             │
-│  │  llama.cpp    │  │   Qdrant     │             │
-│  │  Gemma 4 E4B │  │  (RAG/Memory)│             │
-│  └──────┬───────┘  └──────┬───────┘             │
-│         │                 │                      │
-│  ┌──────▼────────────────▼───────┐              │
-│  │     Python Orchestrator       │              │
-│  │  (GTD briefing, session mgmt) │              │
-│  └──────┬────────────────┬───────┘              │
-│         │                │                      │
-│  ┌──────▼──────┐  ┌─────▼────────┐             │
-│  │    Redis     │  │  Open WebUI  │             │
-│  │ (session st) │  │  (fallback)  │             │
-│  └─────────────┘  └──────────────┘              │
-└─────────────────────────────────────────────────┘
-         ▲                    ▲
-    ┌────┴────┐          ┌───┴───────┐
-    │  iPhone  │          │   Browser │
-    │ TimeBeam │          │   PWA     │
-    │  (Swift) │          │           │
-    └──────────┘          └───────────┘
-   Tailscale              Tailscale
-```
+`/Users/kayisrahman/.agents/skills/anthropic-skills/skills/emil-design-eng/SKILL.md`
 
-## Data Sources
+This applies to iOS, macOS, watchOS, and shared UI code. Use `write-swift` as
+well for Swift implementation or concurrency work.
 
-- Gmail (email briefing)
-- GitHub Projects (task tracking)
-- iCal (.ics URL polling)
-
-## Voice
-
-- Input: IndicWhisper (Malayalam + English)
-- Output: Indic Parler-TTS
-
-## LLM Strategy
-
-- **Primary**: Gemma 4 E4B via llama.cpp on Pi 5
-- **Auto-sleep**: systemd socket activation (idle unload)
-- **Fallback**: Qwen3-27B on GPUHub RTX 5090 via Tailscale
-
-## Pi 5 Services
-
-- llama.cpp (Gemma 4 E4B)
-- Qdrant (long-term memory/RAG)
-- Redis (session state)
-- Open WebUI (fallback interface)
-
-## Interfaces
-
-- **Primary**: iOS Pomodoro app (TimeBeam, Swift) — connects via Tailscale
-- **Fallback**: Open WebUI (PWA/browser)
-
-## GitFlow Strategy
-
-### Branch Structure
-
-- `main` = production releases
-- `develop` = active development branch
-- `feature/*` = feature branches
-- `archive/*` = archived code (old Spring Boot memory agent)
-
-### Worktree Workflow
-
-Feature development uses git worktrees for isolation:
-
-```bash
-git worktree add -b feature/my-feature ../worktrees/my-feature
-```
-
-## Kayis HQ Project
-
-All issues tracked in GitHub Project #7 ("Kayis's HQ"):
-- Labeled by repo: `synapse`, `time-beam`, `ironveil`, etc.
-- Phases tracked via Milestone field
-- Status workflow: Backlog → Planned → In Progress → Review → Done
-
-## Conventions
-
-### Backend (Python)
-
-- FastAPI for HTTP API
-- Pydantic for data models
-- async/await throughout
-- Configuration via `.env` + pydantic-settings
-
-### Pi Deployment
-
-- systemd services for all components
-- docker-compose for Qdrant + Redis + Open WebUI
-- llama.cpp as native binary (no container)
-- Tailscale for network access
-
-### Code Quality
-
-- Type hints required
-- Black formatting
-- ruff linting
-- pytest with async support
+For Quick Capture, Inbox persistence, triage, or App Intent changes, require
+three test layers: unit/service tests, SwiftData/integration tests, and
+physical-device UI tests on the configured iPhone 15 Pro. Use unique UUID
+fixtures for persisted data and document manual-only cases such as low storage
+or account sign-out.

@@ -1,39 +1,284 @@
-# Python
-__pycache__/
-*.py[cod]
-*.egg-info/
-dist/
-build/
-venv/
-.venv/
+# If you prefer the allow list template instead of the deny list, see community template:
+# https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
+#
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
 
-# Environment
+# Test binary, built with `go test -c`
+*.test
+
+# Code coverage profiles and other test artifacts
+*.out
+coverage.*
+*.coverprofile
+profile.cov
+
+# Dependency directories (remove the comment below to include it)
+# vendor/
+
+# Go workspace file
+go.work
+go.work.sum
+
+# env file
 .env
-.env.local
-.env.*.local
 
-# IDE
+# ========================================
+# Synapse Project Specific Ignores
+# ========================================
+
+# Java/Maven
+target/
+*.class
+*.jar
+
+# Backend logs and temporary files
+back-end/logs/
+back-end/backend.log
+*.log
+
+# Swift/iOS/macOS
+DerivedData/
+build/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcuserdatad/
+*.xcbkptlist
+*.xcuserstate
+*.xcodeproj/xcworkspace/xcuserdata/
+
+# Swift Package Manager
+.swiftpm/
+Package.resolved
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# IDE/Editor
 .idea/
 .vscode/
 *.swp
 *.swo
-
-# OS
-.DS_Store
-Thumbs.db
+*~
 
 # Logs
 logs/
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Pi deployment
-pi-deploy/
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
 
-# Claude Code (agent-generated)
-.claude/projects/
-.claude/worktrees/
-.claude/agents/
-.claude/skills/
+# Coverage directory used by tools like istanbul
+lib-cov/
+coverage/
+*.lcov
 
-# Gradle (archived Spring Boot)
-.gradle/
+# nyc test coverage
+.nyc_output
+
+# Grunt intermediate storage
+.grunt/
+
+# Bower dependency directory
+bower_components/
+
+# node-waf configuration
+.lock-wscript
+
+# Compiled binary addons
+build/Release/
+
+# Dependency directories
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variables file
+.env
+.env.test
+.env.local
+.env.production
+
+# parcel-bundler cache
+.cache
+.parcel-cache
+
+# Next.js build output
+.next
+
+# Nuxt.js build / generate output
+.nuxt
+dist/
+
+# Gatsby files
+.cache/
+public
+
+# Storybook build outputs
+.out
+.storybook-out
+
+# Temporary folders
+tmp/
+temp/
+
+# Editor directories and files
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Memory bank (generated content)
+memory-bank/*/apn_config_analysis
+memory-bank/*/apn_setup_guide
+memory-bank/*/apns_certificates_check
+memory-bank/*/apns_registration_fix
+memory-bank/*/apns_registration_test
+memory-bank/*/apns_setup_guide
+memory-bank/*/apns_token_update_403_failure
+memory-bank/*/app_build_test
+memory-bank/*/app_launch_test
+memory-bank/*/app_notification_flow
+memory-bank/*/app_notification_handling
+memory-bank/*/authmanager_structural_fix
+memory-bank/*/backend_restart_complete
+memory-bank/*/backend_startup_procedure
+memory-bank/*/bigdecimal_timestamp_fix
+memory-bank/*/build_performance_analysis
+memory-bank/*/bundle_id_mismatch
+memory-bank/*/clean_rebuild_fix
+memory-bank/*/code_quality_analysis
+memory-bank/*/database_schema_analysis
+memory-bank/*/device_registration_analysis
+memory-bank/*/device_registration_check
+memory-bank/*/device_registration_status
+memory-bank/*/field_mismatch_fix
+memory-bank/*/final_debug_analysis
+memory-bank/*/final_timer_sync_resolution
+memory-bank/*/fix_implementation
+memory-bank/*/json_parsing_investigation
+memory-bank/*/json_response_debug
+memory-bank/*/json_serialization_analysis
+memory-bank/*/json_string_format_fix
+memory-bank/*/log_location_analysis
+memory-bank/*/macoscontentview_extension_conflict
+memory-bank/*/network_connectivity_analysis
+memory-bank/*/oauth_multiple_instances_final_fix
+memory-bank/*/oauth_sandboxing_fix
+memory-bank/*/oauth_url_scheme_fix
+memory-bank/*/oauth_user_info_extraction
+memory-bank/*/string_timestamp_final_fix
+memory-bank/*/swift_json_debug
+memory-bank/*/swift_json_parsing_issue
+memory-bank/*/swift_scientific_notation_fix
+memory-bank/*/sync_diagnostic
+memory-bank/*/sync_failure_analysis
+memory-bank/*/timer_sync_debug
+memory-bank/*/timer_sync_final_resolution
+memory-bank/*/timer_sync_final_status
+memory-bank/*/timer_sync_flow
+memory-bank/*/timestamp_conversion_fix
+memory-bank/*/timestamp_debug_analysis
+memory-bank/*/timestamp_detailed_debug
+memory-bank/*/timestamp_rounding_fix
+memory-bank/*/timezone_analysis
+memory-bank/*/timezone_compliance_final
+memory-bank/*/timezone_findings
+memory-bank/*/tostring_serializer_fix
+memory-bank/*/xcode_build_diagnosis
+memory-bank/*/xcode_build_test
+memory-bank/*/xcode_capabilities_check
+memory-bank/*/xcode_configuration_check
+memory-bank/*/xcode_console_debug
+memory-bank/*/xcode_log_analysis
+
+# Editor/IDE
+.idea/
+.vscode/
+
+# Claude Code local overrides
+.claude/*.local.json
+.claude/checkpoints.log
