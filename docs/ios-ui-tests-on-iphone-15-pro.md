@@ -113,8 +113,37 @@ xcodebuild test \
 ```
 
 The UI test launch configuration adds `-ui-testing`. This bypasses normal
-backend/auth startup and uses a unique local SwiftData test store with CloudKit
-disabled, so each fresh test-app process starts with isolated local data.
+backend/auth startup and uses a local SwiftData test store with CloudKit
+disabled. Each `XCTestCase` generates its own store id and passes it via
+`SYNAPSE_UI_TEST_STORE_ID` on every launch it performs, so the store is
+isolated between test methods but stable across a mid-test relaunch (needed by
+tests that verify persistence survives `app.terminate()`/`app.launch()`); a
+process launched without that env var (e.g. manually) falls back to a fresh
+store id cached for that process's lifetime.
+
+### Running several tests without rebuilding between them
+
+Each `xcodebuild test` invocation re-checks the build graph even when nothing
+changed, which adds up when iterating one test at a time. `--test-each` builds
+once with `build-for-testing`, then runs each given identifier with
+`test-without-building`, printing a PASS/FAIL line per test:
+
+```sh
+./scripts/run-on-iphone15pro.sh --test-each \
+  SynapseUITests/GTDWorkspaceUITests/testHomeTaskOpensDetailsAndSaves \
+  SynapseUITests/GTDWorkspaceUITests/testDeletingAreaMovesItsTaskToUncategorized
+```
+
+`--test` itself also accepts multiple identifiers to run together in one
+`xcodebuild test` invocation (faster than `--test-each` when you don't need
+per-test isolation from a build-graph check, e.g. confirming a batch of fixes
+at once):
+
+```sh
+./scripts/run-on-iphone15pro.sh --test \
+  SynapseUITests/GTDWorkspaceUITests/testHomeTaskOpensDetailsAndSaves \
+  SynapseUITests/GTDWorkspaceUITests/testDeletingAreaMovesItsTaskToUncategorized
+```
 
 The iOS app scheme contains UI tests only. Run Weekly Review service and
 SwiftData integration tests with the separate unit-test scheme, still targeting
