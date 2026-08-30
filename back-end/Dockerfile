@@ -13,6 +13,6 @@ RUN mvn -B -DskipTests package
 FROM eclipse-temurin:17-jre
 WORKDIR /app
 # copy the built jar from the build stage (artifact name from pom)
-COPY --from=build /build/target/timebeam-backend-0.0.1-SNAPSHOT.jar /app/app.jar
+COPY --from=build /build/target/synapse-backend-0.0.1-SNAPSHOT.jar /app/app.jar
 EXPOSE 8080
 ENTRYPOINT ["java","-jar","/app/app.jar"]

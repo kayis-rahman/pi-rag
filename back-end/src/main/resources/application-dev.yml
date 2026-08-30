@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/timebeam_e2e
-    username: timebeam
-    password: timebeam
+    url: jdbc:postgresql://localhost:5432/synapse_e2e
+    username: synapse
+    password: synapse
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 5
@@ -25,7 +25,7 @@ logging:
     org.springframework: DEBUG
     com.zaxxer.hikari: INFO
     org.hibernate: DEBUG
-    com.sparkage.timebeam: TRACE
+    com.sparkage.synapse: TRACE
     org.springframework.web.socket: DEBUG
 
 apns:

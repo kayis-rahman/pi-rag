@@ -1,10 +1,10 @@
-# TimeBeam Backend
+# Synapse Backend
 
 Overview
 --------
-This is a production-ready Spring Boot 3 backend (Java 17) for the TimeBeam Apple cross-platform app. It follows a clean, layered architecture:
+This is a production-ready Spring Boot 3 backend (Java 17) for the Synapse Apple cross-platform app. It follows a clean, layered architecture:
 
-- com.sparkage.timebeam
+- com.sparkage.synapse
   - controller — REST controllers (api surface)
   - service — business logic
   - repository — Spring Data JPA repositories
@@ -132,7 +132,7 @@ mvn clean package -DskipTests
 ```bash
 # with environment variables
 export JWT_SECRET="change-me-to-a-secure-random-string"
-export SPRING_DATASOURCE_URL="jdbc:postgresql://localhost:5432/timebeam"
+export SPRING_DATASOURCE_URL="jdbc:postgresql://localhost:5432/synapse"
 export SPRING_DATASOURCE_USERNAME="postgres"
 export SPRING_DATASOURCE_PASSWORD="password"
 
@@ -142,7 +142,7 @@ mvn -f back-end spring-boot:run
 Or run the packaged jar:
 
 ```bash
-java -jar back-end/target/timebeam-backend-0.0.1-SNAPSHOT.jar
+java -jar back-end/target/synapse-backend-0.0.1-SNAPSHOT.jar
 ```
 
 Testing
@@ -152,17 +152,17 @@ Testing
 
 Postman collection
 ------------------
-A Postman collection with example requests and environment variables is included: `back-end/postman_timebeam_collection.json`.
+A Postman collection with example requests and environment variables is included: `back-end/postman_synapse_collection.json`.
 
 Docker (build & run)
 --------------------
 A `Dockerfile` is provided. To build and run locally:
 
 ```bash
-docker build -t timebeam-backend:latest back-end
-docker run -e SPRING_DATASOURCE_URL=jdbc:postgresql://host:5432/timebeam \
+docker build -t synapse-backend:latest back-end
+docker run -e SPRING_DATASOURCE_URL=jdbc:postgresql://host:5432/synapse \
   -e SPRING_DATASOURCE_USERNAME=postgres -e SPRING_DATASOURCE_PASSWORD=password \
-  -e JWT_SECRET=some-secret -p 8080:8080 timebeam-backend:latest
+  -e JWT_SECRET=some-secret -p 8080:8080 synapse-backend:latest
 ```
 
 Docker Compose
@@ -191,9 +191,9 @@ Environment variables
 You can override DB and JWT settings by passing environment variables to the `backend` service in the `docker-compose.yml` or by providing an `.env` file in the `back-end` directory with keys like:
 
 ```
-SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/timebeam
-SPRING_DATASOURCE_USERNAME=timebeam
-SPRING_DATASOURCE_PASSWORD=timebeam
+SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/synapse
+SPRING_DATASOURCE_USERNAME=synapse
+SPRING_DATASOURCE_PASSWORD=synapse
 JWT_SECRET=change-me-to-a-long-random-secret
 ```
 

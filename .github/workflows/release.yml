@@ -76,7 +76,7 @@ jobs:
     - name: Create Docker image
       run: |
         cd back-end
-        docker build -t timebeam-backend:${{ needs.prepare-release.outputs.version }} .
+        docker build -t synapse-backend:${{ needs.prepare-release.outputs.version }} .
 
     - name: Run production tests
       run: |
@@ -86,12 +86,12 @@ jobs:
     - name: Tag and push Docker image
       if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
       run: |
-        docker tag timebeam-backend:${{ needs.prepare-release.outputs.version }} ghcr.io/${{ github.repository }}/backend:${{ needs.prepare-release.outputs.version }}
+        docker tag synapse-backend:${{ needs.prepare-release.outputs.version }} ghcr.io/${{ github.repository }}/backend:${{ needs.prepare-release.outputs.version }}
         docker push ghcr.io/${{ github.repository }}/backend:${{ needs.prepare-release.outputs.version }}
 
         # Also tag as latest for main branch
         if [ "${{ github.ref }}" = "refs/heads/main" ]; then
-          docker tag timebeam-backend:${{ needs.prepare-release.outputs.version }} ghcr.io/${{ github.repository }}/backend:latest
+          docker tag synapse-backend:${{ needs.prepare-release.outputs.version }} ghcr.io/${{ github.repository }}/backend:latest
           docker push ghcr.io/${{ github.repository }}/backend:latest
         fi
 
@@ -109,20 +109,20 @@ jobs:
 
     - name: Build iOS Release
       run: |
-        cd apple/TimeBeam
+        cd apple/Synapse
         xcodebuild clean build \
-          -scheme "TimeBeam iOS" \
+          -scheme "Synapse iOS" \
           -configuration Release \
-          -archivePath build/TimeBeam-iOS.xcarchive \
+          -archivePath build/Synapse-iOS.xcarchive \
           archive
 
     - name: Build macOS Release
       run: |
-        cd apple/TimeBeam
+        cd apple/Synapse
         xcodebuild clean build \
-          -scheme "TimeBeam macOS" \
+          -scheme "Synapse macOS" \
           -configuration Release \
-          -archivePath build/TimeBeam-macOS.xcarchive \
+          -archivePath build/Synapse-macOS.xcarchive \
           archive
 
     - name: Upload release artifacts
@@ -130,7 +130,7 @@ jobs:
       with:
         name: release-artifacts-${{ needs.prepare-release.outputs.version }}
         path: |
-          apple/TimeBeam/build/
+          apple/Synapse/build/
         retention-days: 90
 
   deploy-staging:

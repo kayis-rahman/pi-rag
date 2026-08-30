@@ -3,9 +3,9 @@ spring:
   main:
     allow-bean-definition-overriding: true
   datasource:
-    url: jdbc:postgresql://localhost:5432/timebeam
-    username: timebeam
-    password: timebeam
+    url: jdbc:postgresql://localhost:5432/synapse
+    username: synapse
+    password: synapse
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -15,7 +15,7 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
-        default_schema: timebeamtest
+        default_schema: synapsetest
 
   security:
     enabled: true
@@ -28,7 +28,7 @@ jwt:
 # Logging for tests
 logging:
   level:
-    com.sparkage.timebeam: DEBUG
+    com.sparkage.synapse: DEBUG
     org.springframework.security: DEBUG
     org.springframework.test: DEBUG
   pattern:

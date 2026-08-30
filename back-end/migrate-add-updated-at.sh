@@ -6,9 +6,9 @@
 
 HOST=${1:-localhost}
 PORT=${2:-5432}
-DATABASE=${3:-timebeam}
-USER=${4:-timebeam}
-PASSWORD=${5:-timebeam}
+DATABASE=${3:-synapse}
+USER=${4:-synapse}
+PASSWORD=${5:-synapse}
 
 echo "Applying migration: Add updated_at column to user_devices table"
 echo "Connecting to: ${HOST}:${PORT}/${DATABASE}"

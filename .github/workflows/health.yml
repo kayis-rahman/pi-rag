@@ -14,7 +14,7 @@ jobs:
 
     - name: Generate Comprehensive Health Report
       run: |
-        echo "# 🏥 TimeBeam Project Health Report" >> $GITHUB_STEP_SUMMARY
+        echo "# 🏥 Synapse Project Health Report" >> $GITHUB_STEP_SUMMARY
         echo "**Generated:** $(date)" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 

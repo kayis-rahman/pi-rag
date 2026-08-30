@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <JaCoCoAgentConfiguration>
     <!--
-        JaCoCo Agent Configuration for TimeBeam Backend
+        JaCoCo Agent Configuration for Synapse Backend
 
         This configuration controls how JaCoCo instruments the application
         during test execution for code coverage measurement.
@@ -21,7 +21,7 @@
 
     <!-- Classes to include in coverage measurement -->
     <includes>
-        <include>**/com/sparkage/timebeam/**</include>
+        <include>**/com/sparkage/synapse/**</include>
     </includes>
 
     <!-- Classes to exclude from coverage measurement -->
@@ -48,7 +48,7 @@
 
         <!-- Application entry point -->
         <exclude>**/Application.class</exclude>
-        <exclude>**/TimeBeamApplication.class</exclude>
+        <exclude>**/SynapseApplication.class</exclude>
 
         <!-- Main method stubs -->
         <exclude>**/*Kt.class</exclude>

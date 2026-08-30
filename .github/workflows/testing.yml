@@ -67,12 +67,12 @@ jobs:
 
     - name: Run iOS E2E Tests
       run: |
-        cd apple/TimeBeam
+        cd apple/Synapse
         # Run UI automation tests
         xcodebuild test \
-          -scheme "TimeBeam iOS" \
+          -scheme "Synapse iOS" \
           -destination "platform=iOS Simulator,id=TestDevice" \
-          -only-testing:TimeBeamUITests
+          -only-testing:SynapseUITests
 
     - name: Cleanup Simulator
       if: always()

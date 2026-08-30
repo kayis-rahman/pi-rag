@@ -3,10 +3,10 @@ version: '3.8'
 services:
   db:
     image: postgres:15
-    container_name: timebeam_postgres_test
+    container_name: synapse_postgres_test
     environment:
-      POSTGRES_DB: timebeam_test
-      POSTGRES_USER: timebeam_test
+      POSTGRES_DB: synapse_test
+      POSTGRES_USER: synapse_test
       POSTGRES_PASSWORD: test_password
     ports:
       - "5432:5432"

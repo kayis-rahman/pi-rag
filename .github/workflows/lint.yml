@@ -20,7 +20,7 @@ jobs:
 
     - name: Run SwiftLint
       run: |
-        cd apple/TimeBeam
+        cd apple/Synapse
         swiftlint --strict --reporter github-actions-logging
 
   java-lint:
@@ -61,7 +61,7 @@ jobs:
 
     - name: Check Swift Formatting
       run: |
-        cd apple/TimeBeam
+        cd apple/Synapse
         swiftformat --lint --reporter github-actions-logging .
 
   lint-summary:

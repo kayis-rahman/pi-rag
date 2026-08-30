@@ -9,7 +9,7 @@
 
     <!-- File Appender - Replaces file on every run -->
     <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-        <file>logs/timebeam.log</file>
+        <file>logs/synapse.log</file>
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
@@ -19,7 +19,7 @@
 
     <!-- Rolling File Appender with Daily Rotation -->
     <appender name="ROLLING_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>logs/timebeam.log</file>
+        <file>logs/synapse.log</file>
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
@@ -28,14 +28,14 @@
         
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- Daily rolling with index for same-day rotations -->
-            <fileNamePattern>logs/timebeam.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>logs/synapse.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>1</maxHistory>
             <totalSizeCap>100MB</totalSizeCap>
         </rollingPolicy>
     </appender>
 
-    <!-- Logger for TimeBeam Application -->
-    <logger name="com.sparkage.timebeam" level="DEBUG" additivity="false">
+    <!-- Logger for Synapse Application -->
+    <logger name="com.sparkage.synapse" level="DEBUG" additivity="false">
         <appender-ref ref="ROLLING_FILE"/>
         <appender-ref ref="CONSOLE"/>
     </logger>

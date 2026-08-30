@@ -1,9 +1,9 @@
 # E2E Test Configuration
 spring:
   datasource:
-    url: jdbc:postgresql://piworm.local:5432/timebeam_e2e
-    username: timebeam
-    password: timebeam
+    url: jdbc:postgresql://piworm.local:5432/synapse_e2e
+    username: synapse
+    password: synapse
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -25,7 +25,7 @@ jwt:
 # Logging for E2E tests
 logging:
   level:
-    com.sparkage.timebeam: DEBUG
+    com.sparkage.synapse: DEBUG
     org.springframework.security: DEBUG
   pattern:
     console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"

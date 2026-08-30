@@ -4,10 +4,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.sparkage</groupId>
-    <artifactId>timebeam-backend</artifactId>
+    <artifactId>synapse-backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>TimeBeam Backend</name>
-    <description>Backend for TimeBeam app (converted to Maven)</description>
+    <name>Synapse Backend</name>
+    <description>Backend for Synapse app (converted to Maven)</description>
 
     <parent>
         <groupId>org.springframework.boot</groupId>

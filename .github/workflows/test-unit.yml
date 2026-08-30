@@ -17,8 +17,8 @@ jobs:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_DB: timebeam_test
-          POSTGRES_USER: timebeam_test
+          POSTGRES_DB: synapse_test
+          POSTGRES_USER: synapse_test
           POSTGRES_PASSWORD: test_password
         options: >-
           --health-cmd pg_isready
@@ -158,36 +158,36 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            apple/TimeBeam/Pods
+            apple/Synapse/Pods
             ~/Library/Caches/CocoaPods
             ~/.cocoapods
-          key: ${{ runner.os }}-pods-${{ hashFiles('apple/TimeBeam/Podfile.lock') }}
+          key: ${{ runner.os }}-pods-${{ hashFiles('apple/Synapse/Podfile.lock') }}
           restore-keys: |
             ${{ runner.os }}-pods-
 
       - name: Install CocoaPods Dependencies
         run: |
-          cd apple/TimeBeam
+          cd apple/Synapse
           pod install --repo-update
 
       - name: Run iOS Unit Tests with Coverage
         id: ios-test
         run: |
-          cd apple/TimeBeam
+          cd apple/Synapse
 
           echo "Running iOS unit tests with coverage..."
           xcodebuild test \
-            -scheme "TimeBeam iOS" \
+            -scheme "Synapse iOS" \
             -destination "${{ matrix.destination }}" \
             -enableCodeCoverage YES \
             -derivedDataPath DerivedData \
             -resultBundlePath TestResults.xcresult \
-            ONLY_TESTING="TimeBeamTests"
+            ONLY_TESTING="SynapseTests"
 
       - name: Generate iOS Coverage Summary
         if: always()
         run: |
-          cd apple/TimeBeam
+          cd apple/Synapse
 
           # Use xccov to extract coverage
           if [ -d "DerivedData/Logs/Test" ]; then
@@ -208,8 +208,8 @@ jobs:
         with:
           name: ios-unit-test-results-${{ matrix.xcode }}-${{ matrix.destination }}
           path: |
-            apple/TimeBeam/DerivedData/Logs/Test/
-            apple/TimeBeam/TestResults.xcresult
+            apple/Synapse/DerivedData/Logs/Test/
+            apple/Synapse/TestResults.xcresult
           retention-days: 30
 
       - name: Upload Coverage to Codecov (iOS)
@@ -217,7 +217,7 @@ jobs:
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: apple/TimeBeam/DerivedData/Logs/Test/*.xcresult
+          files: apple/Synapse/DerivedData/Logs/Test/*.xcresult
           flags: ios
           name: ios-unit-tests
           fail_ci_if_error: false
@@ -243,26 +243,26 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            apple/TimeBeam/Pods
+            apple/Synapse/Pods
             ~/Library/Caches/CocoaPods
             ~/.cocoapods
-          key: ${{ runner.os }}-pods-${{ hashFiles('apple/TimeBeam/Podfile.lock') }}
+          key: ${{ runner.os }}-pods-${{ hashFiles('apple/Synapse/Podfile.lock') }}
           restore-keys: |
             ${{ runner.os }}-pods-
 
       - name: Install CocoaPods Dependencies
         run: |
-          cd apple/TimeBeam
+          cd apple/Synapse
           pod install --repo-update
 
       - name: Run macOS Unit Tests with Coverage
         id: macos-test
         run: |
-          cd apple/TimeBeam
+          cd apple/Synapse
 
           echo "Running macOS unit tests with coverage..."
           xcodebuild test \
-            -scheme "TimeBeam macOS" \
+            -scheme "Synapse macOS" \
             -destination "platform=macOS" \
             -enableCodeCoverage YES \
             -derivedDataPath DerivedData-macOS \
@@ -271,7 +271,7 @@ jobs:
       - name: Generate macOS Coverage Summary
         if: always()
         run: |
-          cd apple/TimeBeam
+          cd apple/Synapse
 
           echo "## 💻 macOS Unit Test Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -288,8 +288,8 @@ jobs:
         with:
           name: macos-unit-test-results-${{ github.run_id }}
           path: |
-            apple/TimeBeam/DerivedData-macOS/Logs/Test/
-            apple/TimeBeam/TestResults-macOS.xcresult
+            apple/Synapse/DerivedData-macOS/Logs/Test/
+            apple/Synapse/TestResults-macOS.xcresult
           retention-days: 30
 
       - name: Upload Coverage to Codecov (macOS)
@@ -297,7 +297,7 @@ jobs:
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: apple/TimeBeam/DerivedData-macOS/Logs/Test/*.xcresult
+          files: apple/Synapse/DerivedData-macOS/Logs/Test/*.xcresult
           flags: macos
           name: macos-unit-tests
           fail_ci_if_error: false

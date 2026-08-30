@@ -39,13 +39,13 @@ jobs:
         brew install swiftcov
 
     - name: SwiftLint
-      run: cd apple/TimeBeam && swiftlint --strict --reporter github-actions-logging
+      run: cd apple/Synapse && swiftlint --strict --reporter github-actions-logging
 
     - name: Build iOS ${{ matrix.config }}
       run: |
-        cd apple/TimeBeam
+        cd apple/Synapse
         xcodebuild clean build \
-          -scheme "TimeBeam iOS" \
+          -scheme "Synapse iOS" \
           -configuration ${{ matrix.config }} \
           -destination "generic/platform=iOS" \
           CODE_SIGNING_ALLOWED=NO
@@ -53,9 +53,9 @@ jobs:
     - name: Test iOS (Debug only)
       if: matrix.test
       run: |
-        cd apple/TimeBeam
+        cd apple/Synapse
         xcodebuild test \
-          -scheme "TimeBeam iOS" \
+          -scheme "Synapse iOS" \
           -destination "platform=iOS Simulator,name=iPhone 15,OS=latest" \
           -configuration Debug \
           -resultBundlePath TestResults \
@@ -65,7 +65,7 @@ jobs:
     - name: Parse iOS Test Results
       if: matrix.test
       run: |
-        cd apple/TimeBeam
+        cd apple/Synapse
 
         # Parse test results
         xcresultparser TestResults.xcresult > test-results.json
@@ -91,9 +91,9 @@ jobs:
       with:
         name: ios-${{ matrix.config }}-${{ github.run_id }}
         path: |
-          apple/TimeBeam/build/
-          apple/TimeBeam/TestResults.xcresult/
-          apple/TimeBeam/test-results.json
+          apple/Synapse/build/
+          apple/Synapse/TestResults.xcresult/
+          apple/Synapse/test-results.json
         retention-days: ${{ matrix.config == 'Release' && 30 || 7 }}
 
   macos:
@@ -112,9 +112,9 @@ jobs:
 
     - name: Build macOS ${{ matrix.config }}
       run: |
-        cd apple/TimeBeam
+        cd apple/Synapse
         xcodebuild clean build \
-          -scheme "TimeBeam macOS" \
+          -scheme "Synapse macOS" \
           -configuration ${{ matrix.config }} \
           -destination "generic/platform=macOS" \
           CODE_SIGNING_ALLOWED=NO
@@ -123,7 +123,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: macos-${{ matrix.config }}-${{ github.run_id }}
-        path: apple/TimeBeam/build/
+        path: apple/Synapse/build/
         retention-days: ${{ matrix.config == 'Release' && 30 || 7 }}
 
   shared:
@@ -139,7 +139,7 @@ jobs:
 
     - name: Test Shared Components
       run: |
-        cd TimeBeamShared
+        cd SynapseShared
         swift test --enable-code-coverage
         swift test --generate-linuxmain
 
@@ -148,5 +148,5 @@ jobs:
       if: always()
       with:
         name: shared-tests-${{ github.run_id }}
-        path: TimeBeamShared/.build/
+        path: SynapseShared/.build/
         retention-days: 30

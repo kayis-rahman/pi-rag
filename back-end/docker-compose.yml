@@ -3,12 +3,12 @@ version: '3.8'
 services:
   db:
     image: postgres:15
-    container_name: timebeam_postgres
+    container_name: synapse_postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: timebeam
-      POSTGRES_USER: timebeam
-      POSTGRES_PASSWORD: timebeam
+      POSTGRES_DB: synapse
+      POSTGRES_USER: synapse
+      POSTGRES_PASSWORD: synapse
     ports:
       - "5432:5432"
     volumes:
@@ -21,5 +21,5 @@ services:
 
 volumes:
   postgres_data:
-    name: timebeam_postgres_data
+    name: synapse_postgres_data
 

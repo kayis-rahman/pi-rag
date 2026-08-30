@@ -1,12 +1,12 @@
 #!/bin/bash
 
 # E2E Backend Runner Script
-# This script sets up and runs the TimeBeam backend in E2E test mode
+# This script sets up and runs the Synapse backend in E2E test mode
 # with a dedicated test database and seeded data.
 
 set -e
 
-echo "🚀 Starting TimeBeam E2E Backend..."
+echo "🚀 Starting Synapse E2E Backend..."
 
 # Colors for output
 RED='\033[0;31m'
@@ -18,9 +18,9 @@ NC='\033[0m' # No Color
 # Configuration
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DOCKER_COMPOSE_FILE="$PROJECT_ROOT/docker-compose.dev.yml"
-E2E_DB_NAME="timebeam_e2e"
-E2E_DB_USER="timebeam"
-E2E_DB_PASSWORD="timebeam"
+E2E_DB_NAME="synapse_e2e"
+E2E_DB_USER="synapse"
+E2E_DB_PASSWORD="synapse"
 SPRING_PROFILE="e2e"
 BACKEND_PORT=8081
 

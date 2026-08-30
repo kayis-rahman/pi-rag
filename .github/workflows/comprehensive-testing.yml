@@ -1,5 +1,5 @@
-# GitHub Actions Workflow for TimeBeam Testing Framework
-name: TimeBeam Comprehensive Tests
+# GitHub Actions Workflow for Synapse Testing Framework
+name: Synapse Comprehensive Tests
 
 on:
   push:
@@ -39,8 +39,8 @@ env:
   
   # Backend configuration
   SPRING_PROFILES_ACTIVE: test
-  SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/timebeam_test
-  SPRING_DATASOURCE_USERNAME: timebeam_test
+  SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/synapse_test
+  SPRING_DATASOURCE_USERNAME: synapse_test
   SPRING_DATASOURCE_PASSWORD: test_password
   
   # APNS configuration (disabled in CI)
@@ -55,8 +55,8 @@ jobs:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_DB: timebeam_test
-          POSTGRES_USER: timebeam_test
+          POSTGRES_DB: synapse_test
+          POSTGRES_USER: synapse_test
           POSTGRES_PASSWORD: test_password
         options: >-
           --health-cmd pg_isready
@@ -129,44 +129,44 @@ jobs:
       uses: actions/cache@v3
       with:
         path: |
-          apple/TimeBeam/Pods
+          apple/Synapse/Pods
           ~/Library/Caches/CocoaPods
           ~/.cocoapods
-        key: ${{ runner.os }}-pods-${{ hashFiles('apple/TimeBeam/Podfile.lock') }}
+        key: ${{ runner.os }}-pods-${{ hashFiles('apple/Synapse/Podfile.lock') }}
         restore-keys: |
           ${{ runner.os }}-pods-
     
     - name: Install CocoaPods dependencies
       run: |
-        cd apple/TimeBeam
+        cd apple/Synapse
         pod install --repo-update
     
     - name: Run iOS tests
       run: |
-        cd apple/TimeBeam
+        cd apple/Synapse
         xcodebuild test \
-          -workspace TimeBeam.xcworkspace \
-          -scheme TimeBeam \
+          -workspace Synapse.xcworkspace \
+          -scheme Synapse \
           -destination 'platform=iOS Simulator,name=iPhone 14,OS=latest' \
           -derivedDataPath DerivedData/iOS \
           -enableCodeCoverage YES
     
     - name: Run macOS tests
       run: |
-        cd apple/TimeBeam
+        cd apple/Synapse
         xcodebuild test \
-          -workspace TimeBeam.xcworkspace \
-          -scheme TimeBeam \
+          -workspace Synapse.xcworkspace \
+          -scheme Synapse \
           -destination 'platform=macOS' \
           -derivedDataPath DerivedData/macOS \
           -enableCodeCoverage YES
     
     - name: Run watchOS tests
       run: |
-        cd apple/TimeBeam
+        cd apple/Synapse
         xcodebuild test \
-          -workspace TimeBeam.xcworkspace \
-          -scheme TimeBeam \
+          -workspace Synapse.xcworkspace \
+          -scheme Synapse \
           -destination 'platform=watchOS Simulator,name=Apple Watch Series 8 (45mm)' \
           -derivedDataPath DerivedData/watchOS \
           -enableCodeCoverage YES
@@ -177,8 +177,8 @@ jobs:
       with:
         name: platform-test-results
         path: |
-          apple/TimeBeam/DerivedData/*/Logs/Test/
-          apple/TimeBeam/DerivedData/*/Build/Logs/
+          apple/Synapse/DerivedData/*/Logs/Test/
+          apple/Synapse/DerivedData/*/Build/Logs/
 
   # Multi-device integration testing
   integration-tests:
@@ -317,7 +317,7 @@ jobs:
     
     - name: Run security scan on iOS code
       run: |
-        cd apple/TimeBeam
+        cd apple/Synapse
         # Example: Using MobSF or similar security scanning tool
         echo "Running iOS security scan..."
 
@@ -345,7 +345,7 @@ jobs:
       run: |
         mkdir -p final-report
         cat > final-report/summary.md << EOF
-        # TimeBeam Test Report
+        # Synapse Test Report
         
         ## Build Information
         - **Build**: ${{ github.run_number }}
@@ -395,7 +395,7 @@ jobs:
             issue_number: context.issue.number,
             owner: context.repo.owner,
             repo: context.repo.repo,
-            body: `## 🧪 TimeBeam Test Results\n\n${report}`
+            body: `## 🧪 Synapse Test Results\n\n${report}`
           });
 
   # Performance monitoring and alerting

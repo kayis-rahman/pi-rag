@@ -18,8 +18,8 @@ env:
 
   # Backend Configuration
   SPRING_PROFILES_ACTIVE: test
-  SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/timebeam_test
-  SPRING_DATASOURCE_USERNAME: timebeam_test
+  SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/synapse_test
+  SPRING_DATASOURCE_USERNAME: synapse_test
   SPRING_DATASOURCE_PASSWORD: test_password
 
   # APNS Configuration (disabled in tests)
