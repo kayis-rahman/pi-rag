@@ -7,13 +7,7 @@ enum SynapseModelContainer {
     static let appSetupCompletedKey = "synapse.appSetupCompleted"
     static let pendingDestinationKey = "synapse.pendingDestination"
 
-    static let schema = Schema([
-        TaskItem.self,
-        Project.self,
-        Area.self,
-        WeeklyReview.self,
-        WeeklyReviewItem.self
-    ])
+    static let schema = Schema(versionedSchema: SynapseSchemaV1.self)
 
     /// A unique local store keeps each UI-test app process isolated from
     /// CloudKit and from the user's production database.
@@ -24,6 +18,7 @@ enum SynapseModelContainer {
         do {
             return try ModelContainer(
                 for: schema,
+                migrationPlan: SynapseMigrationPlan.self,
                 configurations: configuration(isTesting: isTestingProcess)
             )
         } catch {
