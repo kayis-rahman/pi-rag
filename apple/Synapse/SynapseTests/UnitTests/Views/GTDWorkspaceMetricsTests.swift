@@ -47,6 +47,55 @@ final class GTDWorkspaceMetricsTests: XCTestCase {
         XCTAssertEqual(result.map(\.title), ["Prepare brief"])
     }
 
+    func testAreaFiltersIncludeAllAndUncategorizedWithoutHidingTasks() {
+        let work = Area(name: "Work")
+        let assigned = TaskItem(title: "Prepare brief", areas: [work])
+        let uncategorized = TaskItem(title: "Clarify note")
+
+        XCTAssertEqual(
+            GTDWorkspaceMetrics.tasks(matching: .all, areas: [work], from: [assigned, uncategorized]).map(\.title),
+            ["Prepare brief", "Clarify note"]
+        )
+        XCTAssertEqual(
+            GTDWorkspaceMetrics.tasks(matching: .uncategorized, areas: [work], from: [assigned, uncategorized]).map(\.title),
+            ["Clarify note"]
+        )
+    }
+
+    func testAreaFilterMatchesAnyAreaAndDoesNotTrustStaleAreaTags() {
+        let work = Area(name: "Work")
+        let health = Area(name: "Health")
+        let multiArea = TaskItem(title: "Plan appointment", areas: [work, health])
+        let staleTagOnly = TaskItem(title: "Old area tag", contextTags: ["area:Work"])
+
+        XCTAssertEqual(
+            GTDWorkspaceMetrics.tasks(matching: .area(work.id), areas: [work, health], from: [multiArea, staleTagOnly]).map(\.title),
+            ["Plan appointment"]
+        )
+        XCTAssertEqual(
+            GTDWorkspaceMetrics.tasks(matching: .uncategorized, areas: [work, health], from: [multiArea, staleTagOnly]).map(\.title),
+            ["Old area tag"]
+        )
+    }
+
+    func testDeletedAreaFilterReturnsNoTasksAndItemsBecomeUncategorizedAfterUnlinking() {
+        let work = Area(name: "Work")
+        let task = TaskItem(title: "Prepare brief", areas: [work])
+        task.areas = task.areas?.filter { $0.id != work.id }
+
+        XCTAssertTrue(GTDWorkspaceMetrics.tasks(matching: .area(work.id), areas: [], from: [task]).isEmpty)
+        XCTAssertEqual(GTDWorkspaceMetrics.tasks(matching: .uncategorized, areas: [], from: [task]).count, 1)
+    }
+
+    func testAreaNameValidationTrimsAndRejectsCaseInsensitiveDuplicates() {
+        let existing = Area(name: " Work ")
+
+        XCTAssertEqual(AreaNaming.normalized("  WORK\n"), AreaNaming.normalized(existing.name))
+        XCTAssertEqual(AreaNaming.validate("work", against: [existing]), .duplicate)
+        XCTAssertEqual(AreaNaming.validate("   ", against: [existing]), .empty)
+        XCTAssertNil(AreaNaming.validate("Health", against: [existing]))
+    }
+
     func testOpenAreaTasksExcludeCompletedCancelledAndOtherAreaActions() {
         let work = Area(name: "Work")
         let personal = Area(name: "Personal")

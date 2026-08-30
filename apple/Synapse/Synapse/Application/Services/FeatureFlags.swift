@@ -73,7 +73,10 @@ final class FeatureFlags {
     private(set) var lastRefreshError: String?
 
     var malayalamVoiceEnabled: Bool { snapshot.value(for: .malayalamVoice) }
-    var gmailIntegrationEnabled: Bool { snapshot.value(for: .gmailIntegration) }
+    var gmailIntegrationEnabled: Bool {
+        snapshot.value(for: .gmailIntegration) ||
+            ProcessInfo.processInfo.environment["SYNAPSE_GMAIL_UI_TESTING"] == "1"
+    }
     var githubProjectsIntegrationEnabled: Bool { snapshot.value(for: .githubProjectsIntegration) }
 
     func isEnabled(_ flag: FeatureFlag) -> Bool {

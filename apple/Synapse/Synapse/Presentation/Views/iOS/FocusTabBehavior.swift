@@ -31,7 +31,7 @@ enum FocusTabBehavior {
         return minutes >= 60 ? "\(minutes / 60)h \(minutes % 60)m" : "\(minutes)m"
     }
 
-    static func upNextTasks(from tasks: [UserTask], excluding currentTaskID: UUID?, limit: Int = 4) -> [UserTask] {
+    static func upNextTasks(from tasks: [TaskItem], excluding currentTaskID: UUID?, limit: Int = 4) -> [TaskItem] {
         tasks.filter { $0.id != currentTaskID }.prefix(max(0, limit)).map { $0 }
     }
 }

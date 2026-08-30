@@ -1,6 +1,7 @@
 import AuthenticationServices
 
 import AVFoundation
+import SwiftData
 import SwiftUI
 import UserNotifications
 
@@ -9,7 +10,8 @@ struct iOSContentView: View {
     @Environment(PomodoroTimer.self) var timer
     @Environment(SessionLogger.self) var logger
     @Environment(AuthManager.self) var authManager
-    @Environment(TaskService.self) var taskService
+    @Query(sort: \TaskItem.createdAt, order: .reverse) private var tasksQuery: [TaskItem]
+    private var activeTasks: [TaskItem] { tasksQuery.filter { $0.status == .nextAction } }
     @State private var audioPlayer: AVAudioPlayer?
     @State private var lastPhase: Phase = .work
     @State private var didRequestNotificationPermission: Bool = UserDefaults.standard.bool(forKey: "didRequestNotificationPermission")
@@ -64,8 +66,9 @@ struct iOSContentView: View {
                     Button {
                         showingTaskPicker = true
                     } label: {
-                        Label(timer.currentTaskId == nil ? "Select task" : "Change task", systemImage: "checklist")
+                        Label(currentTask == nil ? "Select task" : "Change task", systemImage: "checklist")
                     }
+                    .disabled(timer.isRunning)
                     Button {
                         Task { await TimerSyncManager.shared.syncTimerAction(.reset) }
                     } label: {
@@ -86,6 +89,13 @@ struct iOSContentView: View {
                 UserDefaults.standard.removeObject(forKey: "synapse.pendingStartFocus")
                 startWithPermission()
             }
+            // currentTaskId persists in UserDefaults across launches; if the
+            // task it points to no longer exists, clear the dangling reference
+            // instead of leaving the card in a "Working on" + placeholder state.
+            if timer.currentTaskId != nil, currentTask == nil {
+                timer.currentTaskId = nil
+                timer.currentTaskTitleSnapshot = nil
+            }
         }
         .onChange(of: timer.phase) { oldPhase, newPhase in
             if newPhase != oldPhase {
@@ -96,6 +106,7 @@ struct iOSContentView: View {
         .sheet(isPresented: $showingTaskPicker) {
             TaskPickerView { selectedTask in
                 timer.currentTaskId = selectedTask?.id
+                timer.currentTaskTitleSnapshot = selectedTask?.title
             }
         }
     }
@@ -141,14 +152,14 @@ struct iOSContentView: View {
     private var activeTaskCard: some View {
         Button { showingTaskPicker = true } label: {
             HStack(spacing: 13) {
-                Image(systemName: timer.currentTaskId == nil ? "scope" : "checkmark.circle.fill")
+                Image(systemName: currentTask == nil ? "scope" : "checkmark.circle.fill")
                     .font(.title3.weight(.semibold))
-                    .foregroundStyle(timer.currentTaskId == nil ? Color.themePrimary : Color.themeAccent)
+                    .foregroundStyle(currentTask == nil ? Color.themePrimary : Color.themeAccent)
                     .frame(width: 42, height: 42)
                     .background(Color.themePrimary.opacity(0.14), in: Circle())
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(timer.currentTaskId == nil ? "No task selected" : "Working on")
+                    Text(currentTask == nil ? "No task selected" : "Working on")
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(.secondary)
                     Text(currentTask?.title ?? "Choose a task to make this session count")
@@ -170,6 +181,7 @@ struct iOSContentView: View {
                     .stroke(Color.themePrimary.opacity(0.14), lineWidth: 1)
             }
         }
+        .disabled(timer.isRunning)
         .buttonStyle(.plain)
         .accessibilityIdentifier("focus-current-task")
     }
@@ -190,6 +202,7 @@ struct iOSContentView: View {
                     ForEach(upNextTasks) { task in
                         Button {
                             timer.currentTaskId = task.id
+                            timer.currentTaskTitleSnapshot = task.title
                         } label: {
                             Text(task.title)
                                 .font(.caption.weight(.medium))
@@ -200,6 +213,7 @@ struct iOSContentView: View {
                                 .background(Color.themeCardBackground.opacity(0.7), in: Capsule())
                         }
                         .buttonStyle(.plain)
+                        .disabled(timer.isRunning)
                     }
                 }
             }
@@ -214,13 +228,13 @@ struct iOSContentView: View {
         }
     }
 
-    private var currentTask: UserTask? {
+    private var currentTask: TaskItem? {
         guard let currentTaskId = timer.currentTaskId else { return nil }
-        return taskService.tasks.first { $0.id == currentTaskId }
+        return activeTasks.first { $0.id == currentTaskId }
     }
 
-    private var upNextTasks: [UserTask] {
-        FocusTabBehavior.upNextTasks(from: taskService.activeTasks, excluding: timer.currentTaskId)
+    private var upNextTasks: [TaskItem] {
+        FocusTabBehavior.upNextTasks(from: activeTasks, excluding: timer.currentTaskId)
     }
 
     private var todayProductiveRecords: [SessionRecordDto] {

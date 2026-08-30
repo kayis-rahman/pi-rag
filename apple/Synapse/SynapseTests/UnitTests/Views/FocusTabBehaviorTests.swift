@@ -52,7 +52,7 @@ final class FocusTabBehaviorTests: XCTestCase {
 
     func testUpNextExcludesCurrentTaskAndLimitsTheStrip() {
         let tasks = (0..<6).map { index in
-            UserTask(userId: UUID(), title: "Task \(index)")
+            TaskItem(title: "Task \(index)", status: .nextAction)
         }
 
         let result = FocusTabBehavior.upNextTasks(from: tasks, excluding: tasks[1].id, limit: 4)

@@ -82,11 +82,19 @@ for large imports.
 
 The Today view is intended as the default landing surface and can summarize:
 
-- Next Actions due today.
-- Overdue Waiting For items.
-- Relevant calendar overlap when EventKit access is enabled.
+- Next Actions due today, with up to five undated Next Actions shown as “Up
+  next.”
+- All overdue open tasks, including overdue Waiting For follow-ups.
+- If nothing is due today, an explicit Waiting For count (or positive empty
+  state) is shown instead of a blank briefing.
+- Relevant calendar overlap when EventKit access is enabled; unavailable,
+  denied, or malformed calendar data is omitted without blocking the briefing.
+- Calendar context is read-only and live-fetched for the current briefing; all-day
+  events appear separately from timed events, with the initial timed list capped
+  at ten events and an explicit way to reveal more.
 - A short AI-generated framing of the day's work when on-device inference is
-  available.
+  available. Any unavailable, failed, or blank response falls back to
+  deterministic plain lists for due today, overdue, Waiting For, and Up next.
 
 ## Weekly Review
 
@@ -140,12 +148,38 @@ Planned or available integration surfaces include:
 Integrations should be opt-in and should not prevent core local capture,
 triage, or review workflows from working offline.
 
-## Voice Capture Boundary
+### Gmail Integration
 
-Voice capture is intentionally deferred. The current design leaves a clean
-voice-capture interface so native English dictation can be connected first and
-the later Raspberry Pi IndicWhisper bridge can be added without changing the
-capture or persistence workflow.
+Gmail is currently iOS-only and is guarded by the
+`features.gmailIntegration` feature flag. The integration uses read-only OAuth,
+stores credentials in Keychain, and imports Inbox messages from the last 30
+days. Imported messages are persisted locally as Inbox items before any
+classification is applied; uncertain messages remain available for manual
+triage. Stable Gmail message IDs prevent duplicate imports, and persisted page
+checkpoints allow interrupted syncs to resume safely.
+
+Gmail access can be paused when authorization expires or is revoked. Existing
+local Inbox items are retained when the account is disconnected. Live OAuth
+requires the iOS build to provide `GMAIL_OAUTH_CLIENT_ID` and
+`GMAIL_OAUTH_REDIRECT_URI` Info.plist values. Automated UI tests use deterministic
+fixtures and never require a live Gmail account.
+
+## In-App Voice Capture
+
+The capture sheet supports English voice entry through native iOS speech
+recognition. Transcription is shown live, remains editable, and flows through
+the same raw Inbox persistence and confirmation workflow as typed capture.
+
+- Voice drafts are never persisted until the user submits the capture.
+- Recording stops manually; a five-second no-speech timeout offers retry or
+  text entry.
+- Permission failures, audio interruptions, and backgrounding preserve any
+  visible partial transcript and leave text entry available.
+- Long speech is preserved in full; the existing 4,000-character Foundation
+  Models prompt bound still applies during triage.
+- Malayalam is gated by `features.malayalamVoice`. The app has an injectable
+  bridge contract and reports “Voice bridge offline” with English/text fallback
+  until the Pi/IndicWhisper wire protocol is supplied.
 
 ## Supported Apple Platforms
 

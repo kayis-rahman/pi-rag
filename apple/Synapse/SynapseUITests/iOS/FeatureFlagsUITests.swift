@@ -13,18 +13,27 @@ final class FeatureFlagsUITests: XCTestCase {
     private func launch(debugDiagnostics: Bool) {
         app = XCUIApplication()
         app.launchArguments = ["-ui-testing"]
-        app.launchEnvironment = ["SYNAPSE_UI_TESTING": "1"]
-        if debugDiagnostics {
-            app.launchEnvironment["SYNAPSE_FEATURE_FLAGS_DEBUG"] = "1"
-        }
+        app.launchEnvironment = debugDiagnostics
+            ? [
+                "SYNAPSE_UI_TESTING": "1",
+                "SYNAPSE_FEATURE_FLAGS_DEBUG": "1"
+            ]
+            : ["SYNAPSE_UI_TESTING": "1"]
         app.launch()
         XCTAssertTrue(app.buttons["home-capture-ui-testing"].waitForExistence(timeout: 15))
+    }
+
+    private func scrollSettingsUntilVisible(_ element: XCUIElement) {
+        for _ in 0..<6 where !element.exists {
+            app.swipeUp()
+        }
     }
 
     func testSupportViewShowsAllActiveFeatureFlags() {
         app.buttons["workspace-settings"].tap()
 
         let featureFlagsLink = app.buttons["Feature Flags"]
+        scrollSettingsUntilVisible(featureFlagsLink)
         XCTAssertTrue(featureFlagsLink.waitForExistence(timeout: 5))
         featureFlagsLink.tap()
 

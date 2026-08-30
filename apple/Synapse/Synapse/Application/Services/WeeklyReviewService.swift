@@ -39,6 +39,18 @@ final class WeeklyReviewService {
             .first
     }
 
+    func review(forWeekContaining date: Date, from reviews: [WeeklyReview], calendar: Calendar = .current) -> WeeklyReview? {
+        guard let interval = calendar.dateInterval(of: .weekOfYear, for: date) else { return nil }
+        return reviews
+            .filter { calendar.isDate($0.weekStart, inSameDayAs: interval.start) }
+            .sorted { lhs, rhs in
+                if lhs.status == .inProgress && rhs.status != .inProgress { return true }
+                if lhs.status != .inProgress && rhs.status == .inProgress { return false }
+                return lhs.lastSavedAt > rhs.lastSavedAt
+            }
+            .first
+    }
+
     func staleTasks(_ tasks: [TaskItem], now: Date = .now, thresholdDays: Int = staleAfterDays, calendar: Calendar = .current) -> [TaskItem] {
         guard let threshold = calendar.date(byAdding: .day, value: -thresholdDays, to: now) else { return [] }
         return tasks.filter {
@@ -47,25 +59,60 @@ final class WeeklyReviewService {
     }
 
     func prepareStaleItems(_ tasks: [TaskItem], for review: WeeklyReview, now: Date = .now) {
-        review.staleTaskIDs = staleTasks(tasks, now: now).map { $0.id.uuidString }
+        let currentStaleIDs = Set(staleTasks(tasks, now: now).map { $0.id.uuidString })
+        if review.staleItemsPreparedAt == nil {
+            review.staleTaskIDs = Array(currentStaleIDs).sorted()
+            review.staleItemsPreparedAt = now
+
+            // There is no flagged work for this step. Treat it as completed
+            // automatically so the checklist remains full without forcing the
+            // user to perform a meaningless action or take a partial streak.
+            if review.staleTaskIDs.isEmpty,
+               let staleStep = review.checklistItems?.first(where: { $0.kind == .stale }),
+               !staleStep.isComplete,
+               !staleStep.isSkipped {
+                staleStep.markComplete(at: now)
+            }
+        } else {
+            // Keep the original review snapshot, but remove tasks that were
+            // completed/cancelled or otherwise ceased to be stale elsewhere.
+            let knownIDs = Set(tasks.map { $0.id.uuidString })
+            review.staleTaskIDs = review.staleTaskIDs.filter {
+                knownIDs.contains($0) && currentStaleIDs.contains($0)
+            }
+        }
+        updateProgress(review, now: now, finalize: false)
         review.lastSavedAt = now
     }
 
     func saveStep(_ review: WeeklyReview, step: Int, skipped: Bool, now: Date = .now) {
+        guard review.status == .inProgress else { return }
         guard let item = review.checklistItems?.first(where: { $0.sortOrder == step }) else { return }
         if skipped { item.markSkipped(at: now) } else { item.markComplete(at: now) }
+        updateProgress(review, now: now)
+    }
+
+    private func updateProgress(_ review: WeeklyReview, now: Date, finalize: Bool = true) {
         let items = review.checklistItems ?? []
         review.completedStepCount = items.filter { $0.isComplete }.count
         review.skippedStepCount = items.filter(\.isSkipped).count
-        review.currentStep = items.first(where: { !$0.isComplete && !$0.isSkipped })?.sortOrder ?? items.count
-        review.isPartial = review.skippedStepCount > 0
+        review.currentStep = items.sorted { $0.sortOrder < $1.sortOrder }
+            .first(where: { !$0.isComplete && !$0.isSkipped })?.sortOrder ?? items.count
+        review.isPartial = review.skippedStepCount > 0 || !review.staleTaskIDs.isEmpty
         review.lastSavedAt = now
-        if review.currentStep >= items.count {
+        if finalize && review.currentStep >= items.count {
             review.status = review.isPartial ? .partial : .completed
         }
     }
 
     func decide(_ decision: WeeklyReviewStaleDecision, for task: TaskItem, review: WeeklyReview, now: Date = .now) {
+        guard review.status == .inProgress,
+              review.staleTaskIDs.contains(task.id.uuidString) else { return }
+        guard task.status != .completed, task.status != .cancelled else {
+            review.staleTaskIDs.removeAll { $0 == task.id.uuidString }
+            review.lastSavedAt = now
+            return
+        }
         switch decision {
         case .promote: task.status = .nextAction
         case .keep: break
@@ -75,6 +122,7 @@ final class WeeklyReviewService {
             item.staleDecision = decision
         }
         review.staleTaskIDs.removeAll { $0 == task.id.uuidString }
+        review.isPartial = review.skippedStepCount > 0 || !review.staleTaskIDs.isEmpty
         review.lastSavedAt = now
     }
 
@@ -94,8 +142,10 @@ final class WeeklyReviewService {
     }
 
     func reviewStreak(_ reviews: [WeeklyReview], calendar: Calendar = .current) -> Int {
-        let completed = reviews.filter { $0.status == .completed || $0.status == .partial }
+        let candidates = reviews.filter { $0.status == .completed || $0.status == .partial }
             .sorted { $0.weekStart > $1.weekStart }
+        var seenWeekStarts = Set<Date>()
+        let completed = candidates.filter { seenWeekStarts.insert(calendar.startOfDay(for: $0.weekStart)).inserted }
         guard let first = completed.first else { return 0 }
         var streak = 1
         var expected = first.weekStart
@@ -108,6 +158,7 @@ final class WeeklyReviewService {
     }
 
     func finish(_ review: WeeklyReview, reviews: [WeeklyReview], now: Date = .now, calendar: Calendar = .current) {
+        guard review.streakAtCompletion == 0 else { return }
         review.status = review.isPartial ? .partial : .completed
         review.streakAtCompletion = reviewStreak(reviews + [review], calendar: calendar)
         review.completedAt = now

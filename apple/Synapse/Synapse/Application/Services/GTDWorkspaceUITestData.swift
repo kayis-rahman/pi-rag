@@ -47,4 +47,68 @@ enum GTDWorkspaceUITestData {
         context.insert(unrelatedAction)
         try context.save()
     }
+
+    static func seedWeeklyReviewStaleItemIfRequested(in context: ModelContext) throws {
+        let environment = ProcessInfo.processInfo.environment
+        guard SynapseModelContainer.isTestingProcess,
+              environment["SYNAPSE_UI_TEST_SEED_WEEKLY_REVIEW_STALE"] == "1"
+        else { return }
+
+        let title = "UI Test Stale Review Item"
+        let existing = try context.fetch(
+            FetchDescriptor<TaskItem>(predicate: #Predicate { $0.title == title })
+        )
+        guard existing.isEmpty else { return }
+
+        let task = TaskItem(title: title, status: .somedayMaybe)
+        task.updatedAt = Date(timeIntervalSinceNow: -45 * 86_400)
+        context.insert(task)
+        try context.save()
+    }
+
+    static func seedDailyBriefingIfRequested(in context: ModelContext) throws {
+        let environment = ProcessInfo.processInfo.environment
+        guard SynapseModelContainer.isTestingProcess,
+              environment["SYNAPSE_UI_TEST_SEED_DAILY_BRIEFING"] == "1"
+        else { return }
+
+        let waitingOnly = environment["SYNAPSE_UI_TEST_DAILY_BRIEFING_WAITING_ONLY"] == "1"
+        let titles = waitingOnly
+            ? ["UI Test Briefing Waiting"]
+            : ["UI Test Briefing Due Today", "UI Test Briefing Up Next", "UI Test Briefing Overdue Waiting"]
+        let existing = try context.fetch(FetchDescriptor<TaskItem>(predicate: #Predicate { task in
+            task.title == "UI Test Briefing Due Today" ||
+            task.title == "UI Test Briefing Up Next" ||
+            task.title == "UI Test Briefing Overdue Waiting" ||
+            task.title == "UI Test Briefing Waiting"
+        }))
+        guard existing.isEmpty else { return }
+
+        let calendar = Calendar.current
+        let yesterday = calendar.date(byAdding: .day, value: -1, to: .now) ?? .now.addingTimeInterval(-86_400)
+        if !waitingOnly {
+            context.insert(TaskItem(title: titles[0], status: .nextAction, dueDate: .now))
+            let upNext = TaskItem(title: titles[1], status: .nextAction)
+            upNext.sortOrder = 1
+            context.insert(upNext)
+            context.insert(TaskItem(title: titles[2], status: .waitingFor, dueDate: yesterday))
+        } else {
+            context.insert(TaskItem(title: titles[0], status: .waitingFor))
+        }
+        try context.save()
+    }
+
+    static func seedGmailIfRequested(in context: ModelContext) throws {
+        let environment = ProcessInfo.processInfo.environment
+        guard SynapseModelContainer.isTestingProcess,
+              environment["SYNAPSE_GMAIL_UI_TESTING"] == "1"
+        else { return }
+
+        let email = "ui-fixture@gmail.com"
+        let existing = try context.fetch(FetchDescriptor<GmailAccountRecord>(predicate: #Predicate { $0.accountIdentifier == email }))
+        guard existing.isEmpty else { return }
+
+        context.insert(GmailAccountRecord(accountIdentifier: email, displayName: "UI Gmail Fixture"))
+        try context.save()
+    }
 }

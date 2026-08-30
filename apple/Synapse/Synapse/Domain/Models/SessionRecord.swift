@@ -16,12 +16,23 @@ public struct SessionRecord: Codable, Identifiable, Equatable {
     public let startedAt: Date
     public let duration: TimeInterval
     public let kind: Kind
+    public let taskId: UUID?
+    public let taskTitleSnapshot: String?
 
-    public init(id: UUID = UUID(), startedAt: Date, duration: TimeInterval, kind: Kind) {
+    public init(
+        id: UUID = UUID(),
+        startedAt: Date,
+        duration: TimeInterval,
+        kind: Kind,
+        taskId: UUID? = nil,
+        taskTitleSnapshot: String? = nil
+    ) {
         self.id = id
         self.startedAt = startedAt
         self.duration = duration
         self.kind = kind
+        self.taskId = taskId
+        self.taskTitleSnapshot = taskTitleSnapshot
     }
 
     public var isProductive: Bool { kind == .work }

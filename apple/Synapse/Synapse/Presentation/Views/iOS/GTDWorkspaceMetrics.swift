@@ -28,6 +28,12 @@ struct GTDProjectMetrics: Equatable {
 }
 
 enum GTDWorkspaceMetrics {
+    enum AreaFilter: Equatable {
+        case all
+        case uncategorized
+        case area(UUID)
+    }
+
     static func projects(_ projects: [Project], matching filter: GTDWorkspaceFilter) -> [Project] {
         projects.filter { project in
             switch filter {
@@ -43,11 +49,18 @@ enum GTDWorkspaceMetrics {
     }
 
     static func tasks(in area: Area, from tasks: [TaskItem]) -> [TaskItem] {
-        tasks.filter { task in
-            task.areas?.contains { $0.id == area.id } == true
-                || task.contextTags.contains { tag in
-                    tag.caseInsensitiveCompare("area:\(area.name)") == .orderedSame
-                }
+        tasks.filter { task in task.areas?.contains { $0.id == area.id } == true }
+    }
+
+    static func tasks(matching filter: AreaFilter, areas: [Area], from tasks: [TaskItem]) -> [TaskItem] {
+        switch filter {
+        case .all:
+            return tasks
+        case .uncategorized:
+            return tasks.filter { $0.areas?.isEmpty != false }
+        case .area(let areaID):
+            guard let area = areas.first(where: { $0.id == areaID }) else { return [] }
+            return Self.tasks(in: area, from: tasks)
         }
     }
 

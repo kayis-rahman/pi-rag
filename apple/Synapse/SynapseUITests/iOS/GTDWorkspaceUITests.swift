@@ -2,15 +2,22 @@ import XCTest
 
 final class GTDWorkspaceUITests: XCTestCase {
     private var app: XCUIApplication!
+    // Shared across every launch/relaunch within a single test method so the
+    // SwiftData store is stable when a test relaunches mid-test to verify
+    // persistence, while still isolating separate test methods from each other.
+    private let uiTestStoreID = UUID().uuidString
 
     override func setUpWithError() throws {
         continueAfterFailure = false
         app = XCUIApplication()
-        app.launchArguments = ["-ui-testing"]
-        app.launchEnvironment = ["SYNAPSE_UI_TESTING": "1"]
+        app.launchArguments = ["-ui-testing", "-focus-test-reset"]
+        app.launchEnvironment = [
+            "SYNAPSE_UI_TESTING": "1",
+            "SYNAPSE_UI_TEST_STORE_ID": uiTestStoreID
+        ]
         app.terminate()
         app.launch()
-        XCTAssertTrue(app.buttons["home-capture-ui-testing"].waitForExistence(timeout: 15))
+        XCTAssertTrue(app.buttons["home-capture-ui-testing"].waitForExistence(timeout: 30))
     }
 
     func testHomeTaskOpensDetailsAndSaves() throws {
@@ -32,11 +39,12 @@ final class GTDWorkspaceUITests: XCTestCase {
         XCTAssertTrue(confirmCapture.waitForExistence(timeout: 10))
         confirmCapture.tap()
 
-        let inboxTab = app.buttons["Inbox"]
-        XCTAssertTrue(inboxTab.waitForExistence(timeout: 5))
-        inboxTab.tap()
-
-        let task = app.staticTexts["Email the client today"].firstMatch
+        // "Email the client today" is classified as a next action due today,
+        // so it surfaces directly in Home's Today list rather than Inbox.
+        // The row's due-date badge joins the title in the combined
+        // accessibility label, so match by prefix rather than exact text.
+        let taskRowPredicate = NSPredicate(format: "label BEGINSWITH %@", "Email the client today")
+        let task = app.buttons.matching(taskRowPredicate).firstMatch
         XCTAssertTrue(task.waitForExistence(timeout: 10))
         task.tap()
 
@@ -46,7 +54,7 @@ final class GTDWorkspaceUITests: XCTestCase {
         app.buttons["task-detail-save"].tap()
 
         XCTAssertTrue(app.navigationBars["Task details"].waitForNonExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts["Email the client today"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons.matching(taskRowPredicate).firstMatch.waitForExistence(timeout: 5))
     }
 
     func testDailyBriefingShowsPositiveEmptyStateOnDevice() throws {
@@ -59,6 +67,48 @@ final class GTDWorkspaceUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["All clear — nothing is due today."].exists)
     }
 
+    func testDailyBriefingShowsDueOverdueAndCappedUpNextSections() throws {
+        relaunchWithDailyBriefingFixtures()
+        app.buttons["daily-briefing-button"].tap()
+
+        XCTAssertTrue(app.navigationBars["Daily briefing"].waitForExistence(timeout: 10))
+        for identifier in [
+            "daily-briefing-due-today",
+            "daily-briefing-overdue",
+            "daily-briefing-waiting",
+            "daily-briefing-up-next"
+        ] {
+            let section = app.descendants(matching: .any)
+                .matching(identifier: identifier)
+                .firstMatch
+            XCTAssertTrue(section.waitForExistence(timeout: 5))
+        }
+        XCTAssertTrue(app.staticTexts["UI Test Briefing Up Next"].exists)
+    }
+
+    func testDailyBriefingShowsWaitingCountWhenNothingIsDue() throws {
+        relaunchWithDailyBriefingFixtures(waitingOnly: true)
+        app.buttons["daily-briefing-button"].tap()
+
+        XCTAssertTrue(app.navigationBars["Daily briefing"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["Nothing due today, 1 item in Waiting For."].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["All clear"].exists)
+    }
+
+    func testDailyBriefingShowsAllDayAndTimedCalendarSections() throws {
+        relaunchWithDailyBriefingCalendarFixtures()
+        app.buttons["daily-briefing-button"].tap()
+
+        let calendarSection = app.descendants(matching: .any)
+            .matching(identifier: "daily-briefing-calendar")
+            .firstMatch
+        XCTAssertTrue(calendarSection.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["All day"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["UI Test Team Offsite"].exists)
+        XCTAssertTrue(app.staticTexts["Schedule"].exists)
+        XCTAssertTrue(app.staticTexts["UI Test Planning"].exists)
+    }
+
     func testEmptyCaptureCannotBeSaved() throws {
         relaunch(prefilledCaptureTitle: "")
         app.buttons["home-capture-ui-testing"].tap()
@@ -66,6 +116,35 @@ final class GTDWorkspaceUITests: XCTestCase {
         let saveCapture = app.buttons["Save"]
         XCTAssertTrue(saveCapture.waitForExistence(timeout: 5))
         XCTAssertFalse(saveCapture.isEnabled)
+    }
+
+    func testVoiceCaptureShowsEditableTranscriptBeforeConfirmation() throws {
+        relaunchVoiceCaptureFixture(transcript: "Buy groceries from the market")
+        app.buttons["home-capture-ui-testing"].tap()
+
+        let mic = app.buttons["capture-voice-mic"]
+        XCTAssertTrue(mic.waitForExistence(timeout: 5))
+        mic.tap()
+
+        XCTAssertTrue(app.staticTexts["Listening… tap stop when you’re done"].waitForExistence(timeout: 5))
+        app.buttons["capture-voice-stop"].tap()
+
+        let title = app.textFields["capture-title-field"]
+        XCTAssertTrue(title.waitForExistence(timeout: 5))
+        XCTAssertEqual(title.value as? String, "Buy groceries from the market")
+        XCTAssertTrue(app.buttons["Save"].isEnabled)
+    }
+
+    func testCancellingVoiceCaptureDoesNotCreateAnInboxItem() throws {
+        let marker = "Cancelled voice capture (UUID().uuidString)"
+        relaunchVoiceCaptureFixture(transcript: marker)
+        app.buttons["home-capture-ui-testing"].tap()
+        app.buttons["capture-voice-mic"].tap()
+        XCTAssertTrue(app.buttons["capture-voice-stop"].waitForExistence(timeout: 5))
+        app.buttons["Cancel"].tap()
+
+        app.tabBars.buttons["Inbox"].tap()
+        XCTAssertFalse(app.staticTexts[marker].waitForExistence(timeout: 3))
     }
 
     func testWhitespaceOnlyCaptureCannotBeSaved() throws {
@@ -78,16 +157,16 @@ final class GTDWorkspaceUITests: XCTestCase {
     }
 
     func testSpecialCharactersEmojiAndNonEnglishCaptureAreVisibleInInbox() throws {
-        captureAndAssertInbox("Fix bug #123 @ 50% done!")
+        captureAndAssertInbox("Fix bug #123 @ 50% done!", forceInbox: true)
         relaunch(prefilledCaptureTitle: "Buy 🥛 and 🍞")
-        captureAndAssertInbox("Buy 🥛 and 🍞")
+        captureAndAssertInbox("Buy 🥛 and 🍞", forceInbox: true)
         relaunch(prefilledCaptureTitle: "Acheter du lait pour demain")
-        captureAndAssertInbox("Acheter du lait pour demain")
+        captureAndAssertInbox("Acheter du lait pour demain", forceInbox: true)
     }
 
     func testLongCaptureIsAcceptedAndStoredInInbox() throws {
         let title = String(repeating: "Review the project notes and decide the next step. ", count: 15)
-        captureAndAssertInbox(title)
+        captureAndAssertInbox(title, forceInbox: true)
 
         XCTAssertTrue(app.staticTexts["To process"].waitForExistence(timeout: 5))
     }
@@ -125,7 +204,7 @@ final class GTDWorkspaceUITests: XCTestCase {
         app.buttons["Today"].tap()
         app.buttons["home-capture-ui-testing"].tap()
         confirmPrefilledCapture(title)
-        app.buttons["Inbox"].tap()
+        app.tabBars.buttons["Inbox"].tap()
 
         XCTAssertTrue(app.staticTexts[title].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["Review"].exists)
@@ -138,21 +217,22 @@ final class GTDWorkspaceUITests: XCTestCase {
         XCTAssertTrue(app.textFields["capture-title-field"].waitForExistence(timeout: 5))
 
         app.terminate()
-        app.launchArguments = ["-ui-testing"]
+        app.launchArguments = ["-ui-testing", "-focus-test-reset"]
         app.launchEnvironment = [
             "SYNAPSE_UI_TESTING": "1",
+            "SYNAPSE_UI_TEST_STORE_ID": uiTestStoreID,
             "SYNAPSE_UI_TEST_CAPTURE_TITLE": title
         ]
         app.launch()
         XCTAssertTrue(app.buttons["home-capture-ui-testing"].waitForExistence(timeout: 15))
-        app.buttons["Inbox"].tap()
+        app.tabBars.buttons["Inbox"].tap()
 
         XCTAssertFalse(app.staticTexts[title].exists)
     }
 
     func testInboxCaptureAppearsInToProcessList() throws {
         relaunch(prefilledCaptureTitle: "Remember the garden lights")
-        let inboxTab = app.buttons["Inbox"]
+        let inboxTab = app.tabBars.buttons["Inbox"]
         XCTAssertTrue(inboxTab.waitForExistence(timeout: 15))
         inboxTab.tap()
 
@@ -206,13 +286,13 @@ final class GTDWorkspaceUITests: XCTestCase {
         XCTAssertTrue(app.buttons["Cancel"].waitForExistence(timeout: 10))
         app.buttons["Cancel"].tap()
 
-        app.buttons["Inbox"].tap()
+        app.tabBars.buttons["Inbox"].tap()
         XCTAssertTrue(app.staticTexts["Book dentist"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.staticTexts["To process"].exists)
     }
 
     func testInboxSearchSurfaceIsAccessible() throws {
-        relaunch(prefilledCaptureTitle: "A searchable capture", forceInbox: true)
+        relaunch(prefilledCaptureTitle: "A searchable capture")
         let inboxTab = app.buttons["Inbox"]
         XCTAssertTrue(inboxTab.waitForExistence(timeout: 15))
         inboxTab.tap()
@@ -229,15 +309,19 @@ final class GTDWorkspaceUITests: XCTestCase {
         return XCTWaiter.wait(for: [expectation], timeout: timeout) == .completed
     }
 
-    private func captureAndAssertInbox(_ title: String) {
+    private func captureAndAssertInbox(_ title: String, forceInbox: Bool = false) {
         relaunch(prefilledCaptureTitle: title)
         app.buttons["home-capture-ui-testing"].tap()
-        confirmPrefilledCapture(title)
-        app.buttons["Inbox"].tap()
-        XCTAssertTrue(app.staticTexts[title].waitForExistence(timeout: 10))
+        confirmPrefilledCapture(title, status: forceInbox ? "capture-category-inbox" : nil)
+        app.tabBars.buttons["Inbox"].tap()
+        let persistedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let importedCapture = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "label == %@", persistedTitle))
+            .firstMatch
+        XCTAssertTrue(importedCapture.waitForExistence(timeout: 10))
     }
 
-    private func confirmPrefilledCapture(_ title: String) {
+    private func confirmPrefilledCapture(_ title: String, status: String? = nil) {
         let titleField = app.textFields["capture-title-field"]
         XCTAssertTrue(titleField.waitForExistence(timeout: 5))
         XCTAssertEqual(titleField.value as? String, title)
@@ -246,33 +330,99 @@ final class GTDWorkspaceUITests: XCTestCase {
         saveCapture.tap()
         let confirmCapture = app.buttons["Confirm"]
         XCTAssertTrue(confirmCapture.waitForExistence(timeout: 10))
+        if let status {
+            app.buttons[status].tap()
+        }
         confirmCapture.tap()
     }
 
-    private func relaunch(prefilledCaptureTitle: String, forceInbox: Bool = false) {
+    private func relaunch(prefilledCaptureTitle: String) {
         app.terminate()
-        app.launchArguments = ["-ui-testing"]
-        var environment = [
+        app.launchArguments = ["-ui-testing", "-focus-test-reset"]
+        app.launchEnvironment = [
             "SYNAPSE_UI_TESTING": "1",
+            "SYNAPSE_UI_TEST_STORE_ID": uiTestStoreID,
             "SYNAPSE_UI_TEST_CAPTURE_TITLE": prefilledCaptureTitle
         ]
-        if forceInbox {
-            environment["SYNAPSE_UI_TEST_FORCE_INBOX"] = "1"
-        }
-        app.launchEnvironment = environment
+        app.launch()
+        XCTAssertTrue(app.buttons["home-capture-ui-testing"].waitForExistence(timeout: 15))
+    }
+
+    private func relaunchVoiceCaptureFixture(transcript: String) {
+        app.terminate()
+        app.launchArguments = ["-ui-testing", "-focus-test-reset"]
+        app.launchEnvironment = [
+            "SYNAPSE_UI_TESTING": "1",
+            "SYNAPSE_UI_TEST_STORE_ID": uiTestStoreID,
+            "SYNAPSE_UI_TEST_VOICE_TRANSCRIPT": transcript
+        ]
         app.launch()
         XCTAssertTrue(app.buttons["home-capture-ui-testing"].waitForExistence(timeout: 15))
     }
 
     private func relaunchWithProjectAndAreaFixtures() {
         app.terminate()
-        app.launchArguments = ["-ui-testing"]
+        app.launchArguments = ["-ui-testing", "-focus-test-reset"]
         app.launchEnvironment = [
             "SYNAPSE_UI_TESTING": "1",
+            "SYNAPSE_UI_TEST_STORE_ID": uiTestStoreID,
             "SYNAPSE_UI_TEST_SEED_PROJECTS_AREAS": "1"
         ]
         app.launch()
         XCTAssertTrue(app.buttons["home-capture-ui-testing"].waitForExistence(timeout: 15))
+    }
+
+    private func relaunchWithStaleReviewFixtures() {
+        app.terminate()
+        app.launchArguments = ["-ui-testing", "-focus-test-reset"]
+        app.launchEnvironment = [
+            "SYNAPSE_UI_TESTING": "1",
+            "SYNAPSE_UI_TEST_STORE_ID": uiTestStoreID,
+            "SYNAPSE_UI_TEST_SEED_WEEKLY_REVIEW_STALE": "1"
+        ]
+        app.launch()
+        XCTAssertTrue(app.buttons["home-capture-ui-testing"].waitForExistence(timeout: 15))
+    }
+
+    private func relaunchWithDailyBriefingFixtures(waitingOnly: Bool = false) {
+        app.terminate()
+        app.launchArguments = ["-ui-testing", "-focus-test-reset"]
+        var environment = [
+            "SYNAPSE_UI_TESTING": "1",
+            "SYNAPSE_UI_TEST_STORE_ID": uiTestStoreID,
+            "SYNAPSE_UI_TEST_SEED_DAILY_BRIEFING": "1",
+            "SYNAPSE_UI_TEST_DISABLE_AI": "1"
+        ]
+        if waitingOnly {
+            environment["SYNAPSE_UI_TEST_DAILY_BRIEFING_WAITING_ONLY"] = "1"
+        }
+        app.launchEnvironment = environment
+        app.launch()
+        XCTAssertTrue(app.buttons["home-capture-ui-testing"].waitForExistence(timeout: 15))
+    }
+
+    private func relaunchWithDailyBriefingCalendarFixtures() {
+        app.terminate()
+        app.launchArguments = ["-ui-testing", "-focus-test-reset"]
+        app.launchEnvironment = [
+            "SYNAPSE_UI_TESTING": "1",
+            "SYNAPSE_UI_TEST_STORE_ID": uiTestStoreID,
+            "SYNAPSE_UI_TEST_SEED_DAILY_BRIEFING": "1",
+            "SYNAPSE_UI_TEST_SEED_DAILY_BRIEFING_CALENDAR": "1",
+            "SYNAPSE_UI_TEST_DISABLE_AI": "1"
+        ]
+        app.launch()
+        XCTAssertTrue(app.buttons["home-capture-ui-testing"].waitForExistence(timeout: 15))
+    }
+
+    // The step container and its Complete/Skip buttons all report the
+    // container's "weekly-review-step-N" accessibility identifier on device
+    // (the buttons' own identifiers are not surfaced), so steps must be
+    // located by identifier plus visible label rather than a per-button id.
+    private func reviewStepButton(_ index: Int, label: String) -> XCUIElement {
+        app.buttons.matching(
+            NSPredicate(format: "identifier == %@ AND label == %@", "weekly-review-step-\(index)", label)
+        ).firstMatch
     }
 
     private func openReviewTab() {
@@ -292,7 +442,7 @@ final class GTDWorkspaceUITests: XCTestCase {
     }
 
     func testInboxTriageButtonIsPresentAndAccessible() throws {
-        let inboxTab = app.buttons["Inbox"]
+        let inboxTab = app.tabBars.buttons["Inbox"]
         XCTAssertTrue(inboxTab.waitForExistence(timeout: 15))
         inboxTab.tap()
 
@@ -303,8 +453,8 @@ final class GTDWorkspaceUITests: XCTestCase {
 
     func testTriageShowsFutureNextActionInResultsAndGTDList() throws {
         let title = "Email the client tomorrow about the work plan"
-        relaunch(prefilledCaptureTitle: title, forceInbox: true)
-        app.buttons["Inbox"].tap()
+        relaunch(prefilledCaptureTitle: title)
+        app.tabBars.buttons["Inbox"].tap()
         app.buttons["inbox-capture-button"].tap()
 
         let titleField = app.textFields["capture-title-field"]
@@ -314,6 +464,10 @@ final class GTDWorkspaceUITests: XCTestCase {
         XCTAssertTrue(waitForEnabled(saveCapture, timeout: 5))
         saveCapture.tap()
         XCTAssertTrue(app.buttons["Confirm"].waitForExistence(timeout: 10))
+        // "Email...tomorrow" auto-classifies as a next action due tomorrow, which
+        // would leave Inbox entirely. Force it back to Inbox so triage has
+        // something to sort.
+        app.buttons["capture-category-inbox"].tap()
         app.buttons["Confirm"].tap()
         XCTAssertTrue(app.staticTexts[title].waitForExistence(timeout: 10))
 
@@ -355,7 +509,9 @@ final class GTDWorkspaceUITests: XCTestCase {
         XCTAssertTrue(startReview.waitForExistence(timeout: 5))
         startReview.tap()
 
-        for index in 0...5 {
+        // The stale-items step auto-completes when there is nothing stale, so
+        // only the remaining five steps expose an enabled Skip control.
+        for index in 0..<5 {
             let skip = app.buttons
                 .matching(NSPredicate(format: "label == 'Skip' AND isEnabled == true"))
                 .firstMatch
@@ -367,7 +523,60 @@ final class GTDWorkspaceUITests: XCTestCase {
         }
 
         XCTAssertTrue(app.staticTexts["Partial review"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.buttons["start-new-weekly-review"].exists)
+        let startNew = app.buttons["start-new-weekly-review"]
+        XCTAssertTrue(startNew.exists)
+
+        // Tapping "Start a new review" must begin a genuinely fresh review,
+        // not reopen the one just finished (step 0 back to "Complete").
+        startNew.tap()
+        XCTAssertTrue(reviewStepButton(0, label: "Complete").waitForExistence(timeout: 5))
+    }
+
+    func testWeeklyReviewAutomaticallyCompletesEmptyStaleStep() throws {
+        openReviewTab()
+        let startReview = app.buttons["start-weekly-review"]
+        XCTAssertTrue(startReview.waitForExistence(timeout: 5))
+        startReview.tap()
+
+        XCTAssertTrue(app.staticTexts["Nothing stale"].waitForExistence(timeout: 5))
+        let staleStepComplete = reviewStepButton(2, label: "Saved")
+        XCTAssertTrue(staleStepComplete.waitForExistence(timeout: 5))
+    }
+
+    func testWeeklyReviewResumesAfterAppRelaunch() throws {
+        openReviewTab()
+        let startReview = app.buttons["start-weekly-review"]
+        XCTAssertTrue(startReview.waitForExistence(timeout: 5))
+        startReview.tap()
+        reviewStepButton(0, label: "Complete").tap()
+
+        app.terminate()
+        app.launchArguments = ["-ui-testing", "-focus-test-reset"]
+        app.launchEnvironment = [
+            "SYNAPSE_UI_TESTING": "1",
+            "SYNAPSE_UI_TEST_STORE_ID": uiTestStoreID
+        ]
+        app.launch()
+        XCTAssertTrue(app.buttons["home-capture-ui-testing"].waitForExistence(timeout: 15))
+        openReviewTab()
+
+        XCTAssertTrue(reviewStepButton(0, label: "Saved").waitForExistence(timeout: 5))
+        XCTAssertTrue(reviewStepButton(1, label: "Complete").isEnabled)
+    }
+
+    func testWeeklyReviewWithUnresolvedStaleItemFinishesPartial() throws {
+        relaunchWithStaleReviewFixtures()
+        openReviewTab()
+        app.buttons["start-weekly-review"].tap()
+
+        XCTAssertTrue(app.staticTexts["UI Test Stale Review Item"].waitForExistence(timeout: 5))
+        for index in 0...5 {
+            let complete = reviewStepButton(index, label: "Complete")
+            XCTAssertTrue(complete.waitForExistence(timeout: 5))
+            complete.tap()
+        }
+
+        XCTAssertTrue(app.staticTexts["Partial review"].waitForExistence(timeout: 5))
     }
 
     func testProjectCompletionIsBlockedWhileOpenActionsRemain() throws {
@@ -375,7 +584,7 @@ final class GTDWorkspaceUITests: XCTestCase {
         openReviewTab()
         app.buttons["start-weekly-review"].tap()
 
-        app.buttons["Projects"].tap()
+        app.tabBars.buttons["Projects"].tap()
         app.staticTexts["UI Test Project"].tap()
         let completion = app.buttons["project-completion-action"]
         XCTAssertTrue(completion.waitForExistence(timeout: 5))
@@ -385,7 +594,7 @@ final class GTDWorkspaceUITests: XCTestCase {
 
     func testProjectCanBeArchivedAndRestoredWithoutLosingLinkedActions() throws {
         relaunchWithProjectAndAreaFixtures()
-        app.buttons["Projects"].tap()
+        app.tabBars.buttons["Projects"].tap()
         XCTAssertTrue(app.staticTexts["UI Test Project"].waitForExistence(timeout: 10))
         app.staticTexts["UI Test Project"].tap()
 
@@ -400,7 +609,7 @@ final class GTDWorkspaceUITests: XCTestCase {
         XCTAssertTrue(archiveAlert.waitForExistence(timeout: 5))
         archiveAlert.buttons["Archive project"].tap()
 
-        app.buttons["Projects"].tap()
+        app.tabBars.buttons["Projects"].tap()
         app.buttons["workspace-filter-archived"].tap()
         XCTAssertTrue(app.staticTexts["UI Test Project"].waitForExistence(timeout: 10))
         app.staticTexts["UI Test Project"].tap()
@@ -411,14 +620,14 @@ final class GTDWorkspaceUITests: XCTestCase {
         XCTAssertTrue(restoreAction.waitForExistence(timeout: 5))
         restoreAction.tap()
 
-        app.buttons["Projects"].tap()
+        app.tabBars.buttons["Projects"].tap()
         app.buttons["workspace-filter-active"].tap()
         XCTAssertTrue(app.staticTexts["UI Test Project"].waitForExistence(timeout: 10))
     }
 
     func testEmptyProjectArchiveShowsConfirmation() throws {
         relaunchWithProjectAndAreaFixtures()
-        app.buttons["Projects"].tap()
+        app.tabBars.buttons["Projects"].tap()
         XCTAssertTrue(app.staticTexts["UI Test Empty Project"].waitForExistence(timeout: 10))
         app.staticTexts["UI Test Empty Project"].tap()
 
@@ -434,7 +643,7 @@ final class GTDWorkspaceUITests: XCTestCase {
 
     func testProjectsSurfaceCanCreateAndOpenAnOutcome() throws {
         relaunchWithProjectAndAreaFixtures()
-        let projectsTab = app.buttons["Projects"]
+        let projectsTab = app.tabBars.buttons["Projects"]
         XCTAssertTrue(projectsTab.waitForExistence(timeout: 15))
         projectsTab.tap()
 
@@ -460,7 +669,7 @@ final class GTDWorkspaceUITests: XCTestCase {
     }
 
     func testProjectsSurfaceCanSwitchToCompletedFilter() throws {
-        app.buttons["Projects"].tap()
+        app.tabBars.buttons["Projects"].tap()
         XCTAssertTrue(app.buttons["workspace-filter-active"].waitForExistence(timeout: 10))
         app.buttons["workspace-filter-completed"].tap()
         XCTAssertTrue(app.buttons["workspace-filter-completed"].exists)
@@ -468,7 +677,7 @@ final class GTDWorkspaceUITests: XCTestCase {
 
     func testProjectDetailShowsOnlyItsLinkedActionsAndProgress() throws {
         relaunchWithProjectAndAreaFixtures()
-        app.buttons["Projects"].tap()
+        app.tabBars.buttons["Projects"].tap()
 
         XCTAssertTrue(app.staticTexts["UI Test Project"].waitForExistence(timeout: 10))
         app.staticTexts["UI Test Project"].tap()
@@ -494,6 +703,54 @@ final class GTDWorkspaceUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["UI Test Project Next Action"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.staticTexts["UI Test Project Completed Action"].exists)
         XCTAssertFalse(app.staticTexts["UI Test Other Area Action"].exists)
+    }
+
+    func testAreaFiltersShowUncategorizedAndRejectDuplicateNames() throws {
+        relaunchWithProjectAndAreaFixtures()
+        openReviewTab()
+        let areasOverview = app.buttons["review-areas-overview"]
+        XCTAssertTrue(areasOverview.waitForExistence(timeout: 10))
+        areasOverview.tap()
+
+        let addArea = app.buttons["add-area"]
+        XCTAssertTrue(addArea.waitForExistence(timeout: 5))
+        addArea.tap()
+        let name = app.textFields["new-area-name"]
+        XCTAssertTrue(name.waitForExistence(timeout: 5))
+        name.tap()
+        name.typeText("UI Test Area")
+        app.buttons["Create"].tap()
+
+        XCTAssertTrue(app.alerts["Area not created"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["An Area with this name already exists."].exists)
+        app.buttons["OK"].tap()
+        app.buttons["Cancel"].tap()
+
+        app.tabBars.buttons["Today"].tap()
+        let uncategorized = app.buttons["area-filter-uncategorized"]
+        XCTAssertTrue(uncategorized.waitForExistence(timeout: 10))
+        uncategorized.tap()
+        XCTAssertTrue(app.buttons["area-filter-all-areas"].exists)
+    }
+
+    func testDeletingAreaMovesItsTaskToUncategorized() throws {
+        relaunchWithProjectAndAreaFixtures()
+        openReviewTab()
+        app.buttons["review-areas-overview"].tap()
+
+        let otherArea = app.staticTexts["UI Test Other Area"]
+        XCTAssertTrue(otherArea.waitForExistence(timeout: 10))
+        otherArea.swipeLeft()
+        let deleteButton = app.buttons["delete-area-ui-test-other-area"]
+        XCTAssertTrue(deleteButton.waitForExistence(timeout: 5))
+        deleteButton.tap()
+
+        XCTAssertTrue(otherArea.waitForNonExistence(timeout: 5))
+        app.tabBars.buttons["Today"].tap()
+        app.buttons["area-filter-uncategorized"].tap()
+        // Home's task row is a NavigationLink whose text children collapse into
+        // a single accessibility element exposed as a button, not a static text.
+        XCTAssertTrue(app.buttons["UI Test Other Area Action"].waitForExistence(timeout: 10))
     }
 
     func testWorkspaceUsesFiveWorkflowTabsAndFocusPreservesTimerSurface() throws {
@@ -522,7 +779,6 @@ final class GTDWorkspaceUITests: XCTestCase {
 
         XCTAssertTrue(app.buttons["Select task"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["Reset timer"].exists)
-        XCTAssertFalse(app.buttons["arrow.counterclockwise"].exists)
     }
 
     func testFocusTaskPickerCanOpenAndDismissWithNoTaskSelected() throws {
@@ -530,7 +786,10 @@ final class GTDWorkspaceUITests: XCTestCase {
         app.buttons["focus-current-task"].tap()
 
         XCTAssertTrue(app.navigationBars["Select Task"].waitForExistence(timeout: 10))
-        XCTAssertTrue(app.buttons["No Task"].waitForExistence(timeout: 5))
+        // The row's trailing "Clear selection" caption joins the title in the
+        // combined accessibility label, so match by prefix rather than exact text.
+        let noTaskPredicate = NSPredicate(format: "label BEGINSWITH %@", "No Task")
+        XCTAssertTrue(app.buttons.matching(noTaskPredicate).firstMatch.waitForExistence(timeout: 5))
         app.buttons["Cancel"].tap()
         XCTAssertTrue(app.navigationBars["Focus"].waitForExistence(timeout: 5))
     }

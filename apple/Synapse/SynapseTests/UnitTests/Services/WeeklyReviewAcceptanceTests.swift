@@ -26,10 +26,40 @@ final class WeeklyReviewAcceptanceTests: XCTestCase {
         XCTAssertEqual(service.resumeReview(from: [older, newer])?.id, newer.id)
     }
 
+    func testTC3bReviewForCurrentWeekReusesExistingReview() {
+        let now = Date()
+        let review = service.makeWeeklyReview(now: now)
+        XCTAssertEqual(service.review(forWeekContaining: now, from: [review])?.id, review.id)
+    }
+
     func testTC4NoStaleItemsProducesEmptyFlagSet() {
         let task = TaskItem(title: "Recent idea", status: .somedayMaybe)
         let review = service.makeWeeklyReview()
         service.prepareStaleItems([task], for: review, now: .now)
+        XCTAssertTrue(review.staleTaskIDs.isEmpty)
+        XCTAssertTrue(review.checklistItems?.first(where: { $0.kind == .stale })?.isComplete == true)
+    }
+
+    func testTC4bStaleSnapshotDoesNotInjectNewItemsAfterReviewStarts() {
+        let review = service.makeWeeklyReview()
+        service.prepareStaleItems([], for: review)
+        let later = TaskItem(title: "Later stale item", status: .somedayMaybe)
+        later.updatedAt = Date(timeIntervalSinceNow: -45 * 86_400)
+
+        service.prepareStaleItems([later], for: review)
+
+        XCTAssertTrue(review.staleTaskIDs.isEmpty)
+    }
+
+    func testTC4cCompletedStaleItemIsRemovedWhenReviewRefreshes() {
+        let task = TaskItem(title: "Old idea", status: .somedayMaybe)
+        task.updatedAt = Date(timeIntervalSinceNow: -45 * 86_400)
+        let review = service.makeWeeklyReview()
+        service.prepareStaleItems([task], for: review)
+
+        task.status = .completed
+        service.prepareStaleItems([task], for: review)
+
         XCTAssertTrue(review.staleTaskIDs.isEmpty)
     }
 
@@ -44,7 +74,9 @@ final class WeeklyReviewAcceptanceTests: XCTestCase {
 
     func testTC5PromoteStaleItemMovesItToNextAction() {
         let task = TaskItem(title: "Old idea", status: .somedayMaybe)
+        task.updatedAt = Date(timeIntervalSinceNow: -45 * 86_400)
         let review = service.makeWeeklyReview()
+        service.prepareStaleItems([task], for: review)
         service.decide(.promote, for: task, review: review)
         XCTAssertEqual(task.status, .nextAction)
     }
@@ -70,6 +102,42 @@ final class WeeklyReviewAcceptanceTests: XCTestCase {
         XCTAssertEqual(review.status, .completed)
         XCTAssertFalse(review.isPartial)
         XCTAssertNotNil(review.completedAt)
+    }
+
+    func testTC8bFinishingAReviewTwiceDoesNotChangeItsStreak() {
+        let review = service.makeWeeklyReview()
+        for index in 0..<6 { service.saveStep(review, step: index, skipped: false) }
+        service.finish(review, reviews: [], now: Date(timeIntervalSince1970: 200))
+        let firstCompletion = review.completedAt
+        let firstStreak = review.streakAtCompletion
+
+        service.finish(review, reviews: [], now: Date(timeIntervalSince1970: 300))
+
+        XCTAssertEqual(review.completedAt, firstCompletion)
+        XCTAssertEqual(review.streakAtCompletion, firstStreak)
+    }
+
+    func testTC8dUnresolvedStaleItemsProducePartialReviewWhenChecklistFinishes() {
+        let task = TaskItem(title: "Old idea", status: .somedayMaybe)
+        task.updatedAt = Date(timeIntervalSinceNow: -45 * 86_400)
+        let review = service.makeWeeklyReview()
+        service.prepareStaleItems([task], for: review)
+
+        for index in 0..<6 { service.saveStep(review, step: index, skipped: false) }
+
+        XCTAssertEqual(review.status, .partial)
+        XCTAssertTrue(review.isPartial)
+        XCTAssertEqual(review.staleTaskIDs, [task.id.uuidString])
+    }
+
+    func testTC8cDuplicateReviewsForOneWeekCountOnceInStreak() {
+        let now = Date()
+        let first = service.makeWeeklyReview(now: now)
+        first.status = .completed
+        let duplicate = service.makeWeeklyReview(now: now)
+        duplicate.status = .partial
+
+        XCTAssertEqual(service.reviewStreak([first, duplicate]), 1)
     }
 
     func testTC9ThreeConsecutiveCompletedWeeksHaveStreakThree() {

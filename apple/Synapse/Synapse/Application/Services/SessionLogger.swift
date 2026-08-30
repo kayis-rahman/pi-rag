@@ -23,12 +23,16 @@ final class SessionLogger {
     }
 
     func add(record: SessionRecord) {
+        guard !records.contains(where: { $0.id == record.id }) else { return }
+
         // Convert domain model to API DTO for API layer
         let dto = SessionRecordDto(
             id: record.id,
             startedAt: record.startedAt,
             duration: record.duration,
-            kind: record.kind.rawValue
+            kind: record.kind.rawValue,
+            taskId: record.taskId,
+            taskTitleSnapshot: record.taskTitleSnapshot
         )
         records.append(dto)
         save()

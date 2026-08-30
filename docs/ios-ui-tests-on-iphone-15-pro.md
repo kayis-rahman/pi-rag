@@ -4,6 +4,9 @@ This guide runs the Synapse iOS UI tests on the connected iPhone 15 Pro. The
 test runner uses the device currently configured in
 `scripts/run-on-iphone15pro.sh`.
 
+The entire workflow can run from Terminal. Opening the Xcode app is not
+required once signing is configured.
+
 ## Prerequisites
 
 - macOS with Xcode installed.
@@ -30,9 +33,11 @@ Resolve the connected physical iPhone 15 Pro identifier at the start of each
 test session. Do not copy or retain a stale UUID:
 
 ```sh
-DEVICE_ID="$({ xcrun devicectl list devices 2>/dev/null || true; } \
-  | grep -E 'available \(paired\).*iPhone 15 Pro' \
-  | grep -Eo '[0-9A-Fa-f]{8}(-[0-9A-Fa-f]{4}){3}-[0-9A-Fa-f]{12}' \
+DEVICE_LIST_OUTPUT="$(xcrun devicectl list devices)" || exit 1
+DEVICE_ID="$(print -r -- "$DEVICE_LIST_OUTPUT" \
+  | grep -F 'available (paired)' \
+  | grep -F 'iPhone 15 Pro' \
+  | grep -Eo '([0-9A-Fa-f]{8}-[0-9A-Fa-f]{16}|[0-9A-Fa-f]{8}(-[0-9A-Fa-f]{4}){3}-[0-9A-Fa-f]{12})' \
   | head -n 1)"
 test -n "$DEVICE_ID" || {
   echo "No available paired physical iPhone 15 Pro found; stopping."
@@ -40,6 +45,26 @@ test -n "$DEVICE_ID" || {
 }
 echo "Using physical iPhone 15 Pro: $DEVICE_ID"
 ```
+
+Confirm that `xcodebuild` sees the same identifier before starting a test:
+
+```sh
+xcodebuild \
+  -project apple/Synapse/Synapse.xcodeproj \
+  -scheme "Synapse iOS" \
+  -showdestinations
+```
+
+The output must contain an entry like this, using the identifier returned by
+`devicectl`:
+
+```text
+{ platform:iOS, arch:arm64, id:<DEVICE_ID>, name:iPhone }
+```
+
+Seeing the phone in `devicectl` alone is not sufficient. `devicectl` and
+`xcodebuild` maintain separate device-service state, so both checks are part of
+the physical-device preflight.
 
 ## Build, install, and launch the app
 
@@ -59,7 +84,7 @@ launches bundle identifier `com.sparkage.synapse.ios` on the iPhone.
 The build output is placed in:
 
 ```text
-/tmp/synapse-iphone15pro-derived/Build/Products/Debug-iphoneos/Synapse iOS.app
+/private/tmp/synapse-iphone15pro-derived/Build/Products/Debug-iphoneos/Synapse iOS.app
 ```
 
 If signing or provisioning is requested, accept the Xcode prompts and rerun
@@ -67,13 +92,23 @@ the script with the phone unlocked.
 
 ## Run all UI tests on the iPhone
 
+The preferred command uses the repository script, which repeats both device
+preflight checks and refuses to use a simulator:
+
+```sh
+./scripts/run-on-iphone15pro.sh --test
+```
+
+The equivalent direct command is:
+
 ```sh
 xcodebuild test \
   -project apple/Synapse/Synapse.xcodeproj \
   -scheme "Synapse iOS" \
-  -destination "id=$DEVICE_ID" \
-  -derivedDataPath /tmp/synapse-iphone15pro-ui-tests \
+  -destination "platform=iOS,id=$DEVICE_ID" \
+  -derivedDataPath /private/tmp/synapse-iphone15pro-ui-tests \
   -only-testing:SynapseUITests/GTDWorkspaceUITests \
+  -enableCodeCoverage NO \
   -allowProvisioningUpdates
 ```
 
@@ -81,18 +116,49 @@ The UI test launch configuration adds `-ui-testing`. This bypasses normal
 backend/auth startup and uses a unique local SwiftData test store with CloudKit
 disabled, so each fresh test-app process starts with isolated local data.
 
+The iOS app scheme contains UI tests only. Run Weekly Review service and
+SwiftData integration tests with the separate unit-test scheme, still targeting
+the physical phone:
+
+```sh
+xcodebuild test \
+  -project apple/Synapse/Synapse.xcodeproj \
+  -scheme "Synapse iOS Unit Tests" \
+  -destination "platform=iOS,id=$DEVICE_ID" \
+  -derivedDataPath /private/tmp/synapse-weekly-review-tests \
+  -only-testing:SynapseTests/WeeklyReviewAcceptanceTests \
+  -only-testing:SynapseTests/WeeklyReviewPersistenceTests \
+  -enableCodeCoverage NO \
+  -allowProvisioningUpdates
+```
+
 ## Run one focused UI test
 
 For example, to verify capture → Home → task details → save:
 
 ```sh
+./scripts/run-on-iphone15pro.sh --test \
+  SynapseUITests/GTDWorkspaceUITests/testHomeTaskOpensDetailsAndSaves
+```
+
+Or invoke `xcodebuild` directly:
+
+```sh
 xcodebuild test \
   -project apple/Synapse/Synapse.xcodeproj \
   -scheme "Synapse iOS" \
-  -destination "id=$DEVICE_ID" \
-  -derivedDataPath /tmp/synapse-iphone15pro-ui-tests-focused \
+  -destination "platform=iOS,id=$DEVICE_ID" \
+  -derivedDataPath /private/tmp/synapse-iphone15pro-ui-tests-focused \
   -only-testing:SynapseUITests/GTDWorkspaceUITests/testHomeTaskOpensDetailsAndSaves \
+  -enableCodeCoverage NO \
   -allowProvisioningUpdates
+```
+
+To run the Daily Briefing physical UI test:
+
+```sh
+./scripts/run-on-iphone15pro.sh --test \
+  SynapseUITests/GTDWorkspaceUITests/testDailyBriefingShowsPositiveEmptyStateOnDevice
 ```
 
 The physical test validates capture → Home → task details → save. Swift-level
@@ -109,18 +175,13 @@ test method you want to run.
 
 ### Physical-device text-entry note
 
-The current connected phone reports iOS 27 build `24A5418b`, while this Mac is
-running Xcode 26.5.2. On this pairing, XCTest can launch the app and drive the
-UI, but `typeText` may not update a SwiftUI `TextField` binding. The capture
-navigation/detail tests therefore use the explicit
+The connected phone reports iOS 27 build `24A5418b`, and the CLI is configured
+for Xcode 27 Beta 6 (`27A5252f`). The capture navigation/detail tests still use
+the explicit
 `SYNAPSE_UI_TEST_CAPTURE_TITLE` fixture set by the test itself. This keeps the
 physical UI test deterministic; capture classification, persistence, and
 editor mutation are verified independently by `CaptureServiceTests` and
 `CaptureIntentBehaviorTests`.
-
-For full physical keyboard-entry coverage, run the same tests after updating
-Xcode to the iOS 27-compatible release, or after the phone is restored to an
-iOS version supported by the installed Xcode.
 
 For the live Siri/Shortcuts and two-device CloudKit checks, follow
 [Siri and CloudKit verification](siri-cloudkit-verification.md).
@@ -130,30 +191,123 @@ For the live Siri/Shortcuts and two-device CloudKit checks, follow
 Test results are stored below the derived-data directory, for example:
 
 ```text
-/tmp/synapse-iphone15pro-ui-tests/Logs/Test/*.xcresult
+/private/tmp/synapse-iphone15pro-ui-tests/Logs/Test/*.xcresult
 ```
 
 Print a concise summary:
 
 ```sh
 xcrun xcresulttool get test-results summary \
-  --path /tmp/synapse-iphone15pro-ui-tests/Logs/Test/<result>.xcresult
+  --path /private/tmp/synapse-iphone15pro-ui-tests/Logs/Test/<result>.xcresult \
+  --compact
 ```
 
 Print test-level failures:
 
 ```sh
 xcrun xcresulttool get test-results tests \
-  --path /tmp/synapse-iphone15pro-ui-tests/Logs/Test/<result>.xcresult
+  --path /private/tmp/synapse-iphone15pro-ui-tests/Logs/Test/<result>.xcresult \
+  --compact
 ```
 
-For screenshots and action attachments, open the `.xcresult` bundle in Xcode:
+Export screenshots, UI hierarchies, recordings, and action attachments without
+opening Xcode:
 
 ```sh
-open /tmp/synapse-iphone15pro-ui-tests/Logs/Test/<result>.xcresult
+xcrun xcresulttool export attachments \
+  --path /private/tmp/synapse-iphone15pro-ui-tests/Logs/Test/<result>.xcresult \
+  --output-path /private/tmp/synapse-iphone15pro-attachments
 ```
 
+The test report records the destination. Verify that its device has
+`modelName: iPhone 15 Pro`, `platform: iOS`, and the expected physical UDID
+before reporting the run as physical-device validation.
+
 ## Common issues
+
+### Automation or agent reports `Operation not permitted`
+
+A physical-device run still initializes Xcode platform services and reads from
+the current user’s `~/Library/Developer` and `~/Library/Logs` directories. A
+sandboxed automation process may therefore print messages such as:
+
+```text
+Error opening log file ... Operation not permitted
+CoreSimulatorService connection became invalid
+Unable to find a device matching the provided destination specifier
+```
+
+The `CoreSimulatorService` text does not prove that a simulator destination was
+used. Check the original `-destination` argument and the `.xcresult` device
+metadata. In this failure mode, rerun the same command with permission to access
+Xcode/CoreDevice services outside the workspace sandbox, or run the repository
+script from an unrestricted Terminal session. Do not change the destination to
+a simulator.
+
+### `devicectl` sees the phone but `xcodebuild` does not
+
+First compare both live views:
+
+```sh
+xcrun devicectl list devices
+
+xcodebuild \
+  -project apple/Synapse/Synapse.xcodeproj \
+  -scheme "Synapse iOS" \
+  -showdestinations
+```
+
+If the phone is `available (paired)` in the first command but its identifier is
+absent from the second, the test has not started. Recover in this order:
+
+1. Confirm the selected CLI toolchain:
+
+   ```sh
+   xcode-select -p
+   xcodebuild -version
+   ```
+
+2. Select and initialize the matching Xcode installation:
+
+   ```sh
+   sudo xcode-select --switch \
+     /Applications/Xcode-27.0.0-Beta.6.app/Contents/Developer
+   xcodebuild -runFirstLaunch
+   ```
+
+3. Disconnect and reconnect the phone, unlock it, keep it awake, and rerun both
+   enumeration commands.
+4. If the mismatch persists, restart the iPhone. Restart the Mac only if the
+   device-service mismatch remains after the phone restart.
+
+Once both commands show the same identifier, use the explicit physical
+destination form:
+
+```text
+platform=iOS,id=<DEVICE_ID>
+```
+
+### Build failure before XCTest starts
+
+Compiler and signing failures occur before the UI test can launch and are not
+physical-device test failures. Typical output ends with `Testing cancelled
+because the build failed`. Fix the first compiler error, rerun the same physical
+command, and only report a test result after XCTest prints `Testing started`.
+
+For Xcode 27’s CloudKit SDK, account status is named `CKAccountStatus`; using
+`CKContainer.AccountStatus` fails compilation because it is not a nested type.
+
+### XCTest starts but a UI assertion fails
+
+This is a real physical-device test result. Use `xcresulttool` to locate the
+source line and export attachments. For example, a failure in
+`GTDWorkspaceUITests.setUpWithError()` while waiting for
+`home-capture-ui-testing` means the app launched but did not expose the expected
+test UI. Inspect the exported UI hierarchy and screen recording before changing
+the feature assertion. If the hierarchy contains a presented sheet container
+but no title or content, check for presentation driven by separate Boolean and
+optional-result state. Use an item-backed sheet so the content and presentation
+value change atomically instead of briefly presenting an empty sheet.
 
 ### Device is locked
 

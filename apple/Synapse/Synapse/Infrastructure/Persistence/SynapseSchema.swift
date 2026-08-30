@@ -10,7 +10,10 @@ enum SynapseSchemaV1: VersionedSchema {
             Project.self,
             Area.self,
             WeeklyReview.self,
-            WeeklyReviewItem.self
+            WeeklyReviewItem.self,
+            GmailAccountRecord.self,
+            GmailImportedMessageRecord.self,
+            GmailSyncCheckpointRecord.self
         ]
     }
 }

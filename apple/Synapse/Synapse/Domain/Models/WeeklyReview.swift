@@ -16,6 +16,7 @@ final class WeeklyReview {
     var streakAtCompletion: Int = 0
     var lastSavedAt: Date = Date()
     var staleTaskIDs: [String] = []
+    var staleItemsPreparedAt: Date?
 
     @Relationship(deleteRule: .cascade, inverse: \WeeklyReviewItem.review)
     var checklistItems: [WeeklyReviewItem]? = []

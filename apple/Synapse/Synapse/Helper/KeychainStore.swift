@@ -12,6 +12,10 @@ struct KeychainStore {
         case apnsToken = "com.synapse.apns.token"
         case deviceId = "com.synapse.app.deviceId"
         case actionQueue = "com.synapse.app.actionQueue"
+        case gmailAccessToken = "com.synapse.gmail.accessToken"
+        case gmailRefreshToken = "com.synapse.gmail.refreshToken"
+        case gmailTokenExpiry = "com.synapse.gmail.tokenExpiry"
+        case gmailGrantedScopes = "com.synapse.gmail.grantedScopes"
     }
 
     private static let service = "com.synapse.keychain"

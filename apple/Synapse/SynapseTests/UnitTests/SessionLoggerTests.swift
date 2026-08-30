@@ -74,6 +74,46 @@ final class SessionLoggerTests: XCTestCase {
         XCTAssertEqual(logger.records.first?.durationSeconds, 600)
     }
 
+    func testGenericFocusSessionPreservesNilTaskAssociation() {
+        logger.add(record: SessionRecord(
+            startedAt: Date(),
+            duration: 1500,
+            kind: .work
+        ))
+
+        XCTAssertNil(logger.records.first?.taskId)
+    }
+
+    func testTaskAssociationAndTitleSnapshotSurviveDTOConversion() {
+        let taskID = UUID()
+        logger.add(record: SessionRecord(
+            startedAt: Date(),
+            duration: 1500,
+            kind: .work,
+            taskId: taskID,
+            taskTitleSnapshot: "Write implementation plan"
+        ))
+
+        XCTAssertEqual(logger.records.first?.taskId, taskID)
+        XCTAssertEqual(logger.records.first?.taskTitleSnapshot, "Write implementation plan")
+    }
+
+    func testAddingSameSessionIDTwiceIsIdempotent() {
+        let sessionID = UUID()
+        let record = SessionRecord(
+            id: sessionID,
+            startedAt: Date(),
+            duration: 1500,
+            kind: .work
+        )
+
+        logger.add(record: record)
+        logger.add(record: record)
+
+        XCTAssertEqual(logger.records.count, 1)
+        XCTAssertEqual(logger.records.first?.id, sessionID)
+    }
+
     // MARK: - Field Preservation
 
     func testDTOPreservesDuration() async {

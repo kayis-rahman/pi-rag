@@ -1,5 +1,8 @@
 import SwiftData
 import SwiftUI
+#if os(iOS)
+import UIKit
+#endif
 
 private func weeklyReviewProjectMessage(flaggedCount: Int) -> String {
     guard flaggedCount > 0 else { return "All active projects have a next action defined" }
@@ -22,7 +25,6 @@ private struct WeeklyReviewProjectStatusView: View {
 #if os(iOS)
 struct GTDWorkspaceView: View {
     @State private var selectedTab = 0
-    @State private var showingSettings = false
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -43,16 +45,6 @@ struct GTDWorkspaceView: View {
                 .tag(4)
         }
         .tint(Color.themePrimary)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button { showingSettings = true } label: {
-                    Image(systemName: "gearshape")
-                }
-                .accessibilityLabel("Settings")
-                .accessibilityIdentifier("workspace-settings")
-            }
-        }
-        .sheet(isPresented: $showingSettings) { SettingsView() }
         .onOpenURL { url in
             if url.host == "weekly-review" { selectedTab = 4 }
         }
@@ -82,15 +74,15 @@ private struct GTDHomeView: View {
     @Query(sort: \TaskItem.createdAt, order: .reverse) private var tasks: [TaskItem]
     @Query(sort: \Area.createdAt) private var areas: [Area]
     @State private var showingCapture = false
-    @State private var showingBriefing = false
     @State private var briefingResult: DailyBriefingResult?
+    @State private var briefingPresentation: DailyBriefingPresentation?
     @State private var briefingCacheKey = ""
-    @State private var selectedAreaID: UUID?
+    @State private var selectedAreaFilter: GTDWorkspaceMetrics.AreaFilter = .all
+    @State private var showingSettings = false
 
     private var todayTasks: [TaskItem] {
         let actions = tasks.filter { $0.status == .nextAction && ($0.dueDate == nil || Calendar.current.isDateInToday($0.dueDate!)) }
-        guard let selectedAreaID, let area = areas.first(where: { $0.id == selectedAreaID }) else { return actions }
-        return GTDWorkspaceMetrics.tasks(in: area, from: actions)
+        return GTDWorkspaceMetrics.tasks(matching: selectedAreaFilter, areas: areas, from: actions)
     }
 
     var body: some View {
@@ -137,7 +129,7 @@ private struct GTDHomeView: View {
                             : "home-capture-button"
                     )
 
-                    GTDAreaFilterChips(areas: areas, selection: $selectedAreaID)
+                    GTDAreaFilterChips(areas: areas, selection: $selectedAreaFilter)
 
                     HStack(spacing: 12) {
                         GTDMetric(title: "Inbox", value: tasks.filter { $0.status == .inbox }.count, tint: .orange)
@@ -168,7 +160,19 @@ private struct GTDHomeView: View {
             }
             .background(Color.themeBackground.ignoresSafeArea())
             .navigationBarTitleDisplayMode(.inline)
+            .onChange(of: areas.map(\.id)) { _, areaIDs in
+                if case .area(let selectedID) = selectedAreaFilter, !areaIDs.contains(selectedID) {
+                    selectedAreaFilter = .all
+                }
+            }
             .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { showingSettings = true } label: {
+                        Image(systemName: "gearshape")
+                    }
+                    .accessibilityLabel("Settings")
+                    .accessibilityIdentifier("workspace-settings")
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         Task {
@@ -181,7 +185,9 @@ private struct GTDHomeView: View {
                                 briefingCacheKey = key
                                 UserDefaults.standard.set(true, forKey: "synapse.hasGeneratedBriefing")
                             }
-                            showingBriefing = true
+                            if let briefingResult {
+                                briefingPresentation = DailyBriefingPresentation(result: briefingResult)
+                            }
                         }
                     } label: { Image(systemName: "sparkles") }
                     .accessibilityLabel("Generate daily briefing")
@@ -189,11 +195,10 @@ private struct GTDHomeView: View {
                 }
             }
             .sheet(isPresented: $showingCapture) { GTDCaptureSheet(defaultStatus: .inbox) }
-            .sheet(isPresented: $showingBriefing) {
-                if let briefingResult {
-                    DailyBriefingView(result: briefingResult)
-                }
+            .sheet(item: $briefingPresentation) { presentation in
+                DailyBriefingView(result: presentation.result)
             }
+            .sheet(isPresented: $showingSettings) { SettingsView() }
         }
     }
 
@@ -211,8 +216,14 @@ private struct GTDHomeView: View {
     }
 }
 
+private struct DailyBriefingPresentation: Identifiable {
+    let id = UUID()
+    let result: DailyBriefingResult
+}
+
 private struct DailyBriefingView: View {
     let result: DailyBriefingResult
+    @State private var showingAllCalendarEvents = false
 
     var body: some View {
         NavigationStack {
@@ -220,8 +231,10 @@ private struct DailyBriefingView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     if result.sections.isFirstRun {
                         emptyCard(icon: "sparkles", title: "Start with a thought", message: result.plainText)
+                        calendarSection
                     } else if !result.sections.hasWork {
                         emptyCard(icon: "checkmark.seal.fill", title: "All clear", message: result.plainText)
+                        calendarSection
                     } else {
                         if let narrative = result.narrative {
                             Text(narrative)
@@ -230,9 +243,17 @@ private struct DailyBriefingView: View {
                                 .padding(16)
                                 .background(Color.themeAccent, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
                         }
-                        if !result.sections.dueToday.isEmpty { itemSection("Due today", icon: "sun.max.fill", items: result.sections.dueToday, tint: .blue) }
-                        if !result.sections.overdue.isEmpty { itemSection("Overdue", icon: "exclamationmark.triangle.fill", items: result.sections.overdue, tint: .orange) }
-                        if !result.sections.waiting.isEmpty { itemSection("Check on this", icon: "clock.badge.questionmark", items: result.sections.waiting, tint: .purple) }
+                        if let summary = result.summaryText {
+                            Text(summary)
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(Color.themeTextPrimary)
+                                .padding(.horizontal, 4)
+                                .accessibilityIdentifier("daily-briefing-summary")
+                        }
+                        if !result.sections.dueToday.isEmpty { itemSection("Due today", icon: "sun.max.fill", items: result.sections.dueToday, tint: .blue, accessibilityIdentifier: "daily-briefing-due-today") }
+                        if !result.sections.overdue.isEmpty { itemSection("Overdue", icon: "exclamationmark.triangle.fill", items: result.sections.overdue, tint: .orange, accessibilityIdentifier: "daily-briefing-overdue") }
+                        if !result.sections.waiting.isEmpty { itemSection("Check on this", icon: "clock.badge.questionmark", items: result.sections.waiting, tint: .purple, accessibilityIdentifier: "daily-briefing-waiting") }
+                        if !result.sections.upNext.isEmpty { itemSection("Up next", icon: "arrow.forward.circle.fill", items: result.sections.upNext, tint: .teal, accessibilityIdentifier: "daily-briefing-up-next") }
                         calendarSection
                     }
                 }
@@ -255,7 +276,7 @@ private struct DailyBriefingView: View {
         .background(Color.themeCardBackground, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
     }
 
-    private func itemSection(_ title: String, icon: String, items: [DailyBriefingItem], tint: Color) -> some View {
+    private func itemSection(_ title: String, icon: String, items: [DailyBriefingItem], tint: Color, accessibilityIdentifier: String) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             Label(title, systemImage: icon).font(.headline).foregroundStyle(tint)
             ForEach(items) { item in
@@ -268,21 +289,67 @@ private struct DailyBriefingView: View {
         }
         .padding(16)
         .background(Color.themeCardBackground, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .accessibilityIdentifier(accessibilityIdentifier)
     }
 
     private var calendarSection: some View {
         let events = result.sections.calendarEvents
         guard !events.isEmpty else { return AnyView(EmptyView()) }
-        let allDay = events.filter(\.isAllDay)
-        let timed = events.filter { !$0.isAllDay }
+        let allDay = result.sections.allDayCalendarEvents
+        let timed = result.sections.timedCalendarEvents
+        let visibleTimed = showingAllCalendarEvents ? timed : Array(timed.prefix(10))
         return AnyView(VStack(alignment: .leading, spacing: 10) {
             Label("Calendar", systemImage: "calendar").font(.headline).foregroundStyle(.green)
-            if events.count >= 8 { Text("Packed day — \(events.count) meetings").font(.subheadline.weight(.medium)) }
-            if !allDay.isEmpty { Text("All day: \(allDay.map(\.title).joined(separator: ", "))").font(.subheadline) }
-            ForEach(timed) { event in
-                Text("\(event.startDate, style: .time)  \(event.title)").font(.subheadline)
+            if !allDay.isEmpty {
+                Text("All day").font(.subheadline.weight(.semibold)).accessibilityIdentifier("daily-briefing-calendar-all-day")
+                ForEach(allDay) { event in
+                    calendarEventRow(event, isAllDay: true)
+                }
             }
-        }.padding(16).background(Color.themeCardBackground, in: RoundedRectangle(cornerRadius: 18, style: .continuous)))
+            if !timed.isEmpty {
+                Text("Schedule").font(.subheadline.weight(.semibold)).accessibilityIdentifier("daily-briefing-calendar-timed")
+                ForEach(visibleTimed) { event in
+                    calendarEventRow(event, isAllDay: false)
+                }
+                if timed.count > 10 {
+                    Button(showingAllCalendarEvents ? "Show less" : "Show all \(timed.count) events") {
+                        showingAllCalendarEvents.toggle()
+                    }
+                    .font(.subheadline.weight(.semibold))
+                    .accessibilityIdentifier("daily-briefing-calendar-show-all")
+                }
+            }
+        }
+        .padding(16)
+        .background(Color.themeCardBackground, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .accessibilityIdentifier("daily-briefing-calendar"))
+    }
+
+    private func calendarEventRow(_ event: DailyBriefingEvent, isAllDay: Bool) -> some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: isAllDay ? "sun.max.fill" : "calendar")
+                .foregroundStyle(.green)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 2) {
+                if !isAllDay {
+                    Text(event.startDate, style: .time)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                }
+                Text(event.title)
+                    .font(.subheadline)
+                    .lineLimit(2)
+                if let location = event.location?.trimmingCharacters(in: .whitespacesAndNewlines), !location.isEmpty {
+                    Text(location)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+            }
+            Spacer(minLength: 0)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("daily-briefing-calendar-event-\(event.id)")
     }
 }
 
@@ -314,13 +381,12 @@ private struct GTDInboxView: View {
     @State private var showingTriageNotice = false
     @State private var triagedTaskIDs: [UUID] = []
     @State private var showingTriageResults = false
-    @State private var selectedAreaID: UUID?
+    @State private var selectedAreaFilter: GTDWorkspaceMetrics.AreaFilter = .all
 
     private var inboxTasks: [TaskItem] { tasks.filter { $0.status == .inbox } }
     private var visibleTasks: [TaskItem] {
         let searched = GTDInboxBehavior.filteredTasks(inboxTasks, query: searchText)
-        guard let selectedAreaID, let area = areas.first(where: { $0.id == selectedAreaID }) else { return searched }
-        return GTDWorkspaceMetrics.tasks(in: area, from: searched)
+        return GTDWorkspaceMetrics.tasks(matching: selectedAreaFilter, areas: areas, from: searched)
     }
     private var triagedTasks: [TaskItem] { tasks.filter { triagedTaskIDs.contains($0.id) } }
 
@@ -330,7 +396,7 @@ private struct GTDInboxView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     inboxHeader
                     GTDInboxSearchField(text: $searchText)
-                    GTDAreaFilterChips(areas: areas, selection: $selectedAreaID)
+                    GTDAreaFilterChips(areas: areas, selection: $selectedAreaFilter)
                     captureCard
                     triageCard
                     NavigationLink { GTDTaskListsView() } label: {
@@ -387,6 +453,11 @@ private struct GTDInboxView: View {
             .background(Color.themeBackground.ignoresSafeArea())
             .navigationTitle("Inbox")
             .navigationBarTitleDisplayMode(.large)
+            .onChange(of: areas.map(\.id)) { _, areaIDs in
+                if case .area(let selectedID) = selectedAreaFilter, !areaIDs.contains(selectedID) {
+                    selectedAreaFilter = .all
+                }
+            }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button { showingCapture = true } label: { Image(systemName: "plus") }
@@ -697,13 +768,13 @@ private struct GTDProjectsView: View {
     @Query(sort: \Area.createdAt) private var areas: [Area]
     @State private var showingNewProject = false
     @State private var filter: GTDWorkspaceFilter = .active
-    @State private var selectedAreaID: UUID?
+    @State private var selectedAreaFilter: GTDWorkspaceMetrics.AreaFilter = .all
 
     private var visibleProjects: [Project] {
         let filtered = GTDWorkspaceMetrics.projects(projects, matching: filter)
-        guard let selectedAreaID, let area = areas.first(where: { $0.id == selectedAreaID }) else { return filtered }
+        guard selectedAreaFilter != .all else { return filtered }
         return filtered.filter { project in
-            !GTDWorkspaceMetrics.tasks(in: area, from: tasks.filter { $0.project?.id == project.id }).isEmpty
+            !GTDWorkspaceMetrics.tasks(matching: selectedAreaFilter, areas: areas, from: tasks.filter { $0.project?.id == project.id }).isEmpty
         }
     }
 
@@ -712,7 +783,7 @@ private struct GTDProjectsView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     GTDCollectionHeader(eyebrow: "OUTCOMES", title: "Projects", message: "Turn multi-step commitments into clear, finishable outcomes.", symbol: "square.stack.3d.up.fill", tint: Color.themePrimary)
-                    GTDAreaFilterChips(areas: areas, selection: $selectedAreaID)
+                    GTDAreaFilterChips(areas: areas, selection: $selectedAreaFilter)
                     HStack(spacing: 10) {
                         GTDCollectionStat(value: projects.filter { !$0.isArchived && $0.status == .active }.count, label: "Active", tint: Color.themePrimary)
                         GTDCollectionStat(value: projects.filter { !$0.isArchived && $0.status == .completed }.count, label: "Completed", tint: .secondary)
@@ -742,6 +813,11 @@ private struct GTDProjectsView: View {
             .background(Color.themeBackground.ignoresSafeArea())
             .navigationTitle("Projects")
             .navigationBarTitleDisplayMode(.inline)
+            .onChange(of: areas.map(\.id)) { _, areaIDs in
+                if case .area(let selectedID) = selectedAreaFilter, !areaIDs.contains(selectedID) {
+                    selectedAreaFilter = .all
+                }
+            }
             .toolbar { ToolbarItem(placement: .topBarTrailing) {
                 Button { showingNewProject = true } label: { Image(systemName: "plus") }
                     .accessibilityLabel("Add project")
@@ -753,6 +829,7 @@ private struct GTDProjectsView: View {
 }
 
 private struct GTDAreasView: View {
+    @Environment(\.modelContext) private var modelContext
     @Query(sort: \Area.createdAt) private var areas: [Area]
     @Query private var tasks: [TaskItem]
     @State private var showingNewArea = false
@@ -772,6 +849,14 @@ private struct GTDAreasView: View {
                                 }
                                 .buttonStyle(.plain)
                                 .accessibilityIdentifier("area-card-\(area.id.uuidString)")
+                                .swipeActions {
+                                    Button(role: .destructive) {
+                                        delete(area)
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
+                                    .accessibilityIdentifier("delete-area-\(area.name.lowercased().replacingOccurrences(of: " ", with: "-"))")
+                                }
                             }
                         }
                     }
@@ -788,6 +873,14 @@ private struct GTDAreasView: View {
             } }
             .sheet(isPresented: $showingNewArea) { GTDNewAreaSheet() }
         }
+    }
+
+    private func delete(_ area: Area) {
+        for task in tasks {
+            task.areas = task.areas?.filter { $0.id != area.id }
+        }
+        modelContext.delete(area)
+        try? modelContext.save()
     }
 }
 
@@ -822,24 +915,25 @@ private struct GTDWorkspacePicker: View {
 
 private struct GTDAreaFilterChips: View {
     let areas: [Area]
-    @Binding var selection: UUID?
+    @Binding var selection: GTDWorkspaceMetrics.AreaFilter
 
     var body: some View {
-        if !areas.isEmpty {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    filterButton(title: "All areas", symbol: "line.3.horizontal.decrease.circle") {
-                        selection = nil
-                    }
-                    ForEach(areas) { area in
-                        filterButton(title: area.name, symbol: "circle.fill", isSelected: selection == area.id) {
-                            selection = area.id
-                        }
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                filterButton(title: "All areas", symbol: "line.3.horizontal.decrease.circle", isSelected: selection == .all) {
+                    selection = .all
+                }
+                filterButton(title: "Uncategorized", symbol: "questionmark.circle", isSelected: selection == .uncategorized) {
+                    selection = .uncategorized
+                }
+                ForEach(areas) { area in
+                    filterButton(title: area.name, symbol: "circle.fill", isSelected: selection == .area(area.id)) {
+                        selection = .area(area.id)
                     }
                 }
             }
-            .accessibilityIdentifier("area-filter-chips")
         }
+        .accessibilityIdentifier("area-filter-chips")
     }
 
     private func filterButton(title: String, symbol: String, isSelected: Bool = false, action: @escaping () -> Void) -> some View {
@@ -852,6 +946,7 @@ private struct GTDAreaFilterChips: View {
                 .background(isSelected ? Color.themePrimary.opacity(0.22) : Color.themeCardBackground, in: Capsule())
         }
         .buttonStyle(.plain)
+        .accessibilityIdentifier("area-filter-\(title.lowercased().replacingOccurrences(of: " ", with: "-"))")
         .accessibilityLabel("Filter by \(title)")
     }
 }
@@ -1147,6 +1242,7 @@ private struct GTDReviewView: View {
             .alert("Review prompt", isPresented: $showingReviewPrompt) { Button("Done") {} } message: { Text(reviewPrompt) }
             .onAppear {
                 let resumedReview = WeeklyReviewService.shared.resumeReview(from: reviews)
+                let currentWeekReview = WeeklyReviewService.shared.review(forWeekContaining: .now, from: reviews)
                 let completedReview = reviews.first { candidate in
                     let isCompleted = candidate.status == .completed
                     let isPartial = candidate.status == .partial
@@ -1154,6 +1250,8 @@ private struct GTDReviewView: View {
                 }
                 if let resumedReview {
                     review = resumedReview
+                } else if let currentWeekReview {
+                    review = currentWeekReview
                 } else {
                     review = completedReview
                 }
@@ -1163,10 +1261,21 @@ private struct GTDReviewView: View {
     }
 
     private func startReview() {
-        let newReview = WeeklyReviewService.shared.makeWeeklyReview()
-        modelContext.insert(newReview)
+        // Only resume an in-progress review for the current week. A
+        // partial/completed review must not be picked back up here, or
+        // "Start a new review" would just reopen the one just finished.
+        if let existing = WeeklyReviewService.shared.review(forWeekContaining: .now, from: reviews),
+           existing.status == .inProgress {
+            review = existing
+        } else {
+            let newReview = WeeklyReviewService.shared.makeWeeklyReview()
+            modelContext.insert(newReview)
+            review = newReview
+        }
+        if let review {
+            WeeklyReviewService.shared.prepareStaleItems(tasks, for: review)
+        }
         try? modelContext.save()
-        review = newReview
     }
 
     private func advance(_ review: WeeklyReview, item: WeeklyReviewItem, skipped: Bool) {
@@ -1241,6 +1350,8 @@ private struct GTDTaskRow: View {
 private struct GTDTaskDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(FeatureFlags.self) private var featureFlags
 
     let task: TaskItem
     @State private var title: String
@@ -1326,6 +1437,8 @@ private struct GTDCaptureSheet: View {
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(FeatureFlags.self) private var featureFlags
     @Query(sort: \Project.title) private var projects: [Project]
     @Query(sort: \Area.name) private var areas: [Area]
     let defaultStatus: GTDStatus
@@ -1342,6 +1455,8 @@ private struct GTDCaptureSheet: View {
     @State private var persistedItem: TaskItem?
     @State private var didConfirm = false
     @State private var saveErrorMessage: String?
+    @State private var voiceCapture = VoiceCaptureService()
+    @State private var voiceLanguage: VoiceCaptureLanguage = .english
 
     init(defaultStatus: GTDStatus) {
         self.defaultStatus = defaultStatus
@@ -1390,6 +1505,7 @@ private struct GTDCaptureSheet: View {
                 }
             }
             .onDisappear {
+                voiceCapture.cancel()
                 // A swipe-back or dismissal from the recommendation screen is
                 // still a successful capture, but must leave it raw in Inbox.
                 if phase == .confirmation, !didConfirm {
@@ -1402,14 +1518,92 @@ private struct GTDCaptureSheet: View {
             } message: {
                 Text(saveErrorMessage ?? "Your capture is still on screen. Try saving again when storage is available.")
             }
+            .onChange(of: voiceCapture.transcript) { _, newValue in
+                guard voiceCapture.isRecording || voiceCapture.state == .completed else { return }
+                title = newValue
+            }
+            .onChange(of: scenePhase) { _, newPhase in
+                guard newPhase != .active else { return }
+                voiceCapture.handleInterruption()
+            }
         }
     }
 
     private var captureForm: some View {
         Form {
             Section("Capture") {
-                TextField("What’s on your mind?", text: $title)
-                    .accessibilityIdentifier("capture-title-field")
+                HStack(alignment: .top, spacing: 10) {
+                    TextField("What’s on your mind?", text: $title, axis: .vertical)
+                        .lineLimit(1...8)
+                        .accessibilityIdentifier("capture-title-field")
+
+                    Button {
+                        if voiceCapture.isRecording {
+                            voiceCapture.stop()
+                        } else {
+                            Task { await voiceCapture.start(language: voiceLanguage) }
+                        }
+                    } label: {
+                        Image(systemName: voiceCapture.isRecording ? "stop.fill" : "mic.fill")
+                            .font(.headline)
+                            .frame(width: 38, height: 38)
+                            .foregroundStyle(voiceCapture.isRecording ? .red : Color.themePrimary)
+                            .background(.quaternary, in: Circle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(voiceCapture.isRecording ? "Stop voice capture" : "Start voice capture")
+                    .accessibilityIdentifier(voiceCapture.isRecording ? "capture-voice-stop" : "capture-voice-mic")
+                }
+
+                if featureFlags.malayalamVoiceEnabled {
+                    Picker("Voice language", selection: $voiceLanguage) {
+                        ForEach(VoiceCaptureLanguage.allCases) { language in
+                            Text(language.displayName).tag(language)
+                        }
+                    }
+                    .accessibilityIdentifier("capture-voice-language")
+                }
+
+                if voiceCapture.isRecording {
+                    Label("Listening… tap stop when you’re done", systemImage: "waveform")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .accessibilityIdentifier("capture-live-status")
+                }
+
+                if let failure = voiceCapture.failure {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(failure.localizedDescription)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .accessibilityIdentifier("capture-voice-error")
+
+                        HStack {
+                            Button("Retry") {
+                                Task { await voiceCapture.start(language: voiceLanguage) }
+                            }
+                            .accessibilityIdentifier("capture-voice-retry")
+
+                            Button("Type instead") {
+                                voiceCapture.reset()
+                            }
+                            .accessibilityIdentifier("capture-voice-type-instead")
+
+                            if failure == .bridgeOffline && voiceLanguage == .malayalam {
+                                Button("Try English") {
+                                    voiceLanguage = .english
+                                    Task { await voiceCapture.start(language: .english) }
+                                }
+                                .accessibilityIdentifier("capture-voice-try-english")
+                            }
+
+                            if failure == .microphonePermissionDenied || failure == .speechPermissionDenied {
+                                Button("Open Settings") { openSettings() }
+                                    .accessibilityIdentifier("capture-voice-open-settings")
+                            }
+                        }
+                    }
+                }
                 TextField("Notes (optional)", text: $notes, axis: .vertical)
                     .lineLimit(3...8)
                     .accessibilityIdentifier("capture-notes-field")
@@ -1536,6 +1730,13 @@ private struct GTDCaptureSheet: View {
         isSaving = false
     }
 
+    private func openSettings() {
+        #if os(iOS)
+        guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+        UIApplication.shared.open(url)
+        #endif
+    }
+
     private func applyConfirmationToPersistedItem() {
         guard let item = persistedItem else { return }
         item.title = title.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -1584,13 +1785,16 @@ private struct GTDCaptureSheet: View {
 private struct GTDNewAreaSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Query(sort: \Area.name) private var areas: [Area]
     @State private var name = ""
     @State private var notes = ""
+    @State private var validationError: AreaNameValidationError?
 
     var body: some View {
         NavigationStack {
             Form {
                 TextField("Area name", text: $name)
+                    .accessibilityIdentifier("new-area-name")
                 TextField("What does this area represent?", text: $notes, axis: .vertical).lineLimit(2...4)
             }
             .navigationTitle("New area")
@@ -1599,12 +1803,21 @@ private struct GTDNewAreaSheet: View {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Create") {
-                        modelContext.insert(Area(name: name, notes: notes))
+                        guard AreaNaming.validate(name, against: areas) == nil else {
+                            validationError = AreaNaming.validate(name, against: areas)
+                            return
+                        }
+                        modelContext.insert(Area(name: name.trimmingCharacters(in: .whitespacesAndNewlines), notes: notes))
                         try? modelContext.save()
                         dismiss()
                     }
                     .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
+            }
+            .alert("Area not created", isPresented: Binding(get: { validationError != nil }, set: { if !$0 { validationError = nil } })) {
+                Button("OK", role: .cancel) { validationError = nil }
+            } message: {
+                Text(validationError?.errorDescription ?? "Please check the Area name.")
             }
         }
     }

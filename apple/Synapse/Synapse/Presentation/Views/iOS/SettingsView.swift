@@ -83,6 +83,12 @@ struct SettingsView: View {
                     }
                 }
 
+                if featureFlags.gmailIntegrationEnabled {
+                    Section("GMAIL") {
+                        GmailIntegrationView()
+                    }
+                }
+
                 // Timer Settings Section
                 Section("Timer Settings") {
                     VStack(alignment: .leading, spacing: 8) {

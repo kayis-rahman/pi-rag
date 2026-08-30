@@ -29,12 +29,20 @@ class PomodoroTimer {
     var shortBreaksCompleted: Int = 0
     var autoStartNextSession: Bool = true
     var currentTaskId: UUID?
+    var currentTaskTitleSnapshot: String?
+    private(set) var activeSessionId: UUID?
+    private(set) var sessionStartedAt: Date?
+    private(set) var accumulatedElapsedSeconds: Int = 0
+    private(set) var runStartedAt: Date?
+    private(set) var lastReconciledAt: Date?
+    private(set) var endAt: Date?
 
     private(set) var workDuration: Int = 25 * 60
     private(set) var breakDuration: Int = 5 * 60
     private(set) var longBreakDuration: Int = 15 * 60
     let cycleSize: Int = 4
     var onSessionCompleted: ((Phase, Int) -> Void)?
+    var onFocusSessionCompleted: ((SessionRecord) -> Void)?
 
     private var timerTask: _Concurrency.Task<Void, Never>?
     var startTimestamp: Double?
@@ -51,6 +59,13 @@ class PomodoroTimer {
         self.autoStartNextSession = false
         self.shortBreaksCompleted = 0
         self.currentTaskId = nil
+        self.currentTaskTitleSnapshot = nil
+        self.activeSessionId = nil
+        self.sessionStartedAt = nil
+        self.accumulatedElapsedSeconds = 0
+        self.runStartedAt = nil
+        self.lastReconciledAt = nil
+        self.endAt = nil
         self.startTimestamp = nil
         self.pauseTimestamp = nil
         self.lastModifiedTimestamp = Date().timeIntervalSince1970
@@ -67,6 +82,13 @@ class PomodoroTimer {
         self.autoStartNextSession = false
         self.shortBreaksCompleted = 0
         self.currentTaskId = nil
+        self.currentTaskTitleSnapshot = nil
+        self.activeSessionId = nil
+        self.sessionStartedAt = nil
+        self.accumulatedElapsedSeconds = 0
+        self.runStartedAt = nil
+        self.lastReconciledAt = nil
+        self.endAt = nil
         self.startTimestamp = nil
         self.pauseTimestamp = nil
         self.lastModifiedTimestamp = Date().timeIntervalSince1970
@@ -95,17 +117,32 @@ class PomodoroTimer {
 
     func start() {
         guard !isRunning else { return }
+        let now = Date()
+        if activeSessionId == nil {
+            activeSessionId = UUID()
+            sessionStartedAt = now
+            accumulatedElapsedSeconds = 0
+        }
         isRunning = true
-        startTimestamp = Date().timeIntervalSince1970
+        runStartedAt = now
+        lastReconciledAt = now
+        startTimestamp = now.timeIntervalSince1970
+        endAt = now.addingTimeInterval(TimeInterval(max(0, remainingSeconds)))
         lastModifiedTimestamp = startTimestamp!
+        persistState(now: now)
+        scheduleCompletionNotification()
         startTimer()
     }
 
     func pause() {
         guard isRunning else { return }
+        reconcile(now: Date(), completeExpired: false)
         isRunning = false
         pauseTimestamp = Date().timeIntervalSince1970
         lastModifiedTimestamp = pauseTimestamp!
+        endAt = nil
+        persistState()
+        cancelCompletionNotification()
         stopTimer()
     }
 
@@ -117,12 +154,32 @@ class PomodoroTimer {
         shortBreaksCompleted = 0
         startTimestamp = nil
         pauseTimestamp = nil
+        currentTaskId = nil
+        currentTaskTitleSnapshot = nil
+        activeSessionId = nil
+        sessionStartedAt = nil
+        accumulatedElapsedSeconds = 0
+        runStartedAt = nil
+        lastReconciledAt = nil
+        endAt = nil
         lastModifiedTimestamp = Date().timeIntervalSince1970
+        FocusTimerPersistence.clear()
+        cancelCompletionNotification()
     }
 
     func advance() {
         let previousPhase = phase
         let previousDuration = currentDuration
+        let completedSession = activeSessionId.map {
+            SessionRecord(
+                id: $0,
+                startedAt: sessionStartedAt ?? Date(),
+                duration: TimeInterval(max(0, accumulatedElapsedSeconds == 0 ? previousDuration : accumulatedElapsedSeconds)),
+                kind: sessionKind(for: previousPhase),
+                taskId: currentTaskId,
+                taskTitleSnapshot: currentTaskTitleSnapshot
+            )
+        }
         switch previousPhase {
         case .work:
             shortBreaksCompleted += 1
@@ -142,16 +199,112 @@ class PomodoroTimer {
         }
 
         lastModifiedTimestamp = Date().timeIntervalSince1970
+        if let completedSession {
+            onFocusSessionCompleted?(completedSession)
+        }
         onSessionCompleted?(previousPhase, previousDuration)
+        activeSessionId = nil
+        sessionStartedAt = nil
+        accumulatedElapsedSeconds = 0
+        runStartedAt = nil
+        lastReconciledAt = nil
+        endAt = nil
+        persistState()
+        cancelCompletionNotification()
     }
 
     /// Handle timer reaching zero — advance phase and optionally auto-start
     func handleTimerCompletion() {
         guard isRunning else { return }
+        reconcile(now: Date(), completeExpired: false)
+        isRunning = false
         advance()
         if autoStartNextSession {
             start()
         }
+    }
+
+    var snapshot: FocusTimerSnapshot {
+        FocusTimerSnapshot(
+            activeSessionId: activeSessionId,
+            phase: phase,
+            remainingSeconds: remainingSeconds,
+            isRunning: isRunning,
+            shortBreaksCompleted: shortBreaksCompleted,
+            autoStartNextSession: autoStartNextSession,
+            currentTaskId: currentTaskId,
+            taskTitleSnapshot: currentTaskTitleSnapshot,
+            sessionStartedAt: sessionStartedAt,
+            accumulatedElapsedSeconds: accumulatedElapsedSeconds,
+            runStartedAt: runStartedAt,
+            lastReconciledAt: lastReconciledAt,
+            endAt: endAt,
+            savedAt: Date()
+        )
+    }
+
+    func persistState(now: Date = Date()) {
+        let current = snapshot
+        FocusTimerPersistence.save(FocusTimerSnapshot(
+            activeSessionId: current.activeSessionId,
+            phase: current.phase,
+            remainingSeconds: current.remainingSeconds,
+            isRunning: current.isRunning,
+            shortBreaksCompleted: current.shortBreaksCompleted,
+            autoStartNextSession: current.autoStartNextSession,
+            currentTaskId: current.currentTaskId,
+            taskTitleSnapshot: current.taskTitleSnapshot,
+            sessionStartedAt: current.sessionStartedAt,
+            accumulatedElapsedSeconds: current.accumulatedElapsedSeconds,
+            runStartedAt: current.runStartedAt,
+            lastReconciledAt: current.lastReconciledAt,
+            endAt: current.endAt,
+            savedAt: now
+        ))
+    }
+
+    func restorePersistedState(now: Date = Date()) {
+        guard let saved = FocusTimerPersistence.load() else { return }
+        phase = saved.phase
+        remainingSeconds = max(0, saved.remainingSeconds)
+        isRunning = saved.isRunning
+        shortBreaksCompleted = saved.shortBreaksCompleted
+        autoStartNextSession = saved.autoStartNextSession
+        currentTaskId = saved.currentTaskId
+        currentTaskTitleSnapshot = saved.taskTitleSnapshot
+        activeSessionId = saved.activeSessionId
+        sessionStartedAt = saved.sessionStartedAt
+        accumulatedElapsedSeconds = max(0, saved.accumulatedElapsedSeconds)
+        runStartedAt = saved.runStartedAt
+        lastReconciledAt = saved.lastReconciledAt
+        endAt = saved.endAt
+        if isRunning {
+            reconcile(now: now)
+            if isRunning {
+                startTimer()
+                scheduleCompletionNotification()
+            }
+        }
+    }
+
+    @discardableResult
+    func reconcile(now: Date = Date(), completeExpired: Bool = true) -> Int {
+        guard isRunning, let endAt else { return remainingSeconds }
+        let remaining = max(0, Int(ceil(endAt.timeIntervalSince(now))))
+        remainingSeconds = min(currentDuration, remaining)
+        if let lastReconciledAt {
+            accumulatedElapsedSeconds += max(0, Int(now.timeIntervalSince(lastReconciledAt)))
+        } else if let runStartedAt {
+            accumulatedElapsedSeconds += max(0, Int(now.timeIntervalSince(runStartedAt)))
+        }
+        self.lastReconciledAt = now
+        lastModifiedTimestamp = now.timeIntervalSince1970
+        if remainingSeconds == 0 && completeExpired {
+            handleTimerCompletion()
+        } else {
+            persistState(now: now)
+        }
+        return remainingSeconds
     }
 
     /// Internal setter for lastModifiedTimestamp (tests only)
@@ -202,8 +355,7 @@ class PomodoroTimer {
                 try? await _Concurrency.Task.sleep(nanoseconds: 1_000_000_000) // 1 second
                 await MainActor.run {
                     if self.isRunning && remainingSeconds > 0 {
-                        remainingSeconds -= 1
-                        self.lastModifiedTimestamp = Date().timeIntervalSince1970
+                        self.reconcile(now: Date())
                     }
                 }
             }
@@ -225,9 +377,18 @@ class PomodoroTimer {
         self.autoStartNextSession = false
         self.shortBreaksCompleted = 0
         self.currentTaskId = nil
+        self.currentTaskTitleSnapshot = nil
+        self.activeSessionId = nil
+        self.sessionStartedAt = nil
+        self.accumulatedElapsedSeconds = 0
+        self.runStartedAt = nil
+        self.lastReconciledAt = nil
+        self.endAt = nil
         self.startTimestamp = nil
         self.pauseTimestamp = nil
         self.lastModifiedTimestamp = Date().timeIntervalSince1970
+        FocusTimerPersistence.clear()
+        cancelCompletionNotification()
     }
 
     func resetDurationsToDefaults() {
@@ -236,6 +397,25 @@ class PomodoroTimer {
         defaults.set(breakDuration / 60, forKey: "breakDuration")
         defaults.set(longBreakDuration / 60, forKey: "longBreakDuration")
     }
+
+    private func sessionKind(for phase: Phase) -> SessionRecord.Kind {
+        switch phase {
+        case .work: return .work
+        case .break: return .shortBreak
+        case .longBreak: return .longBreak
+        }
+    }
+
+    private func scheduleCompletionNotification() {
+        guard let endAt else { return }
+        NotificationManager.shared.scheduleSessionDoneNotification(
+            phase: phase.rawValue,
+            taskTitle: nil,
+            at: endAt
+        )
+    }
+
+    private func cancelCompletionNotification() {
+        NotificationManager.shared.cancelSessionDoneNotification()
+    }
   }
-
-

@@ -16,6 +16,7 @@ struct ActiveTaskSectionView: View {
                     ForEach(taskService.activeTasks.prefix(3)) { task in
                         TaskCardView(task: task, style: taskCardStyle(for: task)) {
                             timer.currentTaskId = task.id
+                            timer.currentTaskTitleSnapshot = task.title
                         } completionAction: {
                             completeTask(task)
                         }

@@ -4,6 +4,25 @@ import SwiftData
 
 @MainActor
 final class QuickCapturePersistenceTests: XCTestCase {
+    func testVoiceDraftDoesNotPersistUntilTheNormalCaptureSavePathRuns() async throws {
+        let marker = "Voice draft (UUID().uuidString)"
+        let backend = PersistenceTestVoiceBackend()
+        let voice = VoiceCaptureService(englishBackend: backend)
+        let context = ModelContext(SynapseModelContainer.shared)
+
+        await voice.start(language: .english)
+        backend.emit(marker)
+        await Task.yield()
+
+        let beforeSave = try context.fetch(FetchDescriptor<TaskItem>(predicate: #Predicate { $0.title == marker }))
+        XCTAssertTrue(beforeSave.isEmpty)
+
+        let item = TaskItem(title: marker, status: .inbox)
+        try CapturePersistenceService.save(item, in: context)
+        let afterSave = try context.fetch(FetchDescriptor<TaskItem>(predicate: #Predicate { $0.title == marker }))
+        XCTAssertEqual(afterSave.count, 1)
+    }
+
     func testCaptureSavesLocallyWithCloudKitDisabledForOfflineOperation() throws {
         let configuration = SynapseModelContainer.configuration(isTesting: true)
         XCTAssertNil(configuration.cloudKitContainerIdentifier)
@@ -74,4 +93,26 @@ final class QuickCapturePersistenceTests: XCTestCase {
         XCTAssertEqual(configuration.cloudKitContainerIdentifier, SynapseModelContainer.cloudKitContainerIdentifier)
         XCTAssertFalse(configuration.isStoredInMemoryOnly)
     }
+}
+
+@MainActor
+private final class PersistenceTestVoiceBackend: VoiceCaptureBackend {
+    private var transcriptHandler: ((String) -> Void)?
+    private var transcript = ""
+
+    func start(
+        language: VoiceCaptureLanguage,
+        onTranscript: @escaping (String) -> Void,
+        onError: @escaping (VoiceCaptureError) -> Void
+    ) async throws {
+        transcriptHandler = onTranscript
+    }
+
+    func emit(_ value: String) {
+        transcript = value
+        transcriptHandler?(value)
+    }
+
+    func stop() -> String { transcript }
+    func cancel() {}
 }

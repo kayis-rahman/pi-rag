@@ -9,10 +9,21 @@ enum SynapseModelContainer {
 
     static let schema = Schema(versionedSchema: SynapseSchemaV1.self)
 
-    /// A unique local store keeps each UI-test app process isolated from
-    /// CloudKit and from the user's production database.
-    static let uiTestStoreURL = FileManager.default.temporaryDirectory
-        .appending(path: "SynapseUITests-\(UUID().uuidString).sqlite")
+    /// A unique local store keeps each UI-test run isolated from CloudKit and
+    /// from the user's production database. Tests that relaunch the app mid-test
+    /// to verify persistence pass a stable `SYNAPSE_UI_TEST_STORE_ID` so every
+    /// relaunch in that test reopens the same file. Tests that don't set it still
+    /// need a store stable for the lifetime of this process (e.g. repeated
+    /// `makeIntentContainer()` calls simulating separate App Intent processes
+    /// must resolve to the same file), so the fallback identifier is generated
+    /// once and cached, not regenerated on every access.
+    private static let fallbackUITestStoreIdentifier = UUID().uuidString
+
+    static var uiTestStoreURL: URL {
+        let identifier = ProcessInfo.processInfo.environment["SYNAPSE_UI_TEST_STORE_ID"] ?? fallbackUITestStoreIdentifier
+        return FileManager.default.temporaryDirectory
+            .appending(path: "SynapseUITests-\(identifier).sqlite")
+    }
 
     static let shared: ModelContainer = {
         do {

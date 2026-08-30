@@ -79,4 +79,24 @@ final class ProjectAreaPersistenceTests: XCTestCase {
         XCTAssertEqual(fetchedProject.status, .active)
         XCTAssertTrue(try context.fetch(FetchDescriptor<TaskItem>()).contains { $0.project?.id == projectID && $0.id == next.id })
     }
+
+    func testDeletingAreaUnlinksAllTasksButPreservesOtherAreas() throws {
+        let marker = UUID().uuidString
+        let work = Area(name: "Work \(marker)")
+        let health = Area(name: "Health \(marker)")
+        let task = TaskItem(title: "Shared task \(marker)", areas: [work, health])
+        let context = ModelContext(SynapseModelContainer.shared)
+
+        context.insert(work)
+        context.insert(health)
+        context.insert(task)
+        try context.save()
+
+        task.areas = task.areas?.filter { $0.id != work.id }
+        context.delete(work)
+        try context.save()
+
+        XCTAssertEqual(task.areas?.map(\.id), [health.id])
+        XCTAssertFalse(try context.fetch(FetchDescriptor<Area>()).contains { $0.id == work.id })
+    }
 }

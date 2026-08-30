@@ -51,6 +51,7 @@ final class OnDeviceIntelligenceService {
 
     func briefingNarrative(for sections: DailyBriefingSections) async -> String? {
         guard !sections.isFirstRun, sections.hasWork else { return nil }
+        if ProcessInfo.processInfo.environment["SYNAPSE_UI_TEST_DISABLE_AI"] == "1" { return nil }
         let input = """
         Due today: \(sections.dueToday.map(\.title).joined(separator: ", "))
         Overdue: \(sections.overdue.map(\.title).joined(separator: ", "))
@@ -66,7 +67,8 @@ final class OnDeviceIntelligenceService {
                 do not use a heading, and do not invent details.
                 """)
             if let response = try? await session.respond(to: input) {
-                return response.content
+                let content = response.content.trimmingCharacters(in: .whitespacesAndNewlines)
+                return content.isEmpty ? nil : content
             }
         }
         #endif

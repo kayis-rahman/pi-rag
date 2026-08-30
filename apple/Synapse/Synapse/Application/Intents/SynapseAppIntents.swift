@@ -20,7 +20,7 @@ enum SynapseIntentError: LocalizedError {
 }
 
 enum SynapseIntentSupport {
-    static func setupError(appSetupCompleted: Bool, accountStatus: CKContainer.AccountStatus?) -> SynapseIntentError? {
+    static func setupError(appSetupCompleted: Bool, accountStatus: CKAccountStatus?) -> SynapseIntentError? {
         guard appSetupCompleted else { return .appNeedsSetup }
         guard accountStatus != .noAccount else { return .cloudKitUnavailable }
         return nil
@@ -120,8 +120,10 @@ struct StartWeeklyReviewIntent: AppIntent {
     func perform() async throws -> some IntentResult {
         let context = try await SynapseIntentSupport.context()
         let reviews = try context.fetch(FetchDescriptor<WeeklyReview>())
-        if await WeeklyReviewService.shared.resumeReview(from: reviews) == nil {
-            context.insert(await WeeklyReviewService.shared.makeWeeklyReview())
+        let service = await WeeklyReviewService.shared
+        if await service.resumeReview(from: reviews) == nil,
+           await service.review(forWeekContaining: .now, from: reviews) == nil {
+            context.insert(await service.makeWeeklyReview())
             try SynapseIntentSupport.save(context)
         }
         UserDefaults.standard.set("weekly-review", forKey: SynapseModelContainer.pendingDestinationKey)

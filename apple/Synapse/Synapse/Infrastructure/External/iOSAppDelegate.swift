@@ -111,6 +111,16 @@ class iOSAppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterD
         AppLogger.error("iOS APNs registration failed: \(error.localizedDescription)", category: .general)
     }
 
+    @MainActor
+    func applicationDidEnterBackground(_ application: UIApplication) {
+        TimerSyncManager.shared.getTimer()?.persistState()
+    }
+
+    @MainActor
+    func applicationWillEnterForeground(_ application: UIApplication) {
+        TimerSyncManager.shared.getTimer()?.reconcile()
+    }
+
     // Silent (background) push: aps:{content-available:1} bypasses the
     // notification center delegate and lands here regardless of foreground state.
     func application(

@@ -92,9 +92,27 @@ struct SynapseApp: App {
     @MainActor
     private func setupApp() async {
         let processInfo = ProcessInfo.processInfo
+        timer.onFocusSessionCompleted = { record in
+            logger.add(record: record)
+        }
+        if processInfo.arguments.contains("-focus-test-reset") {
+            FocusTimerPersistence.clear()
+            timer.reset()
+        } else {
+            timer.restorePersistedState()
+        }
         if processInfo.arguments.contains("-ui-testing") ||
             processInfo.environment["SYNAPSE_UI_TESTING"] == "1" {
             try? GTDWorkspaceUITestData.seedProjectsAndAreasIfRequested(
+                in: ModelContext(SynapseModelContainer.shared)
+            )
+            try? GTDWorkspaceUITestData.seedWeeklyReviewStaleItemIfRequested(
+                in: ModelContext(SynapseModelContainer.shared)
+            )
+            try? GTDWorkspaceUITestData.seedDailyBriefingIfRequested(
+                in: ModelContext(SynapseModelContainer.shared)
+            )
+            try? GTDWorkspaceUITestData.seedGmailIfRequested(
                 in: ModelContext(SynapseModelContainer.shared)
             )
             isAppReady = true
