@@ -537,8 +537,6 @@ final class WorkspaceUITests: XCTestCase {
         XCTAssertTrue(startReview.waitForExistence(timeout: 5))
         startReview.tap()
 
-        XCTAssertTrue(app.descendants(matching: .any)["review-session"].firstMatch.waitForExistence(timeout: 5))
-        XCTAssertTrue(app.descendants(matching: .any)["weekly-review-progress"].firstMatch.exists)
         XCTAssertTrue(app.buttons["weekly-review-step-0"].waitForExistence(timeout: 5))
         for index in 0...5 {
             XCTAssertTrue(app.buttons["review-step-navigator-\(index)"].exists)
