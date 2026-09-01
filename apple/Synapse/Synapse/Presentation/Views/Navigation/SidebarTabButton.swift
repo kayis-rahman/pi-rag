@@ -74,7 +74,7 @@ struct SidebarTabButton: View {
     }
 
     private var primaryTint: Color {
-        Color(red: 168/255, green: 230/255, blue: 207/255)
+        Color.themeButtonBackground
     }
 
     private var secondaryTint: Color {
@@ -83,9 +83,9 @@ struct SidebarTabButton: View {
 
     private var iconColor: Color {
         if isSelected {
-            return primaryTint
+            return Color.themeTextPrimary
         } else if hasActiveIndicator {
-            return primaryTint.opacity(0.8)
+            return Color.themeTextPrimary.opacity(0.8)
         } else {
             return .secondary
         }
@@ -93,9 +93,9 @@ struct SidebarTabButton: View {
 
     private var labelColor: Color {
         if isSelected {
-            return primaryTint
+            return Color.themeTextPrimary
         } else if hasActiveIndicator {
-            return primaryTint.opacity(0.7)
+            return Color.themeTextPrimary.opacity(0.7)
         } else {
             return .secondary
         }

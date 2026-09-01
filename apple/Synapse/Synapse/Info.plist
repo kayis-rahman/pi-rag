@@ -10,6 +10,8 @@
 	<string>banner</string>
 	<key>NSUserNotificationsUsageDescription</key>
 	<string>Timer synchronization requires notifications to sync across your devices.</string>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 	<key>NSCalendarsUsageDescription</key>
 	<string>Synapse uses your calendar to help you prepare for the day.</string>
 	<key>NSMicrophoneUsageDescription</key>

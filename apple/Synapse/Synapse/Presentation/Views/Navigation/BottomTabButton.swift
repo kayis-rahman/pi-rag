@@ -19,7 +19,7 @@ struct BottomTabButton: View {
                         .foregroundColor(.white)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
-                        .background(Color(red: 168/255, green: 230/255, blue: 207/255))
+                        .background(Color.themeButtonBackground)
                         .clipShape(Capsule())
                         .offset(x: 8, y: -8)
                         .transition(.scale.combined(with: .opacity))
@@ -49,15 +49,15 @@ struct BottomTabButton: View {
     }
 
     private var tint: Color {
-        isSelected ? Color(red: 168/255, green: 230/255, blue: 207/255) : Color.secondary.opacity(0.3)
+        isSelected ? Color.themeButtonBackground.opacity(0.18) : Color.secondary.opacity(0.3)
     }
 
     private var iconColor: Color {
-        isSelected ? Color(red: 168/255, green: 230/255, blue: 207/255) : Color.secondary
+        isSelected ? Color.themeTextPrimary : Color.secondary
     }
 
     private var labelColor: Color {
-        isSelected ? Color(red: 168/255, green: 230/255, blue: 207/255) : Color.secondary
+        isSelected ? Color.themeTextPrimary : Color.secondary
     }
 }
 

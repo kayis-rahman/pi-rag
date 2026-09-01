@@ -17,7 +17,7 @@ usage() {
   print "--test [TEST_IDENTIFIER...]"
   print "  Runs physical-device UI tests in one xcodebuild invocation. Accepts one"
   print "  or more -only-testing identifiers as separate arguments. Defaults to:"
-  print "    SynapseUITests/GTDWorkspaceUITests"
+  print "    SynapseUITests/WorkspaceUITests"
   print ""
   print "--test-each TEST_IDENTIFIER..."
   print "  Builds for testing once, then runs each given identifier as its own"
@@ -29,7 +29,7 @@ usage() {
 }
 
 MODE="run"
-TEST_IDENTIFIERS=("SynapseUITests/GTDWorkspaceUITests")
+TEST_IDENTIFIERS=("SynapseUITests/WorkspaceUITests")
 case "${1:-}" in
   "") ;;
   --test)

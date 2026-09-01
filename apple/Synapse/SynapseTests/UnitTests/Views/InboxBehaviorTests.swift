@@ -2,13 +2,13 @@ import XCTest
 @testable import Synapse
 
 @MainActor
-final class GTDInboxBehaviorTests: XCTestCase {
+final class InboxBehaviorTests: XCTestCase {
     func testFilteringMatchesTitleAndNotesCaseInsensitively() {
         let titleMatch = TaskItem(title: "Book dentist appointment")
         let notesMatch = TaskItem(title: "Health admin", notes: "Call the DENTIST this week")
         let other = TaskItem(title: "Buy groceries")
 
-        let filtered = GTDInboxBehavior.filteredTasks([titleMatch, notesMatch, other], query: "dentist")
+        let filtered = InboxBehavior.filteredTasks([titleMatch, notesMatch, other], query: "dentist")
         XCTAssertEqual(filtered.map(\.title), [titleMatch.title, notesMatch.title])
     }
 
@@ -16,13 +16,13 @@ final class GTDInboxBehaviorTests: XCTestCase {
         let first = TaskItem(title: "First")
         let second = TaskItem(title: "Second")
 
-        XCTAssertEqual(GTDInboxBehavior.filteredTasks([first, second], query: "  ").map(\.title), [first.title, second.title])
+        XCTAssertEqual(InboxBehavior.filteredTasks([first, second], query: "  ").map(\.title), [first.title, second.title])
     }
 
     func testTriageSummaryCoversZeroOneAndMany() {
-        XCTAssertEqual(GTDInboxBehavior.triageSummary(movedCount: 0), "Nothing was moved. Add more context to your captures.")
-        XCTAssertEqual(GTDInboxBehavior.triageSummary(movedCount: 1), "Moved 1 capture into GTD lists.")
-        XCTAssertEqual(GTDInboxBehavior.triageSummary(movedCount: 3), "Moved 3 captures into GTD lists.")
+        XCTAssertEqual(InboxBehavior.triageSummary(movedCount: 0), "Nothing was moved. Add more context to your captures.")
+        XCTAssertEqual(InboxBehavior.triageSummary(movedCount: 1), "Moved 1 capture into Lists.")
+        XCTAssertEqual(InboxBehavior.triageSummary(movedCount: 3), "Moved 3 captures into Lists.")
     }
 
     func testCompletingInboxItemRecordsCompletionAndRemovesItFromInbox() {
@@ -32,7 +32,7 @@ final class GTDInboxBehaviorTests: XCTestCase {
 
         XCTAssertEqual(item.status, .completed)
         XCTAssertNotNil(item.completedAt)
-        XCTAssertFalse(GTDInboxBehavior.filteredTasks([item], query: "").contains { $0.status == .inbox })
+        XCTAssertFalse(InboxBehavior.filteredTasks([item], query: "").contains { $0.status == .inbox })
     }
 
     func testOrganizedNextActionsIncludeFutureDatedWorkAndExcludeOtherCategories() {
@@ -44,7 +44,7 @@ final class GTDInboxBehaviorTests: XCTestCase {
         let waiting = TaskItem(title: "Wait for reply", status: .waitingFor)
         let inbox = TaskItem(title: "Unclear thought", status: .inbox)
 
-        let surfaced = GTDInboxBehavior.organizedTasks([waiting, inbox, futureAction], status: .nextAction)
+        let surfaced = InboxBehavior.organizedTasks([waiting, inbox, futureAction], status: .nextAction)
 
         XCTAssertEqual(surfaced.map(\.id), [futureAction.id])
     }
@@ -54,7 +54,7 @@ final class GTDInboxBehaviorTests: XCTestCase {
         let other = Project(title: "Home move")
 
         XCTAssertEqual(
-            GTDInboxBehavior.suggestedProject(in: [project, other], matching: "website redesign - fix header")?.id,
+            InboxBehavior.suggestedProject(in: [project, other], matching: "website redesign - fix header")?.id,
             project.id
         )
     }
@@ -62,7 +62,7 @@ final class GTDInboxBehaviorTests: XCTestCase {
     func testProjectSuggestionDoesNotLearnFromPreviousCorrections() {
         let project = Project(title: "Website redesign")
 
-        XCTAssertNil(GTDInboxBehavior.suggestedProject(in: [project], matching: "Email the client"))
-        XCTAssertNil(GTDInboxBehavior.suggestedProject(in: [project], matching: "Email the client again"))
+        XCTAssertNil(InboxBehavior.suggestedProject(in: [project], matching: "Email the client"))
+        XCTAssertNil(InboxBehavior.suggestedProject(in: [project], matching: "Email the client again"))
     }
 }

@@ -4,15 +4,15 @@ import Foundation
 import FoundationModels
 #endif
 
-enum GTDIntelligenceCategory: String, CaseIterable, Sendable {
+enum IntelligenceCategory: String, CaseIterable, Sendable {
     case inbox
     case nextAction
     case waitingFor
     case somedayMaybe
 }
 
-struct GTDTriageRecommendation: Sendable {
-    let category: GTDIntelligenceCategory
+struct TriageRecommendation: Sendable {
+    let category: IntelligenceCategory
     let rationale: String
 }
 
@@ -22,10 +22,10 @@ final class OnDeviceIntelligenceService {
 
     private init() {}
 
-    func triage(title: String, notes: String) async -> GTDTriageRecommendation {
+    func triage(title: String, notes: String) async -> TriageRecommendation {
         let item = await CaptureService.shared.processCapture(text: "\(title)\n\(notes)")
-        let category = GTDIntelligenceCategory(rawValue: item.statusRawValue) ?? .inbox
-        return GTDTriageRecommendation(category: category, rationale: "Suggested from the shared capture pipeline.")
+        let category = IntelligenceCategory(rawValue: item.statusRawValue) ?? .inbox
+        return TriageRecommendation(category: category, rationale: "Suggested from the shared capture pipeline.")
     }
 
     func dailyBriefing(tasks: [TaskItem]) async -> String {
@@ -36,7 +36,7 @@ final class OnDeviceIntelligenceService {
         #if canImport(FoundationModels)
         if #available(iOS 26.0, macOS 26.0, *), SystemLanguageModel.default.isAvailable {
             let session = LanguageModelSession(instructions: """
-                You create calm, concise GTD daily briefings. Mention the most important next actions,
+                You create calm, concise task organization daily briefings. Mention the most important next actions,
                 overdue items, and one encouraging focus. Use plain text and no more than 80 words.
                 """)
             if let response = try? await session.respond(to: "Open items:\n\(summary)") {
@@ -82,7 +82,7 @@ final class OnDeviceIntelligenceService {
         #if canImport(FoundationModels)
         if #available(iOS 26.0, macOS 26.0, *), SystemLanguageModel.default.isAvailable {
             let session = LanguageModelSession(instructions: """
-                You guide a GTD weekly review. Ask one short, practical reflection question based on progress.
+                You guide a task organization weekly review. Ask one short, practical reflection question based on progress.
                 Do not judge. Keep it under 35 words.
                 """)
             if let response = try? await session.respond(to: "Checklist: \(completed)/\(total) complete. Open tasks: \(openTaskCount).") {

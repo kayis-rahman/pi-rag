@@ -3,7 +3,7 @@ import SwiftData
 
 /// Deterministic relationship data for the isolated `-ui-testing` store only.
 @MainActor
-enum GTDWorkspaceUITestData {
+enum WorkspaceUITestData {
     static func seedProjectsAndAreasIfRequested(in context: ModelContext) throws {
         let environment = ProcessInfo.processInfo.environment
         guard SynapseModelContainer.isTestingProcess,

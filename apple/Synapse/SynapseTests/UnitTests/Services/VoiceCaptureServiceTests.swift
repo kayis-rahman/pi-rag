@@ -83,6 +83,7 @@ final class VoiceCaptureServiceTests: XCTestCase {
 @MainActor
 private final class FakeVoiceCaptureBackend: VoiceCaptureBackend {
     private var transcriptHandler: ((String) -> Void)?
+    private var latestTranscript = ""
 
     func start(
         language: VoiceCaptureLanguage,
@@ -93,9 +94,10 @@ private final class FakeVoiceCaptureBackend: VoiceCaptureBackend {
     }
 
     func emit(_ transcript: String) {
+        latestTranscript = transcript
         transcriptHandler?(transcript)
     }
 
-    func stop() -> String { "" }
-    func cancel() {}
+    func stop() -> String { latestTranscript }
+    func cancel() { transcriptHandler = nil }
 }

@@ -75,7 +75,7 @@ duplicate messages, interrupted sync, and temporary Gmail/API failures.
 - Downloading or previewing attachments.
 - Gmail push notifications.
 - Automatic project or Area assignment.
-- Automatic movement from Inbox to another GTD bucket without confirmation.
+- Automatic movement from Inbox to another task organization bucket without confirmation.
 - Multiple connected Gmail accounts and account-scoped Keychain namespaces.
 - Background refresh scheduling.
 - Deleting imported tasks as part of disconnect, beyond retaining them safely.

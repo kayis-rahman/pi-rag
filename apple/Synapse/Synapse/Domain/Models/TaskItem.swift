@@ -10,7 +10,7 @@ final class TaskItem {
     var updatedAt: Date = Date()
     var dueDate: Date?
     var completedAt: Date?
-    var statusRawValue: String = GTDStatus.inbox.rawValue
+    var statusRawValue: String = Status.inbox.rawValue
     var contextTags: [String] = []
     var sortOrder: Double = 0
 
@@ -18,8 +18,8 @@ final class TaskItem {
 
     var areas: [Area]? = []
 
-    var status: GTDStatus {
-        get { GTDStatus(rawValue: statusRawValue) ?? .inbox }
+    var status: Status {
+        get { Status(rawValue: statusRawValue) ?? .inbox }
         set {
             statusRawValue = newValue.rawValue
             completedAt = newValue == .completed ? (completedAt ?? Date()) : nil
@@ -30,7 +30,7 @@ final class TaskItem {
     init(
         title: String,
         notes: String = "",
-        status: GTDStatus = .inbox,
+        status: Status = .inbox,
         dueDate: Date? = nil,
         contextTags: [String] = [],
         project: Project? = nil,

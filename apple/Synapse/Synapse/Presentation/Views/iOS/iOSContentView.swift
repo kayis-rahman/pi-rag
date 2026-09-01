@@ -24,10 +24,8 @@ struct iOSContentView: View {
             VStack(alignment: .leading, spacing: 20) {
                 focusHeader
 
-                VStack(spacing: 12) {
-                    CircularTimerView(size: ringSize, showSessionProgress: false)
-                    CycleProgressView(timer: timer)
-                }
+                CircularTimerView(size: ringSize)
+                    .accessibilityIdentifier("focus-timer")
                 .frame(maxWidth: .infinity)
 
                 activeTaskCard
@@ -60,6 +58,8 @@ struct iOSContentView: View {
             .padding(.bottom, 24)
         }
         .background(phaseBackground.ignoresSafeArea())
+        .navigationTitle("Focus")
+        .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
@@ -134,18 +134,19 @@ struct iOSContentView: View {
     }
 
     private var focusHeader: some View {
-        VStack(alignment: .leading, spacing: 5) {
+        VStack(alignment: .leading, spacing: 6) {
             Text(FocusTabBehavior.heading(for: timer.phase))
-                .font(.system(size: 25, weight: .bold, design: .rounded))
-                .tracking(-0.45)
-            Text(FocusTabBehavior.prompt(
-                for: timer.phase,
-                isRunning: timer.isRunning,
-                remainingSeconds: timer.remainingSeconds,
-                currentDuration: timer.currentDuration
-            ))
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .font(.title2.weight(.bold))
+                .foregroundStyle(.primary)
+                .fixedSize(horizontal: false, vertical: true)
+            TabDescription(
+                FocusTabBehavior.prompt(
+                    for: timer.phase,
+                    isRunning: timer.isRunning,
+                    remainingSeconds: timer.remainingSeconds,
+                    currentDuration: timer.currentDuration
+                )
+            )
         }
     }
 
@@ -261,8 +262,9 @@ struct iOSContentView: View {
 
     private var phaseTint: Color {
         switch timer.phase {
-        case .work: return .themePrimary
-        case .break, .longBreak: return .themeOrangePrimary
+        case .work: return .focusWork
+        case .break: return .focusBreak
+        case .longBreak: return .focusLongBreak
         }
     }
 }

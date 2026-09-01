@@ -1,6 +1,6 @@
 import Foundation
 
-enum GTDInboxBehavior {
+enum InboxBehavior {
     static func suggestedProject(in projects: [Project], matching text: String) -> Project? {
         projects.first { !$0.title.isEmpty && text.localizedCaseInsensitiveContains($0.title) }
     }
@@ -17,12 +17,12 @@ enum GTDInboxBehavior {
     static func triageSummary(movedCount: Int) -> String {
         movedCount == 0
             ? "Nothing was moved. Add more context to your captures."
-            : "Moved \(movedCount) capture\(movedCount == 1 ? "" : "s") into GTD lists."
+            : "Moved \(movedCount) capture\(movedCount == 1 ? "" : "s") into Lists."
     }
 
-    /// Returns an organized GTD list. Inbox is intentionally excluded because
+    /// Returns an organized List. Inbox is intentionally excluded because
     /// it has its own capture-processing surface.
-    static func organizedTasks(_ tasks: [TaskItem], status: GTDStatus) -> [TaskItem] {
+    static func organizedTasks(_ tasks: [TaskItem], status: Status) -> [TaskItem] {
         tasks
             .filter { $0.status == status }
             .sorted { lhs, rhs in

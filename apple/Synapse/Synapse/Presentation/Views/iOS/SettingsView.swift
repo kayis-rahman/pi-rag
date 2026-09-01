@@ -1,485 +1,152 @@
 import SwiftUI
-import AuthenticationServices
 
 struct SettingsView: View {
-    @Environment(PomodoroTimer.self) var timer
-    @Environment(SessionLogger.self) var logger
-    @Environment(AuthManager.self) var authManager
-    @Environment(FeatureFlags.self) var featureFlags
-    @AppStorage("soundEnabled") private var soundEnabled = true
-    @AppStorage("hapticsEnabled") private var hapticsEnabled = true
+    @Environment(PomodoroTimer.self) private var timer
+    @Environment(SessionLogger.self) private var logger
+    @Environment(AuthManager.self) private var authManager
+    @Environment(FeatureFlags.self) private var featureFlags
     @AppStorage("appTheme") private var appTheme = AppTheme.system
-
-
-    enum AppTheme: String, CaseIterable {
-        case light = "Light"
-        case dark = "Dark"
-        case system = "System"
-
-        var displayName: String { rawValue }
-    }
 
     var body: some View {
         NavigationStack {
             List {
-                // Sync & Cloud Section
-                Section("SYNC & CLOUD") {
-                    if authManager.isSignedIn {
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    if !displayNameForProfile().isEmpty {
-                                        Text(displayNameForProfile())
-                                            .font(.system(size: 16, weight: .medium))
-                                    }
-                                    if !displayEmailForProfile().isEmpty {
-                                        Text(displayEmailForProfile())
-                                            .font(.system(size: 14))
-                                            .foregroundStyle(.secondary)
-                                    }
-                                }
-                                Spacer()
-                                Image(systemName: "person.circle.fill")
-                                    .font(.system(size: 32))
-                                    .foregroundStyle(.blue)
-                            }
-                        }
-                        .onAppear {
-                            // Refresh auth data if it's incomplete
-                             if authManager.displayName?.isEmpty ?? true || authManager.email?.isEmpty ?? true {
-                                 _Concurrency.Task {
-                                     await authManager.restoreSession()
-                                 }
-                             }
-                        }
-                    } else {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Sign in with Apple")
-                                    .font(.system(size: 16, weight: .medium))
-                                Text("Sync data across devices")
-                                    .font(.system(size: 14))
-                                    .foregroundStyle(.secondary)
-                            }
-                            Spacer()
-                             Button("Sign In") {
-                                 _Concurrency.Task {
-                                    do {
-                                        try await authManager.signInWithApple()
-                                    } catch {
-                                        let errorMsg = handleSignInError(error, "SettingsView")
-                                        print("Sign-in failed: \(errorMsg)")
-                                        // TODO: Show alert with error message
-                                    }
-                                }
-                            }
-                            .font(.system(size: 16, weight: .medium))
-                            .foregroundStyle(.blue)
-                        }
-                    }
-
-                    NavigationLink("Manage Account") {
-                        AccountManagementView()
-                    }
-                }
-
-                if featureFlags.gmailIntegrationEnabled {
-                    Section("GMAIL") {
-                        GmailIntegrationView()
-                    }
-                }
-
-                // Timer Settings Section
-                Section("Timer Settings") {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Work Duration")
-                            .font(.system(size: 16, weight: .medium))
-                        Stepper(
-                            "\(timer.workDuration / 60) min",
-                            value: Binding(
-                                get: { timer.workDuration / 60 },
-                                set: {
-                                    timer.updateDurations(workMinutes: $0, shortBreakMinutes: timer.breakDuration / 60, longBreakMinutes: timer.longBreakDuration / 60)
-                                    syncTimerSettingsToiCloud()
-                                }
-                            ),
-                            in: 15...60,
-                            step: 5
-                        )
-                    }
-
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Break Duration")
-                            .font(.system(size: 16, weight: .medium))
-                        Stepper(
-                            "\(timer.breakDuration / 60) min",
-                            value: Binding(
-                                get: { timer.breakDuration / 60 },
-                                set: {
-                                    timer.updateDurations(workMinutes: timer.workDuration / 60, shortBreakMinutes: $0, longBreakMinutes: timer.longBreakDuration / 60)
-                                    syncTimerSettingsToiCloud()
-                                }
-                            ),
-                            in: 3...15,
-                            step: 1
-                        )
-                    }
-
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Long Break Duration")
-                            .font(.system(size: 16, weight: .medium))
-                        Stepper(
-                            "\(timer.longBreakDuration / 60) min",
-                            value: Binding(
-                                get: { timer.longBreakDuration / 60 },
-                                set: {
-                                    timer.updateDurations(workMinutes: timer.workDuration / 60, shortBreakMinutes: timer.breakDuration / 60, longBreakMinutes: $0)
-                                    syncTimerSettingsToiCloud()
-                                }
-                            ),
-                            in: 10...30,
-                            step: 5
-                        )
-                    }
-
-                    Toggle("Auto-start next session", isOn: Binding(
-                        get: { timer.autoStartNextSession },
-                        set: { timer.autoStartNextSession = $0 }
-                    ))
-                        .onChange(of: timer.autoStartNextSession) { _, _ in
-                            syncTimerSettingsToiCloud()
-                        }
-                }
-
-                // Manual Sync Section (for testing)
-                Section("MANUAL SYNC") {
-                    Button("Sync Timer State Now") {
-                        Task {
-                            print("🔄 MANUAL_SYNC: User triggered manual sync")
-                            await TimerSyncManager.shared.syncTimerState()
-                        }
-                    }
-                    .foregroundColor(.blue)
-                    Text("Manually sync timer state with other devices")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-
-                // Sound & Haptics Section
-                Section("Sound & Haptics") {
-                    Toggle("Sound", isOn: $soundEnabled)
-                    Toggle("Haptics", isOn: $hapticsEnabled)
-                }
-
-                // App Theme Section
-                Section("Appearance") {
-                    Picker("App Theme", selection: $appTheme) {
-                        ForEach(AppTheme.allCases, id: \.self) { theme in
-                            Text(theme.displayName).tag(theme)
-                        }
-                    }
-                    .pickerStyle(.menu)
-                }
-
-                #if DEBUG
-                if featureFlags.diagnosticsEnabled {
-                    Section("DEVELOPER SUPPORT") {
-                        NavigationLink("Feature Flags") {
-                            FeatureFlagsDebugView()
-                        }
-                    }
-                }
-                #endif
-
-                // About Section
-                Section("ABOUT") {
-                    HStack {
-                        Text("Version")
-                        Spacer()
-                        Text(Bundle.main.displayVersion)
-                            .foregroundStyle(.secondary)
-                    }
-
-                    Button("Privacy Policy") {
-                        openPrivacyPolicy()
-                    }
-                    .foregroundStyle(.blue)
-
-                    Button("Help & Support") {
-                        openHelpAndSupport()
-                    }
-                    .foregroundStyle(.blue)
-                }
-
-                // Actions Section
                 Section {
-                    Button("Reset to Defaults", role: .destructive) {
-                        resetToDefaults()
+                    NavigationLink { AccountSyncSettingsView() } label: {
+                        SettingsAccountRow(authManager: authManager)
                     }
-
-                    Button("Clear All Data", role: .destructive) {
-                        clearAllData()
+                    .accessibilityIdentifier("settings-account")
+                }
+                Section("Personalize") {
+                    SettingsLink("Focus", "\(timer.workDuration / 60) min focus · \(timer.breakDuration / 60) min break", "timer", "settings-focus") { FocusSettingsView() }
+                    SettingsLink("Sound & Haptics", "Feedback preferences", "speaker.wave.2.fill", "settings-sound-haptics") { SoundHapticsSettingsView() }
+                    SettingsLink("Appearance", appTheme.rawValue, "circle.lefthalf.filled", "settings-appearance") { AppearanceSettingsView() }
+                }
+                Section("More") {
+                    if featureFlags.gmailIntegrationEnabled {
+                        SettingsLink("Integrations", "Gmail", "square.grid.2x2.fill", "settings-integrations") { IntegrationsSettingsView() }
                     }
+                    SettingsLink("Support & About", "Help, privacy, and version", "questionmark.circle.fill", "settings-support-about") { SupportAboutSettingsView(featureFlags: featureFlags) }
+                }
+                Section {
+                    SettingsLink("Data & Privacy", "Manage local data", "lock.shield.fill", "settings-data-privacy", tint: .orange) { DataPrivacySettingsView(timer: timer, logger: logger) }
                 }
             }
-            .navigationTitle("Profile")
-            #if os(iOS)
+            .listStyle(.insetGrouped)
+            .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.large)
-            #endif
         }
-    }
-
-    private func resetToDefaults() {
-        timer.resetDurationsToDefaults()
-        soundEnabled = true
-        hapticsEnabled = true
-        appTheme = .system
-        syncTimerSettingsToiCloud()
-    }
-
-    private func syncTimerSettingsToiCloud() {
-        let settings = TimerSettings(
-            workDuration: timer.workDuration,
-            breakDuration: timer.breakDuration,
-            longBreakDuration: timer.longBreakDuration,
-            autoStartNextSession: timer.autoStartNextSession
-        )
-        iCloudSyncManager.shared.syncTimerSettings(settings)
-    }
-
-    // MARK: - Error Handling Helpers
-
-    private func handleSignInError(_ error: Error, _ context: String) -> String {
-        let signInError = error as? SignInError
-        switch signInError {
-        case .notConfigured:
-            return "Sign in with Apple is not configured. Please check your Apple capability configuration."
-        case .cancelled:
-            return "Sign-in was cancelled"
-        case .failed(let underlyingError):
-            return "Sign-in failed: \(underlyingError.localizedDescription)"
-        case .invalidRequest:
-            return "Invalid request. Please try again."
-        case .invalidResponse:
-            return "Invalid response from server. Please try again."
-        case .appleSignInNotAvailable:
-            return "Sign in with Apple is not available on this device"
-        case .appleSignInFailed(let underlyingError):
-            return "Sign in with Apple failed: \(underlyingError.localizedDescription)"
-        case .none:
-            return "An unexpected error occurred. Please try again."
-        }
-    }
-
-    private func displayNameForProfile() -> String {
-        if let name = authManager.displayName, !name.isEmpty {
-            return name
-        }
-        return ""
-    }
-
-    private func displayEmailForProfile() -> String {
-        if let email = authManager.email, !email.isEmpty {
-            return email
-        }
-        return ""
-    }
-
-    private func clearAllData() {
-        // Show confirmation alert
-        logger.clear()
-    }
-
-    private func openPrivacyPolicy() {
-        guard let url = URL(string: "https://synapse.app/privacy") else { return }
-        #if os(iOS)
-        UIApplication.shared.open(url)
-        #else
-        NSWorkspace.shared.open(url)
-        #endif
-    }
-
-    private func openHelpAndSupport() {
-        guard let url = URL(string: "https://synapse.app/help") else { return }
-        #if os(iOS)
-        UIApplication.shared.open(url)
-        #else
-        NSWorkspace.shared.open(url)
-        #endif
     }
 }
 
-// MARK: - Supporting Views
+private struct SettingsAccountRow: View {
+    let authManager: AuthManager
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: authManager.isSignedIn ? "person.crop.circle.fill" : "person.crop.circle")
+                .font(.title2).foregroundStyle(authManager.isSignedIn ? Color.themeAccent : .secondary)
+                .frame(width: 38, height: 38).background(Color.themePrimary.opacity(0.14), in: Circle())
+            VStack(alignment: .leading, spacing: 3) {
+                Text(authManager.isSignedIn ? (authManager.displayName ?? "Synapse user") : "Sign in with Apple").font(.headline)
+                Text(authManager.isSignedIn ? (authManager.email ?? "Apple account connected") : "Sync your data across devices")
+                    .font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
+            }
+        }.padding(.vertical, 5)
+    }
+}
 
-struct AccountManagementView: View {
-    @Environment(AuthManager.self) var authManager
+private struct SettingsLink<Destination: View>: View {
+    let title: String; let subtitle: String; let icon: String; let identifier: String; let tint: Color
+    @ViewBuilder let destination: () -> Destination
+    init(_ title: String, _ subtitle: String, _ icon: String, _ identifier: String, tint: Color = .themePrimary, @ViewBuilder destination: @escaping () -> Destination) {
+        self.title = title; self.subtitle = subtitle; self.icon = icon; self.identifier = identifier; self.tint = tint; self.destination = destination
+    }
+    var body: some View {
+        NavigationLink(destination: destination) {
+            HStack(spacing: 12) {
+                Image(systemName: icon).font(.subheadline.weight(.semibold)).foregroundStyle(tint)
+                    .frame(width: 30, height: 30).background(tint.opacity(0.13), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                VStack(alignment: .leading, spacing: 2) { Text(title); Text(subtitle).font(.caption).foregroundStyle(.secondary) }
+            }.padding(.vertical, 4)
+        }.accessibilityIdentifier(identifier)
+    }
+}
 
-    // Device stats state
-    @State private var deviceStats: DeviceStats?
-    @State private var isLoadingDeviceStats = false
-    @State private var deviceStatsError: String?
-
+struct FocusSettingsView: View {
+    @Environment(PomodoroTimer.self) private var timer
     var body: some View {
         List {
+            Section { durationRow("Focus duration", timer.workDuration / 60, 15...60, 5) { timer.updateDurations(workMinutes: $0, shortBreakMinutes: timer.breakDuration / 60, longBreakMinutes: timer.longBreakDuration / 60); sync() }
+                durationRow("Short break", timer.breakDuration / 60, 3...15, 1) { timer.updateDurations(workMinutes: timer.workDuration / 60, shortBreakMinutes: $0, longBreakMinutes: timer.longBreakDuration / 60); sync() }
+                durationRow("Long break", timer.longBreakDuration / 60, 10...30, 5) { timer.updateDurations(workMinutes: timer.workDuration / 60, shortBreakMinutes: timer.breakDuration / 60, longBreakMinutes: $0); sync() }
+            } header: { Text("Timer") } footer: { Text(timer.isRunning ? "Pause the active session before changing durations." : "Changes apply to the next session.") }
+            Section { Toggle("Auto-start next session", isOn: Binding(get: { timer.autoStartNextSession }, set: { timer.autoStartNextSession = $0; sync() })).accessibilityIdentifier("settings-auto-start") }
+        }.navigationTitle("Focus").navigationBarTitleDisplayMode(.inline)
+    }
+    @ViewBuilder private func durationRow(_ title: String, _ value: Int, _ range: ClosedRange<Int>, _ step: Int, onChange: @escaping (Int) -> Void) -> some View {
+        Stepper(value: Binding(get: { value }, set: onChange), in: range, step: step) { VStack(alignment: .leading) { Text(title); Text("\(value) minutes").font(.caption).foregroundStyle(.secondary) } }
+            .disabled(timer.isRunning).accessibilityIdentifier("settings-\(title.replacingOccurrences(of: " ", with: "-").lowercased())")
+    }
+    private func sync() { iCloudSyncManager.shared.syncTimerSettings(TimerSettings(workDuration: timer.workDuration, breakDuration: timer.breakDuration, longBreakDuration: timer.longBreakDuration, autoStartNextSession: timer.autoStartNextSession)) }
+}
+
+struct SoundHapticsSettingsView: View {
+    @AppStorage("soundEnabled") private var soundEnabled = true; @AppStorage("hapticsEnabled") private var hapticsEnabled = true
+    var body: some View { List { Section { Toggle("Sound", isOn: $soundEnabled); Toggle("Haptics", isOn: $hapticsEnabled) } footer: { Text("Control feedback when sessions complete and actions are confirmed.") } }.navigationTitle("Sound & Haptics").navigationBarTitleDisplayMode(.inline) }
+}
+
+struct AppearanceSettingsView: View {
+    @AppStorage("appTheme") private var appTheme = AppTheme.system
+    var body: some View { List { Section { Picker("Theme", selection: $appTheme) { ForEach(AppTheme.allCases) { Text($0.rawValue).tag($0) } }.accessibilityIdentifier("settings-theme-picker") } footer: { Text("System follows the appearance selected in iPhone Settings.") } }.navigationTitle("Appearance").navigationBarTitleDisplayMode(.inline) }
+}
+
+struct IntegrationsSettingsView: View {
+    var body: some View { List { Section { GmailIntegrationView() } header: { Text("Connected services") } footer: { Text("Imported messages become actionable items in your Inbox.") } }.navigationTitle("Integrations").navigationBarTitleDisplayMode(.inline) }
+}
+
+struct AccountSyncSettingsView: View {
+    @Environment(AuthManager.self) private var authManager
+    @State private var signInError: String?; @State private var confirmSignOut = false
+    var body: some View {
+        List {
+            Section("Account") {
+                if authManager.isSignedIn { Label { VStack(alignment: .leading) { Text(authManager.displayName ?? "Synapse user").font(.headline); Text(authManager.email ?? "Apple account connected").font(.subheadline).foregroundStyle(.secondary) } } icon: { Image(systemName: "person.crop.circle.fill").foregroundStyle(Color.themeAccent) } }
+                else { Text("Sign in with Apple to associate this installation with your Synapse account.").foregroundStyle(.secondary); Button("Sign in with Apple") { signIn() }.buttonStyle(.borderedProminent).tint(Color.themeButtonBackground).accessibilityIdentifier("settings-sign-in") }
+            }
             if authManager.isSignedIn {
-                Section("ACCOUNT") {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(authManager.displayName ?? "User")
-                                .font(.system(size: 16, weight: .medium))
-                            Text(authManager.email ?? "")
-                                .font(.system(size: 14))
-                                .foregroundStyle(.secondary)
-                        }
-                        Spacer()
-                        Image(systemName: "person.circle.fill")
-                            .font(.system(size: 32))
-                            .foregroundStyle(.blue)
-                    }
-                }
-
-                // Device Statistics Section
-                Section("DEVICES") {
-                    if isLoadingDeviceStats {
-                        HStack {
-                            ProgressView()
-                            Text("Loading device info...")
-                                .foregroundStyle(.secondary)
-                        }
-                    } else if let stats = deviceStats {
-                        VStack(alignment: .leading, spacing: 12) {
-                            HStack {
-                                Image(systemName: "iphone")
-                                    .foregroundStyle(.blue)
-                                Text("\(stats.activeDevices) Active Devices")
-                                    .font(.system(size: 16, weight: .medium))
-                                Spacer()
-                                Text("\(stats.totalDevices) Total")
-                                    .font(.system(size: 14))
-                                    .foregroundStyle(.secondary)
-                            }
-
-                            HStack(spacing: 16) {
-                                deviceTypeBadge("iOS", count: stats.iosDevices, color: .blue)
-                                deviceTypeBadge("macOS", count: stats.macDevices, color: .orange)
-                                deviceTypeBadge("watchOS", count: stats.watchosDevices, color: .green)
-                            }
-                        }
-                    } else if deviceStatsError != nil {
-                        HStack {
-                            Image(systemName: "exclamationmark.triangle")
-                                .foregroundStyle(.orange)
-                            Text("Couldn't load device info")
-                                .foregroundStyle(.secondary)
-                            Spacer()
-                            Button("Retry") {
-                                loadDeviceStats()
-                            }
-                            .font(.system(size: 14))
-                        }
-                    }
-                }
-
-                Section {
-                     Button("Sign Out", role: .destructive) {
-                         _Concurrency.Task { await authManager.signOut() }
-                     }
-                }
-            } else {
-                Section("ACCOUNT") {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Not signed in")
-                                .font(.system(size: 16, weight: .medium))
-                            Text("Sign in to sync your data")
-                                .font(.system(size: 14))
-                                .foregroundStyle(.secondary)
-                        }
-                        Spacer()
-                        Image(systemName: "person.circle")
-                            .font(.system(size: 32))
-                            .foregroundStyle(.secondary)
-                    }
-
-                     Button("Sign In with Apple") {
-                         _Concurrency.Task {
-                            do {
-                                try await authManager.signInWithApple()
-                            } catch {
-                                print("Sign-in failed: \(error)")
-                            }
-                        }
-                    }
-                    .foregroundStyle(.blue)
-                }
+                Section { Button("Sign out", role: .destructive) { confirmSignOut = true }.accessibilityIdentifier("settings-sign-out") }
             }
-        }
-        .navigationTitle("Account")
-        .onAppear {
-            if authManager.isSignedIn && deviceStats == nil {
-                loadDeviceStats()
-            }
-        }
-        #if os(iOS)
-        .navigationBarTitleDisplayMode(.large)
-        #endif
+        }.navigationTitle("Account").navigationBarTitleDisplayMode(.inline)
+            .confirmationDialog("Sign out of Synapse?", isPresented: $confirmSignOut) { Button("Sign out", role: .destructive) { Task { await authManager.signOut() } }; Button("Cancel", role: .cancel) {} } message: { Text("Your local data stays on this device.") }
+            .alert("Sign-in failed", isPresented: Binding(get: { signInError != nil }, set: { if !$0 { signInError = nil } })) { Button("OK", role: .cancel) { signInError = nil } } message: { Text(signInError ?? "Please try again.") }
     }
+    private func signIn() { Task { do { try await authManager.signInWithApple() } catch { signInError = error.localizedDescription } } }
+}
 
-    // MARK: - Device Stats Functions
-
-    private func loadDeviceStats() {
-        guard authManager.isSignedIn else { return }
-
-        isLoadingDeviceStats = true
-        deviceStatsError = nil
-
-        _Concurrency.Task {
-            do {
-                guard let config = ApiClient.Configuration.fromInfoPlist(),
-                      let accessToken = authManager.getValidAccessToken() else {
-                    throw NSError(domain: "DeviceStats", code: -1,
-                                userInfo: [NSLocalizedDescriptionKey: "Missing or invalid access token"])
-                }
-
-                let apiClient = ApiClient(baseURL: config.baseURL)
-                let stats = try await apiClient.getDeviceStats(accessToken: accessToken)
-
-                await MainActor.run {
-                    self.deviceStats = stats
-                    self.isLoadingDeviceStats = false
-                }
-            } catch {
-                await MainActor.run {
-                    self.deviceStatsError = error.localizedDescription
-                    self.isLoadingDeviceStats = false
-                }
+struct SupportAboutSettingsView: View {
+    let featureFlags: FeatureFlags
+    var body: some View {
+        List {
+            Section("Support") {
+                Link("Help & Support", destination: URL(string: "https://synapse.app/help")!)
+                Link("Privacy Policy", destination: URL(string: "https://synapse.app/privacy")!)
             }
+            Section("About") { LabeledContent("Version", value: Bundle.main.displayVersion) }
+#if DEBUG
+            if featureFlags.diagnosticsEnabled {
+                Section("Developer") { NavigationLink("Feature Flags") { FeatureFlagsDebugView() } }
+            }
+#endif
         }
-    }
-
-    private func deviceTypeBadge(_ type: String, count: Int, color: Color) -> some View {
-        HStack(spacing: 4) {
-            Image(systemName: type.lowercased() == "ios" ? "iphone" :
-                         type.lowercased() == "macos" ? "laptopcomputer" : "applewatch")
-                .foregroundStyle(color)
-            Text("\(count)")
-                .font(.system(size: 14, weight: .medium))
-                .foregroundStyle(color)
-        }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background(color.opacity(0.1))
-        .cornerRadius(8)
+        .navigationTitle("Support & About")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
-#Preview {
-    SettingsView()
-        .environment(PomodoroTimer())
-        .environment(SessionLogger())
-        .environment(AuthManager.shared)
-        .environment(TaskService())
-        .environment(FeatureFlags(
-            userDefaults: UserDefaults(suiteName: "Synapse.SettingsPreview") ?? .standard
-        ))
+struct DataPrivacySettingsView: View {
+    let timer: PomodoroTimer; let logger: SessionLogger; @State private var confirmReset = false; @State private var confirmClearHistory = false
+    var body: some View { List { Section { Button("Reset settings to defaults", role: .destructive) { confirmReset = true }.accessibilityIdentifier("settings-reset-defaults"); Button("Clear local focus history", role: .destructive) { confirmClearHistory = true }.accessibilityIdentifier("settings-clear-history") } footer: { Text("These actions do not delete your account, Gmail connections, or cloud data.") } }.navigationTitle("Data & Privacy").navigationBarTitleDisplayMode(.inline)
+        .confirmationDialog("Reset settings?", isPresented: $confirmReset) { Button("Reset settings", role: .destructive) { timer.resetDurationsToDefaults(); UserDefaults.standard.set(true, forKey: "soundEnabled"); UserDefaults.standard.set(true, forKey: "hapticsEnabled"); UserDefaults.standard.set(AppTheme.system.rawValue, forKey: "appTheme") }; Button("Cancel", role: .cancel) {} } message: { Text("Timer durations, sound, haptics, and appearance will return to their defaults.") }
+        .confirmationDialog("Clear local focus history?", isPresented: $confirmClearHistory) { Button("Clear history", role: .destructive) { logger.clear() }; Button("Cancel", role: .cancel) {} } message: { Text("This removes focus-session history stored on this device. Account and cloud data are not affected.") } }
 }
+
+#Preview { SettingsView().environment(PomodoroTimer()).environment(SessionLogger()).environment(AuthManager.shared).environment(FeatureFlags(userDefaults: UserDefaults(suiteName: "Synapse.SettingsPreview") ?? .standard)) }

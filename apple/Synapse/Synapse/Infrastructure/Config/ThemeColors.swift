@@ -1,10 +1,34 @@
 import SwiftUI
 
+enum AppTheme: String, CaseIterable, Identifiable {
+    case light = "Light"
+    case dark = "Dark"
+    case system = "System"
+    var id: String { rawValue }
+    var colorScheme: ColorScheme? {
+        switch self {
+        case .light: .light
+        case .dark: .dark
+        case .system: nil
+        }
+    }
+}
+
 extension Color {
     // Primary Green Scheme
     static let themePrimary = Color(hex: "#A8E6CF")
     static let themeSecondary = Color(hex: "#FFD7A8") // Orange secondary
     static let themeAccent = Color(hex: "#56C596")
+
+    // Dedicated action colors keep button labels readable in both appearances.
+    // The existing pastel themePrimary remains useful for decorative surfaces.
+    static let themeButtonBackground = Color(hex: "#176B46")
+    static let themeButtonForeground = Color.white
+
+    // Focus timer phase colors: intentionally saturated for quick recognition.
+    static let focusWork = Color(hex: "#4F7CFF")
+    static let focusBreak = Color(hex: "#FFB547")
+    static let focusLongBreak = Color(hex: "#A66CFF")
     static let themeTextPrimary: Color = {
         #if canImport(UIKit)
         Color(UIColor { t in

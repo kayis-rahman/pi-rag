@@ -107,7 +107,7 @@ xcodebuild test \
   -scheme "Synapse iOS" \
   -destination "platform=iOS,id=$DEVICE_ID" \
   -derivedDataPath /private/tmp/synapse-iphone15pro-ui-tests \
-  -only-testing:SynapseUITests/GTDWorkspaceUITests \
+  -only-testing:SynapseUITests/WorkspaceUITests \
   -enableCodeCoverage NO \
   -allowProvisioningUpdates
 ```
@@ -130,8 +130,8 @@ once with `build-for-testing`, then runs each given identifier with
 
 ```sh
 ./scripts/run-on-iphone15pro.sh --test-each \
-  SynapseUITests/GTDWorkspaceUITests/testHomeTaskOpensDetailsAndSaves \
-  SynapseUITests/GTDWorkspaceUITests/testDeletingAreaMovesItsTaskToUncategorized
+  SynapseUITests/WorkspaceUITests/testHomeTaskOpensDetailsAndSaves \
+  SynapseUITests/WorkspaceUITests/testDeletingAreaMovesItsTaskToUncategorized
 ```
 
 `--test` itself also accepts multiple identifiers to run together in one
@@ -141,8 +141,8 @@ at once):
 
 ```sh
 ./scripts/run-on-iphone15pro.sh --test \
-  SynapseUITests/GTDWorkspaceUITests/testHomeTaskOpensDetailsAndSaves \
-  SynapseUITests/GTDWorkspaceUITests/testDeletingAreaMovesItsTaskToUncategorized
+  SynapseUITests/WorkspaceUITests/testHomeTaskOpensDetailsAndSaves \
+  SynapseUITests/WorkspaceUITests/testDeletingAreaMovesItsTaskToUncategorized
 ```
 
 The iOS app scheme contains UI tests only. Run Weekly Review service and
@@ -167,7 +167,7 @@ For example, to verify capture → Home → task details → save:
 
 ```sh
 ./scripts/run-on-iphone15pro.sh --test \
-  SynapseUITests/GTDWorkspaceUITests/testHomeTaskOpensDetailsAndSaves
+  SynapseUITests/WorkspaceUITests/testHomeTaskOpensDetailsAndSaves
 ```
 
 Or invoke `xcodebuild` directly:
@@ -178,7 +178,7 @@ xcodebuild test \
   -scheme "Synapse iOS" \
   -destination "platform=iOS,id=$DEVICE_ID" \
   -derivedDataPath /private/tmp/synapse-iphone15pro-ui-tests-focused \
-  -only-testing:SynapseUITests/GTDWorkspaceUITests/testHomeTaskOpensDetailsAndSaves \
+  -only-testing:SynapseUITests/WorkspaceUITests/testHomeTaskOpensDetailsAndSaves \
   -enableCodeCoverage NO \
   -allowProvisioningUpdates
 ```
@@ -187,7 +187,7 @@ To run the Daily Briefing physical UI test:
 
 ```sh
 ./scripts/run-on-iphone15pro.sh --test \
-  SynapseUITests/GTDWorkspaceUITests/testDailyBriefingShowsPositiveEmptyStateOnDevice
+  SynapseUITests/WorkspaceUITests/testDailyBriefingShowsPositiveEmptyStateOnDevice
 ```
 
 The physical test validates capture → Home → task details → save. Swift-level
@@ -196,7 +196,7 @@ behavior tests cover editing the title and preserving the task identity.
 Other useful test names are visible in:
 
 ```text
-apple/Synapse/SynapseUITests/iOS/GTDWorkspaceUITests.swift
+apple/Synapse/SynapseUITests/iOS/WorkspaceUITests.swift
 ```
 
 Use the same command and replace the value passed to `-only-testing` with the
@@ -330,7 +330,7 @@ For Xcode 27’s CloudKit SDK, account status is named `CKAccountStatus`; using
 
 This is a real physical-device test result. Use `xcresulttool` to locate the
 source line and export attachments. For example, a failure in
-`GTDWorkspaceUITests.setUpWithError()` while waiting for
+`WorkspaceUITests.setUpWithError()` while waiting for
 `home-capture-ui-testing` means the app launched but did not expose the expected
 test UI. Inspect the exported UI hierarchy and screen recording before changing
 the feature assertion. If the hierarchy contains a presented sheet container

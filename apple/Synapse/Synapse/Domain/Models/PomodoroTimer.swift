@@ -131,6 +131,9 @@ class PomodoroTimer {
         lastModifiedTimestamp = startTimestamp!
         persistState(now: now)
         scheduleCompletionNotification()
+        #if os(iOS)
+        FocusLiveActivityManager.shared.sync(with: self)
+        #endif
         startTimer()
     }
 
@@ -144,6 +147,9 @@ class PomodoroTimer {
         persistState()
         cancelCompletionNotification()
         stopTimer()
+        #if os(iOS)
+        FocusLiveActivityManager.shared.sync(with: self)
+        #endif
     }
 
     func reset() {
@@ -165,6 +171,9 @@ class PomodoroTimer {
         lastModifiedTimestamp = Date().timeIntervalSince1970
         FocusTimerPersistence.clear()
         cancelCompletionNotification()
+        #if os(iOS)
+        FocusLiveActivityManager.shared.end()
+        #endif
     }
 
     func advance() {
@@ -211,6 +220,9 @@ class PomodoroTimer {
         endAt = nil
         persistState()
         cancelCompletionNotification()
+        #if os(iOS)
+        FocusLiveActivityManager.shared.sync(with: self)
+        #endif
     }
 
     /// Handle timer reaching zero — advance phase and optionally auto-start
@@ -285,6 +297,9 @@ class PomodoroTimer {
                 scheduleCompletionNotification()
             }
         }
+        #if os(iOS)
+        FocusLiveActivityManager.shared.sync(with: self)
+        #endif
     }
 
     @discardableResult
@@ -346,6 +361,9 @@ class PomodoroTimer {
         } else {
             stopTimer()
         }
+        #if os(iOS)
+        FocusLiveActivityManager.shared.sync(with: self)
+        #endif
     }
 
     private func startTimer() {

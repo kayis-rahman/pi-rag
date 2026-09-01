@@ -1,6 +1,6 @@
 import Foundation
 
-enum GTDWorkspaceFilter: String, CaseIterable, Identifiable {
+enum WorkspaceFilter: String, CaseIterable, Identifiable {
     case active
     case completed
     case archived
@@ -15,7 +15,7 @@ enum GTDWorkspaceFilter: String, CaseIterable, Identifiable {
     }
 }
 
-struct GTDProjectMetrics: Equatable {
+struct ProjectMetrics: Equatable {
     let total: Int
     let completed: Int
 
@@ -27,14 +27,20 @@ struct GTDProjectMetrics: Equatable {
     var remaining: Int { max(total - completed, 0) }
 }
 
-enum GTDWorkspaceMetrics {
+struct ProjectPortfolioSummary: Equatable {
+    let active: Int
+    let moving: Int
+    let needsNextAction: Int
+}
+
+enum WorkspaceMetrics {
     enum AreaFilter: Equatable {
         case all
         case uncategorized
         case area(UUID)
     }
 
-    static func projects(_ projects: [Project], matching filter: GTDWorkspaceFilter) -> [Project] {
+    static func projects(_ projects: [Project], matching filter: WorkspaceFilter) -> [Project] {
         projects.filter { project in
             switch filter {
             case .active: !project.isArchived && project.status == .active
@@ -44,8 +50,21 @@ enum GTDWorkspaceMetrics {
         }
     }
 
-    static func projectMetrics(tasks: [TaskItem]) -> GTDProjectMetrics {
-        GTDProjectMetrics(total: tasks.count, completed: tasks.filter { $0.status == .completed }.count)
+    static func projectMetrics(tasks: [TaskItem]) -> ProjectMetrics {
+        ProjectMetrics(total: tasks.count, completed: tasks.filter { $0.status == .completed }.count)
+    }
+
+    static func projectPortfolioSummary(projects: [Project], tasks: [TaskItem]) -> ProjectPortfolioSummary {
+        let activeProjects = projects.filter { !$0.isArchived && $0.status == .active }
+        let moving = activeProjects.filter { project in
+            tasks.contains { $0.project?.id == project.id && $0.status == .nextAction }
+        }.count
+
+        return ProjectPortfolioSummary(
+            active: activeProjects.count,
+            moving: moving,
+            needsNextAction: activeProjects.count - moving
+        )
     }
 
     static func tasks(in area: Area, from tasks: [TaskItem]) -> [TaskItem] {

@@ -108,8 +108,8 @@ struct TaskListView: View {
                                     .fontWeight(.semibold)
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 8)
-                                    .background(Color.themePrimary)
-                                    .foregroundColor(.white)
+                                    .background(Color.themeButtonBackground)
+                                    .foregroundColor(Color.themeButtonForeground)
                                     .clipShape(RoundedRectangle(cornerRadius: 8))
                             }
                             .padding(.horizontal, 200)

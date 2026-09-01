@@ -200,7 +200,7 @@ struct SynapseShortcuts: AppShortcutsProvider {
     static var appShortcuts: [AppShortcut] {
         AppShortcut(intent: AddCaptureIntent(), phrases: ["Capture an item in \(.applicationName)"], shortTitle: "Capture item", systemImageName: "tray.and.arrow.down")
         AppShortcut(intent: AddNextActionIntent(), phrases: ["Add a next action in \(.applicationName)"], shortTitle: "Add next action", systemImageName: "checkmark.circle")
-        AppShortcut(intent: StartWeeklyReviewIntent(), phrases: ["Start my weekly review in \(.applicationName)"], shortTitle: "Start review", systemImageName: "checklist")
+        AppShortcut(intent: StartWeeklyReviewIntent(), phrases: ["Start my weekly review in \(.applicationName)"], shortTitle: "Start review", systemImageName: "arrow.triangle.2.circlepath")
         AppShortcut(intent: StartFocusIntent(), phrases: ["Start focus in \(.applicationName)"], shortTitle: "Start focus", systemImageName: "timer")
         AppShortcut(intent: CompleteTaskIntent(), phrases: ["Mark a task complete in \(.applicationName)"], shortTitle: "Complete task", systemImageName: "checkmark.circle")
         AppShortcut(intent: ShowNextActionsIntent(), phrases: ["What's next in \(.applicationName)", "Show my next actions in \(.applicationName)"], shortTitle: "Next actions", systemImageName: "list.bullet")

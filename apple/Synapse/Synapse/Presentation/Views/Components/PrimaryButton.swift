@@ -37,8 +37,9 @@ struct PrimaryButton: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 16)
         }
-        .foregroundStyle(.white)
-        .glassEffectInteractiveConditional(tint: .themePrimary, in: .rect(cornerRadius: 12))
+        .foregroundStyle(Color.themeButtonForeground)
+        .background(Color.themeButtonBackground, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .glassEffectInteractiveConditional(tint: .themeButtonBackground, in: .rect(cornerRadius: 12))
         .buttonStyle(.plain)
         .disabled(isLoading)
     }

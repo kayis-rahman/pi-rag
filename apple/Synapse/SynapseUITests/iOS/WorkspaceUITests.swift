@@ -1,6 +1,6 @@
 import XCTest
 
-final class GTDWorkspaceUITests: XCTestCase {
+final class WorkspaceUITests: XCTestCase {
     private var app: XCUIApplication!
     // Shared across every launch/relaunch within a single test method so the
     // SwiftData store is stable when a test relaunches mid-test to verify
@@ -135,8 +135,42 @@ final class GTDWorkspaceUITests: XCTestCase {
         XCTAssertTrue(app.buttons["Save"].isEnabled)
     }
 
+    func testVoiceCaptureCanBeSavedToInboxAfterConfirmation() throws {
+        let marker = "Saved voice capture \(UUID().uuidString)"
+        relaunchVoiceCaptureFixture(transcript: marker)
+        app.buttons["home-capture-ui-testing"].tap()
+        app.buttons["capture-voice-mic"].tap()
+        XCTAssertTrue(app.buttons["capture-voice-stop"].waitForExistence(timeout: 5))
+        app.buttons["capture-voice-stop"].tap()
+        let save = app.buttons["Save"]
+        XCTAssertTrue(waitForEnabled(save, timeout: 5))
+        save.tap()
+
+        let confirm = app.buttons["Confirm"]
+        XCTAssertTrue(confirm.waitForExistence(timeout: 10))
+        app.buttons["capture-category-inbox"].tap()
+        confirm.tap()
+
+        app.tabBars.buttons["Inbox"].tap()
+        XCTAssertTrue(app.staticTexts[marker].waitForExistence(timeout: 10))
+    }
+
+    func testVoiceCaptureTimeoutOffersTypedFallback() throws {
+        relaunchVoiceCaptureFixture(transcript: "")
+        app.buttons["home-capture-ui-testing"].tap()
+        app.buttons["capture-voice-mic"].tap()
+
+        XCTAssertTrue(app.staticTexts["I didn’t catch that. Try speaking again or type instead."].waitForExistence(timeout: 8))
+        let typeInstead = app.buttons["capture-voice-type-instead"]
+        XCTAssertTrue(typeInstead.exists)
+        typeInstead.tap()
+
+        XCTAssertFalse(app.staticTexts["I didn’t catch that. Try speaking again or type instead."].exists)
+        XCTAssertFalse(app.buttons["Save"].isEnabled)
+    }
+
     func testCancellingVoiceCaptureDoesNotCreateAnInboxItem() throws {
-        let marker = "Cancelled voice capture (UUID().uuidString)"
+        let marker = "Cancelled voice capture \(UUID().uuidString)"
         relaunchVoiceCaptureFixture(transcript: marker)
         app.buttons["home-capture-ui-testing"].tap()
         app.buttons["capture-voice-mic"].tap()
@@ -451,7 +485,7 @@ final class GTDWorkspaceUITests: XCTestCase {
         XCTAssertEqual(triageButton.label, "Triage")
     }
 
-    func testTriageShowsFutureNextActionInResultsAndGTDList() throws {
+    func testTriageShowsFutureNextActionInResultsAndList() throws {
         let title = "Email the client tomorrow about the work plan"
         relaunch(prefilledCaptureTitle: title)
         app.tabBars.buttons["Inbox"].tap()
@@ -482,7 +516,7 @@ final class GTDWorkspaceUITests: XCTestCase {
         XCTAssertTrue(allLists.waitForExistence(timeout: 5))
         allLists.tap()
 
-        XCTAssertTrue(app.navigationBars["GTD Lists"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.navigationBars["Lists"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["Next Action"].exists)
         XCTAssertTrue(app.staticTexts[title].waitForExistence(timeout: 5))
     }
@@ -491,16 +525,25 @@ final class GTDWorkspaceUITests: XCTestCase {
         openReviewTab()
 
         XCTAssertTrue(app.navigationBars["Weekly Review"].waitForExistence(timeout: 5))
-        let startReview = app.buttons["start-weekly-review"]
+        XCTAssertTrue(app.staticTexts["WEEKLY RESET"].exists)
+        XCTAssertTrue(app.staticTexts["Make space for the week ahead."].exists)
+        XCTAssertTrue(app.descendants(matching: .any)["review-landing"].firstMatch.exists)
+        XCTAssertTrue(app.staticTexts["Reviews"].exists)
+        XCTAssertTrue(app.staticTexts["Week streak"].exists)
+        XCTAssertTrue(app.staticTexts["Inbox"].exists)
+        XCTAssertTrue(app.staticTexts["Projects"].exists)
+        XCTAssertTrue(app.staticTexts["Waiting"].exists)
+        let startReview = app.buttons["Start weekly review"]
         XCTAssertTrue(startReview.waitForExistence(timeout: 5))
         startReview.tap()
 
+        XCTAssertTrue(app.descendants(matching: .any)["review-session"].firstMatch.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any)["weekly-review-progress"].firstMatch.exists)
         XCTAssertTrue(app.buttons["weekly-review-step-0"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.buttons["weekly-review-step-1"].exists)
-        XCTAssertTrue(app.buttons["weekly-review-step-2"].exists)
-        XCTAssertTrue(app.buttons["weekly-review-step-3"].exists)
-        XCTAssertTrue(app.buttons["weekly-review-step-4"].exists)
-        XCTAssertTrue(app.buttons["weekly-review-step-5"].exists)
+        for index in 0...5 {
+            XCTAssertTrue(app.buttons["review-step-navigator-\(index)"].exists)
+        }
+        XCTAssertFalse(app.buttons["weekly-review-step-1"].exists)
     }
 
     func testWeeklyReviewCanSkipEveryStepAndShowsPartialCompletion() throws {
@@ -523,6 +566,10 @@ final class GTDWorkspaceUITests: XCTestCase {
         }
 
         XCTAssertTrue(app.staticTexts["Partial review"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any)["review-completion-summary"].firstMatch.exists)
+        XCTAssertTrue(app.descendants(matching: .any)["review-metric-completed"].firstMatch.exists)
+        XCTAssertTrue(app.descendants(matching: .any)["review-metric-skipped"].firstMatch.exists)
+        XCTAssertTrue(app.descendants(matching: .any)["review-metric-still-open"].firstMatch.exists)
         let startNew = app.buttons["start-new-weekly-review"]
         XCTAssertTrue(startNew.exists)
 
@@ -538,6 +585,7 @@ final class GTDWorkspaceUITests: XCTestCase {
         XCTAssertTrue(startReview.waitForExistence(timeout: 5))
         startReview.tap()
 
+        app.buttons["review-step-navigator-2"].tap()
         XCTAssertTrue(app.staticTexts["Nothing stale"].waitForExistence(timeout: 5))
         let staleStepComplete = reviewStepButton(2, label: "Saved")
         XCTAssertTrue(staleStepComplete.waitForExistence(timeout: 5))
@@ -560,7 +608,9 @@ final class GTDWorkspaceUITests: XCTestCase {
         XCTAssertTrue(app.buttons["home-capture-ui-testing"].waitForExistence(timeout: 15))
         openReviewTab()
 
-        XCTAssertTrue(reviewStepButton(0, label: "Saved").waitForExistence(timeout: 5))
+        let completedStep = app.buttons["review-step-navigator-0"]
+        XCTAssertTrue(completedStep.waitForExistence(timeout: 5))
+        XCTAssertEqual(completedStep.value as? String, "Complete")
         XCTAssertTrue(reviewStepButton(1, label: "Complete").isEnabled)
     }
 
@@ -569,10 +619,12 @@ final class GTDWorkspaceUITests: XCTestCase {
         openReviewTab()
         app.buttons["start-weekly-review"].tap()
 
-        XCTAssertTrue(app.staticTexts["UI Test Stale Review Item"].waitForExistence(timeout: 5))
         for index in 0...5 {
             let complete = reviewStepButton(index, label: "Complete")
             XCTAssertTrue(complete.waitForExistence(timeout: 5))
+            if index == 2 {
+                XCTAssertTrue(app.staticTexts["UI Test Stale Review Item"].exists)
+            }
             complete.tap()
         }
 
@@ -649,11 +701,22 @@ final class GTDWorkspaceUITests: XCTestCase {
 
         XCTAssertTrue(app.staticTexts["OUTCOMES"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["Turn multi-step commitments into clear, finishable outcomes."].exists)
+        XCTAssertTrue(app.descendants(matching: .any)["project-portfolio-header"].firstMatch.exists)
+        for identifier in [
+            "project-portfolio-metric-active",
+            "project-portfolio-metric-moving",
+            "project-portfolio-metric-needs-action"
+        ] {
+            XCTAssertTrue(app.descendants(matching: .any)[identifier].firstMatch.exists)
+        }
+        XCTAssertTrue(app.staticTexts["1 project needs a next action"].exists)
+        XCTAssertTrue(app.staticTexts["Next · UI Test Project Next Action"].exists)
+        XCTAssertTrue(app.staticTexts["Add a clear next action"].exists)
 
         XCTAssertTrue(app.staticTexts["UI Test Project"].waitForExistence(timeout: 5))
         app.staticTexts["UI Test Project"].tap()
         XCTAssertTrue(app.navigationBars["UI Test Project"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts["Outcome"].exists)
+        XCTAssertTrue(app.descendants(matching: .any)["project-detail-outcome"].firstMatch.exists)
     }
 
     func testAreasSurfaceCanCreateAndOpenAnOngoingResponsibility() throws {
@@ -683,11 +746,40 @@ final class GTDWorkspaceUITests: XCTestCase {
         app.staticTexts["UI Test Project"].tap()
 
         XCTAssertTrue(app.navigationBars["UI Test Project"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any)["project-detail-outcome"].firstMatch.exists)
+        XCTAssertTrue(app.descendants(matching: .any)["project-detail-next-action"].firstMatch.exists)
+        XCTAssertTrue(app.descendants(matching: .any)["project-detail-open-actions"].firstMatch.exists)
+        XCTAssertTrue(app.descendants(matching: .any)["project-detail-completed-actions"].firstMatch.exists)
         XCTAssertTrue(app.staticTexts["UI Test Project Next Action"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["UI Test Project Completed Action"].exists)
         XCTAssertFalse(app.staticTexts["UI Test Other Area Action"].exists)
         let progress = app.descendants(matching: .any)["project-detail-progress"].firstMatch
         XCTAssertTrue(progress.waitForExistence(timeout: 5))
+    }
+
+    func testProjectDetailCanAddAConcreteNextAction() throws {
+        relaunchWithProjectAndAreaFixtures()
+        app.tabBars.buttons["Projects"].tap()
+        XCTAssertTrue(app.staticTexts["UI Test Project"].waitForExistence(timeout: 10))
+        app.staticTexts["UI Test Project"].tap()
+
+        app.swipeUp()
+        let addAction = app.buttons["Add action"]
+        XCTAssertTrue(addAction.waitForExistence(timeout: 5))
+        addAction.tap()
+
+        XCTAssertTrue(app.navigationBars["Add action"].waitForExistence(timeout: 5))
+        let title = "UI Test Added Project Action"
+        let titleField = app.textFields["new-project-action-title"]
+        XCTAssertTrue(titleField.waitForExistence(timeout: 5))
+        titleField.tap()
+        titleField.typeText(title)
+        let save = app.buttons["save-project-action"]
+        XCTAssertTrue(waitForEnabled(save, timeout: 5))
+        save.tap()
+
+        XCTAssertTrue(app.navigationBars["Add action"].waitForNonExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts[title].waitForExistence(timeout: 5))
     }
 
     func testAreaDetailShowsOnlyItsOpenLinkedActions() throws {
@@ -753,18 +845,24 @@ final class GTDWorkspaceUITests: XCTestCase {
         XCTAssertTrue(app.buttons["UI Test Other Area Action"].waitForExistence(timeout: 10))
     }
 
-    func testWorkspaceUsesFiveWorkflowTabsAndFocusPreservesTimerSurface() throws {
+    func testWorkspaceUsesFiveWorkflowTabsWithFocusLastAndPreservesTimerSurface() throws {
         let tabBar = app.tabBars.firstMatch
         XCTAssertTrue(tabBar.waitForExistence(timeout: 10))
-        for label in ["Today", "Inbox", "Projects", "Focus", "Review"] {
+        let expectedOrder = ["Today", "Inbox", "Projects", "Review", "Focus"]
+        for label in expectedOrder {
             XCTAssertTrue(tabBar.buttons[label].exists, "Missing workflow tab: \(label)")
         }
+        XCTAssertEqual(
+            tabBar.buttons.allElementsBoundByIndex.map(\.label),
+            expectedOrder,
+            "The workflow tabs should keep Focus in the final position"
+        )
         XCTAssertFalse(tabBar.buttons["Areas"].exists)
         XCTAssertFalse(tabBar.buttons["Profile"].exists)
 
         tabBar.buttons["Focus"].tap()
         XCTAssertTrue(app.navigationBars["Focus"].waitForExistence(timeout: 10))
-        XCTAssertTrue(app.descendants(matching: .any)["CircularTimerView"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.descendants(matching: .any)["focus-timer"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.buttons["focus-primary-action"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.staticTexts["What deserves your attention?"].exists)
         XCTAssertTrue(app.buttons["focus-current-task"].exists)

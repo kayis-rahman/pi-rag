@@ -5,7 +5,7 @@ import SwiftData
 @MainActor
 final class QuickCapturePersistenceTests: XCTestCase {
     func testVoiceDraftDoesNotPersistUntilTheNormalCaptureSavePathRuns() async throws {
-        let marker = "Voice draft (UUID().uuidString)"
+        let marker = "Voice draft \(UUID().uuidString)"
         let backend = PersistenceTestVoiceBackend()
         let voice = VoiceCaptureService(englishBackend: backend)
         let context = ModelContext(SynapseModelContainer.shared)
@@ -21,6 +21,55 @@ final class QuickCapturePersistenceTests: XCTestCase {
         try CapturePersistenceService.save(item, in: context)
         let afterSave = try context.fetch(FetchDescriptor<TaskItem>(predicate: #Predicate { $0.title == marker }))
         XCTAssertEqual(afterSave.count, 1)
+    }
+
+    func testTwoVoiceCapturesWithTheSameTranscriptPersistAsSeparateInboxItems() async throws {
+        let marker = "Repeated voice capture \(UUID().uuidString)"
+        let firstBackend = PersistenceTestVoiceBackend()
+        let secondBackend = PersistenceTestVoiceBackend()
+        let firstVoice = VoiceCaptureService(englishBackend: firstBackend)
+        let secondVoice = VoiceCaptureService(englishBackend: secondBackend)
+        let context = ModelContext(SynapseModelContainer.shared)
+
+        await firstVoice.start(language: .english)
+        firstBackend.emit(marker)
+        await Task.yield()
+        firstVoice.stop()
+
+        await secondVoice.start(language: .english)
+        secondBackend.emit(marker)
+        await Task.yield()
+        secondVoice.stop()
+
+        let first = TaskItem(title: firstVoice.transcript, status: .inbox)
+        let second = TaskItem(title: secondVoice.transcript, status: .inbox)
+        try CapturePersistenceService.save(first, in: context)
+        try CapturePersistenceService.save(second, in: context)
+
+        let saved = try context.fetch(FetchDescriptor<TaskItem>(predicate: #Predicate { $0.title == marker }))
+        XCTAssertEqual(saved.count, 2)
+        XCTAssertEqual(Set(saved.map(\.id)).count, 2)
+    }
+
+    func testVoiceCaptureUsesLocalPersistenceWhenOffline() async throws {
+        let marker = "Offline voice capture \(UUID().uuidString)"
+        let backend = PersistenceTestVoiceBackend()
+        let voice = VoiceCaptureService(englishBackend: backend)
+        let configuration = SynapseModelContainer.configuration(isTesting: true)
+        XCTAssertNil(configuration.cloudKitContainerIdentifier)
+        let context = ModelContext(SynapseModelContainer.shared)
+
+        await voice.start(language: .english)
+        backend.emit(marker)
+        await Task.yield()
+        voice.stop()
+
+        let item = TaskItem(title: voice.transcript, status: .inbox)
+        try CapturePersistenceService.save(item, in: context)
+
+        let saved = try context.fetch(FetchDescriptor<TaskItem>(predicate: #Predicate { $0.title == marker }))
+        XCTAssertEqual(saved.count, 1)
+        XCTAssertEqual(saved.first?.status, .inbox)
     }
 
     func testCaptureSavesLocallyWithCloudKitDisabledForOfflineOperation() throws {

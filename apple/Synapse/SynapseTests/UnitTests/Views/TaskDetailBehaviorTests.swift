@@ -3,7 +3,7 @@ import SwiftData
 @testable import Synapse
 
 @MainActor
-final class GTDTaskDetailBehaviorTests: XCTestCase {
+final class TaskDetailBehaviorTests: XCTestCase {
     func testProjectAndAreaCanClassifyOneActionTogether() {
         let project = Project(title: "Move house")
         let area = Area(name: "Home")

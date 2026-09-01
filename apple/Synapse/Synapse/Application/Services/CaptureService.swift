@@ -47,7 +47,7 @@ final class CaptureService {
     }
 
     private struct Classification {
-        let status: GTDStatus
+        let status: Status
         let area: String?
         let dueDate: Date?
     }
@@ -65,7 +65,7 @@ final class CaptureService {
         ProcessInfo.processInfo.environment["SYNAPSE_CAPTURE_FORCE_HEURISTICS"] == "1"
     }
 
-    private func makeItem(from text: String, status: GTDStatus, area: String?, dueDate: Date?) -> TaskItem {
+    private func makeItem(from text: String, status: Status, area: String?, dueDate: Date?) -> TaskItem {
         let lines = text.split(separator: "\n", maxSplits: 1, omittingEmptySubsequences: true)
         let title = String(lines.first ?? Substring(text))
         let notes = lines.count > 1 ? String(lines[1]) : ""
@@ -74,7 +74,7 @@ final class CaptureService {
 
     private func heuristicResult(for text: String) -> Classification {
         let normalized = text.lowercased()
-        let status: GTDStatus
+        let status: Status
         if normalized.contains("waiting") || normalized.contains("reply") || normalized.contains("hear back") || normalized.contains("follow up") {
             status = .waitingFor
         } else if normalized.contains("someday") || normalized.contains("maybe") || normalized.contains("one day") {
@@ -137,7 +137,7 @@ final class CaptureService {
     @available(iOS 26.0, macOS 26.0, *)
     private func foundationModelResult(for text: String) async -> Classification? {
         let session = LanguageModelSession(instructions: """
-            Classify GTD captures. Return exactly three lines:
+            Classify task organization captures. Return exactly three lines:
             status=<inbox|nextAction|waitingFor|somedayMaybe>
             area=<short area name or none>
             due=<YYYY-MM-DD, today, tomorrow, or none>
@@ -151,7 +151,7 @@ final class CaptureService {
             let pieces = line.split(separator: "=", maxSplits: 1).map(String.init)
             if pieces.count == 2 { result[pieces[0].lowercased()] = pieces[1].trimmingCharacters(in: .whitespacesAndNewlines) }
         }
-        let status = GTDStatus(rawValue: fields["status"] ?? "") ?? .inbox
+        let status = Status(rawValue: fields["status"] ?? "") ?? .inbox
         let area = fields["area"].flatMap { $0.lowercased() == "none" ? nil : $0 }
         return Classification(status: status, area: area, dueDate: parseDate(fields["due"]))
     }

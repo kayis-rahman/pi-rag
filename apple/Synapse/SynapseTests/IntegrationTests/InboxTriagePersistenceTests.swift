@@ -29,7 +29,7 @@ final class InboxTriagePersistenceTests: XCTestCase {
         let inboxItems = [persisted].filter { $0.status == .inbox }
         XCTAssertFalse(inboxItems.contains { $0.id == persisted.id })
         XCTAssertEqual(
-            GTDInboxBehavior.organizedTasks([persisted], status: .nextAction).map(\.id),
+            InboxBehavior.organizedTasks([persisted], status: .nextAction).map(\.id),
             [persisted.id]
         )
     }

@@ -1,6 +1,6 @@
 import Foundation
 
-enum GTDStatus: String, Codable, CaseIterable, Sendable {
+enum Status: String, Codable, CaseIterable, Sendable {
     case inbox
     case nextAction
     case waitingFor

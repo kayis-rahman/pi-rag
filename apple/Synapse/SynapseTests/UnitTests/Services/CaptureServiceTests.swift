@@ -3,7 +3,7 @@ import XCTest
 
 @MainActor
 final class CaptureServiceTests: XCTestCase {
-    func testProcessCaptureReturnsAnUnsavedGTDItem() async {
+    func testProcessCaptureReturnsAnUnsavedItem() async {
         let service = CaptureService(allowsFoundationModel: false)
         let item = await service.processCapture(text: "Email the client tomorrow about the work plan")
 
@@ -45,7 +45,7 @@ final class CaptureServiceTests: XCTestCase {
         XCTAssertEqual(item.contextTags, ["area:Personal"])
     }
 
-    func testProcessCaptureMapsWaitingAndSomedayLanguageToGTDStatuses() async {
+    func testProcessCaptureMapsWaitingAndSomedayLanguageToStatuses() async {
         let service = CaptureService(allowsFoundationModel: false)
 
         let waiting = await service.processCapture(text: "Waiting for the client reply")

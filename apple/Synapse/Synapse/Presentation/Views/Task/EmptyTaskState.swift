@@ -36,12 +36,12 @@ struct EmptyTaskState: View {
             } label: {
                 Text("Create Task")
                     .font(.headline)
-                    .foregroundColor(.white)
+                    .foregroundColor(Color.themeButtonForeground)
                     .padding(.horizontal, 32)
                     .padding(.vertical, 16)
-                    .background(Color.themePrimary)
+                    .background(Color.themeButtonBackground)
                     .clipShape(Capsule())
-                    .shadow(color: Color.themePrimary.opacity(0.3), radius: 8, x: 0, y: 4)
+                    .shadow(color: Color.themeButtonBackground.opacity(0.3), radius: 8, x: 0, y: 4)
             }
 
             Spacer()

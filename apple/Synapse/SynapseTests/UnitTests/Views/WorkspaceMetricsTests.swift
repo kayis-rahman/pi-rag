@@ -2,7 +2,7 @@ import XCTest
 @testable import Synapse
 
 @MainActor
-final class GTDWorkspaceMetricsTests: XCTestCase {
+final class WorkspaceMetricsTests: XCTestCase {
     func testProjectFilterSeparatesActiveAndCompletedOutcomes() {
         let active = Project(title: "Current project")
         let completed = Project(title: "Finished project")
@@ -10,9 +10,9 @@ final class GTDWorkspaceMetricsTests: XCTestCase {
         let archived = Project(title: "Archived project")
         archived.archive()
 
-        XCTAssertEqual(GTDWorkspaceMetrics.projects([active, completed, archived], matching: .active).map(\.title), ["Current project"])
-        XCTAssertEqual(GTDWorkspaceMetrics.projects([active, completed, archived], matching: .completed).map(\.title), ["Finished project"])
-        XCTAssertEqual(GTDWorkspaceMetrics.projects([active, completed, archived], matching: .archived).map(\.title), ["Archived project"])
+        XCTAssertEqual(WorkspaceMetrics.projects([active, completed, archived], matching: .active).map(\.title), ["Current project"])
+        XCTAssertEqual(WorkspaceMetrics.projects([active, completed, archived], matching: .completed).map(\.title), ["Finished project"])
+        XCTAssertEqual(WorkspaceMetrics.projects([active, completed, archived], matching: .archived).map(\.title), ["Archived project"])
     }
 
     func testProjectMetricsCalculateProgressAndRemainingActions() {
@@ -20,19 +20,37 @@ final class GTDWorkspaceMetricsTests: XCTestCase {
         let done = TaskItem(title: "Approve copy", status: .completed, project: project)
         let next = TaskItem(title: "Publish build", status: .nextAction, project: project)
 
-        let metrics = GTDWorkspaceMetrics.projectMetrics(tasks: [done, next])
+        let metrics = WorkspaceMetrics.projectMetrics(tasks: [done, next])
 
-        XCTAssertEqual(metrics, GTDProjectMetrics(total: 2, completed: 1))
+        XCTAssertEqual(metrics, ProjectMetrics(total: 2, completed: 1))
         XCTAssertEqual(metrics.progress, 0.5)
         XCTAssertEqual(metrics.remaining, 1)
     }
 
     func testProjectMetricsWithNoActionsHasZeroProgress() {
-        let metrics = GTDWorkspaceMetrics.projectMetrics(tasks: [])
+        let metrics = WorkspaceMetrics.projectMetrics(tasks: [])
 
-        XCTAssertEqual(metrics, GTDProjectMetrics(total: 0, completed: 0))
+        XCTAssertEqual(metrics, ProjectMetrics(total: 0, completed: 0))
         XCTAssertEqual(metrics.progress, 0)
         XCTAssertEqual(metrics.remaining, 0)
+    }
+
+    func testProjectPortfolioSummarySeparatesMovingAndStalledActiveOutcomes() {
+        let moving = Project(title: "Moving")
+        let stalled = Project(title: "Needs action")
+        let completed = Project(title: "Complete")
+        completed.status = .completed
+        let archived = Project(title: "Archived")
+        archived.archive()
+        let nextAction = TaskItem(title: "Ship it", status: .nextAction, project: moving)
+        let completedAction = TaskItem(title: "Already done", status: .completed, project: stalled)
+
+        let summary = WorkspaceMetrics.projectPortfolioSummary(
+            projects: [moving, stalled, completed, archived],
+            tasks: [nextAction, completedAction]
+        )
+
+        XCTAssertEqual(summary, ProjectPortfolioSummary(active: 2, moving: 1, needsNextAction: 1))
     }
 
     func testAreaTasksOnlyIncludesTasksLinkedToThatArea() {
@@ -42,7 +60,7 @@ final class GTDWorkspaceMetricsTests: XCTestCase {
         let personalTask = TaskItem(title: "Book dentist", areas: [personal])
         let unassigned = TaskItem(title: "Clarify note")
 
-        let result = GTDWorkspaceMetrics.tasks(in: work, from: [workTask, personalTask, unassigned])
+        let result = WorkspaceMetrics.tasks(in: work, from: [workTask, personalTask, unassigned])
 
         XCTAssertEqual(result.map(\.title), ["Prepare brief"])
     }
@@ -53,11 +71,11 @@ final class GTDWorkspaceMetricsTests: XCTestCase {
         let uncategorized = TaskItem(title: "Clarify note")
 
         XCTAssertEqual(
-            GTDWorkspaceMetrics.tasks(matching: .all, areas: [work], from: [assigned, uncategorized]).map(\.title),
+            WorkspaceMetrics.tasks(matching: .all, areas: [work], from: [assigned, uncategorized]).map(\.title),
             ["Prepare brief", "Clarify note"]
         )
         XCTAssertEqual(
-            GTDWorkspaceMetrics.tasks(matching: .uncategorized, areas: [work], from: [assigned, uncategorized]).map(\.title),
+            WorkspaceMetrics.tasks(matching: .uncategorized, areas: [work], from: [assigned, uncategorized]).map(\.title),
             ["Clarify note"]
         )
     }
@@ -69,11 +87,11 @@ final class GTDWorkspaceMetricsTests: XCTestCase {
         let staleTagOnly = TaskItem(title: "Old area tag", contextTags: ["area:Work"])
 
         XCTAssertEqual(
-            GTDWorkspaceMetrics.tasks(matching: .area(work.id), areas: [work, health], from: [multiArea, staleTagOnly]).map(\.title),
+            WorkspaceMetrics.tasks(matching: .area(work.id), areas: [work, health], from: [multiArea, staleTagOnly]).map(\.title),
             ["Plan appointment"]
         )
         XCTAssertEqual(
-            GTDWorkspaceMetrics.tasks(matching: .uncategorized, areas: [work, health], from: [multiArea, staleTagOnly]).map(\.title),
+            WorkspaceMetrics.tasks(matching: .uncategorized, areas: [work, health], from: [multiArea, staleTagOnly]).map(\.title),
             ["Old area tag"]
         )
     }
@@ -83,8 +101,8 @@ final class GTDWorkspaceMetricsTests: XCTestCase {
         let task = TaskItem(title: "Prepare brief", areas: [work])
         task.areas = task.areas?.filter { $0.id != work.id }
 
-        XCTAssertTrue(GTDWorkspaceMetrics.tasks(matching: .area(work.id), areas: [], from: [task]).isEmpty)
-        XCTAssertEqual(GTDWorkspaceMetrics.tasks(matching: .uncategorized, areas: [], from: [task]).count, 1)
+        XCTAssertTrue(WorkspaceMetrics.tasks(matching: .area(work.id), areas: [], from: [task]).isEmpty)
+        XCTAssertEqual(WorkspaceMetrics.tasks(matching: .uncategorized, areas: [], from: [task]).count, 1)
     }
 
     func testAreaNameValidationTrimsAndRejectsCaseInsensitiveDuplicates() {
@@ -104,7 +122,7 @@ final class GTDWorkspaceMetricsTests: XCTestCase {
         let cancelled = TaskItem(title: "Old request", status: .cancelled, areas: [work])
         let otherArea = TaskItem(title: "Buy groceries", status: .nextAction, areas: [personal])
 
-        let result = GTDWorkspaceMetrics.openTasks(in: work, from: [next, completed, cancelled, otherArea])
+        let result = WorkspaceMetrics.openTasks(in: work, from: [next, completed, cancelled, otherArea])
 
         XCTAssertEqual(result.map(\.id), [next.id])
     }
@@ -116,8 +134,8 @@ final class GTDWorkspaceMetricsTests: XCTestCase {
         let cancelled = Project(title: "No longer needed")
         cancelled.status = .cancelled
 
-        XCTAssertEqual(GTDWorkspaceMetrics.projects([active, completed, cancelled], matching: .active).map(\.id), [active.id])
-        XCTAssertEqual(GTDWorkspaceMetrics.projects([active, completed, cancelled], matching: .completed).map(\.id), [completed.id])
+        XCTAssertEqual(WorkspaceMetrics.projects([active, completed, cancelled], matching: .active).map(\.id), [active.id])
+        XCTAssertEqual(WorkspaceMetrics.projects([active, completed, cancelled], matching: .completed).map(\.id), [completed.id])
     }
 
     func testArchivingPreservesActiveStatusAndRestoringReturnsProjectToActive() {

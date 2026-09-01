@@ -37,9 +37,9 @@ final class ProjectAreaPersistenceTests: XCTestCase {
         let persistedProjectTaskIDs = projectTasks.map(\.id).sorted { $0.uuidString < $1.uuidString }
         let expectedProjectTaskIDs = [next.id, complete.id].sorted { $0.uuidString < $1.uuidString }
         XCTAssertEqual(persistedProjectTaskIDs, expectedProjectTaskIDs)
-        XCTAssertEqual(GTDWorkspaceMetrics.projectMetrics(tasks: projectTasks), GTDProjectMetrics(total: 2, completed: 1))
-        XCTAssertEqual(GTDWorkspaceMetrics.openTasks(in: fetchedWork, from: fetchedTasks).map(\.id), [next.id])
-        XCTAssertFalse(GTDWorkspaceMetrics.openTasks(in: fetchedWork, from: fetchedTasks).contains { $0.id == unrelated.id })
+        XCTAssertEqual(WorkspaceMetrics.projectMetrics(tasks: projectTasks), ProjectMetrics(total: 2, completed: 1))
+        XCTAssertEqual(WorkspaceMetrics.openTasks(in: fetchedWork, from: fetchedTasks).map(\.id), [next.id])
+        XCTAssertFalse(WorkspaceMetrics.openTasks(in: fetchedWork, from: fetchedTasks).contains { $0.id == unrelated.id })
 
         fetchedProject.status = .completed
         try context.save()

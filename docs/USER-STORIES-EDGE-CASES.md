@@ -11,7 +11,7 @@
 
 ## 2. AI Auto-Triage
 
-*As a user, I want captured items auto-categorized into GTD buckets, so I don't manually sort everything.*
+*As a user, I want captured items auto-categorized into task organization buckets, so I don't manually sort everything.*
 
 - Edge: device lacks Apple Intelligence → falls back to heuristic rules, user sees no visible difference in flow
 - Edge: AI miscategorizes → user can override with one tap, correction doesn't retrain AI (no learning loop initially)
